@@ -1,0 +1,18 @@
+{
+  "run_name": "my spark task",
+  "new_cluster": {
+    "spark_version": "6.2.x-scala2.11",
+    "node_type_id": "i3.xlarge",
+    "aws_attributes": {
+      "first_on_demand": 0,
+      "availability": "SPOT"
+    },
+    "num_workers": 2
+  },
+  "libraries": [
+
+  ],
+  "spark_python_task": {
+    "python_file": "will ge filled automatically"
+  }
+}

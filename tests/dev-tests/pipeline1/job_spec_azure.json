@@ -1,0 +1,24 @@
+{
+  "run_name": "Nightly model training",
+  "new_cluster": {
+    "spark_version": "6.3.x-scala2.11",
+    "node_type_id": "Standard_DS13_v2",
+    "num_workers": 8
+  },
+  "libraries": [
+  ],
+  "email_notifications": {
+    "on_start": [],
+    "on_success": [],
+    "on_failure": []
+  },
+  "timeout_seconds": 600,
+  "max_retries": 1,
+  "schedule": {
+    "quartz_cron_expression": "0 15 22 ? * *",
+    "timezone_id": "America/Los_Angeles"
+  },
+  "spark_python_task": {
+    "python_file": "will ge filled automatically"
+  }
+}
