@@ -1,15 +1,15 @@
 import sys
-import os.path
 from os import path
 
+import mlflow
 import pkg_resources
 
-from deployment import *
+from mlflowdepl import deployment
 
 def main(test_folder, prod_folder, do_test):
     version = pkg_resources.get_distribution("mlflowdepl").version
 
-    model_name, exp_path, cloud = read_config()
+    model_name, exp_path, cloud = deployment.read_config()
 
     try:
         mlflow.set_experiment(exp_path)
@@ -19,8 +19,8 @@ def main(test_folder, prod_folder, do_test):
             secrets.DATABRICKS_HOST
             secrets.DATABRICKS_TOKEN""")
 
-    libraries = prepare_libraries()
-    run_id, artifact_uri = log_artifacts(model_name, libraries)
+    libraries = deployment.prepare_libraries()
+    run_id, artifact_uri = deployment.log_artifacts(model_name, libraries)
 
     # run test job
     from databricks_cli.configure.provider import get_config
@@ -29,13 +29,13 @@ def main(test_folder, prod_folder, do_test):
     apiClient = _get_api_client(get_config(), command_name='mlflow_deployments-'+version)
 
     if do_test:
-        res = submit_jobs(apiClient, test_folder, run_id, artifact_uri, libraries, cloud, version)
+        res = deployment.submit_jobs(apiClient, test_folder, run_id, artifact_uri, libraries, cloud, version)
         if not res:
             print('Tests were not successful. Quitting..')
             sys.exit(-100)
 
     if path.exists(prod_folder):
-        create_production_jobs(apiClient, prod_folder,run_id, artifact_uri, libraries, cloud, version)
+        deployment.create_production_jobs(apiClient, prod_folder,run_id, artifact_uri, libraries, cloud, version)
 
 
 
