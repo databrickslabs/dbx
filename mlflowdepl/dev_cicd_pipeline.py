@@ -24,7 +24,7 @@ def main(dir):
             secrets.DATABRICKS_TOKEN""")
 
     libraries = deployment.prepare_libraries()
-    run_id, artifact_uri = deployment.log_artifacts(model_name, libraries)
+    run_id, artifact_uri, model_version = deployment.log_artifacts(model_name, libraries)
 
     # run test job
     apiClient = _get_api_client(get_config(), command_name='mlflow_deployments-'+version)
