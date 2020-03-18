@@ -209,6 +209,13 @@ def get_existing_job_ids(model_name, stages):
     print("No older versions found")
     return dict()
 
+def check_if_job_exists(client, job_id):
+    try:
+        res = client.perform_query(method='GET', path='/jobs/get', data={'job_id':job_id})
+        print(res)
+        return True
+    except:
+        return False
 
 def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, version, model_name,
                                      stages, model_version):
@@ -221,8 +228,15 @@ def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, 
             if job_spec is not None:
                 if job_ids.get(pipeline_name):
                     job_id = job_ids[pipeline_name]
-                    update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, pipeline_path, libraries,
+                    print('Found deployed job with ID ', job_id,'. Checking if the job with this ID is registered in Databricks workspace...')
+                    if check_if_job_exists(client, job_id):
+                        print('Production job with ID ', job_id,' exists. Updating job definition...')
+                        update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, pipeline_path, libraries,
                                           version, job_spec)
+                    else:
+                        print('Production job with ID ', job_id, ' does not exist. Creating new one...')
+                        create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries,
+                                              version, job_spec)
                 else:
                     # existing job for the current pipeline does not exists - creating new
                     print('Existing job for the pipeline with name [', pipeline_name, '] does not exists')
