@@ -6,6 +6,7 @@ import pkg_resources
 
 from mlflowdepl import deployment
 
+
 def main(test_folder, prod_folder, do_test):
     version = pkg_resources.get_distribution("mlflowdepl").version
 
@@ -20,13 +21,13 @@ def main(test_folder, prod_folder, do_test):
             secrets.DATABRICKS_TOKEN""")
 
     libraries = deployment.prepare_libraries()
-    run_id, artifact_uri = deployment.log_artifacts(model_name, libraries)
+    run_id, artifact_uri, model_version = deployment.log_artifacts(model_name, libraries)
 
     # run test job
     from databricks_cli.configure.provider import get_config
     from databricks_cli.configure.config import _get_api_client
 
-    apiClient = _get_api_client(get_config(), command_name='mlflow_deployments-'+version)
+    apiClient = _get_api_client(get_config(), command_name='mlflow_deployments-' + version)
 
     if do_test:
         res = deployment.submit_jobs(apiClient, test_folder, run_id, artifact_uri, libraries, cloud, version)
@@ -35,9 +36,8 @@ def main(test_folder, prod_folder, do_test):
             sys.exit(-100)
 
     if path.exists(prod_folder):
-        deployment.create_production_jobs(apiClient, prod_folder,run_id, artifact_uri, libraries, cloud, version)
-
-
+        deployment.create_or_update_production_jobs(apiClient, prod_folder, run_id, artifact_uri, libraries,
+                                                    cloud, version, model_name, ["production"], model_version)
 
 
 if __name__ == "__main__":
