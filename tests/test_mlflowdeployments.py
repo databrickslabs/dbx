@@ -1,6 +1,5 @@
-from mlflowdepl import dev_cicd_pipeline
-from mlflowdepl import release_cicd_pipeline
-import os
+from databrickslabs_mlflowdepl import dev_cicd_pipeline
+from databrickslabs_mlflowdepl import release_cicd_pipeline
 import unittest
 
 class TestMlflowDeployments(unittest.TestCase):

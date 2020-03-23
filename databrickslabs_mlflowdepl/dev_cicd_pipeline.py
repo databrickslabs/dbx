@@ -1,7 +1,7 @@
 import sys
 import pkg_resources
 
-from mlflowdepl import deployment
+from databrickslabs_mlflowdepl import deployment
 import mlflow
 
 # run test job

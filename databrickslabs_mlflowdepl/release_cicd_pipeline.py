@@ -4,7 +4,7 @@ from os import path
 import mlflow
 import pkg_resources
 
-from mlflowdepl import deployment
+from databrickslabs_mlflowdepl import deployment
 
 
 def main(test_folder, prod_folder, do_test):
