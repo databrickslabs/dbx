@@ -1,14 +1,12 @@
 import sys
 from os import path
-
 import mlflow
-import pkg_resources
 
 from databrickslabs_mlflowdepl import deployment
 
 
 def main(test_folder, prod_folder, do_test):
-    version = pkg_resources.get_distribution("mlflowdepl").version
+    apiClient = deployment.getDatabricksAPIClient()
 
     model_name, exp_path, cloud = deployment.read_config()
 
@@ -23,21 +21,15 @@ def main(test_folder, prod_folder, do_test):
     libraries = deployment.prepare_libraries()
     run_id, artifact_uri, model_version = deployment.log_artifacts(model_name, libraries)
 
-    # run test job
-    from databricks_cli.configure.provider import get_config
-    from databricks_cli.configure.config import _get_api_client
-
-    apiClient = _get_api_client(get_config(), command_name='mlflow_deployments-' + version)
-
     if do_test:
-        res = deployment.submit_jobs(apiClient, test_folder, run_id, artifact_uri, libraries, cloud, version)
+        res = deployment.submit_jobs(apiClient, test_folder, artifact_uri, libraries, cloud)
         if not res:
             print('Tests were not successful. Quitting..')
             sys.exit(-100)
 
     if path.exists(prod_folder):
         deployment.create_or_update_production_jobs(apiClient, prod_folder, run_id, artifact_uri, libraries,
-                                                    cloud, version, model_name, ["production"], model_version)
+                                                    cloud, model_name, ["production"], model_version)
 
 
 if __name__ == "__main__":

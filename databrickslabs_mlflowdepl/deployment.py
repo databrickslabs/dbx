@@ -4,6 +4,7 @@ import os.path
 from os import path
 import yaml
 import time
+import pkg_resources
 
 from mlflow.tracking.client import MlflowClient
 
@@ -11,7 +12,18 @@ import mlflow.sklearn
 from os import listdir
 from os.path import isfile, join, isdir, splitext
 
+from databricks_cli.configure.provider import get_config
+from databricks_cli.configure.config import _get_api_client
+
 PIPELINE_RUNNER = 'pipeline_runner.py'
+PACKAGE_NAME = 'databrickslabs_mlflowdepl'
+PRD_NAME = 'mlflow_deployments-'
+
+
+def getDatabricksAPIClient():
+    version = pkg_resources.get_distribution(PACKAGE_NAME).version
+    apiClient = _get_api_client(get_config(), command_name=PRD_NAME + version)
+    return apiClient
 
 
 def wait_for_job_to_finish(client, run_id):
@@ -24,19 +36,10 @@ def wait_for_job_to_finish(client, run_id):
             time.sleep(60)
 
 
-def adjust_job_spec(job_spec, run_id, artifact_uri, libraries, version):
+def adjust_job_spec(job_spec, artifact_uri, libraries):
     job_spec['spark_python_task']['python_file'] = artifact_uri + '/' + PIPELINE_RUNNER
     job_spec['libraries'] = libraries
-    # job_spec["custom_tags"] = [{"key": "run_uuid", "value": mlflow_run_uuid},
-    #                            {"key": "mlflow_deployments_version", "value": version}]
     return job_spec
-
-
-# def generate_job_spec(artifact_uri, libraries, path='deployment/job_template_aws.json'):
-#     with open(path) as json_file:
-#         job_spec = json.load(json_file)
-#         job_spec = adjust_job_spec(job_spec, artifact_uri, libraries)
-#         return job_spec
 
 
 def prepare_libraries():
@@ -60,7 +63,6 @@ def log_artifacts(model_name, libraries):
         mlflow.sklearn.log_model({"my dummy model"}, model_name)
         model_version = mlflow.register_model("runs:/" + run.info.run_uuid + "/" + model_name, model_name)
 
-
         if path.exists('dev-tests'):
             mlflow.log_artifact('dev-tests', artifact_path='job')
         if path.exists('integration-tests'):
@@ -78,8 +80,6 @@ def log_artifacts(model_name, libraries):
 
         run_id = run.info.run_uuid
         artifact_uri = run.info._artifact_uri
-
-
 
     print(run_id)
     print(artifact_uri)
@@ -113,14 +113,6 @@ def read_config():
     return model_name, exp_path, cloud
 
 
-def submit_test_job(client, job_spec):
-    job_run_id = client.perform_query(method='POST', path='/jobs/runs/submit', data=job_spec)
-    print(job_run_id)
-    res = wait_for_job_to_finish(client, job_run_id)
-    print(res)
-    return res
-
-
 def check_if_dir_is_pipeline_def(dir, cloud):
     try:
         with open(join(dir, PIPELINE_RUNNER)):
@@ -139,8 +131,8 @@ def check_if_dir_is_pipeline_def(dir, cloud):
     return None
 
 
-def submit_one_job(client, dir, job_spec, run_id, artifact_uri, libraries, version):
-    adjust_job_spec(job_spec, run_id, artifact_uri + '/job/' + dir, libraries, version)
+def submit_one_job(client, dir, job_spec, artifact_uri, libraries):
+    adjust_job_spec(job_spec, artifact_uri + '/job/' + dir, libraries)
     job_run_id = client.perform_query(method='POST', path='/jobs/runs/submit', data=job_spec)
     print(job_run_id)
     return job_run_id
@@ -155,15 +147,14 @@ def check_if_job_is_done(client, handle):
         return None
 
 
-def submit_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, version):
+def submit_jobs(client, root_folder, artifact_uri, libraries, cloud):
     submitted_jobs = []
     for file in listdir(root_folder):
         pipeline_path = join(root_folder, file)
         if isdir(pipeline_path):
             job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
             if job_spec is not None:
-                submitted_job = submit_one_job(client, pipeline_path, job_spec, run_id, artifact_uri, libraries,
-                                               version)
+                submitted_job = submit_one_job(client, pipeline_path, job_spec, artifact_uri, libraries)
                 if 'run_id' in submitted_job:
                     submitted_jobs.append(submitted_job)
                 else:
@@ -209,15 +200,17 @@ def get_existing_job_ids(model_name, stages):
     print("No older versions found")
     return dict()
 
+
 def check_if_job_exists(client, job_id):
     try:
-        res = client.perform_query(method='GET', path='/jobs/get', data={'job_id':job_id})
+        res = client.perform_query(method='GET', path='/jobs/get', data={'job_id': job_id})
         print(res)
         return True
     except:
         return False
 
-def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, version, model_name,
+
+def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, model_name,
                                      stages, model_version):
     job_ids = get_existing_job_ids(model_name, stages)
     for file in listdir(root_folder):
@@ -228,26 +221,27 @@ def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, 
             if job_spec is not None:
                 if job_ids.get(pipeline_name):
                     job_id = job_ids[pipeline_name]
-                    print('Found deployed job with ID ', job_id,'. Checking if the job with this ID is registered in Databricks workspace...')
+                    print('Found deployed job with ID ', job_id,
+                          '. Checking if the job with this ID is registered in Databricks workspace...')
                     if check_if_job_exists(client, job_id):
-                        print('Production job with ID ', job_id,' exists. Updating job definition...')
-                        update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, pipeline_path, libraries,
-                                          version, job_spec)
+                        print('Production job with ID ', job_id, ' exists. Updating job definition...')
+                        update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, pipeline_path,
+                                              libraries, job_spec)
                     else:
                         print('Production job with ID ', job_id, ' does not exist. Creating new one...')
                         create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries,
-                                              version, job_spec)
+                                              job_spec)
                 else:
                     # existing job for the current pipeline does not exists - creating new
                     print('Existing job for the pipeline with name [', pipeline_name, '] does not exists')
                     print('Creating new one...')
                     create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries,
-                                          version, job_spec)
+                                          job_spec)
     MlflowClient().transition_model_version_stage(name=model_name, version=model_version.version, stage="production")
 
 
-def create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries, version, job_spec):
-    adjust_job_spec(job_spec, run_id, artifact_uri + '/job/' + pipeline_path, libraries, version)
+def create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries, job_spec):
+    adjust_job_spec(job_spec, artifact_uri + '/job/' + pipeline_path, libraries)
     print(job_spec)
     res = client.perform_query(method='POST', path='/jobs/create', data=job_spec)
     print('Created job with ID ', res['job_id'])
@@ -255,10 +249,8 @@ def create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_
     return res
 
 
-def update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, pipeline_path, libraries, version,
-                          job_spec):
-    adjust_job_spec(job_spec, run_id, artifact_uri + '/job/' + pipeline_path, libraries,
-                    version)
+def update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, pipeline_path, libraries, job_spec):
+    adjust_job_spec(job_spec, artifact_uri + '/job/' + pipeline_path, libraries)
     reset_job_spec = dict()
     reset_job_spec['job_id'] = job_id
     reset_job_spec['new_settings'] = job_spec
@@ -267,30 +259,3 @@ def update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, p
     print('Finished updating production job. Result: ')
     print(res)
     MlflowClient().set_tag(run_id, pipeline_name + '_job_id', job_id)
-
-
-def create_production_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, version):
-    for file in listdir(root_folder):
-        pipeline_path = join(root_folder, file)
-        if isdir(pipeline_path):
-            job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
-            if job_spec is not None:
-                adjust_job_spec(job_spec, run_id, artifact_uri + '/job/' + pipeline_path, libraries, version)
-                print(job_spec)
-                res = client.perform_query(method='POST', path='/jobs/create', data=job_spec)
-                print(res)
-                MlflowClient().set_tag(run_id, 'job_id', res)
-                return res
-
-
-def update_job_spec_for_prod_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, version):
-    for file in listdir(root_folder):
-        pipeline_path = join(root_folder, file)
-        if isdir(pipeline_path):
-            job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
-            if job_spec is not None:
-                adjust_job_spec(job_spec["new_settings"], run_id, artifact_uri + '/job/' + pipeline_path, libraries,
-                                version)
-                print(job_spec)
-                res = client.perform_query(method='POST', path='/jobs/reset', data=job_spec)
-                print(res)
