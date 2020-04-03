@@ -36,9 +36,19 @@ def wait_for_job_to_finish(client, run_id):
             time.sleep(60)
 
 
-def adjust_job_spec(job_spec, artifact_uri, libraries):
-    job_spec['spark_python_task']['python_file'] = artifact_uri + '/' + PIPELINE_RUNNER
-    job_spec['libraries'] = libraries
+def adjust_job_spec(job_spec, artifact_uri, pipeline_root, libraries):
+    task_node = job_spec['spark_python_task']
+    task_node['python_file'] = artifact_uri + '/' + PIPELINE_RUNNER
+    if task_node.get('parameters'):
+        params = task_node['parameters']
+        task_node['parameters'] = [artifact_uri] + params
+    else:
+        task_node['parameters'] = [artifact_uri]
+    libraries = libraries + gen_pipeline_dependencies(pipeline_root + '/dependencies', artifact_uri + '/dependencies')
+    if job_spec.get('libraries'):
+        job_spec['libraries'] = job_spec['libraries'] + libraries
+    else:
+        job_spec['libraries'] = libraries
     return job_spec
 
 
@@ -61,7 +71,11 @@ def log_artifacts(model_name, libraries):
                 mlflow.log_artifact(f, artifact_path='job')
 
         mlflow.sklearn.log_model({"my dummy model"}, model_name)
-        model_version = mlflow.register_model("runs:/" + run.info.run_uuid + "/" + model_name, model_name)
+        try:
+            model_version = mlflow.register_model("runs:/" + run.info.run_uuid + "/" + model_name, model_name)
+        except:
+            print('Error transitioning model version. It looks like Model Registry is not available.')
+            model_version = None
 
         if path.exists('dev-tests'):
             mlflow.log_artifact('dev-tests', artifact_path='job')
@@ -69,6 +83,8 @@ def log_artifacts(model_name, libraries):
             mlflow.log_artifact('integration-tests', artifact_path='job')
         if path.exists('pipelines'):
             mlflow.log_artifact('pipelines', artifact_path='job')
+        if path.exists('dependencies'):
+            mlflow.log_artifact('dependencies', artifact_path='job')
 
         for file in listdir('dist'):
             fullfile = join('dist', file)
@@ -78,12 +94,27 @@ def log_artifacts(model_name, libraries):
                     mlflow.log_artifact(fullfile, artifact_path='dist')
                     libraries.append({ext[1:]: run.info._artifact_uri + '/dist/' + file})
 
+        libraries = libraries + gen_pipeline_dependencies('dependencies', run.info._artifact_uri + '/job/dependencies')
+
         run_id = run.info.run_uuid
         artifact_uri = run.info._artifact_uri
 
     print(run_id)
     print(artifact_uri)
-    return run_id, artifact_uri, model_version
+    return run_id, artifact_uri, model_version, libraries
+
+
+def gen_pipeline_dependencies(root_folder, artifact_uri):
+    res = []
+    if path.exists(root_folder + '/jars'):
+        for file in listdir(root_folder + '/jars'):
+            res.append({'jar': artifact_uri + '/jars/' + file})
+    if path.exists(root_folder + '/wheels'):
+        for file in listdir(root_folder + '/wheels'):
+            _, ext = splitext(root_folder + '/wheels/' + file)
+            if ext.lower() in ['.whl', '.egg']:
+                res.append({ext[1:]: artifact_uri + '/wheels/' + file})
+    return res
 
 
 def read_config():
@@ -132,7 +163,7 @@ def check_if_dir_is_pipeline_def(dir, cloud):
 
 
 def submit_one_job(client, dir, job_spec, artifact_uri, libraries):
-    adjust_job_spec(job_spec, artifact_uri + '/job/' + dir, libraries)
+    adjust_job_spec(job_spec, artifact_uri + '/job/' + dir, dir, libraries)
     job_run_id = client.perform_query(method='POST', path='/jobs/runs/submit', data=job_spec)
     print(job_run_id)
     return job_run_id
@@ -237,11 +268,15 @@ def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, 
                     print('Creating new one...')
                     create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries,
                                           job_spec)
-    MlflowClient().transition_model_version_stage(name=model_name, version=model_version.version, stage="production")
+    try:
+        MlflowClient().transition_model_version_stage(name=model_name, version=model_version.version,
+                                                      stage="production")
+    except:
+        print('Error transitioning model version. It looks like Model Registry is not available.')
 
 
 def create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries, job_spec):
-    adjust_job_spec(job_spec, artifact_uri + '/job/' + pipeline_path, libraries)
+    adjust_job_spec(job_spec, artifact_uri + '/job/' + pipeline_path, pipeline_path, libraries)
     print(job_spec)
     res = client.perform_query(method='POST', path='/jobs/create', data=job_spec)
     print('Created job with ID ', res['job_id'])
@@ -250,7 +285,7 @@ def create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_
 
 
 def update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, pipeline_path, libraries, job_spec):
-    adjust_job_spec(job_spec, artifact_uri + '/job/' + pipeline_path, libraries)
+    adjust_job_spec(job_spec, artifact_uri + '/job/' + pipeline_path, pipeline_path, libraries)
     reset_job_spec = dict()
     reset_job_spec['job_id'] = job_id
     reset_job_spec['new_settings'] = job_spec

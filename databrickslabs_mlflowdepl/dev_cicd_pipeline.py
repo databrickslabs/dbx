@@ -17,7 +17,7 @@ def main(dir):
             secrets.DATABRICKS_TOKEN""")
 
     libraries = deployment.prepare_libraries()
-    run_id, artifact_uri, model_version = deployment.log_artifacts(model_name, libraries)
+    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries)
 
     res = deployment.submit_jobs(apiClient, dir, artifact_uri, libraries, cloud)
     if not res:

@@ -10,7 +10,11 @@
     "num_workers": 2
   },
   "libraries": [
-
+    {
+      "maven": {
+        "coordinates": "org.jsoup:jsoup:1.7.2"
+      }
+    }
   ],
   "spark_python_task": {
     "python_file": "will ge filled automatically"

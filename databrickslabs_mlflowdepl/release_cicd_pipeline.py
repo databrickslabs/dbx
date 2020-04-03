@@ -19,7 +19,7 @@ def main(test_folder, prod_folder, do_test):
             secrets.DATABRICKS_TOKEN""")
 
     libraries = deployment.prepare_libraries()
-    run_id, artifact_uri, model_version = deployment.log_artifacts(model_name, libraries)
+    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries)
 
     if do_test:
         res = deployment.submit_jobs(apiClient, test_folder, artifact_uri, libraries, cloud)
