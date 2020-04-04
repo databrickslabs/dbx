@@ -311,21 +311,18 @@ def update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, p
     MlflowClient().set_tag(run_id, pipeline_name + '_job_id', job_id)
 
 
-def create_cluster(client, dir, pipeline_name, cloud):
-    job_spec = check_if_dir_is_pipeline_def(dir + '/' + pipeline_name, cloud)
-    if job_spec:
-        if job_spec.get('new_cluster'):
-            cluster_spec = job_spec['new_cluster']
-            res = client.perform_query(method='POST', path='/clusters/create', data=cluster_spec)
-            if res and res.get('cluster_id'):
-                return res['cluster_id']
-            else:
-                print('Error creating cluster: ', res)
-                return None
+def create_cluster(client, job_spec):
+    if job_spec.get('new_cluster'):
+        cluster_spec = job_spec['new_cluster']
+        res = client.perform_query(method='POST', path='/clusters/create', data=cluster_spec)
+        if res and res.get('cluster_id'):
+            return res['cluster_id']
         else:
-            print('Cannot find cluster definition in job specification for cloud ', cloud)
+            print('Error creating cluster: ', res)
+            return None
     else:
-        print('Cannot find pipeline ', pipeline_name, ' in directory ', dir, ' for the cloud ', cloud)
+        print('Cannot find cluster definition in job specification!')
+        return None
 
 
 def install_libraries(client, dir, pipeline_name, cloud, cluster_id, libraries, artifact_uri):

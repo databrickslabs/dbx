@@ -4,6 +4,7 @@ from os import path
 import mlflow
 
 from databrickslabs_mlflowdepl import deployment
+from deployment import check_if_dir_is_pipeline_def
 
 
 def main(args):
@@ -14,9 +15,15 @@ def main(args):
         print('create_cluster parameter is set to False and cluster_id is not specified. Exiting...')
         sys.exit(-100)
 
-    apiClient = deployment.getDatabricksAPIClient()
-
     model_name, exp_path, cloud = deployment.read_config()
+
+    job_spec = check_if_dir_is_pipeline_def(args.dir_name + '/' + args.pipeline_name, cloud)
+
+    if not job_spec:
+        print('Cannot find pipeline ', args.pipeline_name, ' in directory ', dir, ' for the cloud ', cloud)
+        sys.exit(-100)
+
+    apiClient = deployment.getDatabricksAPIClient()
 
     try:
         mlflow.set_experiment(exp_path)
@@ -27,10 +34,12 @@ def main(args):
             secrets.DATABRICKS_TOKEN""")
 
     libraries = deployment.prepare_libraries()
+    if job_spec.get('libraries'):
+        libraries = libraries + job_spec['libraries']
     run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries)
 
     if args.new_cluster:
-        cluster_id = deployment.create_cluster(apiClient, args.dir_name, args.pipeline_name, cloud)
+        cluster_id = deployment.create_cluster(apiClient, job_spec)
         res = deployment.wait_for_cluster_to_start(apiClient, cluster_id)
         if res not in ['RUNNING']:
             print('Error starting the cluster ', cluster_id)
