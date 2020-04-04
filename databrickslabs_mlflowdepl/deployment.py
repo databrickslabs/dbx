@@ -36,6 +36,18 @@ def wait_for_job_to_finish(client, run_id):
             time.sleep(60)
 
 
+def wait_for_cluster_to_start(client, cluster_id):
+    while True:
+        json_res = client.perform_query(method='GET', path='/clusters/get', data={'cluster_id': cluster_id})
+        print(json_res['state'])
+        if json_res['state'] in ['TERMINATED', 'ERROR', 'UNKNOWN']:
+            return 'TERMINATED'
+        elif json_res['state'] in ['RUNNING']:
+            return 'RUNNING'
+        else:
+            time.sleep(60)
+
+
 def adjust_job_spec(job_spec, artifact_uri, pipeline_root, libraries):
     task_node = job_spec['spark_python_task']
     task_node['python_file'] = artifact_uri + '/' + PIPELINE_RUNNER
@@ -222,13 +234,16 @@ def get_existing_job_ids_for_selected_run(run_id):
 
 
 def get_existing_job_ids(model_name, stages):
-    versions = MlflowClient().get_latest_versions(name=model_name, stages=stages)
-    if versions:
-        for version in versions:
-            job_ids = get_existing_job_ids_for_selected_run(version.run_id)
-            if job_ids:
-                return job_ids
-    print("No older versions found")
+    try:
+        versions = MlflowClient().get_latest_versions(name=model_name, stages=stages)
+        if versions:
+            for version in versions:
+                job_ids = get_existing_job_ids_for_selected_run(version.run_id)
+                if job_ids:
+                    return job_ids
+        print("No older versions found")
+    except:
+        print('Error has occured while determining previous job versions.')
     return dict()
 
 
@@ -294,3 +309,35 @@ def update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, p
     print('Finished updating production job. Result: ')
     print(res)
     MlflowClient().set_tag(run_id, pipeline_name + '_job_id', job_id)
+
+
+def create_cluster(client, dir, pipeline_name, cloud):
+    job_spec = check_if_dir_is_pipeline_def(dir + '/' + pipeline_name, cloud)
+    if job_spec:
+        if job_spec.get('new_cluster'):
+            cluster_spec = job_spec['new_cluster']
+            res = client.perform_query(method='POST', path='/clusters/create', data=cluster_spec)
+            if res and res.get('cluster_id'):
+                return res['cluster_id']
+            else:
+                print('Error creating cluster: ', res)
+                return None
+        else:
+            print('Cannot find cluster definition in job specification for cloud ', cloud)
+    else:
+        print('Cannot find pipeline ', pipeline_name, ' in directory ', dir, ' for the cloud ', cloud)
+
+
+def install_libraries(client, dir, pipeline_name, cloud, cluster_id, libraries, artifact_uri):
+    pipeline_path = dir + '/' + pipeline_name
+    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
+    if job_spec:
+        libraries = libraries + gen_pipeline_dependencies(pipeline_path + '/dependencies',
+                                                          artifact_uri + '/job/' + pipeline_path + '/dependencies')
+        res = client.perform_query(method='POST', path='/libraries/install',
+                                   data={'cluster_id': cluster_id, 'libraries': libraries})
+
+        print(res)
+
+    else:
+        print('Cannot find pipeline ', pipeline_name, ' in directory ', dir, ' for the cloud ', cloud)
