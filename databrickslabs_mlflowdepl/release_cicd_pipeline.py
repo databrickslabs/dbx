@@ -10,19 +10,13 @@ def main(test_folder, prod_folder, do_test):
 
     model_name, exp_path, cloud = deployment.read_config()
 
-    try:
-        mlflow.set_experiment(exp_path)
-    except Exception as e:
-        raise Exception(f"""{e}.
-        Have you added the following secrets to your github repo?
-            secrets.DATABRICKS_HOST
-            secrets.DATABRICKS_TOKEN""")
+    deployment.set_mlflow_experiment_path(exp_path)
 
     libraries = deployment.prepare_libraries()
-    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries)
+    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries, True)
 
     if do_test:
-        res = deployment.submit_jobs(apiClient, test_folder, artifact_uri, libraries, cloud)
+        res = deployment.submit_jobs_for_all_pipelines(apiClient, test_folder, artifact_uri, libraries, cloud)
         if not res:
             print('Tests were not successful. Quitting..')
             sys.exit(-100)

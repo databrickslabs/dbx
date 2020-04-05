@@ -19,6 +19,14 @@ PIPELINE_RUNNER = 'pipeline_runner.py'
 PACKAGE_NAME = 'databrickslabs_mlflowdepl'
 PRD_NAME = 'mlflow_deployments-'
 
+def set_mlflow_experiment_path(exp_path):
+    try:
+        mlflow.set_experiment(exp_path)
+    except Exception as e:
+        raise Exception(f"""{e}.
+        Have you added the following secrets to your github repo?
+            secrets.DATABRICKS_HOST
+            secrets.DATABRICKS_TOKEN""")
 
 def getDatabricksAPIClient():
     version = pkg_resources.get_distribution(PACKAGE_NAME).version
@@ -71,7 +79,7 @@ def prepare_libraries():
         return libraries
 
 
-def log_artifacts(model_name, libraries):
+def log_artifacts(model_name, libraries, register_model):
     job_files = ['runtime_requirements.txt']
     model_version = None
     # log everything we need to mlflow
@@ -82,12 +90,14 @@ def log_artifacts(model_name, libraries):
             else:
                 mlflow.log_artifact(f, artifact_path='job')
 
-        mlflow.sklearn.log_model({"my dummy model"}, model_name)
-        try:
-            model_version = mlflow.register_model("runs:/" + run.info.run_uuid + "/" + model_name, model_name)
-        except:
-            print('Error transitioning model version. It looks like Model Registry is not available.')
-            model_version = None
+        if register_model:
+            mlflow.sklearn.log_model({"my dummy model"}, model_name)
+            try:
+                model_version = mlflow.register_model("runs:/" + run.info.run_uuid + "/" + model_name, model_name)
+            except Exception as e:
+                print(e)
+                print('Error registering model version. It looks like Model Registry is not available.')
+                model_version = None
 
         if path.exists('dev-tests'):
             mlflow.log_artifact('dev-tests', artifact_path='job')
@@ -189,21 +199,30 @@ def check_if_job_is_done(client, handle):
     else:
         return None
 
+def submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud):
+    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
+    if job_spec is not None:
+        submitted_job = submit_one_job(client, pipeline_path, job_spec, artifact_uri, libraries)
+        if 'run_id' in submitted_job:
+            return submitted_job
+        else:
+            print('Error while submitting job!')
+            return None
 
-def submit_jobs(client, root_folder, artifact_uri, libraries, cloud):
+def submit_jobs_for_all_pipelines(client, root_folder, artifact_uri, libraries, cloud, pipeline_name=None):
     submitted_jobs = []
     for file in listdir(root_folder):
-        pipeline_path = join(root_folder, file)
-        if isdir(pipeline_path):
-            job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
-            if job_spec is not None:
-                submitted_job = submit_one_job(client, pipeline_path, job_spec, artifact_uri, libraries)
-                if 'run_id' in submitted_job:
+        if (not pipeline_name) or (pipeline_name and file==pipeline_name):
+            pipeline_path = join(root_folder, file)
+            if isdir(pipeline_path):
+                submitted_job = submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud)
+                if submitted_job:
                     submitted_jobs.append(submitted_job)
-                else:
-                    print('Error while submitting job!')
-                    return False
 
+    return wait_for_all_jobs_to_finish(client, submitted_jobs)
+
+
+def wait_for_all_jobs_to_finish(client, submitted_jobs):
     while True:
         succesfull_jobs = []
         for handle in submitted_jobs:
@@ -229,7 +248,8 @@ def get_existing_job_ids_for_selected_run(run_id):
                 value = run.data.tags[tag]
                 res[tag.replace('_job_id', '')] = value
         return res
-    except:
+    except Exception as e:
+        print(e)
         return {}
 
 
@@ -242,7 +262,8 @@ def get_existing_job_ids(model_name, stages):
                 if job_ids:
                     return job_ids
         print("No older versions found")
-    except:
+    except Exception as e:
+        print(e)
         print('Error has occured while determining previous job versions.')
     return dict()
 

@@ -25,18 +25,12 @@ def main(args):
 
     apiClient = deployment.getDatabricksAPIClient()
 
-    try:
-        mlflow.set_experiment(exp_path)
-    except Exception as e:
-        raise Exception(f"""{e}.
-        Have you added the following secrets to your github repo?
-            secrets.DATABRICKS_HOST
-            secrets.DATABRICKS_TOKEN""")
+    deployment.set_mlflow_experiment_path(exp_path)
 
     libraries = deployment.prepare_libraries()
     if job_spec.get('libraries'):
         libraries = libraries + job_spec['libraries']
-    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries)
+    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries, False)
 
     if args.new_cluster:
         cluster_id = deployment.create_cluster(apiClient, job_spec)
