@@ -332,9 +332,11 @@ def update_production_job(client, job_id, run_id, artifact_uri, pipeline_name, p
     MlflowClient().set_tag(run_id, pipeline_name + '_job_id', job_id)
 
 
-def create_cluster(client, job_spec):
+def create_cluster(client, job_spec, cluster_name=None):
     if job_spec.get('new_cluster'):
         cluster_spec = job_spec['new_cluster']
+        if cluster_name:
+            cluster_spec['cluster_name'] = cluster_name
         res = client.perform_query(method='POST', path='/clusters/create', data=cluster_spec)
         if res and res.get('cluster_id'):
             return res['cluster_id']
