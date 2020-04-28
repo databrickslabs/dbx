@@ -391,7 +391,6 @@ def wait_until(cmd, check_fn, timeout, period=5, *args, **kwargs):
     mustend = time.time() + timeout
     while time.time() < mustend:
         cmd_res = cmd(*args, **kwargs)
-        print(cmd_res)
         if check_fn(cmd_res):
             return cmd_res
         time.sleep(period)
@@ -402,7 +401,6 @@ def wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id):
     def check_command_status(cluster_id, ctx_id, cmd_id):
         return client.perform_query(method='GET', path='/commands/status',
                                     data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
-
     def is_finished(res):
         try:
             return res['status'] == 'Finished'
@@ -414,16 +412,26 @@ def wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id):
 
 
 def execute_command_sync(client, cluster_id, ctx_id, cmd_txt):
-    res = client.perform_query(method='POST', path='/commands/execute',
-                               data={'language': 'python', 'clusterId': cluster_id, 'contextId': ctx_id,
-                                     'command': cmd_txt})
-    cmd_id = res['id']
-    res = wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id)
-    print(res)
-    return res
+    try:
+        print('Sending command:')
+        print(cmd_txt)
+        res = client.perform_query(method='POST', path='/commands/execute',
+                                   data={'language': 'python', 'clusterId': cluster_id, 'contextId': ctx_id,
+                                         'command': cmd_txt})
+        cmd_id = res['id']
+        res = wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id)
+        print('Result:')
+        try:
+            print(res['results']['data'])
+        except:
+            print(res)
+        return res
+    except Exception as e:
+        print('Cannot create execution context due to error: ',e)
+        return None
 
 
-def submit_one_pipeline_to_exctx(client, pipeline_dir, pipeline_name, libraries, current_artifacts, cloud,
+def submit_one_pipeline_to_exctx(client, artifact_uri, pipeline_dir, pipeline_name, libraries, current_artifacts, cloud,
                                  cluster_id, execution_context_id):
     client.url = client.url.replace('/api/2.0', '/api/1.2')
     pipeline_path = join(pipeline_dir, pipeline_name)
@@ -434,13 +442,20 @@ def submit_one_pipeline_to_exctx(client, pipeline_dir, pipeline_name, libraries,
         else:
             lib_cell = generate_artifacts_cell(current_artifacts)
         # install libraries
-        print(lib_cell)
-        cmd_res = execute_command_sync(client, cluster_id, execution_context_id, lib_cell)
+        execute_command_sync(client, cluster_id, execution_context_id, lib_cell)
+        # set param
+        #params = ['', artifact_uri]
+        #task_node = job_spec['spark_python_task']
+        #if task_node.get('parameters'):
+        #    params = task_node['parameters']
+        #params = ['\''+p+'\'' for p in params]
+        code = 'import sys\nsys.argv = [\'\', \''+artifact_uri+'/job/'+pipeline_path+'\']'
+        execute_command_sync(client, cluster_id, execution_context_id, code)
+
         # execute actual code
         with open(join(pipeline_path, PIPELINE_RUNNER), 'r') as content_file:
             content = content_file.read()
             ex_res = execute_command_sync(client, cluster_id, execution_context_id, content)
-            print(ex_res)
 
 
 def ensure_exution_context_exists(client, cluster_id, ex_ctx_id):
@@ -463,4 +478,4 @@ def create_exution_context_exists(client, cluster_id):
         return ex_ctx_id
     except Exception as e:
         print('Error has occured while creating context: ', e)
-        raise e
+        return None
