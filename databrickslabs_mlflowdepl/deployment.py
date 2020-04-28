@@ -19,6 +19,7 @@ PIPELINE_RUNNER = 'pipeline_runner.py'
 PACKAGE_NAME = 'databrickslabs_mlflowdepl'
 PRD_NAME = 'mlflow_deployments-'
 
+
 def set_mlflow_experiment_path(exp_path):
     try:
         mlflow.set_experiment(exp_path)
@@ -27,6 +28,7 @@ def set_mlflow_experiment_path(exp_path):
         Have you added the following secrets to your github repo?
             secrets.DATABRICKS_HOST
             secrets.DATABRICKS_TOKEN""")
+
 
 def getDatabricksAPIClient():
     version = pkg_resources.get_distribution(PACKAGE_NAME).version
@@ -79,7 +81,9 @@ def prepare_libraries():
         return libraries
 
 
-def log_artifacts(model_name, libraries, register_model):
+def log_artifacts(model_name, libraries, register_model=False, dirs_to_deploy=None):
+    if dirs_to_deploy is None:
+        dirs_to_deploy = ['dev-tests', 'integration-tests', 'pipelines', 'dependencies']
     job_files = ['runtime_requirements.txt']
     model_version = None
     # log everything we need to mlflow
@@ -99,31 +103,30 @@ def log_artifacts(model_name, libraries, register_model):
                 print('Error registering model version. It looks like Model Registry is not available.')
                 model_version = None
 
-        if path.exists('dev-tests'):
-            mlflow.log_artifact('dev-tests', artifact_path='job')
-        if path.exists('integration-tests'):
-            mlflow.log_artifact('integration-tests', artifact_path='job')
-        if path.exists('pipelines'):
-            mlflow.log_artifact('pipelines', artifact_path='job')
-        if path.exists('dependencies'):
-            mlflow.log_artifact('dependencies', artifact_path='job')
+        for dir in dirs_to_deploy:
+            if path.exists(dir):
+                mlflow.log_artifact(dir, artifact_path='job')
 
+        current_artifacts = []
         for file in listdir('dist'):
             fullfile = join('dist', file)
             if isfile(fullfile):
                 _, ext = splitext(fullfile)
                 if ext.lower() in ['.whl', '.egg']:
                     mlflow.log_artifact(fullfile, artifact_path='dist')
-                    libraries.append({ext[1:]: run.info._artifact_uri + '/dist/' + file})
-
-        libraries = libraries + gen_pipeline_dependencies('dependencies', run.info._artifact_uri + '/job/dependencies')
+                    dist_file = run.info._artifact_uri + '/dist/' + file
+                    current_artifacts.append(dist_file)
+                    if libraries:
+                        libraries.append({ext[1:]: dist_file})
+        if libraries:
+            libraries = libraries + gen_pipeline_dependencies('dependencies', run.info._artifact_uri + '/job/dependencies')
 
         run_id = run.info.run_uuid
         artifact_uri = run.info._artifact_uri
 
     print(run_id)
     print(artifact_uri)
-    return run_id, artifact_uri, model_version, libraries
+    return run_id, artifact_uri, model_version, libraries, current_artifacts
 
 
 def gen_pipeline_dependencies(root_folder, artifact_uri):
@@ -199,6 +202,7 @@ def check_if_job_is_done(client, handle):
     else:
         return None
 
+
 def submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud):
     job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
     if job_spec is not None:
@@ -209,10 +213,11 @@ def submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries,
             print('Error while submitting job!')
             return None
 
+
 def submit_jobs_for_all_pipelines(client, root_folder, artifact_uri, libraries, cloud, pipeline_name=None):
     submitted_jobs = []
     for file in listdir(root_folder):
-        if (not pipeline_name) or (pipeline_name and file==pipeline_name):
+        if (not pipeline_name) or (pipeline_name and file == pipeline_name):
             pipeline_path = join(root_folder, file)
             if isdir(pipeline_path):
                 submitted_job = submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud)
@@ -361,3 +366,101 @@ def install_libraries(client, dir, pipeline_name, cloud, cluster_id, libraries, 
 
     else:
         print('Cannot find pipeline ', pipeline_name, ' in directory ', dir, ' for the cloud ', cloud)
+
+
+def generate_libraries_cell(libraries):
+    code = ''
+    for d in libraries:
+        library = next(iter(d.values()))
+        if not (type(library) == str):
+            library = next(iter(library.values()))
+        if not ('.jar' in library):
+            library = library.replace('dbfs:/', '/dbfs/')
+            code += ('%pip install ' + library + ' \n')
+    return code
+
+def generate_artifacts_cell(libraries):
+    code = ''
+    for library in libraries:
+        if not ('.jar' in library):
+            library = library.replace('dbfs:/', '/dbfs/')
+            code += ('%pip install ' + library + ' \n')
+    return code
+
+def wait_until(cmd, check_fn, timeout, period=5, *args, **kwargs):
+    mustend = time.time() + timeout
+    while time.time() < mustend:
+        cmd_res = cmd(*args, **kwargs)
+        print(cmd_res)
+        if check_fn(cmd_res):
+            return cmd_res
+        time.sleep(period)
+    return None
+
+
+def wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id):
+    def check_command_status(cluster_id, ctx_id, cmd_id):
+        return client.perform_query(method='GET', path='/commands/status',
+                                    data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
+
+    def is_finished(res):
+        try:
+            return res['status'] == 'Finished'
+        except:
+            return True
+
+    res = wait_until(check_command_status, is_finished, 3600, 5, cluster_id, ctx_id, cmd_id)
+    return res
+
+
+def execute_command_sync(client, cluster_id, ctx_id, cmd_txt):
+    res = client.perform_query(method='POST', path='/commands/execute',
+                               data={'language': 'python', 'clusterId': cluster_id, 'contextId': ctx_id,
+                                     'command': cmd_txt})
+    cmd_id = res['id']
+    res = wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id)
+    print(res)
+    return res
+
+
+def submit_one_pipeline_to_exctx(client, pipeline_dir, pipeline_name, libraries, current_artifacts, cloud,
+                                 cluster_id, execution_context_id):
+    client.url = client.url.replace('/api/2.0', '/api/1.2')
+    pipeline_path = join(pipeline_dir, pipeline_name)
+    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
+    if job_spec is not None:
+        if libraries:
+            lib_cell = generate_libraries_cell(libraries)
+        else:
+            lib_cell = generate_artifacts_cell(current_artifacts)
+        # install libraries
+        print(lib_cell)
+        cmd_res = execute_command_sync(client, cluster_id, execution_context_id, lib_cell)
+        # execute actual code
+        with open(join(pipeline_path, PIPELINE_RUNNER), 'r') as content_file:
+            content = content_file.read()
+            ex_res = execute_command_sync(client, cluster_id, execution_context_id, content)
+            print(ex_res)
+
+
+def ensure_exution_context_exists(client, cluster_id, ex_ctx_id):
+    client.url = client.url.replace('/api/2.0', '/api/1.2')
+    try:
+        res = client.perform_query(method='GET', path='/contexts/status',
+                                   data={'clusterId': cluster_id, 'contextId': ex_ctx_id})
+        return True
+    except:
+        return False
+
+
+def create_exution_context_exists(client, cluster_id):
+    client.url = client.url.replace('/api/2.0', '/api/1.2')
+
+    try:
+        res = client.perform_query(method='POST', path='/contexts/create',
+                                   data={'language': 'python', 'clusterId': cluster_id})
+        ex_ctx_id = res['id']
+        return ex_ctx_id
+    except Exception as e:
+        print('Error has occured while creating context: ', e)
+        raise e

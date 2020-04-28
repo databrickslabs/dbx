@@ -19,7 +19,7 @@ def main(dir_name, pipeline_name, existing_cluster_id):
     libraries = deployment.prepare_libraries()
     if job_spec.get('libraries'):
         libraries = libraries + job_spec['libraries']
-    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries, False)
+    run_id, artifact_uri, model_version, libraries, _ = deployment.log_artifacts(model_name, libraries, False)
 
     if not existing_cluster_id:
         cluster_id = deployment.create_cluster(apiClient, job_spec,

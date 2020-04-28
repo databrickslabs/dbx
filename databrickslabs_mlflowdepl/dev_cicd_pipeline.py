@@ -10,7 +10,7 @@ def main(dir, name=None):
     deployment.set_mlflow_experiment_path(exp_path)
 
     libraries = deployment.prepare_libraries()
-    run_id, artifact_uri, model_version, libraries = deployment.log_artifacts(model_name, libraries, False)
+    run_id, artifact_uri, model_version, libraries, _ = deployment.log_artifacts(model_name, libraries, False)
 
     res = deployment.submit_jobs_for_all_pipelines(apiClient, dir, artifact_uri, libraries, cloud, pipeline_name=name)
     if not res:
