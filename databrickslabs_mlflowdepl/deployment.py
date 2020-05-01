@@ -384,7 +384,7 @@ def generate_artifacts_cell(libraries):
     for library in libraries:
         if not ('.jar' in library):
             library = library.replace('dbfs:/', '/dbfs/')
-            code += ('%pip install ' + library + ' \n')
+            code += ('%pip install --upgrade ' + library + ' \n')
     return code
 
 def wait_until(cmd, check_fn, timeout, period=5, *args, **kwargs):
