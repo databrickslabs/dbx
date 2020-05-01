@@ -12,6 +12,7 @@ def main(pipeline_dir, pipeline_name, cluster_id, reuse_ctx=True):
 
     execution_context_id = None
     libraries = None
+    dirs_to_deploy = [pipeline_dir]
     if reuse_ctx:
         print('Reading execution context...')
         execution_context_id = excontextmgmt.get_existing_execution_context_id(cluster_id)
@@ -29,12 +30,11 @@ def main(pipeline_dir, pipeline_name, cluster_id, reuse_ctx=True):
         excontextmgmt.store_execution_context_id(cluster_id, execution_context_id)
 
         libraries = deployment.prepare_libraries()
+        dirs_to_deploy.append('dependencies')
 
     run_id, artifact_uri, model_version, libraries, current_artifacts = deployment.log_artifacts(model_name, libraries,
                                                                                                  register_model=False,
-                                                                                                 dirs_to_deploy=[
-                                                                                                     'dependencies',
-                                                                                                     pipeline_dir])
+                                                                                                 dirs_to_deploy=dirs_to_deploy)
 
     deployment.submit_one_pipeline_to_exctx(apiClient, artifact_uri, pipeline_dir, pipeline_name, libraries,
                                             current_artifacts, cloud,
