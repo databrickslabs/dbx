@@ -376,8 +376,8 @@ def generate_libraries_cell(libraries):
             library = next(iter(library.values()))
         if not ('.jar' in library):
             library = library.replace('dbfs:/', '/dbfs/')
-            code += ('%pip install ' + library + ' \n')
-    return code
+            code += ( library + ' ')
+    return '%pip install  ' + code
 
 def generate_artifacts_cell(libraries):
     code = ''
