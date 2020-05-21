@@ -1,5 +1,5 @@
 import sys
-from databrickslabs_mlflowdepl import deployment
+from databrickslabs_cicdtemplates import deployment
 
 
 def main(dir, name=None):

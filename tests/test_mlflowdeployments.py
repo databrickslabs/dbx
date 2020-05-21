@@ -1,8 +1,8 @@
 
-from databrickslabs_mlflowdepl import dev_cicd_pipeline
-from databrickslabs_mlflowdepl import release_cicd_pipeline
-from databrickslabs_mlflowdepl import cluster_and_libraries
-from databrickslabs_mlflowdepl import deployment
+from databrickslabs_cicdtemplates import dev_cicd_pipeline
+from databrickslabs_cicdtemplates import release_cicd_pipeline
+from databrickslabs_cicdtemplates import cluster_and_libraries
+from databrickslabs_cicdtemplates import deployment
 import unittest
 
 from deployment import check_if_dir_is_pipeline_def

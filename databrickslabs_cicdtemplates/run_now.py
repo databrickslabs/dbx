@@ -1,6 +1,6 @@
 import sys
-from databrickslabs_mlflowdepl import deployment
-from databrickslabs_mlflowdepl import excontextmgmt
+from databrickslabs_cicdtemplates import deployment
+from databrickslabs_cicdtemplates import excontextmgmt
 
 
 def main(pipeline_dir, pipeline_name, cluster_id, reuse_ctx=True):

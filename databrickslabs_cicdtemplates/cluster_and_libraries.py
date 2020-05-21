@@ -1,6 +1,6 @@
 import sys
 
-from databrickslabs_mlflowdepl import deployment
+from databrickslabs_cicdtemplates import deployment
 
 
 def main(dir_name, pipeline_name, existing_cluster_id):

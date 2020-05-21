@@ -16,8 +16,8 @@ from databricks_cli.configure.provider import get_config
 from databricks_cli.configure.config import _get_api_client
 
 PIPELINE_RUNNER = 'pipeline_runner.py'
-PACKAGE_NAME = 'databrickslabs_mlflowdepl'
-PRD_NAME = 'mlflow_deployments-'
+PACKAGE_NAME = 'databrickslabs_cicdtemplates'
+PRD_NAME = 'cicdtemplates-'
 
 
 def set_mlflow_experiment_path(exp_path):
