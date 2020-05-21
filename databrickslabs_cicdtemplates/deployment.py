@@ -31,10 +31,15 @@ def set_mlflow_experiment_path(exp_path):
 
 
 def getDatabricksAPIClient():
-    version = pkg_resources.get_distribution(PACKAGE_NAME).version
-    apiClient = _get_api_client(get_config(), command_name=PRD_NAME + version)
-    return apiClient
-
+    try:
+        version = pkg_resources.get_distribution(PACKAGE_NAME).version
+        apiClient = _get_api_client(get_config(), command_name=PRD_NAME + version)
+        return apiClient
+    except Exception as e:
+        raise Exception(f"""{e}.
+        Have you added the following secrets to your github repo?
+            secrets.DATABRICKS_HOST
+            secrets.DATABRICKS_TOKEN""")
 
 def wait_for_job_to_finish(client, run_id):
     while True:
