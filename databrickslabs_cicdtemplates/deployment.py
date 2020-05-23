@@ -41,6 +41,7 @@ def getDatabricksAPIClient():
             secrets.DATABRICKS_HOST
             secrets.DATABRICKS_TOKEN""")
 
+
 def wait_for_job_to_finish(client, run_id):
     while True:
         json_res = client.perform_query(method='GET', path='/jobs/runs/get-output', data=run_id)
@@ -124,7 +125,8 @@ def log_artifacts(model_name, libraries, register_model=False, dirs_to_deploy=No
                     if libraries:
                         libraries.append({ext[1:]: dist_file})
         if libraries:
-            libraries = libraries + gen_pipeline_dependencies('dependencies', run.info._artifact_uri + '/job/dependencies')
+            libraries = libraries + gen_pipeline_dependencies('dependencies',
+                                                              run.info._artifact_uri + '/job/dependencies')
 
         run_id = run.info.run_uuid
         artifact_uri = run.info._artifact_uri
@@ -381,8 +383,9 @@ def generate_libraries_cell(libraries):
             library = next(iter(library.values()))
         if not ('.jar' in library):
             library = library.replace('dbfs:/', '/dbfs/')
-            code += ( library + ' ')
+            code += (library + ' ')
     return '%pip install  ' + code
+
 
 def generate_artifacts_cell(libraries):
     code = ''
@@ -391,6 +394,7 @@ def generate_artifacts_cell(libraries):
             library = library.replace('dbfs:/', '/dbfs/')
             code += ('%pip install --upgrade ' + library + ' \n')
     return code
+
 
 def wait_until(cmd, check_fn, timeout, period=5, *args, **kwargs):
     mustend = time.time() + timeout
@@ -406,13 +410,14 @@ def wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id):
     def check_command_status(cluster_id, ctx_id, cmd_id):
         return client.perform_query(method='GET', path='/commands/status',
                                     data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
+
     def is_finished(res):
         try:
             return res['status'] == 'Finished'
         except:
             return True
 
-    res = wait_until(check_command_status, is_finished, 3600, 5, cluster_id, ctx_id, cmd_id)
+    res = wait_until(check_command_status, is_finished, 24 * 3600, 5, cluster_id, ctx_id, cmd_id)
     return res
 
 
@@ -427,12 +432,15 @@ def execute_command_sync(client, cluster_id, ctx_id, cmd_txt):
         res = wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id)
         print('Result:')
         try:
-            print(res['results']['data'])
+            if res['results']['resultType'] == 'error':
+                print(res['results']['cause'])
+            else:
+                print(res['results']['data'])
         except:
             print(res)
         return res
     except Exception as e:
-        print('Cannot create execution context due to error: ',e)
+        print('Cannot create execution context due to error: ', e)
         return None
 
 
@@ -449,12 +457,12 @@ def submit_one_pipeline_to_exctx(client, artifact_uri, pipeline_dir, pipeline_na
         # install libraries
         execute_command_sync(client, cluster_id, execution_context_id, lib_cell)
         # set param
-        #params = ['', artifact_uri]
-        #task_node = job_spec['spark_python_task']
-        #if task_node.get('parameters'):
+        # params = ['', artifact_uri]
+        # task_node = job_spec['spark_python_task']
+        # if task_node.get('parameters'):
         #    params = task_node['parameters']
-        #params = ['\''+p+'\'' for p in params]
-        code = 'import sys\nsys.argv = [\'\', \''+artifact_uri+'/job/'+pipeline_path+'\']'
+        # params = ['\''+p+'\'' for p in params]
+        code = 'import sys\nsys.argv = [\'\', \'' + artifact_uri + '/job/' + pipeline_path + '\']'
         execute_command_sync(client, cluster_id, execution_context_id, code)
 
         # execute actual code
