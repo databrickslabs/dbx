@@ -408,20 +408,28 @@ def wait_until(cmd, check_fn, timeout, period=5, *args, **kwargs):
 
 def wait_for_result_of_command(client, cluster_id, ctx_id, cmd_id):
     def check_command_status(cluster_id, ctx_id, cmd_id):
-        return client.perform_query(method='GET', path='/commands/status',
-                                    data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
+        try:
+            return client.perform_query(method='GET', path='/commands/status',
+                                        data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
+        except Exception as e:
+            print('Error has occurred: ', e)
+            return None
 
     def is_finished(res):
         try:
-            return res['status'] == 'Finished'
+            if res is not None:
+                return res['status'] == 'Finished'
+            else:
+                return False
         except:
-            return True
+            return False
 
     res = wait_until(check_command_status, is_finished, 24 * 3600, 5, cluster_id, ctx_id, cmd_id)
     return res
 
 
 def execute_command_sync(client, cluster_id, ctx_id, cmd_txt):
+    cmd_id = None
     try:
         print('Sending command:')
         print(cmd_txt)
@@ -439,8 +447,14 @@ def execute_command_sync(client, cluster_id, ctx_id, cmd_txt):
         except:
             print(res)
         return res
+    except KeyboardInterrupt as e:
+        if cmd_id is not None:
+            print('Interrupted. Stopping command execution...')
+            client.perform_query(method='POST', path='/commands/cancel',
+                                       data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
+        return None
     except Exception as e:
-        print('Cannot create execution context due to error: ', e)
+        print('Error has occurred: ', e)
         return None
 
 
