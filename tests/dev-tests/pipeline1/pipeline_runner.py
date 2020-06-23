@@ -1,3 +1,5 @@
+from time import sleep
+
 import pandas as pd
 import numpy as np
 
@@ -14,3 +16,4 @@ import sys
 sys.argv = ['aaaa', 'ksksksks']
 for a in sys.argv:
     print(a)
+sleep(10)

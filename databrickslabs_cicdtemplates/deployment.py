@@ -176,21 +176,27 @@ def read_config():
     return model_name, exp_path, cloud
 
 
-def check_if_dir_is_pipeline_def(dir, cloud):
+def check_if_dir_is_pipeline_def(dir, cloud, env):
     try:
         with open(join(dir, PIPELINE_RUNNER)):
             pass
     except FileNotFoundError as e:
-        print('pipeline is expected to have a python script')
+        print('Pipeline is expected to have a python script')
         return None
     try:
-        with open(join(dir, 'job_spec_' + cloud + '.json')) as file:
+        conf_path = join(dir, 'job_spec_' + cloud + '.json')
+        if env is not None:
+            conf_path_env = join(dir, 'job_spec_' + cloud + '_' + env + '.json')
+            if path.exists(conf_path_env):
+                conf_path = conf_path_env
+
+        with open(conf_path) as file:
             job_spec = json.load(file)
             return job_spec
     except FileNotFoundError as e:
-        print('pipeline is expected to hava Databricks Job Definition in ')
+        print('Pipeline is expected to hava Databricks Job Definition in ', conf_path)
     except JSONDecodeError as e:
-        print('pipeline is expected to hava Databricks Job Definition in ')
+        print('Pipeline is expected to hava Databricks Job Definition in ',conf_path)
     return None
 
 
@@ -210,8 +216,8 @@ def check_if_job_is_done(client, handle):
         return None
 
 
-def submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud):
-    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
+def submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud, env):
+    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud, env)
     if job_spec is not None:
         submitted_job = submit_one_job(client, pipeline_path, job_spec, artifact_uri, libraries)
         if 'run_id' in submitted_job:
@@ -221,13 +227,13 @@ def submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries,
             return None
 
 
-def submit_jobs_for_all_pipelines(client, root_folder, artifact_uri, libraries, cloud, pipeline_name=None):
+def submit_jobs_for_all_pipelines(client, root_folder, artifact_uri, libraries, cloud, env, pipeline_name=None):
     submitted_jobs = []
     for file in listdir(root_folder):
         if (not pipeline_name) or (pipeline_name and file == pipeline_name):
             pipeline_path = join(root_folder, file)
             if isdir(pipeline_path):
-                submitted_job = submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud)
+                submitted_job = submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries, cloud, env)
                 if submitted_job:
                     submitted_jobs.append(submitted_job)
 
@@ -289,14 +295,14 @@ def check_if_job_exists(client, job_id):
         return False
 
 
-def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, model_name,
+def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, env, model_name,
                                      stages, model_version):
     job_ids = get_existing_job_ids(model_name, stages)
     for file in listdir(root_folder):
         pipeline_path = join(root_folder, file)
         pipeline_name = file.lower()
         if isdir(pipeline_path):
-            job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
+            job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud, env)
             if job_spec is not None:
                 if job_ids.get(pipeline_name):
                     job_id = job_ids[pipeline_name]
@@ -349,6 +355,12 @@ def create_cluster(client, job_spec, cluster_name=None):
         cluster_spec = job_spec['new_cluster']
         if cluster_name:
             cluster_spec['cluster_name'] = cluster_name
+
+        if job_spec.get('spark_conf'):
+            job_spec['spark_conf']['spark.databricks.conda.condaMagic.enabled'] = 'true'
+        else:
+            job_spec['spark_conf'] = {'spark.databricks.conda.condaMagic.enabled': 'true'}
+
         res = client.perform_query(method='POST', path='/clusters/create', data=cluster_spec)
         if res and res.get('cluster_id'):
             return res['cluster_id']
@@ -360,9 +372,9 @@ def create_cluster(client, job_spec, cluster_name=None):
         return None
 
 
-def install_libraries(client, dir, pipeline_name, cloud, cluster_id, libraries, artifact_uri):
+def install_libraries(client, dir, pipeline_name, cloud, env, cluster_id, libraries, artifact_uri):
     pipeline_path = dir + '/' + pipeline_name
-    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
+    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud, env)
     if job_spec:
         libraries = libraries + gen_pipeline_dependencies(pipeline_path + '/dependencies',
                                                           artifact_uri + '/job/' + pipeline_path + '/dependencies')
@@ -451,18 +463,19 @@ def execute_command_sync(client, cluster_id, ctx_id, cmd_txt):
         if cmd_id is not None:
             print('Interrupted. Stopping command execution...')
             client.perform_query(method='POST', path='/commands/cancel',
-                                       data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
-        return None
+                                 data={'clusterId': cluster_id, 'contextId': ctx_id, 'commandId': cmd_id})
+        raise Exception(e)
     except Exception as e:
         print('Error has occurred: ', e)
         return None
 
 
 def submit_one_pipeline_to_exctx(client, artifact_uri, pipeline_dir, pipeline_name, libraries, current_artifacts, cloud,
+                                 env,
                                  cluster_id, execution_context_id):
     client.url = client.url.replace('/api/2.0', '/api/1.2')
     pipeline_path = join(pipeline_dir, pipeline_name)
-    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud)
+    job_spec = check_if_dir_is_pipeline_def(pipeline_path, cloud, env)
     if job_spec is not None:
         if libraries:
             lib_cell = generate_libraries_cell(libraries)
