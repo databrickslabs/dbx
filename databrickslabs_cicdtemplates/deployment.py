@@ -59,6 +59,7 @@ def wait_for_cluster_to_start(client, cluster_id):
         if json_res['state'] in ['TERMINATED', 'ERROR', 'UNKNOWN']:
             return 'TERMINATED'
         elif json_res['state'] in ['RUNNING']:
+            time.sleep(30)
             return 'RUNNING'
         else:
             time.sleep(60)

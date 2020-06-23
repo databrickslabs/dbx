@@ -43,10 +43,16 @@ class Config():
         self.set_config()
         return self.conf['clusters'].get(cluster_id)
 
-    def get_cluster_id(self, pipeline_folder, pipeline_name):
+    def get_cluster_id(self, pipeline_folder, pipeline_name, any=False):
         self.set_config()
         pipeline_key = pipeline_folder + '_' + pipeline_name
-        return self.conf['clusters'].get(pipeline_key)
+
+        cluster_id = self.conf['clusters'].get(pipeline_key)
+        if cluster_id is not None:
+            return cluster_id
+        elif any:
+            _, cluster_id = next(iter( self.conf['clusters'].items() ))
+            return cluster_id
 
     def store_cluster_for_pipeline(self, pipeline_folder, pipeline_name, cluster_id):
         self.set_config()

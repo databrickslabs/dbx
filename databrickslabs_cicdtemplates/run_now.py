@@ -14,7 +14,7 @@ def ensure_cluster_is_running(apiClient, clusterSrv, cluster_id):
         deployment.wait_for_cluster_to_start(apiClient, cluster_id)
 
 
-def main(pipeline_dir, pipeline_name, env=None, cluster_id=None, reuse_ctx=True):
+def main(pipeline_dir, pipeline_name, env=None, cluster_id=None, reuse_ctx=True, any_cluster=False):
     apiClient = deployment.getDatabricksAPIClient()
     clusterSrv = ClusterService(apiClient)
 
@@ -30,8 +30,10 @@ def main(pipeline_dir, pipeline_name, env=None, cluster_id=None, reuse_ctx=True)
 
     try:
         if cluster_id is None:
-            cluster_id = conf.get_cluster_id(pipeline_dir, pipeline_name)
+            cluster_id = conf.get_cluster_id(pipeline_dir, pipeline_name, any=any_cluster)
         if cluster_id is not None:
+            print('Found cluster ID ',cluster_id)
+            print('Ensuring that cluster is running...')
             ensure_cluster_is_running(apiClient, clusterSrv, cluster_id)
     except Exception as e:
         print('Error has occured while starting/creating the cluster: ', e)
