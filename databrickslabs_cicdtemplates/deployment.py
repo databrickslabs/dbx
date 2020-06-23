@@ -356,10 +356,10 @@ def create_cluster(client, job_spec, cluster_name=None):
         if cluster_name:
             cluster_spec['cluster_name'] = cluster_name
 
-        if job_spec.get('spark_conf'):
-            job_spec['spark_conf']['spark.databricks.conda.condaMagic.enabled'] = 'true'
+        if cluster_spec.get('spark_conf'):
+            cluster_spec['spark_conf']['spark.databricks.conda.condaMagic.enabled'] = 'true'
         else:
-            job_spec['spark_conf'] = {'spark.databricks.conda.condaMagic.enabled': 'true'}
+            cluster_spec['spark_conf'] = {'spark.databricks.conda.condaMagic.enabled': 'true'}
 
         res = client.perform_query(method='POST', path='/clusters/create', data=cluster_spec)
         if res and res.get('cluster_id'):
