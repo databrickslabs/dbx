@@ -178,6 +178,7 @@ def read_config():
 
 
 def check_if_dir_is_pipeline_def(dir, cloud, env):
+    conf_path = None
     try:
         with open(join(dir, PIPELINE_RUNNER)):
             pass
@@ -484,13 +485,14 @@ def submit_one_pipeline_to_exctx(client, artifact_uri, pipeline_dir, pipeline_na
             lib_cell = generate_artifacts_cell(current_artifacts)
         # install libraries
         execute_command_sync(client, cluster_id, execution_context_id, lib_cell)
+
         # set param
-        # params = ['', artifact_uri]
-        # task_node = job_spec['spark_python_task']
-        # if task_node.get('parameters'):
-        #    params = task_node['parameters']
-        # params = ['\''+p+'\'' for p in params]
-        code = 'import sys\nsys.argv = [\'\', \'' + artifact_uri + '/job/' + pipeline_path + '\']'
+        params = ['', artifact_uri + '/job/' + pipeline_path ]
+        task_node = job_spec['spark_python_task']
+        if task_node.get('parameters'):
+            params = params + task_node['parameters']
+
+        code = 'import sys\nsys.argv = {}'.format(params)
         execute_command_sync(client, cluster_id, execution_context_id, code)
 
         # execute actual code

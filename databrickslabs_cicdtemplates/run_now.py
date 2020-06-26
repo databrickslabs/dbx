@@ -32,7 +32,7 @@ def main(pipeline_dir, pipeline_name, env=None, cluster_id=None, reuse_ctx=True,
         if cluster_id is None:
             cluster_id = conf.get_cluster_id(pipeline_dir, pipeline_name, any=any_cluster)
         if cluster_id is not None:
-            print('Found cluster ID ',cluster_id)
+            print('Found cluster ID ', cluster_id)
             print('Ensuring that cluster is running...')
             ensure_cluster_is_running(apiClient, clusterSrv, cluster_id)
     except Exception as e:
@@ -41,7 +41,7 @@ def main(pipeline_dir, pipeline_name, env=None, cluster_id=None, reuse_ctx=True,
 
     if cluster_id is None:
         print('Creating new cluster...')
-        cluster_id = cluster_and_libraries.create_cluster_and_install_libs(pipeline_dir, pipeline_name,
+        cluster_id = cluster_and_libraries.create_cluster_and_install_libs(pipeline_dir, pipeline_name, env=env,
                                                                            install_libraries=False)
         print('Created new cluster with ID: ', cluster_id)
         conf.store_cluster_for_pipeline(pipeline_dir, pipeline_name, cluster_id)
@@ -70,5 +70,5 @@ def main(pipeline_dir, pipeline_name, env=None, cluster_id=None, reuse_ctx=True,
                                                                                                  dirs_to_deploy=dirs_to_deploy)
 
     deployment.submit_one_pipeline_to_exctx(apiClient, artifact_uri, pipeline_dir, pipeline_name, libraries,
-                                            current_artifacts, cloud,env,
+                                            current_artifacts, cloud, env,
                                             cluster_id, execution_context_id)

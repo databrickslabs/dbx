@@ -13,7 +13,6 @@ sparkDf = spark.createDataFrame(df)
 print(sparkDf.count())
 
 import sys
-sys.argv = ['aaaa', 'ksksksks']
 for a in sys.argv:
     print(a)
 sleep(10)

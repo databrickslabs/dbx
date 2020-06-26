@@ -41,7 +41,7 @@ class Config():
 
     def get_existing_execution_context_id(self, cluster_id):
         self.set_config()
-        return self.conf['clusters'].get(cluster_id)
+        return self.conf['exctxs'].get(cluster_id)
 
     def get_cluster_id(self, pipeline_folder, pipeline_name, any=False):
         self.set_config()
