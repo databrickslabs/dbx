@@ -167,7 +167,12 @@ def read_config():
                         f"{e}. `{key}` is not a valid key in your root level deployment.yaml file. The following is a list of valid keys: \n {config_keys}")
             model_name = conf['model-name']
             exp_path = conf['experiment-path']
-            cloud = conf['cloud'].lower()
+
+            env_cloud = os.environ.get('CURRENT_CLOUD')
+            if env_cloud is not None:
+                cloud = env_cloud
+            else:
+                cloud = conf['cloud'].lower()
     except FileNotFoundError as e:
         raise FileNotFoundError(
             f"{e}. Please include a deployment.yaml file containing the following keys in your root directory:\n {config_keys}")
