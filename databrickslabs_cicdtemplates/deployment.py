@@ -203,7 +203,7 @@ def check_if_dir_is_pipeline_def(dir, cloud, env):
     except FileNotFoundError as e:
         print('Pipeline is expected to hava Databricks Job Definition in ', conf_path)
     except JSONDecodeError as e:
-        print('Pipeline is expected to hava Databricks Job Definition in ',conf_path)
+        print('Pipeline is expected to hava Databricks Job Definition in ', conf_path)
     return None
 
 
@@ -233,7 +233,7 @@ def submit_jobs_for_one_pipeline(client, pipeline_path, artifact_uri, libraries,
             print('Error while submitting job!')
             return None
 
-
+#TODO add unit test
 def submit_jobs_for_all_pipelines(client, root_folder, artifact_uri, libraries, cloud, env, pipeline_name=None):
     submitted_jobs = []
     for file in listdir(root_folder):
@@ -301,7 +301,7 @@ def check_if_job_exists(client, job_id):
     except:
         return False
 
-
+#TODO add unit test
 def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, libraries, cloud, env, model_name,
                                      stages, model_version):
     job_ids = get_existing_job_ids(model_name, stages)
@@ -332,8 +332,8 @@ def create_or_update_production_jobs(client, root_folder, run_id, artifact_uri, 
     try:
         MlflowClient().transition_model_version_stage(name=model_name, version=model_version.version,
                                                       stage="production")
-    except:
-        print('Error transitioning model version. It looks like Model Registry is not available.')
+    except Exception as e:
+        print('Error transitioning model version. It looks like Model Registry is not available.\n', e)
 
 
 def create_production_job(client, run_id, artifact_uri, pipeline_name, pipeline_path, libraries, job_spec):
@@ -492,7 +492,7 @@ def submit_one_pipeline_to_exctx(client, artifact_uri, pipeline_dir, pipeline_na
         execute_command_sync(client, cluster_id, execution_context_id, lib_cell)
 
         # set param
-        params = ['', artifact_uri + '/job/' + pipeline_path ]
+        params = ['', artifact_uri + '/job/' + pipeline_path]
         task_node = job_spec['spark_python_task']
         if task_node.get('parameters'):
             params = params + task_node['parameters']
