@@ -8,6 +8,7 @@ with open("LICENSE", "r") as fh:
 setup(
     name='databrickslabs_cicdtemplates',
     packages=find_packages(exclude=['tests', 'tests.*']),
+    setup_requires=['wheel'],
     entry_points='''
         [console_scripts]
         dbx=databrickslabs_cicdtemplates.cli:cli
