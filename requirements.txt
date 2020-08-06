@@ -3,6 +3,7 @@ wheel
 mlflow==1.9.1
 scikit-learn==0.23.2
 pytest==5.3.1
+pytest-cov==2.10.0
 python-dotenv==0.10.3
 databricks-cli==0.10.0
 pyyaml>=5.1

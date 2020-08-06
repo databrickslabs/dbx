@@ -45,7 +45,7 @@ jobs:
       run: |
         pip install -e .
 
-    - name: Integration tests
+    - name: Run tests
       run: |
-        python -m unittest
+        pytest --cov dbx
 
