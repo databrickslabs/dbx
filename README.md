@@ -1,22 +1,37 @@
-# mlflow-deployments-api
+# dbx by Databricks Labs
 
-## Project Description
-Short description of project's purpose
+DataBricks eXtensions - aka `dbx` is project provides functionality for rapid development lifecycle on Databricks platform.  
 
-## Project Support
-Please note that all projects in the /databrickslabs github account are provided for your exploration only, and are not formally supported by Databricks with Service Level Agreements (SLAs).  They are provided AS-IS and we do not make any guarantees of any kind.  Please do not submit a support ticket relating to any issues arising from the use of these projects.
+This project shall be treated as an extension to the existing Databricks CLI.
 
-Any issues discovered through the use of this project should be filed as GitHub Issues on the Repo.  They will be reviewed as time permits, but there are no formal SLAs for support.
+## Installation
+
+Via `pip`:
+```
+pip install dbx
+```
+
+Via `conda`:
+```
+conda install dbx
+```
+
+### Initialize the project
+```bash
+dbx init \
+  --cloud=["Azure","AWS"] \
+  --pipeline-engine=["GithubActions", "AzurePipelines"] \
+  --project-name="my-project"
+```
 
 
-## Building the Project
-Instructions for how to build the project
+### Launch some existing code on the cluster
+```bash
+dbx launch \
+  --dir=/some/path \
+  --py-file=/some/pipeline.py \
+  --cluster="some-cluster-name" \
+  --trace
+```
 
-## Deploying / Installing the Project
-Instructions for how to deploy the project, or install it
 
-## Releasing the Project
-Instructions for how to release a version of the project
-
-## Using the Project
-Simple examples on how to use the project
