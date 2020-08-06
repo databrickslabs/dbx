@@ -1,8 +1,8 @@
 setuptools
 wheel
-pyspark==2.4.5
-pyarrow==0.17.1
-mlflow==1.8.0
+pyspark==3.0.0
+#pyarrow==0.17.1
+mlflow==1.9.1
 pytest==5.3.1
 python-dotenv==0.10.3
 databricks-cli==0.10.0
