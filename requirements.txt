@@ -1,5 +1,4 @@
 setuptools
-wheel
 pyspark==2.4.5
 pyarrow==0.17.1
 mlflow==1.8.0
