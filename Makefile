@@ -11,11 +11,10 @@ create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7
 
 install-dev-reqs:
-	pip install -r dev-requirements.txt
+	pip install -r requirements.txt
 
-init-test:
-	cd tmp && rm -rf dbx-test && dbx init \
-		--project-name=dbx-test \
-		--author="dev" \
+test-init:
+	dbx init \
+		--project-name dbx_test \
 		--cloud="AWS" \
-		--cicd_tool="GitHub Actions"
+		--pipeline-engine="GitHub Actions"

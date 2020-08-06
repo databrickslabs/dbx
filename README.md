@@ -1,8 +1,8 @@
 # dbx by Databricks Labs
 
-DataBricks eXtensions - aka `dbx` is project provides functionality for rapid development lifecycle on Databricks platform.  
+DataBricks eXtensions - aka `dbx` is a project, developed by Databricks Labs to  provide functionality for rapid development lifecycle on Databricks platform.  
 
-This project shall be treated as an extension to the existing Databricks CLI.
+This project shall be treated as an **extension** to the existing Databricks CLI.
 
 ## Installation
 
@@ -19,9 +19,9 @@ conda install dbx
 ### Initialize the project
 ```bash
 dbx init \
+  --project-name="my-project" \
   --cloud=["Azure","AWS"] \
-  --pipeline-engine=["GithubActions", "AzurePipelines"] \
-  --project-name="my-project"
+  --pipeline-engine=["GitHub Actions", "Azure Pipelines"] 
 ```
 
 

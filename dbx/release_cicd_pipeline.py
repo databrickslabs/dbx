@@ -3,7 +3,7 @@ import sys
 from os import path
 import mlflow
 
-from databrickslabs_cicdtemplates import deployment
+from dbx import deployment
 
 
 def main(test_folder, prod_folder, do_test, env=None):

@@ -29,7 +29,3 @@ htmlcov/*
 
 # Secrets
 .env
-
-# Generated objects
-tests/mlruns/*
-tmp/*

@@ -1,5 +1,4 @@
-
-mlflow-deployments
+DataBricks eXtensions aka dbx
 
 Copyright (2019) Databricks, Inc.
 
@@ -8,7 +7,7 @@ to an Agreement (defined below) between Licensee (defined below) and Databricks,
 Software shall be deemed part of the Downloadable Services under the Agreement, or if the Agreement does not define Downloadable Services, 
 Subscription Services, or if neither are defined then the term in such Agreement that refers to the applicable Databricks Platform 
 Services (as defined below) shall be substituted herein for “Downloadable Services.”  Licensee's use of the Software must comply at 
-all times with any restrictions applicable to the Downlodable Services and Subscription Services, generally, and must be used in 
+all times with any restrictions applicable to the Downloadable Services and Subscription Services, generally, and must be used in
 accordance with any applicable documentation. For the avoidance of doubt, the Software constitutes Databricks Confidential Information
 under the Agreement.
 

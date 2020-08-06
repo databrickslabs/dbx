@@ -1,6 +1,6 @@
 import sys
 
-from databrickslabs_cicdtemplates import deployment
+from dbx import deployment
 
 
 def create_cluster_and_install_libs(dir_name, pipeline_name, env=None, existing_cluster_id=None, install_libraries=True):

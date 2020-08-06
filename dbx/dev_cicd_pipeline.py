@@ -1,6 +1,6 @@
 import sys
 import os
-from databrickslabs_cicdtemplates import deployment
+from dbx import deployment
 
 
 def main(dir, name=None, env=None):

@@ -1,8 +1,8 @@
 import os
 import sys
-from databrickslabs_cicdtemplates import deployment
-from databrickslabs_cicdtemplates import cluster_and_libraries
-from databrickslabs_cicdtemplates.configmgmt import Config
+from dbx import deployment
+from dbx import cluster_and_libraries
+from dbx.configmgmt import Config
 
 from databricks_cli.sdk import ClusterService
 

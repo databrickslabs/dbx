@@ -3,7 +3,7 @@ import unittest
 
 from click.testing import CliRunner
 
-from databrickslabs_cicdtemplates.cli.init import init
+from dbx.cli.init import init
 
 
 class DbxTest(unittest.TestCase):
@@ -12,11 +12,10 @@ class DbxTest(unittest.TestCase):
         project_name = "dbx-test"
         args = [
             "--project-name", project_name,
-            "--author", "dev",
             "--cloud", "AWS",
-            "--cicd_tool", "GitHub Actions"
+            "--pipeline-engine", "GitHub Actions"
         ]
         with runner.isolated_filesystem():
             result = runner.invoke(init, args)
             self.assertFalse(result.exception)
-            self.assertFalse(os.path.exists(project_name))
+            self.assertTrue(os.path.exists(project_name))
