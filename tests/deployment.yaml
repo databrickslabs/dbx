@@ -1,3 +1,0 @@
-model-name: LSTMForecasting2
-experiment-path: /Users/dbx-dev/experiments/mlflowcicd
-cloud: aws

@@ -1,14 +1,11 @@
 import click
 
-from databrickslabs_cicdtemplates import __version__
 from databrickslabs_cicdtemplates.cli.constants import CONTEXT_SETTINGS
 from databrickslabs_cicdtemplates.cli.init import init
-from databrickslabs_cicdtemplates.cli.version import print_version_callback
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.option('--version', '-v', is_flag=True, callback=print_version_callback,
-              expose_value=False, is_eager=True, help=__version__)
+@click.version_option(message='DataBricks eXtensions, version ~> %(version)s')
 def cli():
     pass
 

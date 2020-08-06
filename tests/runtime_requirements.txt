@@ -1,4 +1,0 @@
-mlflow==1.8.0
-python-dotenv==0.10.3
-databricks-cli==0.10.0
-pyyaml>=5.1
