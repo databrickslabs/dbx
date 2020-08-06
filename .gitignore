@@ -32,3 +32,4 @@ htmlcov/*
 
 # Generated objects
 tests/mlruns/*
+tmp/*

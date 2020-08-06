@@ -12,3 +12,10 @@ create-dev-env:
 
 install-dev-reqs:
 	pip install -r dev-requirements.txt
+
+init-test:
+	cd tmp && rm -rf dbx-test && dbx init \
+		--project-name=dbx-test \
+		--author="dev" \
+		--cloud="AWS" \
+		--cicd_tool="GitHub Actions"

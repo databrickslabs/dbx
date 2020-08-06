@@ -11,7 +11,7 @@ setup(
     setup_requires=['wheel'],
     entry_points='''
         [console_scripts]
-        dbx=databrickslabs_cicdtemplates.cli:cli
+        dbx=databrickslabs_cicdtemplates.cli.cli:cli
     ''',
     version=__version__,
     description='ML deploy CICD pipeline',

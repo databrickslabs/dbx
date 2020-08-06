@@ -1,8 +1,9 @@
 import click
 
 from databrickslabs_cicdtemplates import __version__
-from databrickslabs_cicdtemplates.constants import CONTEXT_SETTINGS
-from databrickslabs_cicdtemplates.version import print_version_callback
+from databrickslabs_cicdtemplates.cli.constants import CONTEXT_SETTINGS
+from databrickslabs_cicdtemplates.cli.init import init
+from databrickslabs_cicdtemplates.cli.version import print_version_callback
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -11,6 +12,8 @@ from databrickslabs_cicdtemplates.version import print_version_callback
 def cli():
     pass
 
+
+cli.add_command(init, name='init')
 
 if __name__ == "__main__":
     cli()
