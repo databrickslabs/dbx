@@ -25,7 +25,6 @@ class DbxAwsTest(unittest.TestCase):
     def assert_runner(result: Result):
         if result.exception:
             print(result.output)
-            print(result.stderr)
             raise result.exception
 
     @classmethod
