@@ -15,6 +15,7 @@ install-dev-reqs:
 
 test-init:
 	dbx init \
-		--project-name dbx_test \
+		--project-name basic_dbx \
 		--cloud="AWS" \
-		--pipeline-engine="GitHub Actions"
+		--pipeline-engine="GitHub Actions" \
+		--override

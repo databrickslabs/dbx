@@ -25,13 +25,3 @@ dbx init \
 ```
 
 
-### Launch some existing code on the cluster
-```bash
-dbx launch \
-  --dir=/some/path \
-  --py-file=/some/pipeline.py \
-  --cluster="some-cluster-name" \
-  --trace
-```
-
-

@@ -28,4 +28,5 @@ htmlcov/*
 .DS_Store
 
 # Secrets
-.env
+.env.aws
+.env.azure
