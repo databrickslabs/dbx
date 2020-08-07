@@ -9,7 +9,7 @@ from path import Path
 
 import dbx
 from dbx.cli.clusters import DEV_CLUSTER_FILE
-from dbx.cli.utils import LockFileController, write_json
+from dbx.cli.utils import LockFileController, write_json, dbx_echo
 
 TEMPLATE_PATH = os.path.join(dbx.__path__[0], "template")
 
@@ -31,13 +31,13 @@ def init(**kwargs):
     verify_project_name(kwargs["project_name"])
     cookiecutter(TEMPLATE_PATH, extra_context=kwargs, no_input=True, overwrite_if_exists=kwargs["override"])
 
-    click.echo("[dbx] Initializing project in directory: %s" % os.path.join(os.getcwd(), kwargs["project_name"]))
+    dbx_echo("Initializing project in directory: %s" % os.path.join(os.getcwd(), kwargs["project_name"]))
 
     with Path(kwargs["project_name"]):
         lockfile = LockFileController()  # initializes the lockfile with unique uuid per each project instance
         write_json(kwargs, ".dbx.json")
         dev_cluster_name = "dev-%s-%s" % (kwargs["project_name"], lockfile.get_uuid())
-        click.echo("[dbx] Lockfile prepared")
+        dbx_echo("Lockfile prepared")
 
         if kwargs["cloud"] == "AWS":
             dev_cluster_spec = get_aws_cluster_spec(dev_cluster_name)
@@ -47,7 +47,7 @@ def init(**kwargs):
             raise ValueError("This cloud provider is not yet supported in dbx: %s" % kwargs["cloud"])
 
         write_json(dev_cluster_spec, DEV_CLUSTER_FILE)
-        click.echo("[dbx] Project initialization finished")
+        dbx_echo("Project initialization finished")
 
 
 def verify_project_name(project_name):

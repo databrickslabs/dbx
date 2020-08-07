@@ -1,7 +1,10 @@
+import datetime as dt
 import json
 import os
 from typing import Union
 from uuid import uuid4
+
+import click
 
 LOCK_FILE_NAME = ".dbx.lock.json"
 INFO_FILE_NAME = ".dbx.json"
@@ -47,7 +50,8 @@ class LockFileController:
     def get_dev_cluster_id() -> Union[str, None]:
         return read_json(LOCK_FILE_NAME).get("dev_cluster_id")
 
-    def get_execution_context_id(self) -> Union[str, None]:
+    @staticmethod
+    def get_execution_context_id() -> Union[str, None]:
         return read_json(LOCK_FILE_NAME).get("execution_context_id")
 
 
@@ -59,3 +63,6 @@ def provide_lockfile_controller(function):
     return decorator
 
 
+def dbx_echo(message):
+    formatted_message = "[dbx][%s][%s]" % (dt.datetime.now(), message)
+    click.echo(formatted_message)

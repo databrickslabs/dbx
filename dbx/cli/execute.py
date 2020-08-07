@@ -12,7 +12,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
 from setuptools import sandbox
 
-from dbx.cli.utils import provide_lockfile_controller, LockFileController, read_json, INFO_FILE_NAME
+from dbx.cli.utils import provide_lockfile_controller, LockFileController, read_json, INFO_FILE_NAME, dbx_echo
 
 """
 Logic behind this functionality:
@@ -35,7 +35,7 @@ def execute(api_client: ApiClient, lockfile_controller: LockFileController, job_
     1. Job exists under `jobs` directory
     2. There is an `entrypoint.py` file
     """
-    click.echo("[dbx] Starting execution for job %s" % job_name)
+    dbx_echo("Starting execution for job %s" % job_name)
     if not lockfile_controller.get_dev_cluster_id():
         msg = """Couldn't start execution as there is no cluster_id provided in .dbx.lock.json.
                 Please ensure that the dev cluster was created"""
@@ -44,7 +44,7 @@ def execute(api_client: ApiClient, lockfile_controller: LockFileController, job_
     project_name = read_json(INFO_FILE_NAME)["project_name"]
     v1_client = get_v1_client(api_client)
 
-    click.echo("[dbx] Building whl file")
+    dbx_echo("Building whl file")
     whl_file = build_project_whl()
     dbfs_package_location = upload_whl(api_client, project_name, lockfile_controller.get_uuid(), whl_file)
 
@@ -80,7 +80,7 @@ def upload_whl(api_client, project_name, uuid, whl_file):
 
 
 def upgrade_package(dbfs_package_location: str, execution_callback):
-    print("Installing newest package version")
+    dbx_echo("Installing newest package version")
     localized_name = dbfs_package_location.replace("dbfs:/", "/dbfs/")
     command = "%pip install --upgrade " + localized_name
     execution_callback(command)
@@ -125,16 +125,16 @@ def create_context(v1_client, cluster_id):
 def awake_cluster(cluster_service: ClusterService, cluster_id):
     cluster_info = cluster_service.get_cluster(cluster_id)
     if cluster_info["state"] in ["RUNNING", "RESIZING"]:
-        click.echo("[dbx] Dev cluster is running")
+        dbx_echo("[dbx] Dev cluster is running")
     if cluster_info["state"] in ["TERMINATED", "TERMINATING"]:
-        click.echo("Dev cluster is terminated, starting it")
+        dbx_echo("Dev cluster is terminated, starting it")
         cluster_service.start_cluster(cluster_id)
         time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
     elif cluster_info["state"] == "ERROR":
         raise RuntimeError("Cluster is misconfigured and cannot be started, please check cluster settings at first")
     elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
-        click.echo("Cluster is getting prepared, current state: %s" % cluster_info["state"])
+        dbx_echo("Cluster is getting prepared, current state: %s" % cluster_info["state"])
         time.sleep(10)
         awake_cluster(cluster_service, cluster_id)
 
@@ -166,14 +166,14 @@ def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, comm
     command_id = command_execution_data['id']
     execution_result = wait_for_command_execution(v1_client, cluster_id, context_id, command_id)
     if execution_result["status"] == "Cancelled":
-        click.echo("Command cancelled")
+        dbx_echo("Command cancelled")
     else:
         final_result = execution_result["results"]["resultType"]
         if final_result == 'error':
             raise RuntimeError(execution_result["results"]["cause"])
         else:
             if verbose:
-                click.echo(execution_result["results"]["data"])
+                dbx_echo(execution_result["results"]["data"])
 
 
 def execute_entrypoint(project_name, job_name, execution_callback):
