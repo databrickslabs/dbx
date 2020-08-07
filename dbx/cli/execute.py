@@ -9,6 +9,7 @@ from databricks_cli.configure.config import provide_api_client, profile_option, 
 from databricks_cli.dbfs.api import DbfsApi, DbfsPath
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+from retry import retry
 from setuptools import sandbox
 
 from dbx.cli.utils import provide_lockfile_controller, LockFileController, read_json, INFO_FILE_NAME
@@ -98,11 +99,6 @@ def get_context_id(v1_client: ApiClient, lockfile_controller: LockFileController
         # context exists in lockfile and on DB
         if context_exists(v1_client, cluster_id, context_id):
             return context_id
-        # context record in lockfile points to outdated id
-        else:
-            context_id = create_context(v1_client, cluster_id)
-            lockfile_controller.update({"execution_context_id": context_id})
-            return context_id
     else:
         context_id = create_context(v1_client, cluster_id)
         lockfile_controller.update({"execution_context_id": context_id})
@@ -118,6 +114,7 @@ def context_exists(client, cluster_id, context_id):
         return False
 
 
+@retry(tries=10, delay=1, backoff=5)
 def create_context(v1_client, cluster_id):
     payload = v1_client.perform_query(method='POST',
                                       path='/contexts/create',

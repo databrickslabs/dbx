@@ -10,3 +10,4 @@ pyyaml>=5.1
 click==7.1.2
 cookiecutter==1.7.2
 path~=15.0.0
+retry
