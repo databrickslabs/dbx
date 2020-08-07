@@ -2,7 +2,7 @@ import os
 import tempfile
 import unittest
 
-from click.testing import CliRunner
+from click.testing import CliRunner, Result
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from dotenv import load_dotenv
@@ -21,6 +21,13 @@ if not os.environ.get("DATABRICKS_HOST"):
 class DbxAwsTest(unittest.TestCase):
     test_project_name = "dbx_test_aws"
 
+    @staticmethod
+    def assert_runner(result: Result):
+        if result.exception:
+            print(result.output)
+            print(result.stderr)
+            raise result.exception
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.test_dir = tempfile.mkdtemp()
@@ -34,15 +41,15 @@ class DbxAwsTest(unittest.TestCase):
         ]
         with Path(self.test_dir):
             result = self.runner.invoke(init, args)
-            self.assertFalse(result.exception)
+            self.assert_runner(result)
             self.assertTrue(os.path.exists(self.test_project_name))
 
             with Path(os.path.join(self.test_dir, self.test_project_name)):
                 cluster_creation = self.runner.invoke(create_dev_cluster)
-                self.assertFalse(cluster_creation.exception)
+                self.assert_runner(cluster_creation)
 
                 job_execution = self.runner.invoke(execute, ["--job-name", "batch"])
-                self.assertFalse(job_execution.exception)
+                self.assert_runner(job_execution)
 
     @classmethod
     def tearDownClass(cls) -> None:
