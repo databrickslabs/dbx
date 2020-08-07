@@ -80,7 +80,7 @@ def upload_whl(api_client, project_name, uuid, whl_file):
 
 
 def upgrade_package(dbfs_package_location: str, execution_callback):
-    dbx_echo("Installing newest package version")
+    dbx_echo("Updating project code on the cluster")
     localized_name = dbfs_package_location.replace("dbfs:/", "/dbfs/")
     command = "%pip install --upgrade " + localized_name
     execution_callback(command)
@@ -125,7 +125,7 @@ def create_context(v1_client, cluster_id):
 def awake_cluster(cluster_service: ClusterService, cluster_id):
     cluster_info = cluster_service.get_cluster(cluster_id)
     if cluster_info["state"] in ["RUNNING", "RESIZING"]:
-        dbx_echo("[dbx] Dev cluster is running")
+        dbx_echo("Dev cluster is running")
     if cluster_info["state"] in ["TERMINATED", "TERMINATING"]:
         dbx_echo("Dev cluster is terminated, starting it")
         cluster_service.start_cluster(cluster_id)
@@ -173,7 +173,8 @@ def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, comm
             raise RuntimeError(execution_result["results"]["cause"])
         else:
             if verbose:
-                dbx_echo(execution_result["results"]["data"])
+                dbx_echo("Command successfully executed")
+                print(execution_result["results"]["data"])
 
 
 def execute_entrypoint(project_name, job_name, execution_callback):
