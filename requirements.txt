@@ -9,5 +9,4 @@ databricks-cli==0.10.0
 pyyaml>=5.1
 click==7.1.2
 cookiecutter==1.7.2
-dbx~=0.2.3
 path~=15.0.0
