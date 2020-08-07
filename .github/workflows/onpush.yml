@@ -47,5 +47,5 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest --cov dbx
+        pytest --cov dbx -s
 
