@@ -7,13 +7,13 @@ import click
 import mlflow
 import time
 from databricks_cli.clusters.api import ClusterService
-from databricks_cli.configure.config import provide_api_client, profile_option, debug_option
+from databricks_cli.configure.config import provide_api_client, debug_option
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
 from setuptools import sandbox
 
-from dbx.cli.utils import LockFile, read_json, INFO_FILE_NAME, dbx_echo, setup_mlflow
+from dbx.cli.utils import LockFile, read_json, INFO_FILE_NAME, dbx_echo, setup_mlflow, custom_profile_option
 
 """
 Logic behind this functionality:
@@ -28,7 +28,7 @@ Logic behind this functionality:
 @click.command(context_settings=CONTEXT_SETTINGS, short_help="Executes job on the cluster")
 @click.option("--job-name", required=True, type=str, help="name of a job to be executed")
 @debug_option
-@profile_option
+@custom_profile_option
 @provide_api_client
 @setup_mlflow
 def execute(api_client: ApiClient, job_name):
@@ -54,6 +54,8 @@ def execute(api_client: ApiClient, job_name):
 
         cluster_id = LockFile.get("dev_cluster_id")
         cluster_service = ClusterService(api_client)
+
+        dbx_echo("Preparing cluster to accept jobs")
         awake_cluster(cluster_service, cluster_id)
 
         context_id = get_context_id(v1_client)
@@ -72,10 +74,12 @@ def build_project_whl() -> str:
 
 
 def upload_whl(whl_file):
+    dbx_echo("Uploading package to DBFS")
     mlflow.log_artifact("dist/%s" % whl_file)
 
 
 def upgrade_package(dbfs_package_location: str, execution_callback):
+    dbx_echo("Upgrading package on the cluster")
     mlflow.get_artifact_uri()
     localized_name = dbfs_package_location.replace("dbfs:/", "/dbfs/")
     command = "%pip install --upgrade " + localized_name
@@ -89,6 +93,7 @@ def get_v1_client(api_client: ApiClient):
 
 
 def get_context_id(v1_client: ApiClient):
+    dbx_echo("Preparing execution context")
     context_id = LockFile.get("execution_context_id")
     cluster_id = LockFile.get("dev_cluster_id")
     if context_id:
@@ -121,7 +126,7 @@ def create_context(v1_client, cluster_id):
 def awake_cluster(cluster_service: ClusterService, cluster_id):
     cluster_info = cluster_service.get_cluster(cluster_id)
     if cluster_info["state"] in ["RUNNING", "RESIZING"]:
-        dbx_echo("Dev cluster is running")
+        dbx_echo("Cluster is ready")
     if cluster_info["state"] in ["TERMINATED", "TERMINATING"]:
         dbx_echo("Dev cluster is terminated, starting it")
         cluster_service.start_cluster(cluster_id)
@@ -174,6 +179,7 @@ def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, comm
 
 
 def execute_entrypoint(project_name, job_name, execution_callback):
+    dbx_echo("Launching execution from the entry point")
     entrypoint_file = "%s/jobs/%s/entrypoint.py" % (project_name, job_name)
     content = Path(entrypoint_file).read_text()
     execution_callback(content)

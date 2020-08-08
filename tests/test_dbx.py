@@ -31,10 +31,10 @@ class DbxTest(unittest.TestCase):
             self.assertTrue(os.path.exists(self.project_name))
 
             with Path(os.path.join(self.test_dir, self.project_name)):
-                cluster_creation = self.runner.invoke(create_dev_cluster, ["--profile", self.profile_name])
+                cluster_creation = self.runner.invoke(create_dev_cluster)
                 self.assertFalse(cluster_creation.exception)
 
-                job_execution = self.runner.invoke(execute, ["--job-name", "batch", "--profile", self.profile_name])
+                job_execution = self.runner.invoke(execute, ["--job-name", "batch"])
                 self.assertFalse(job_execution.exception)
 
     def test_aws(self):

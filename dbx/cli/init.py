@@ -38,12 +38,12 @@ SPECS_PATH = os.path.join(dbx.__path__[0], "specs")
 @profile_option
 @provide_api_client
 @debug_option
-def init(api_client: ApiClient, **kwargs):
+def init(api_client: ApiClient, override, **kwargs):
     """
     Initializes a plain new project in a new directory
     """
     verify_project_name(kwargs["project_name"])
-    cookiecutter(TEMPLATE_PATH, extra_context=kwargs, no_input=True, overwrite_if_exists=kwargs["override"])
+    cookiecutter(TEMPLATE_PATH, extra_context=kwargs, no_input=True, overwrite_if_exists=override)
 
     dbx_echo("Initializing project in directory: %s" % os.path.join(os.getcwd(), kwargs["project_name"]))
 
@@ -83,6 +83,11 @@ def create_dbx_files(**kwargs):
     dbx_echo("Creating dbx files")
     LockFile.initialize()
     InfoFile.initialize(kwargs)
+    profile = get_profile_from_context()
+    if profile:
+        InfoFile.update({"profile": profile})
+    else:
+        InfoFile.update({"profile": "DEFAULT"})  # in case if profile wasn't provided
 
 
 def prepare_dev_cluster(**kwargs):

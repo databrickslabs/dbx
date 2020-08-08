@@ -25,11 +25,11 @@ conda install dbx
 ### Initialize the project
 ```bash
 dbx init \
-  --project-name=dbx_project \
+  --project-name=<your_project_name> \
   --cloud=["Azure","AWS"] \
   --pipeline-engine=["GitHub Actions", "Azure Pipelines"]
 
-cd dbx_project
+cd <your_project_name>
 ```
 
 ### Create your dev cluster

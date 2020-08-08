@@ -1,16 +1,16 @@
 import click
 from databricks_cli.clusters.api import ClusterApi
-from databricks_cli.configure.config import provide_api_client, profile_option, debug_option
+from databricks_cli.configure.config import provide_api_client, debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import LockFile, read_json, dbx_echo
+from dbx.cli.utils import LockFile, read_json, dbx_echo, custom_profile_option
 
 DEV_CLUSTER_FILE = "config/dev/cluster.json"
 
 
 @click.command(context_settings=CONTEXT_SETTINGS, short_help='Creates a dev cluster.')
 @debug_option
-@profile_option
+@custom_profile_option
 @provide_api_client
 def create_dev_cluster(api_client):
     """
@@ -29,7 +29,7 @@ def create_dev_cluster(api_client):
 
 @click.command(context_settings=CONTEXT_SETTINGS, short_help="Stops dev cluster.")
 @debug_option
-@profile_option
+@custom_profile_option
 @provide_api_client
 def stop_dev_cluster(api_client):
     """

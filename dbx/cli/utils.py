@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import click
 import mlflow
+from databricks_cli.click_types import ContextObject
 from databricks_cli.configure.config import get_profile_from_context
 
 LOCK_FILE_NAME = ".dbx.lock.json"
@@ -85,3 +86,19 @@ def setup_mlflow(function):
         return function(*args, **kwargs)
 
     return decorator
+
+
+# allows to pick profile value directly from info file, but with fallback if option is provided
+def custom_profile_option(f):
+    def callback(ctx, _, value):
+        context_object = ctx.ensure_object(ContextObject)
+        if value is not None:
+            context_object.set_profile(value)
+        else:
+            profile = InfoFile.get("profile")
+            if profile:
+                context_object.set_profile(profile)
+
+    return click.option('--profile', required=False, default=None, callback=callback,
+                        expose_value=False,
+                        help='CLI connection profile to use. The default profile is "DEFAULT".')(f)
