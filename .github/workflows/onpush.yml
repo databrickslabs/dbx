@@ -45,6 +45,16 @@ jobs:
       run: |
         pip install -e .
 
+    - name: Configure profiles
+      run: |
+        echo "[dbx-dev-aws]" >> ~/.databrickscfg
+        echo "host = $(AWS_DATABRICKS_HOST)" >> ~/.databrickscfg
+        echo "token = $(AWS_DATABRICKS_TOKEN)" >> ~/.databrickscfg
+        echo "" >> ~/.databrickscfg
+        echo "[dbx-dev-azure]" >> ~/.databrickscfg
+        echo "host = $(AZURE_DATABRICKS_HOST)" >> ~/.databrickscfg
+        echo "token = $(AZURE_DATABRICKS_TOKEN)" >> ~/.databrickscfg
+
     - name: Run tests
       run: |
         pytest --cov dbx -s

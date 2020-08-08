@@ -5,7 +5,7 @@ install-dev:
 	pip install -e .
 
 test:
-	python -m unittest
+	pytest --cov dbx -s -n 2
 
 create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7
