@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import subprocess
 
 import click
 import mlflow
@@ -49,7 +50,7 @@ def init(api_client: ApiClient, override, **kwargs):
 
     with Path(kwargs["project_name"]):
         create_dbx_files(**kwargs)
-        prepare_dev_cluster(**kwargs)
+        postprocess_project_dir(**kwargs)
         prepare_dbx_workspace_dir(api_client)
         initialize_artifact_storage(**kwargs)
 
@@ -90,14 +91,17 @@ def create_dbx_files(**kwargs):
         InfoFile.update({"profile": "DEFAULT"})  # in case if profile wasn't provided
 
 
-def prepare_dev_cluster(**kwargs):
-    dbx_echo("Preparing dev cluster specs")
+def postprocess_project_dir(**kwargs):
+    dbx_echo("Post-processing project directory")
     dev_cluster_name = "dev-%s-%s" % (kwargs["project_name"], LockFile.get("dbx_uuid"))
 
     dev_cluster_spec_path = os.path.join(SPECS_PATH, "config/dev/%s.json" % kwargs["cloud"].lower())
     shutil.copyfile(dev_cluster_spec_path, DEV_CLUSTER_FILE)
 
     update_json({"cluster_name": dev_cluster_name}, DEV_CLUSTER_FILE)
+
+    shutil.copyfile(".gitignore.template", ".gitignore")
+    subprocess.check_output('git init', shell=True)
 
 
 def experiment_exists(experiment_path):

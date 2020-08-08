@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+*.egg-info/
+build
+dist
+
+# Unit test / coverage reports
+.coverage
+coverage.xml
+junit/*
+htmlcov/*
+
+# Caches
+.pytest_cache/
+
+# VSCode
+.vscode/
+
+# Idea
+.idea/
+*.iml
+
+# MacOS
+.DS_Store
+
+.dbx.lock.json
