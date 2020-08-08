@@ -50,6 +50,7 @@ dbx execute --job-name=<your-job-name>
 As soon as cluster launch happens, you could dynamically change your code and execute it.
 
 
-## Dev documentation 
+## Dev documentation and notes
+
 
 To launch `dbx` tests from a local machine, please prepare two profiles via `databricks configure`: `dbx-dev-aws` and `dbx-dev-azure`.

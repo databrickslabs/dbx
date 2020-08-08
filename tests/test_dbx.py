@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 import unittest
+from uuid import uuid4
 
 from click.testing import CliRunner
 from databricks_cli.clusters.api import ClusterService
@@ -38,23 +39,27 @@ class DbxTest(unittest.TestCase):
 
     def test_aws(self):
         logging.info("Initializing AWS test suite")
-        self.project_name = "dev_dbx_aws"
+        self.project_name = "dev_dbx_aws_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-dev-aws"
         init_args = [
             "--project-name", self.project_name,
             "--cloud", "AWS",
-            "--pipeline-engine", "GitHub Actions"
+            "--pipeline-engine", "GitHub Actions",
+            "--profile", self.profile_name,
+            "--dbx-workspace-dir", "/Shared/dbx/projects",
+            "--dbx-artifact-location", "dbfs:/tmp/dbx/projects"
         ]
         self.provide_suite(init_args)
 
     def test_azure(self):
         logging.info("Initializing Azure test suite")
-        self.project_name = "dev_dbx_azure"
+        self.project_name = "dev_dbx_aws_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-dev-azure"
         init_args = [
             "--project-name", self.project_name,
             "--cloud", "Azure",
-            "--pipeline-engine", "GitHub Actions"
+            "--pipeline-engine", "GitHub Actions",
+            "--profile", self.profile_name
         ]
         self.provide_suite(init_args)
 

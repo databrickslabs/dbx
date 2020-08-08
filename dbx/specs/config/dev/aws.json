@@ -1,0 +1,28 @@
+{
+  "autoscale": {
+    "min_workers": 1,
+    "max_workers": 8
+  },
+  "spark_version": "7.0.x-cpu-ml-scala2.12",
+  "spark_conf": {
+    "spark.databricks.conda.condaMagic.enabled": "true"
+  },
+  "aws_attributes": {
+    "first_on_demand": 1,
+    "availability": "SPOT_WITH_FALLBACK",
+    "zone_id": "us-west-2c",
+    "instance_profile_arn": null,
+    "spot_bid_price_percent": 100,
+    "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+    "ebs_volume_count": 3,
+    "ebs_volume_size": 100
+  },
+  "node_type_id": "c4.2xlarge",
+  "ssh_public_keys": [],
+  "custom_tags": {},
+  "spark_env_vars": {
+    "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+  },
+  "autotermination_minutes": 60,
+  "init_scripts": []
+}

@@ -1,23 +1,25 @@
 import copy
+import datetime as dt
 import os
 from pathlib import Path
 
 import click
+import mlflow
 import time
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import provide_api_client, profile_option, debug_option
-from databricks_cli.dbfs.api import DbfsApi, DbfsPath
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
 from setuptools import sandbox
 
-from dbx.cli.utils import provide_lockfile_controller, LockFileController, read_json, INFO_FILE_NAME, dbx_echo
+from dbx.cli.utils import LockFile, read_json, INFO_FILE_NAME, dbx_echo, setup_mlflow
 
 """
 Logic behind this functionality:
+0. Start mlflow run
 1. Build a .whl file locally
-2. Upload .whl to dbfs
+2. Upload .whl to mlfow
 3. Trigger %pip install --upgrade {path-to-file} magic
 4. Execute entrypoint.py code
 """
@@ -28,15 +30,15 @@ Logic behind this functionality:
 @debug_option
 @profile_option
 @provide_api_client
-@provide_lockfile_controller
-def execute(api_client: ApiClient, lockfile_controller: LockFileController, job_name):
+@setup_mlflow
+def execute(api_client: ApiClient, job_name):
     """
     Executes given job on the cluster by it's name. Please ensure that:
     1. Job exists under `jobs` directory
     2. There is an `entrypoint.py` file
     """
     dbx_echo("Starting execution for job %s" % job_name)
-    if not lockfile_controller.get_dev_cluster_id():
+    if not LockFile.get("dev_cluster_id"):
         msg = """Couldn't start execution as there is no cluster_id provided in .dbx.lock.json.
                 Please ensure that the dev cluster was created"""
         raise click.exceptions.UsageError(msg)
@@ -44,21 +46,23 @@ def execute(api_client: ApiClient, lockfile_controller: LockFileController, job_
     project_name = read_json(INFO_FILE_NAME)["project_name"]
     v1_client = get_v1_client(api_client)
 
-    dbx_echo("Building whl file")
-    whl_file = build_project_whl()
-    dbfs_package_location = upload_whl(api_client, project_name, lockfile_controller.get_uuid(), whl_file)
+    with mlflow.start_run(run_name="%s-%s-%s" % (job_name, LockFile.get("dbx_uuid"), dt.datetime.now())):
+        dbx_echo("Building whl file")
+        whl_file = build_project_whl()
+        upload_whl(whl_file)
+        dbfs_package_location = mlflow.get_artifact_uri(whl_file)
 
-    cluster_id = lockfile_controller.get_dev_cluster_id()
-    cluster_service = ClusterService(api_client)
-    awake_cluster(cluster_service, cluster_id)
+        cluster_id = LockFile.get("dev_cluster_id")
+        cluster_service = ClusterService(api_client)
+        awake_cluster(cluster_service, cluster_id)
 
-    context_id = get_context_id(v1_client, lockfile_controller)
+        context_id = get_context_id(v1_client)
 
-    verbose_callback = lambda command: execute_command(v1_client, cluster_id, context_id, command)
-    silent_callback = lambda command: execute_command(v1_client, cluster_id, context_id, command, verbose=False)
+        verbose_callback = lambda command: execute_command(v1_client, cluster_id, context_id, command)
+        silent_callback = lambda command: execute_command(v1_client, cluster_id, context_id, command, verbose=False)
 
-    upgrade_package(dbfs_package_location, silent_callback)
-    execute_entrypoint(project_name, job_name, verbose_callback)
+        upgrade_package(dbfs_package_location, silent_callback)
+        execute_entrypoint(project_name, job_name, verbose_callback)
 
 
 def build_project_whl() -> str:
@@ -67,20 +71,12 @@ def build_project_whl() -> str:
     return whl_file
 
 
-def upload_file(api_client, src, dest):
-    dbfs_api = DbfsApi(api_client)
-    dbfs_api.put_file(src, DbfsPath(dest), True)
-
-
-def upload_whl(api_client, project_name, uuid, whl_file):
-    local_wheel_path = os.path.join(os.getcwd(), "dist", whl_file)
-    remote_wheel_path = "dbfs:/tmp/dbx/%s/%s/%s" % (project_name, uuid, whl_file)
-    upload_file(api_client, local_wheel_path, remote_wheel_path)
-    return remote_wheel_path
+def upload_whl(whl_file):
+    mlflow.log_artifact("dist/%s" % whl_file)
 
 
 def upgrade_package(dbfs_package_location: str, execution_callback):
-    dbx_echo("Updating project code on the cluster")
+    mlflow.get_artifact_uri()
     localized_name = dbfs_package_location.replace("dbfs:/", "/dbfs/")
     command = "%pip install --upgrade " + localized_name
     execution_callback(command)
@@ -92,25 +88,25 @@ def get_v1_client(api_client: ApiClient):
     return v1_client
 
 
-def get_context_id(v1_client: ApiClient, lockfile_controller: LockFileController):
-    context_id = lockfile_controller.get_execution_context_id()
-    cluster_id = lockfile_controller.get_dev_cluster_id()
+def get_context_id(v1_client: ApiClient):
+    context_id = LockFile.get("execution_context_id")
+    cluster_id = LockFile.get("dev_cluster_id")
     if context_id:
         # context exists in lockfile and on DB
         if context_exists(v1_client, cluster_id, context_id):
             return context_id
     else:
         context_id = create_context(v1_client, cluster_id)
-        lockfile_controller.update({"execution_context_id": context_id})
+        LockFile.update({"execution_context_id": context_id})
         return context_id
 
 
 def context_exists(client, cluster_id, context_id):
-    try:
-        client.perform_query(method='GET', path='/contexts/status',
-                             data={'clusterId': cluster_id, 'contextId': context_id})
+    context_data = client.perform_query(method='GET', path='/contexts/status',
+                                        data={'clusterId': cluster_id, 'contextId': context_id})
+    if context_data["status"] == "Running":
         return True
-    except:
+    else:
         return False
 
 
