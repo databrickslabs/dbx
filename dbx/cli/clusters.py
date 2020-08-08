@@ -37,7 +37,7 @@ def stop_dev_cluster(api_client):
     """
     if not LockFile.get("dev_cluster_id"):
         raise click.exceptions.UsageError(
-            "Couldn't stop the dev cluster as the cluster wasn't created under control of dbx")
+            "Couldn't stop the dev cluster as the cluster id is not provided in the .dbx.lock.json file")
     else:
         cluster_api = ClusterApi(api_client)
         cluster_id = LockFile.get("dev_cluster_id")

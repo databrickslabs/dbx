@@ -1,5 +1,4 @@
 import copy
-import datetime as dt
 import os
 from pathlib import Path
 
@@ -46,7 +45,7 @@ def execute(api_client: ApiClient, job_name):
     project_name = read_json(INFO_FILE_NAME)["project_name"]
     v1_client = get_v1_client(api_client)
 
-    with mlflow.start_run(run_name="%s-%s-%s" % (job_name, LockFile.get("dbx_uuid"), dt.datetime.now())):
+    with mlflow.start_run():
         dbx_echo("Building whl file")
         whl_file = build_project_whl()
         upload_whl(whl_file)
@@ -65,6 +64,9 @@ def execute(api_client: ApiClient, job_name):
 
         upgrade_package(dbfs_package_location, silent_callback)
         execute_entrypoint(project_name, job_name, verbose_callback)
+
+        tags = {"job_name": job_name, "dbx_uuid": LockFile.get("dbx_uuid"), "environment": "dev"}
+        mlflow.set_tags(tags)
 
 
 def build_project_whl() -> str:
