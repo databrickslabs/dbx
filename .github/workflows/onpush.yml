@@ -13,8 +13,10 @@ jobs:
 
     env:
       MLFLOW_TRACKING_URI: 'databricks'
-      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      AWS_DATABRICKS_HOST: ${{ secrets.AWS_DATABRICKS_HOST }}
+      AWS_DATABRICKS_TOKEN: ${{ secrets.AWS_DATABRICKS_TOKEN }}
+      AZURE_DATABRICKS_HOST: ${{ secrets.AZURE_DATABRICKS_HOST }}
+      AZURE_DATABRICKS_TOKEN: ${{ secrets.AZURE_DATABRICKS_TOKEN }}
 
     steps:
     - uses: actions/checkout@v1
@@ -48,14 +50,14 @@ jobs:
     - name: Configure profiles
       run: |
         echo "[dbx-dev-aws]" >> ~/.databrickscfg
-        echo "host = $(AWS_DATABRICKS_HOST)" >> ~/.databrickscfg
-        echo "token = $(AWS_DATABRICKS_TOKEN)" >> ~/.databrickscfg
+        echo "host = $AWS_DATABRICKS_HOST" >> ~/.databrickscfg
+        echo "token = $AWS_DATABRICKS_TOKEN" >> ~/.databrickscfg
         echo "" >> ~/.databrickscfg
         echo "[dbx-dev-azure]" >> ~/.databrickscfg
-        echo "host = $(AZURE_DATABRICKS_HOST)" >> ~/.databrickscfg
-        echo "token = $(AZURE_DATABRICKS_TOKEN)" >> ~/.databrickscfg
+        echo "host = $AZURE_DATABRICKS_HOST" >> ~/.databrickscfg
+        echo "token = $AZURE_DATABRICKS_TOKEN" >> ~/.databrickscfg
 
     - name: Run tests
       run: |
-        pytest --cov dbx -s
+        pytest --cov dbx -s -n 2
 
