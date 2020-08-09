@@ -22,7 +22,7 @@ SPECS_PATH = os.path.join(dbx.__path__[0], "specs")
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help='Initializes a plain new project in a new directory.')
+               short_help='Initializes a plain new project in a new directory')
 @click.option("--project-name", required=True, type=str, help="Name for a new project")
 @click.option('--cloud', required=True, type=click.Choice(['Azure', 'AWS'], case_sensitive=True), help="Cloud provider")
 @click.option('--pipeline-engine', required=True,

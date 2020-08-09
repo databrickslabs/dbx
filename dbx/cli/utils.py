@@ -5,8 +5,10 @@ from uuid import uuid4
 
 import click
 import mlflow
+import wheel_inspect
 from databricks_cli.click_types import ContextObject
 from databricks_cli.configure.config import get_profile_from_context
+from setuptools import sandbox
 
 LOCK_FILE_NAME = ".dbx.lock.json"
 INFO_FILE_NAME = ".dbx.json"
@@ -102,3 +104,20 @@ def custom_profile_option(f):
     return click.option('--profile', required=False, default=None, callback=callback,
                         expose_value=False,
                         help='CLI connection profile to use. The default profile is "DEFAULT".')(f)
+
+
+def extract_version(whl_file) -> str:
+    inspection_data = wheel_inspect.inspect_wheel(whl_file)
+    return inspection_data["version"]
+
+
+def build_project_whl() -> str:
+    sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
+    whl_file = os.listdir("dist")[0]
+    full_whl_file_name = "dist/%s" % whl_file
+    return full_whl_file_name
+
+
+def upload_whl(full_whl_file_name):
+    dbx_echo("Uploading package to DBFS")
+    mlflow.log_artifact(full_whl_file_name, artifact_path="dist")

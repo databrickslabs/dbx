@@ -1,5 +1,4 @@
 import copy
-import os
 from pathlib import Path
 
 import click
@@ -10,9 +9,9 @@ from databricks_cli.configure.config import provide_api_client, debug_option
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
-from setuptools import sandbox
 
-from dbx.cli.utils import LockFile, read_json, INFO_FILE_NAME, dbx_echo, setup_mlflow, custom_profile_option
+from dbx.cli.utils import LockFile, InfoFile, dbx_echo, setup_mlflow, custom_profile_option, extract_version, \
+    build_project_whl, upload_whl
 
 """
 Logic behind this functionality:
@@ -42,13 +41,14 @@ def execute(api_client: ApiClient, job_name):
                 Please ensure that the dev cluster was created"""
         raise click.exceptions.UsageError(msg)
 
-    project_name = read_json(INFO_FILE_NAME)["project_name"]
+    project_name = InfoFile.get("project_name")
     v1_client = get_v1_client(api_client)
 
     with mlflow.start_run():
         dbx_echo("Building whl file")
         whl_file = build_project_whl()
         upload_whl(whl_file)
+        package_version = extract_version(whl_file)
         dbfs_package_location = mlflow.get_artifact_uri(whl_file)
 
         cluster_id = LockFile.get("dev_cluster_id")
@@ -65,19 +65,15 @@ def execute(api_client: ApiClient, job_name):
         upgrade_package(dbfs_package_location, silent_callback)
         execute_entrypoint(project_name, job_name, verbose_callback)
 
-        tags = {"job_name": job_name, "dbx_uuid": LockFile.get("dbx_uuid"), "environment": "dev"}
+        tags = {
+            "job_name": job_name,
+            "dbx_uuid": LockFile.get("dbx_uuid"),
+            "environment": "dev",
+            "version": package_version,
+            "action_type": "execute"
+        }
+
         mlflow.set_tags(tags)
-
-
-def build_project_whl() -> str:
-    sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
-    whl_file = os.listdir("dist")[0]
-    return whl_file
-
-
-def upload_whl(whl_file):
-    dbx_echo("Uploading package to DBFS")
-    mlflow.log_artifact("dist/%s" % whl_file)
 
 
 def upgrade_package(dbfs_package_location: str, execution_callback):

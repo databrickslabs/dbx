@@ -4,6 +4,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.cli.clusters import create_dev_cluster, stop_dev_cluster
 from dbx.cli.execute import execute
+from dbx.cli.deploy import deploy
 from dbx.cli.init import init
 
 
@@ -19,6 +20,7 @@ cli.add_command(init, name='init')
 cli.add_command(create_dev_cluster, name="create-dev-cluster")
 cli.add_command(stop_dev_cluster, name="stop-dev-cluster")
 cli.add_command(execute, name="execute")
+cli.add_command(deploy, name="deploy")
 
 if __name__ == "__main__":
     cli()

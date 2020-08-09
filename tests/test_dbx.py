@@ -14,6 +14,7 @@ from dbx.cli.clusters import create_dev_cluster
 from dbx.cli.execute import execute
 from dbx.cli.init import init
 from dbx.cli.utils import read_json
+from dbx.cli.deploy import deploy
 
 FORMAT = u'[%(asctime)s] %(levelname)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
@@ -36,6 +37,9 @@ class DbxTest(unittest.TestCase):
 
                 job_execution = self.runner.invoke(execute, ["--job-name", "batch"])
                 self.assertFalse(job_execution.exception)
+
+                deploy_execution = self.runner.invoke(deploy, ["--env-name", "test"])
+                self.assertFalse(deploy_execution.exception)
 
     def test_aws(self):
         logging.info("Initializing AWS test suite")

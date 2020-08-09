@@ -10,3 +10,4 @@ click
 cookiecutter
 path
 retry
+wheel-inspect
