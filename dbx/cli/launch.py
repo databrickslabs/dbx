@@ -14,7 +14,7 @@ from dbx.cli.utils import dbx_echo, setup_mlflow, custom_profile_option, parse_t
 Logic behind this functionality:
 0. List all mlflow runs per experiment
 1. Select latest run by given tags
-2. Start subrun with the given run
+2. Start subrun within the given run
 3. Create job spec by given configurations
 4. Launch the job
 """
@@ -30,7 +30,7 @@ adopted_context.update(dict(
                short_help="Launches job, choosing the latest version by given tags")
 @click.option("--job-name", required=True, type=str, help="name of a job to be launched")
 @click.option("--env", required=True, type=str, help="Environment name")
-@click.option("--trace", required=False, type=bool, default=False, help="Trace the job until it finishes")
+@click.option("--trace", is_flag=True, help="Trace the job until it finishes")
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 @debug_option
 @custom_profile_option

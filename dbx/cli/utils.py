@@ -178,7 +178,7 @@ def upload_entrypoints(project_name):
 def get_dist(api_client, artifact_uri):
     dist_uri = "%s/dist" % artifact_uri
     dbfs_service = DbfsService(api_client)
-    whl_file = dbfs_service.list(dist_uri)["files"][0]["path"]
+    whl_file = "dbfs:%s" % dbfs_service.list(dist_uri)["files"][0]["path"]
     return whl_file
 
 

@@ -14,6 +14,7 @@ from dbx.cli.clusters import create_dev_cluster
 from dbx.cli.deploy import deploy
 from dbx.cli.execute import execute
 from dbx.cli.init import init
+from dbx.cli.launch import launch
 from dbx.cli.utils import read_json
 
 
@@ -51,6 +52,10 @@ class DbxTest(unittest.TestCase):
                 logging.info("Deploying job for profile %s" % self.profile_name)
                 invoke_cli_runner(deploy, ["--env=test"])
                 logging.info("Deploying job for profile %s - done" % self.profile_name)
+
+                logging.info("Launching job for profile %s" % self.profile_name)
+                invoke_cli_runner(launch, ["--env=test", "--job-name=batch", "--trace"])
+                logging.info("Launching job for profile %s" % self.profile_name)
 
     def test_aws(self):
         logging.info("Initializing AWS test suite")
