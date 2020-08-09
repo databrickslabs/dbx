@@ -46,7 +46,7 @@ class DbxTest(unittest.TestCase):
                 logging.info("Creating dev cluster for profile %s - done" % self.profile_name)
 
                 logging.info("Executing job for profile %s" % self.profile_name)
-                invoke_cli_runner(execute, ["--job-name", "batch"])
+                invoke_cli_runner(execute, ["--job-name", "sample"])
                 logging.info("Executing job for profile %s - done" % self.profile_name)
 
                 logging.info("Deploying job for profile %s" % self.profile_name)
@@ -54,7 +54,7 @@ class DbxTest(unittest.TestCase):
                 logging.info("Deploying job for profile %s - done" % self.profile_name)
 
                 logging.info("Launching job for profile %s" % self.profile_name)
-                invoke_cli_runner(launch, ["--env=test", "--job-name=batch", "--trace"])
+                invoke_cli_runner(launch, ["--env=test", "--job-name=sample", "--trace"])
                 logging.info("Launching job for profile %s" % self.profile_name)
 
     def test_aws(self):

@@ -67,7 +67,8 @@ def launch(trace, env, api_client, job_name, tags):
         with mlflow.start_run(nested=True):
             artifact_base_uri = deploy_run.info.artifact_uri
             package_path = get_dist(api_client, artifact_base_uri)
-            config_path = "%s/config/%s/%s/job.json" % (artifact_base_uri, env, job_name)
+            launch_config_path = "%s/config/%s/%s/launch.json" % (artifact_base_uri, env, job_name)
+            arguments_path = "%s/config/%s/%s/arguments.json" % (artifact_base_uri, env, job_name)
 
             entrypoint_path = "%s/%s/jobs/%s/entrypoint.py" % (
                 artifact_base_uri,
@@ -75,7 +76,16 @@ def launch(trace, env, api_client, job_name, tags):
                 job_name
             )
 
-            job_conf = prepare_job_config(api_client, package_path, config_path, entrypoint_path)
+            job_conf = prepare_job_config(
+                api_client,
+                project_name,
+                env,
+                job_name,
+                package_path,
+                launch_config_path,
+                entrypoint_path,
+                arguments_path
+            )
 
             job_id = api_client.perform_query('POST', '/jobs/create', data=job_conf, headers=None)["job_id"]
 

@@ -1,18 +1,19 @@
 import pyspark.sql.functions as F
 
-from {{cookiecutter.project_name}}.jobs.common import Job
+from {{project_name}}.jobs.common import Job
+from typing import Dict, Any
 
-class BatchJob(Job):
-    def launch(self):
+class SampleJob(Job):
+    def launch(self, **kwargs):
         self.logger.info("Launching the batch job")
         source = (
             self.spark
                 .range(0, 1000).toDF("id")
                 .withColumn("value", F.rand())
         )
-        source.show(10)
+        source.show(kwargs["num_rows"])
         self.logger.info("Batch job finished")
 
-
-batch_job = BatchJob()
-batch_job.launch()
+if __name__ == '__main__':
+    job  = SampleJob()
+    job.launch(num_rows=20)

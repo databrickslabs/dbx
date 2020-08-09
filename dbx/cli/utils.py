@@ -164,8 +164,10 @@ def generate_filter_string(env, tags: Dict[str, str]):
 
 
 def upload_configs():
-    configs = list(pathlib.Path('config').rglob('job.json'))
-    for conf in configs:
+    launch_configs = list(pathlib.Path('config').rglob('launch.json'))
+    argument_configs = list(pathlib.Path('config').rglob('arguments.json'))
+    all_configs = launch_configs + argument_configs
+    for conf in all_configs:
         upload_file(conf)
 
 
@@ -182,17 +184,25 @@ def get_dist(api_client, artifact_uri):
     return whl_file
 
 
-def prepare_job_config(api_client, package_path, config_path, entrypoint_path):
+def prepare_job_config(api_client,
+                       project_name,
+                       env,
+                       job_name,
+                       package_path,
+                       launch_config_path,
+                       entrypoint_path,
+                       arguments_path):
     dbfs_service = DbfsService(api_client)
-    raw_config_payload = dbfs_service.read(config_path)["data"]
+    raw_config_payload = dbfs_service.read(launch_config_path)["data"]
     config_payload = base64.b64decode(raw_config_payload).decode("utf-8")
     config = json.loads(config_payload)
     package_info = [
         {"whl": package_path}
     ]
     config["libraries"] = package_info
-    config["spark_python_task"] = {
-        "python_file": entrypoint_path
-    }
-
+    config["spark_python_task"] = {"python_file": entrypoint_path}
+    config["parameters"] = ["--conf-file", arguments_path]
+    config["name"] = "%s-%s-%s" % (project_name, env, job_name)
+    dbx_echo("Full job configuration:")
+    dbx_echo(config)
     return config

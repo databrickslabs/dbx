@@ -11,3 +11,4 @@ cookiecutter
 path
 retry
 wheel-inspect
+jinja2

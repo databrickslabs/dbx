@@ -50,6 +50,25 @@ dbx execute --job-name=<your-job-name>
 As soon as cluster launch happens, you could dynamically change your code and execute it.
 
 
+### Deploy your code and configurations
+
+```bash
+dbx deploy --env=test
+```
+Deploy command will create a new deployment with:
+- `.whl` file with project
+- all files with name `job.json` name from `config` directory
+- all files with name `entrypoint.py` from `{{project_name}}` directory. 
+
+### Launch deployed job
+
+```bash
+dbx launch --env=test --job-name=batch
+```
+This command starts a new job launch on a separate automated cluster with all dependencies and configurations provided. 
+
+
+
 ## Dev documentation and notes
 
 
