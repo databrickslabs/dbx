@@ -60,11 +60,10 @@ To launch `dbx` tests from a local machine, please prepare two profiles via `dat
 Important point of `dbx` is to provide compatible interfaces with CICD pipelines for any users who used them before. 
 To do so, we provide the following migration patterns for `cicd-templates`:
 
-| cicd-templates                                                                             | dbx                                                                                                 |
-|--------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
-| ./create_cluster <some-dir> <some-pipeline> --cluster-id=<some-id>                         | dbx legacy create-cluster <some-dir> <some-pipeline> --cluster-id=<some-id>                         |
-| ./create_cluster <some-dir> <some-pipeline> --new-cluster                                  | dbx legacy create-cluster <some-dir> <some-pipeline> --cluster-id=<some-id>                         |
-| ./run_now <some-dir> <some-pipeline> --cluster=<some-id> --force-new-context --any-cluster | dbx legacy run-now <some-dir> <some-pipeline> --cluster=<some-id> --force-new-context --any-cluster |
-| ./run_pipeline <dir-with-pipelines> --pipeline-name                                        | dbx legacy run-pipeline <dir-with-pipelines> --pipeline-name                                        |
+| cicd-templates               | dbx                          |
+|------------------------------|------------------------------|
+| `./create_cluster`           | `dbx legacy create-cluster`  |
+| `./run_now`                  | `dbx legacy run-now`         |
+| `./run_pipeline`             | `dbx legacy run-pipeline`    |
 
 Please consider that these options are provided **only** for compatibility reasons. We recommend to use `dbx` only with `dbx`-based projects.
