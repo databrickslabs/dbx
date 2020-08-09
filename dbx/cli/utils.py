@@ -121,3 +121,8 @@ def build_project_whl() -> str:
 def upload_whl(full_whl_file_name):
     dbx_echo("Uploading package to DBFS")
     mlflow.log_artifact(full_whl_file_name, artifact_path="dist")
+
+
+def parse_tags(tags):
+    formatted = {t.split("=")[0].replace("--", "").replace("-", "_"): t.split("=")[-1] for t in tags}
+    return formatted
