@@ -8,10 +8,10 @@ test:
 	pytest --cov dbx -s -n 2
 
 test-only-aws:
-	pytest --cov dbx -s -k "test_aws"
+	pytest --cov dbx -s -k "test_aws" --capture=sys
 
 test-only-azure:
-	pytest --cov dbx -s -k "test_azure"
+	pytest --cov dbx -s -k "test_azure" --capture=sys
 
 create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7

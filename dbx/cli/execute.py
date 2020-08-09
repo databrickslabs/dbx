@@ -11,7 +11,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
 
 from dbx.cli.utils import LockFile, InfoFile, dbx_echo, setup_mlflow, custom_profile_option, extract_version, \
-    build_project_whl, upload_whl
+    build_project_whl, upload_file
 
 """
 Logic behind this functionality:
@@ -47,7 +47,7 @@ def execute(api_client: ApiClient, job_name):
     with mlflow.start_run():
         dbx_echo("Building whl file")
         whl_file = build_project_whl()
-        upload_whl(whl_file)
+        upload_file(whl_file)
         package_version = extract_version(whl_file)
         dbfs_package_location = mlflow.get_artifact_uri(whl_file)
 
@@ -113,7 +113,7 @@ def context_exists(client, cluster_id, context_id):
         return False
 
 
-@retry(tries=10, delay=1, backoff=5)
+@retry(tries=10, delay=5, backoff=5)
 def create_context(v1_client, cluster_id):
     payload = v1_client.perform_query(method='POST',
                                       path='/contexts/create',

@@ -11,35 +11,46 @@ from databricks_cli.sdk.api_client import ApiClient
 from path import Path
 
 from dbx.cli.clusters import create_dev_cluster
+from dbx.cli.deploy import deploy
 from dbx.cli.execute import execute
 from dbx.cli.init import init
 from dbx.cli.utils import read_json
-from dbx.cli.deploy import deploy
-
-FORMAT = u'[%(asctime)s] %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
 
 
+def invoke_cli_runner(*args, **kwargs):
+    """
+    Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
+    """
+    res = CliRunner().invoke(*args, **kwargs)
+    assert res.exit_code == 0, 'Exit code was not 0. Output is: {}'.format(res.output)
+    return res
+
+
+# noinspection PyBroadException
 class DbxTest(unittest.TestCase):
     def setUp(self) -> None:
         self.test_dir = tempfile.mkdtemp()
-        self.runner = CliRunner()
 
     def provide_suite(self, init_args):
+        logging.info("Launching test suite with args: %s" % init_args)
         with Path(self.test_dir):
-            result = self.runner.invoke(init, init_args)
-            self.assertFalse(result.exception)
+            logging.info("Initializing the dbx project for profile %s" % self.profile_name)
+            invoke_cli_runner(init, init_args)
             self.assertTrue(os.path.exists(self.project_name))
+            logging.info("Project initialization for profile %s - done" % self.profile_name)
 
             with Path(os.path.join(self.test_dir, self.project_name)):
-                cluster_creation = self.runner.invoke(create_dev_cluster)
-                self.assertFalse(cluster_creation.exception)
+                logging.info("Creating dev cluster for profile %s" % self.profile_name)
+                invoke_cli_runner(create_dev_cluster)
+                logging.info("Creating dev cluster for profile %s - done" % self.profile_name)
 
-                job_execution = self.runner.invoke(execute, ["--job-name", "batch"])
-                self.assertFalse(job_execution.exception)
+                logging.info("Executing job for profile %s" % self.profile_name)
+                invoke_cli_runner(execute, ["--job-name", "batch"])
+                logging.info("Executing job for profile %s - done" % self.profile_name)
 
-                deploy_execution = self.runner.invoke(deploy, ["--env-name=test"])
-                self.assertFalse(deploy_execution.exception)
+                logging.info("Deploying job for profile %s" % self.profile_name)
+                invoke_cli_runner(deploy, ["--env=test"])
+                logging.info("Deploying job for profile %s - done" % self.profile_name)
 
     def test_aws(self):
         logging.info("Initializing AWS test suite")

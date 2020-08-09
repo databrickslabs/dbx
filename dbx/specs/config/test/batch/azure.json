@@ -1,0 +1,10 @@
+{
+  "max_retries": 0,
+  "new_cluster": {
+    "num_workers": 1,
+    "spark_version": "7.0.x-cpu-ml-scala2.12",
+    "node_type_id": "Standard_F4s"
+  },
+  "schedule": null,
+  "spark_python_task": {}
+}

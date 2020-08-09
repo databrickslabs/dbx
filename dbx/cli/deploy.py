@@ -6,7 +6,7 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.cli.utils import dbx_echo, setup_mlflow, custom_profile_option, parse_tags, InfoFile, build_project_whl, \
-    upload_whl, extract_version
+    upload_file, extract_version, upload_configs, upload_entrypoints
 
 """
 Logic behind this functionality:
@@ -25,11 +25,12 @@ adopted_context.update(dict(
 
 @click.command(context_settings=adopted_context,
                short_help="Deploys project to artifact storage with given tags")
+@click.option("--env", required=True, type=str, help="Environment name")
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 @debug_option
 @custom_profile_option
 @setup_mlflow
-def deploy(tags):
+def deploy(env, tags):
     """
     Deploys the project. Please provide tags in format: --tag1=value1 --tag2=value2
     """
@@ -41,11 +42,15 @@ def deploy(tags):
         dbx_echo("Building whl file")
         whl_file = build_project_whl()
         package_version = extract_version(whl_file)
-        upload_whl(whl_file)
+        upload_file(whl_file)
+        upload_configs()
+        upload_entrypoints(project_name)
 
         deployment_tags.update({
             "version": package_version,
-            "action_type": "deploy"
+            "action_type": "deploy",
+            "dbx_env": env,
+            "dbx_status": "SUCCESS"
         })
 
         mlflow.set_tags(deployment_tags)

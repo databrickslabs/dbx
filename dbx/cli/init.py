@@ -100,6 +100,15 @@ def postprocess_project_dir(**kwargs):
 
     update_json({"cluster_name": dev_cluster_name}, DEV_CLUSTER_FILE)
 
+    dev_cluster_spec_path = os.path.join(SPECS_PATH, "config/dev/%s.json" % kwargs["cloud"].lower())
+    shutil.copyfile(dev_cluster_spec_path, DEV_CLUSTER_FILE)
+
+    test_batch_job_path = "config/test/batch/job.json"
+    sample_job_spec_path = os.path.join(SPECS_PATH, "config/test/batch/%s.json" % kwargs["cloud"].lower())
+    shutil.copyfile(sample_job_spec_path, test_batch_job_path)
+
+    update_json({"name": "%s-test-batch-job" % kwargs["project_name"]}, test_batch_job_path)
+
     shutil.copyfile(".gitignore.template", ".gitignore")
     subprocess.check_output('git init', shell=True)
 

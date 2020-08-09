@@ -1,0 +1,20 @@
+{
+  "max_retries": 0,
+  "new_cluster": {
+    "num_workers": 1,
+    "spark_version": "7.0.x-cpu-ml-scala2.12",
+    "node_type_id": "c4.2xlarge",
+    "aws_attributes": {
+      "first_on_demand": 1,
+      "availability": "SPOT_WITH_FALLBACK",
+      "zone_id": "us-west-2c",
+      "instance_profile_arn": null,
+      "spot_bid_price_percent": 100,
+      "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+      "ebs_volume_count": 1,
+      "ebs_volume_size": 32
+    }
+  },
+  "schedule": null,
+  "spark_python_task": {}
+}

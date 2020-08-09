@@ -1,14 +1,24 @@
+import base64
 import datetime as dt
+import glob
 import json
 import os
+import pathlib
+import warnings
+from typing import Dict
 from uuid import uuid4
 
 import click
 import mlflow
-import wheel_inspect
 from databricks_cli.click_types import ContextObject
 from databricks_cli.configure.config import get_profile_from_context
+from databricks_cli.dbfs.api import DbfsService
 from setuptools import sandbox
+
+# disables warnings coming from wheel_inspect dependency
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+import wheel_inspect
 
 LOCK_FILE_NAME = ".dbx.lock.json"
 INFO_FILE_NAME = ".dbx.json"
@@ -113,14 +123,14 @@ def extract_version(whl_file) -> str:
 
 def build_project_whl() -> str:
     sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
-    whl_file = os.listdir("dist")[0]
-    full_whl_file_name = "dist/%s" % whl_file
-    return full_whl_file_name
+    whl_file = glob.glob("dist/*.whl")[0]
+    return whl_file
 
 
-def upload_whl(full_whl_file_name):
-    dbx_echo("Uploading package to DBFS")
-    mlflow.log_artifact(full_whl_file_name, artifact_path="dist")
+def upload_file(file_path):
+    dbx_echo("Uploading file to artifactory: %s" % file_path)
+    prefix, path = os.path.split(file_path)
+    mlflow.log_artifact(file_path, artifact_path=prefix)
 
 
 def parse_tags(tags):
@@ -138,3 +148,51 @@ def parse_tags(tags):
             formatted = {keys[idx].replace("--", "").replace("-", "_"): values[idx] for idx in range(len(keys))}
 
     return formatted
+
+
+def generate_filter_string(env, tags: Dict[str, str]):
+    tags_filter = ['tags.%s="%s"' % (key, value) for key, value in tags.items()]
+    env_filter = ['tags.dbx_env="%s"' % env]
+
+    # we are not using attribute.status due to it's behaviour with nested runs
+    status_filter = ['tags.dbx_status="SUCCESS"']
+    deploy_filter = ['tags.action_type="deploy"']
+
+    filters = tags_filter + status_filter + deploy_filter + env_filter
+    filter_string = " and ".join(filters)
+    return filter_string
+
+
+def upload_configs():
+    configs = list(pathlib.Path('config').rglob('job.json'))
+    for conf in configs:
+        upload_file(conf)
+
+
+def upload_entrypoints(project_name):
+    entrypoints = list(pathlib.Path(project_name).rglob('entrypoint.py'))
+    for ep in entrypoints:
+        upload_file(ep)
+
+
+def get_dist(api_client, artifact_uri):
+    dist_uri = "%s/dist" % artifact_uri
+    dbfs_service = DbfsService(api_client)
+    whl_file = dbfs_service.list(dist_uri)["files"][0]["path"]
+    return whl_file
+
+
+def prepare_job_config(api_client, package_path, config_path, entrypoint_path):
+    dbfs_service = DbfsService(api_client)
+    raw_config_payload = dbfs_service.read(config_path)["data"]
+    config_payload = base64.b64decode(raw_config_payload).decode("utf-8")
+    config = json.loads(config_payload)
+    package_info = [
+        {"whl": package_path}
+    ]
+    config["libraries"] = package_info
+    config["spark_python_task"] = {
+        "python_file": entrypoint_path
+    }
+
+    return config
