@@ -152,9 +152,6 @@ def postprocess_project_dir(**kwargs):
 
     update_json({"cluster_name": dev_cluster_name}, DEV_CLUSTER_FILE)
 
-    dev_cluster_spec_path = os.path.join(SPECS_PATH, "config/dev/%s.json" % kwargs["cloud"].lower())
-    shutil.copyfile(dev_cluster_spec_path, DEV_CLUSTER_FILE)
-
     shutil.copyfile(".gitignore.template", ".gitignore")
     subprocess.check_output('git init', shell=True)
 

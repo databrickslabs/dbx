@@ -16,5 +16,9 @@
     }
   },
   "schedule": null,
-  "spark_python_task": {}
+  "spark_python_task": {},
+  "spark_env_vars": {
+    "PYSPARK_PYTHON": "/databricks/python3/bin/python3",
+    "DBX_AUTOMATED_EXECUTION": "true"
+  }
 }

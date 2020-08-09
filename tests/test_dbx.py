@@ -58,7 +58,7 @@ class DbxTest(unittest.TestCase):
                 logging.info("Launching job for profile %s" % self.profile_name)
 
     def test_aws(self):
-        logging.info("Initializing AWS test suite")
+        logging.info("Initializing AWS test suite with temp dir: %s" % self.test_dir)
         self.project_name = "dev_dbx_aws_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-dev-aws"
         init_args = [
@@ -72,7 +72,7 @@ class DbxTest(unittest.TestCase):
         self.provide_suite(init_args)
 
     def test_azure(self):
-        logging.info("Initializing Azure test suite")
+        logging.info("Initializing Azure test suite with temp dir: %s" % self.test_dir)
         self.project_name = "dev_dbx_aws_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-dev-azure"
         init_args = [
