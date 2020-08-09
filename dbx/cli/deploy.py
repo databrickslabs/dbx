@@ -48,4 +48,4 @@ def deploy(tags):
             "action_type": "deploy"
         })
 
-        mlflow.set_tags(tags)
+        mlflow.set_tags(deployment_tags)

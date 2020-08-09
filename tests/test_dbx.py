@@ -38,7 +38,7 @@ class DbxTest(unittest.TestCase):
                 job_execution = self.runner.invoke(execute, ["--job-name", "batch"])
                 self.assertFalse(job_execution.exception)
 
-                deploy_execution = self.runner.invoke(deploy, ["--env-name", "test"])
+                deploy_execution = self.runner.invoke(deploy, ["--env-name=test"])
                 self.assertFalse(deploy_execution.exception)
 
     def test_aws(self):

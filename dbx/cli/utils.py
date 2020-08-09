@@ -124,5 +124,17 @@ def upload_whl(full_whl_file_name):
 
 
 def parse_tags(tags):
-    formatted = {t.split("=")[0].replace("--", "").replace("-", "_"): t.split("=")[-1] for t in tags}
+    contains_equals = sum(["=" in t for t in tags])
+    if contains_equals == len(tags):
+        # if the format is --tag1=value2 --tag2=value2
+        formatted = {t.split("=")[0].replace("--", "").replace("-", "_"): t.split("=")[-1] for t in tags}
+    else:
+        # format is --tag1 value1 --tag2 value2
+        if len(tags) % 2 != 0:
+            raise NameError("Given tags are not in compatible format (either --tag1=value1 or --tag1 value1).")
+        else:
+            keys = tags[::2]
+            values = tags[1::2]
+            formatted = {keys[idx].replace("--", "").replace("-", "_"): values[idx] for idx in range(len(keys))}
+
     return formatted
