@@ -23,66 +23,46 @@ conda install dbx
 ```
 
 ### Initialize the project
-```bash
-dbx init \
-  --project-name=<your_project_name> \
-  --cloud=["Azure","AWS"] \
-  --pipeline-engine=["GitHub Actions", "Azure Pipelines"]
 
-cd <your_project_name>
-```
-
-### Create your dev cluster
+- As a first step, you need to create a project from a template. You can use your own template, or you can choose from existing templates:
 
 ```bash
-dbx create-dev-cluster
+cookiecutter --no-input https://github.com/databrickslabs/cicd-templates.git project_name="sample"
+cd sample
 ```
-
-### Add your job into project
-
-Create a new job under `jobs` directory. Write main executable code in the `entrypoint.py` file.
-
-### Launch your code on dev
+- After creating a project, initialize `dbx` inside a directory. Provide any project name as a parameter:
 
 ```bash
-dbx execute --job-name=<your-job-name>
+dbx init --project-name="sample"
 ```
-As soon as cluster launch happens, you could dynamically change your code and execute it.
-
-
-### Deploy your code and configurations
+- Now, it's time to configure environments. As an example, create a new environment via given command:
 
 ```bash
-dbx deploy --env=test
+dbx configure \
+    --name="test" \
+    --profile="some-profile-name" \
+    --workspace-dir="/dbx/projects/sample"
 ```
-Deploy command will create a new deployment with:
-- `.whl` file with project
-- all files with name `job.json` name from `config` directory
-- all files with name `entrypoint.py` from `{{project_name}}` directory. 
 
-### Launch deployed job
+This will configure a storage for project, and MLflow storage for deployment tracking.
 
+- Next step would be to deploy your code, dependencies and any related files to dbfs. You can do it via following command:
 ```bash
-dbx launch --env=test --job-name=batch
+dbx deploy \
+    --environment=test \
+    --dirs=comma/separated/path1,comma/separated/path2 \
+    --files=some/file1,/some/file2 \
+    --rglobs=some/recursive/*.glob 
 ```
-This command starts a new job launch on a separate automated cluster with all dependencies and configurations provided. 
 
-
+- Finally, after deploying all your job-related files, you can create and launch a job via:
+```bash
+dbx launch \
+    --environment=test \
+    --entrypoint-file=<entrypoint-file-location> \
+    --jbo-conf-file=<job-conf-file-location>
+```
 
 ## Dev documentation and notes
 
-
 To launch `dbx` tests from a local machine, please prepare two profiles via `databricks configure`: `dbx-dev-aws` and `dbx-dev-azure`.
-
-## Compatibility with cicd-templates
-
-Important point of `dbx` is to provide compatible interfaces with CICD pipelines for any users who used them before. 
-To do so, we provide the following migration patterns for `cicd-templates`:
-
-| cicd-templates               | dbx                          |
-|------------------------------|------------------------------|
-| `./create_cluster`           | `dbx legacy create-cluster`  |
-| `./run_now`                  | `dbx legacy run-now`         |
-| `./run_pipeline`             | `dbx legacy run-pipeline`    |
-
-Please consider that these options are provided **only** for compatibility reasons. We recommend to use `dbx` only with `dbx`-based projects.
