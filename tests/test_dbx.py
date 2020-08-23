@@ -1,21 +1,20 @@
 import logging
-import os
 import tempfile
 import unittest
+from pathlib import Path as Pathlib
 from uuid import uuid4
 
 from click.testing import CliRunner
-from databricks_cli.clusters.api import ClusterService
-from databricks_cli.configure.config import ProfileConfigProvider
-from databricks_cli.sdk.api_client import ApiClient
+from cookiecutter.main import cookiecutter
 from path import Path
 
-from dbx.cli.clusters import create_dev_cluster
+from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
-from dbx.cli.execute import execute
 from dbx.cli.init import init
 from dbx.cli.launch import launch
-from dbx.cli.utils import read_json
+from dbx.cli.utils import read_json, write_json
+
+CICD_TEMPLATES_URI = "https://github.com/databrickslabs/cicd-templates.git"
 
 
 def invoke_cli_runner(*args, **kwargs):
@@ -27,79 +26,72 @@ def invoke_cli_runner(*args, **kwargs):
     return res
 
 
+def reconfigure_json_files(project_name):
+    # delete schedules from all test jobs to avoid any re-launches.
+    # also, add meaningful names to the jobs
+    configs = list(Pathlib(".").rglob("*.json"))
+    for conf in configs:
+        content = read_json(str(conf))
+        content.pop("schedule", None)
+        content["name"] = project_name + "-test-launch"
+        write_json(content, str(conf))
+
+
 # noinspection PyBroadException
 class DbxTest(unittest.TestCase):
     def setUp(self) -> None:
         self.test_dir = tempfile.mkdtemp()
 
-    def provide_suite(self, init_args):
-        logging.info("Launching test suite with args: %s" % init_args)
+    def provide_suite(self):
         with Path(self.test_dir):
-            logging.info("Initializing the dbx project for profile %s" % self.profile_name)
-            invoke_cli_runner(init, init_args)
-            self.assertTrue(os.path.exists(self.project_name))
-            logging.info("Project initialization for profile %s - done" % self.profile_name)
+            cookiecutter(CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": self.project_name})
+            with Path(self.project_name):
+                reconfigure_json_files(self.project_name)
+                invoke_cli_runner(init, ["--project-name", self.project_name])
+                self.assertTrue(Path(".dbx.json").exists())
+                logging.info("Project initialization - done")
 
-            with Path(os.path.join(self.test_dir, self.project_name)):
-                logging.info("Creating dev cluster for profile %s" % self.profile_name)
-                invoke_cli_runner(create_dev_cluster)
-                logging.info("Creating dev cluster for profile %s - done" % self.profile_name)
+                invoke_cli_runner(configure, [
+                    "--name", "test",
+                    "--profile", self.profile_name,
+                    "--workspace-dir", self.workspace_dir
+                ])
+                logging.info("Project configuration - done")
 
-                logging.info("Executing job for profile %s" % self.profile_name)
-                invoke_cli_runner(execute, ["--job-name", "sample"])
-                logging.info("Executing job for profile %s - done" % self.profile_name)
+                invoke_cli_runner(deploy, [
+                    "--environment=test",
+                    "--dirs=pipelines",
+                    "--files=.dbx.json",
+                    "--rglobs=*.txt"
+                ])
+                logging.info("Test deployment - done")
 
-                logging.info("Deploying job for profile %s" % self.profile_name)
-                invoke_cli_runner(deploy, ["--env=test"])
-                logging.info("Deploying job for profile %s - done" % self.profile_name)
-
-                logging.info("Launching job for profile %s" % self.profile_name)
-                invoke_cli_runner(launch, ["--env=test", "--job-name=sample", "--trace"])
-                logging.info("Launching job for profile %s" % self.profile_name)
+                invoke_cli_runner(launch, [
+                    "--environment=test",
+                    '--entrypoint-file=pipelines/pipeline1/pipeline_runner.py',
+                    '--job-conf-file=pipelines/pipeline1/job_spec_%s.json' % self.cloud_type,
+                    '--trace'
+                ])
+                logging.info("Test launch - done")
 
     def test_aws(self):
         logging.info("Initializing AWS test suite with temp dir: %s" % self.test_dir)
         self.project_name = "dev_dbx_aws_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-dev-aws"
-        init_args = [
-            "--project-name", self.project_name,
-            "--cloud", "AWS",
-            "--pipeline-engine", "GitHub Actions",
-            "--profile", self.profile_name,
-            "--dbx-workspace-dir", "/Shared/dbx/projects",
-            "--dbx-artifact-location", "dbfs:/tmp/dbx/projects"
-        ]
-        self.provide_suite(init_args)
+        self.workspace_dir = "/Shared/dbx/projects/%s" % self.project_name
+        self.cloud_type = "aws"
+        self.provide_suite()
 
     def test_azure(self):
         logging.info("Initializing Azure test suite with temp dir: %s" % self.test_dir)
-        self.project_name = "dev_dbx_aws_%s" % str(uuid4()).split("-")[0]
+        self.project_name = "dev_dbx_azure_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-dev-azure"
-        init_args = [
-            "--project-name", self.project_name,
-            "--cloud", "Azure",
-            "--pipeline-engine", "GitHub Actions",
-            "--profile", self.profile_name
-        ]
-        self.provide_suite(init_args)
+        self.workspace_dir = "/Shared/dbx/projects/%s" % self.project_name
+        self.cloud_type = "azure"
+        self.provide_suite()
 
     def tearDown(self) -> None:
-        msg = """
-            Test tear down info:
-                Project name:   %s
-                Profile name:   %s
-                Temp directory: %s
-        """ % (self.project_name, self.profile_name, self.test_dir)
-        logging.info(msg)
-        try:
-            with Path(os.path.join(self.test_dir, self.project_name)):
-                cluster_id = read_json(".dbx.lock.json")["dev_cluster_id"]
-                config = ProfileConfigProvider(self.profile_name).get_config()
-                api_client = ApiClient(token=config.token, host=config.host)
-                cluster_service = ClusterService(api_client)
-                cluster_service.permanent_delete_cluster(cluster_id)
-        except:
-            pass
+        pass
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ install-dev:
 	pip install -e .
 
 test:
-	pytest --cov dbx -s -n 2
+	pytest --cov dbx
 
 test-only-aws:
 	pytest --cov dbx -s -k "test_aws" --capture=sys
@@ -21,20 +21,20 @@ install-dev-reqs:
 
 test-init-aws:
 	rm -rf dbx_dev_aws
+	cookiecutter --no-input \
+		https://github.com/databrickslabs/cicd-templates.git \
+		project_name="dbx_dev_aws"
 	dbx init \
-		--profile dbx-dev-aws \
-		--project-name dbx_dev_aws \
-		--dbx-workspace-dir="/Shared/dbx/projects" \
-		--dbx-artifact-location="dbfs:/tmp/dbx/projects" \
-		--cloud="AWS" \
-		--pipeline-engine="GitHub Actions" \
-		--override
-
-test-init-azure:
-	rm -rf dbx_dev_azure
-	dbx init \
-		--profile dbx-dev-azure \
-		--project-name dbx_dev_azure \
-		--cloud="Azure" \
-		--pipeline-engine="GitHub Actions" \
-		--override
+		--project-name="dbx_dev_aws" \
+		--project-local-dir="./dbx_dev_aws"
+	cd dbx_dev_aws && dbx configure \
+		--name="test" \
+		--profile="dbx-dev-aws" \
+		--workspace-dir="/Shared/dbx/projects/dbx_dev_aws"
+	cd dbx_dev_aws && dbx deploy \
+		--environment=test \
+		--dirs="pipelines"
+#	cd dbx_dev_aws && dbx launch \
+#		--environment=test \
+#		--entrypoint-file="pipelines/pipeline1/pipeline_runner.py" \
+#		--job-conf-file="pipelines/pipeline1/job_spec_aws.json"

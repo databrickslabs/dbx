@@ -1,6 +1,0 @@
-{
-  "project_name": "dbx-basic",
-  "license": "",
-  "cloud": ["AWS", "Azure"],
-  "pipeline-engine": ["GitHub Actions", "Azure Pipelines"]
-}
