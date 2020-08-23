@@ -38,3 +38,19 @@ test-init-aws:
 #		--environment=test \
 #		--entrypoint-file="pipelines/pipeline1/pipeline_runner.py" \
 #		--job-conf-file="pipelines/pipeline1/job_spec_aws.json"
+
+test-init-azure:
+	rm -rf dbx_dev_azure
+	cookiecutter --no-input \
+		https://github.com/databrickslabs/cicd-templates.git \
+		project_name="dbx_dev_azure"
+	dbx init \
+		--project-name="dbx_dev_azure" \
+		--project-local-dir="./dbx_dev_azure"
+	cd dbx_dev_azure && dbx configure \
+		--name="test" \
+		--profile="dbx-dev-azure" \
+		--workspace-dir="/dbx/projects/dbx_dev_azure"
+#	cd dbx_dev_aws && dbx deploy \
+#		--environment=test \
+#		--dirs="pipelines"

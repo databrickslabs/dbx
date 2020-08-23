@@ -86,7 +86,7 @@ class DbxTest(unittest.TestCase):
         logging.info("Initializing Azure test suite with temp dir: %s" % self.test_dir)
         self.project_name = "dev_dbx_azure_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-dev-azure"
-        self.workspace_dir = "/Shared/dbx/projects/%s" % self.project_name
+        self.workspace_dir = "/dbx/projects/%s" % self.project_name
         self.cloud_type = "azure"
         self.provide_suite()
 
