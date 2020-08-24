@@ -1,24 +1,18 @@
+import base64
+import json
 from copy import deepcopy
 from typing import List, Dict, Any
 
 import click
 import mlflow
 import time
+from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.cli.utils import dbx_echo, parse_params, generate_filter_string, \
-    prepare_job_config, _provide_environment
-
-"""
-Logic behind this functionality:
-0. List all mlflow runs per experiment
-1. Select latest run by given tags
-2. Start subrun within the given run
-3. Create job spec by given configurations
-4. Launch the job
-"""
+    _provide_environment
 
 adopted_context = deepcopy(CONTEXT_SETTINGS)
 
@@ -30,11 +24,10 @@ adopted_context.update(dict(
 @click.command(context_settings=adopted_context,
                short_help="Launches job, choosing the latest version by given tags")
 @click.option("--environment", required=True, type=str, help="Environment name")
-@click.option("--entrypoint-file", required=True, type=str, help="Entrypoint file location in artifactory")
-@click.option("--job-conf-file", required=True, type=str, help="Job configuration path in artifactory")
+@click.option("--job", required=True, type=str, help="Job name")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes")
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
-def launch(environment: str, entrypoint_file: str, job_conf_file: str, trace: bool, tags: List[str]):
+def launch(environment: str, job: str, trace: bool, tags: List[str]):
     """
     Launches job, choosing the latest version by given tags. Please provide tags in format: --tag1=value1 --tag2=value2
     """
@@ -64,16 +57,11 @@ def launch(environment: str, entrypoint_file: str, job_conf_file: str, trace: bo
         with mlflow.start_run(nested=True):
 
             artifact_base_uri = deployment_run.info.artifact_uri
-            job_conf_file_path = "%s/%s" % (artifact_base_uri, job_conf_file)
-            entrypoint_file_path = "%s/%s" % (artifact_base_uri, entrypoint_file)
+            deployments = _load_deployments(api_client, artifact_base_uri)
+            job_id = deployments.get(job)
 
-            job_conf = prepare_job_config(
-                api_client,
-                job_conf_file_path,
-                entrypoint_file_path
-            )
-
-            job_id = api_client.perform_query('POST', '/jobs/create', data=job_conf, headers=None)["job_id"]
+            if not job_id:
+                raise Exception("Job with name %s not found in the latest deployment" % job)
 
             jobs_service = JobsService(api_client)
             run_data = jobs_service.run_now(job_id)
@@ -92,6 +80,15 @@ def launch(environment: str, entrypoint_file: str, job_conf_file: str, trace: bo
             })
 
             mlflow.set_tags(deployment_tags)
+
+
+def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
+    dbfs_service = DbfsService(api_client)
+    dbx_deployments = "%s/.dbx/deployments.json" % artifact_base_uri
+    raw_config_payload = dbfs_service.read(dbx_deployments)["data"]
+    payload = base64.b64decode(raw_config_payload).decode("utf-8")
+    deployments = json.loads(payload)
+    return deployments
 
 
 def trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:

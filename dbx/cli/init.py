@@ -1,9 +1,14 @@
+import os
+
 import click
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 from path import Path
-
+import shutil
+import dbx
 from dbx.cli.utils import InfoFile, dbx_echo
+
+DEPLOYMENT_TEMPLATE_PATH = os.path.join(dbx.__path__[0], "template", "deployment.jsonnet")
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -19,10 +24,10 @@ def init(
     dbx_echo("Initializing project %s in directory: %s" % (project_name, project_local_dir))
 
     with Path(project_local_dir):
-
+        os.mkdir(".dbx")
         InfoFile.initialize({
             "project_name": project_name,
             "environments": {}
         })
-
+        shutil.copy(DEPLOYMENT_TEMPLATE_PATH, ".dbx/deployment.jsonnet")
         dbx_echo("Project initialization finished")

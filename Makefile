@@ -27,13 +27,13 @@ test-init-aws:
 	dbx init \
 		--project-name="dbx_dev_aws" \
 		--project-local-dir="./dbx_dev_aws"
-	cd dbx_dev_aws && dbx configure \
-		--name="test" \
-		--profile="dbx-dev-aws" \
-		--workspace-dir="/Shared/dbx/projects/dbx_dev_aws"
-	cd dbx_dev_aws && dbx deploy \
-		--environment=test \
-		--dirs="pipelines"
+#	cd dbx_dev_aws && dbx configure \
+#		--name="test" \
+#		--profile="dbx-dev-aws" \
+#		--workspace-dir="/Shared/dbx/projects/dbx_dev_aws"
+#	cd dbx_dev_aws && dbx deploy \
+#		--environment=test \
+#		--dirs="pipelines"
 #	cd dbx_dev_aws && dbx launch \
 #		--environment=test \
 #		--entrypoint-file="pipelines/pipeline1/pipeline_runner.py" \

@@ -1,10 +1,16 @@
+import json
 import pathlib
+import tempfile
 from copy import deepcopy
+from typing import Dict, Any, Union
 from typing import List
 
+import _jsonnet
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
+from databricks_cli.jobs.api import JobsService
+from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.cli.utils import parse_params, dbx_echo, _provide_environment
@@ -22,80 +28,148 @@ adopted_context.update(dict(
                Please provide either paths, or files or recursive globs to the FS objects which shall be deployed.
                """)
 @click.option("--environment", required=True, type=str, help="Environment name")
-@click.option("--dirs", required=False, type=str,
-              help="Directories to be deployed, comma-separated")
-@click.option("--files", required=False, type=str,
-              help="Files to be deployed, comma-separated.")
-@click.option("--rglobs", required=False, type=str,
-              help="Recursive globs to select objects to be deployed, comma-separated.")
+@click.option("--deployment-file", required=False, type=str,
+              help="Path to deployment file. File should have .jsonnet extension", default=".dbx/deployment.jsonnet")
+@click.option("--jobs", required=False, type=str,
+              help="""Comma-separated list of job names to be deployed. 
+              If not provided, all jobs from deployment file will be deployed
+              """)
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 @debug_option
-def deploy(environment: str, dirs: str, files: str, rglobs: str, tags: List[str]):
+def deploy(environment: str, deployment_file: str, jobs: str, tags: List[str]):
     deployment_tags = parse_params(tags)
     dbx_echo("Starting new deployment for environment %s" % environment)
 
-    _provide_environment(environment)
+    _, api_client = _provide_environment(environment)
+    _verify_deployment_file(deployment_file)
 
-    prepared_fs_objects = []
+    deployment = json.loads(_jsonnet.evaluate_file(deployment_file))
 
-    if files:
-        prepared_fs_objects += preprocess_files(files)
+    if jobs:
+        requested_jobs = jobs.split(",")
+    else:
+        requested_jobs = None
 
-    if dirs:
-        prepared_fs_objects += preprocess_dirs(dirs)
+    _preprocess_deployment(deployment, requested_jobs)
 
-    if rglobs:
-        prepared_fs_objects += preprocess_rglobs(rglobs)
+    with mlflow.start_run() as deployment_run:
+        _upload_files(deployment["dbfs"])
 
-    distinct_file_paths = list(sorted(set(prepared_fs_objects)))
+        artifact_base_uri = deployment_run.info.artifact_uri
 
-    if not distinct_file_paths:
-        raise ValueError("No files found by given criteria. Please check command arguments and directory structure")
-
-    with mlflow.start_run():
-        for file_path in distinct_file_paths:
-            dbx_echo("Deploying file %s" % file_path)
-            mlflow.log_artifact(str(file_path), str(file_path.parent))
+        adjust_job_definitions(deployment["jobs"], artifact_base_uri)
+        deployment_data = create_jobs(deployment["jobs"], api_client)
+        _log_deployments(deployment_data)
 
         deployment_tags.update({
             "dbx_action_type": "deploy",
             "dbx_environment": environment,
-            "dbx_status": "SUCCESS"
+            "dbx_status": "SUCCESS",
         })
 
         mlflow.set_tags(deployment_tags)
 
 
-def preprocess_files(files: str) -> List[pathlib.Path]:
-    fs_objects = []
-    for file_path in files.split(","):
-        p_obj = pathlib.Path(file_path)
-        if p_obj.is_file():
-            fs_objects.append(p_obj)
+def _log_deployments(deployment_data):
+    temp_dir = tempfile.mkdtemp()
+    serialized_data = json.dumps(deployment_data, indent=4)
+    temp_path = pathlib.Path(temp_dir, "deployments.json")
+    temp_path.write_text(serialized_data)
+    mlflow.log_artifact(str(temp_path), ".dbx")
+
+
+def _verify_deployment_file(deployment_file: str):
+    if not deployment_file.endswith(".jsonnet"):
+        raise Exception("Deployment file should have .jsonnet extension")
+
+    if not pathlib.Path(deployment_file).exists():
+        raise Exception("Deployment file %s is non-existent: %s" % deployment_file)
+
+
+def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
+    if "dbfs" not in deployment:
+        raise Exception("No local files provided for deployment")
+
+    _preprocess_files(deployment["dbfs"])
+
+    if "jobs" not in deployment:
+        raise Exception("No jobs provided for deployment")
+
+    deployment["jobs"] = _preprocess_jobs(deployment["jobs"], requested_jobs)
+
+
+def _preprocess_files(files: Dict[str, Any]):
+    for key, file_path_str in files.items():
+        file_path = pathlib.Path(file_path_str)
+        if not file_path.exists():
+            raise Exception("File path %s is non-existent" % file_path)
+        files[key] = file_path
+
+
+def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:
+    job_names = [job["name"] for job in jobs]
+    if requested_jobs:
+        dbx_echo("Deployment will be performed only for the following jobs: %s" % requested_jobs)
+        for requested_job_name in requested_jobs:
+            if requested_job_name not in job_names:
+                raise Exception("Job %s was requested, but not provided in deployment file" % requested_job_name)
+        preprocessed_jobs = [job for job in jobs if job["name"] in requested_jobs]
+    else:
+        preprocessed_jobs = jobs
+    return preprocessed_jobs
+
+
+def _upload_files(files: Dict[str, Any]):
+    for _, file_path_str in files.items():
+        file_path = pathlib.Path(file_path_str)
+        dbx_echo("Deploying file: %s" % file_path)
+        mlflow.log_artifact(str(file_path), str(file_path.parent))
+
+
+def adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str):
+    adjustment_callback = lambda p: adjust_path(p, artifact_base_uri)
+    for job in jobs:
+        walk_content(adjustment_callback, job)
+
+
+def create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
+    deployment_data = {}
+    for job in jobs:
+        dbx_echo("Processing deployment for job: %s" % job["name"])
+        jobs_service = JobsService(api_client)
+        all_jobs = jobs_service.list_jobs()["jobs"]
+        matching_jobs = [j for j in all_jobs if j["settings"]["name"] == job["name"]]
+
+        if not matching_jobs:
+            dbx_echo("Creating a new job")
+            job_id = api_client.perform_query('POST', '/jobs/create', data=job, headers=None)["job_id"]
         else:
-            raise ValueError("Provided path to file %s is incorrect" % file_path)
-    return fs_objects
+            job_id = matching_jobs[0]["job_id"]
+            dbx_echo("Updating existing job with id: %s" % job_id)
+            jobs_service.reset_job(job_id, job)
+
+        deployment_data[job["name"]] = job_id
+    return deployment_data
 
 
-def preprocess_dirs(dirs: str) -> List[pathlib.Path]:
-    fs_objects = []
-    for directory in dirs.split(","):
-        p_obj = pathlib.Path(directory)
-        if p_obj.is_dir():
-            for selection_result in p_obj.rglob("*"):
-                if selection_result.is_file():
-                    fs_objects.append(selection_result)
+def walk_content(func, content, parent=None, index=None):
+    if isinstance(content, dict):
+        for key, item in content.items():
+            walk_content(func, item, content, key)
+    elif isinstance(content, list):
+        for idx, sub_item in enumerate(content):
+            walk_content(func, sub_item, content, idx)
+    else:
+        parent[index] = func(content)
+
+
+def adjust_path(candidate, adjustment):
+    if isinstance(candidate, str):
+        if pathlib.Path(candidate).exists():
+            adjusted_path = "%s/%s" % (adjustment, candidate)
+            dbx_echo("Adjusting path %s => %s" % (candidate, adjusted_path))
+            return adjusted_path
         else:
-            raise ValueError("Provided path to directory %s is incorrect" % directory)
-    return fs_objects
-
-
-def preprocess_rglobs(rglobs: str) -> List[pathlib.Path]:
-    fs_objects = []
-    for rglob in rglobs.split(","):
-        dbx_echo("Checking files for rglob: %s" % rglob)
-        rglob_selection = pathlib.Path(".").rglob(rglob)
-        for path in rglob_selection:
-            if path.is_file():
-                fs_objects.append(path)
-    return fs_objects
+            return candidate
+    else:
+        return candidate

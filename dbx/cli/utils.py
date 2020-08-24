@@ -9,7 +9,7 @@ from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 
-INFO_FILE_NAME = ".dbx.json"
+INFO_FILE_NAME = ".dbx/project.json"
 DATABRICKS_MLFLOW_URI = "databricks"
 
 
