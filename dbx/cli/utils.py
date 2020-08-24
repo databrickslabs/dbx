@@ -1,4 +1,3 @@
-import base64
 import datetime as dt
 import json
 from typing import Dict, Any, List, Tuple
@@ -6,7 +5,6 @@ from typing import Dict, Any, List, Tuple
 import click
 import mlflow
 from databricks_cli.configure.provider import ProfileConfigProvider
-from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 
 INFO_FILE_NAME = ".dbx/project.json"
@@ -77,19 +75,6 @@ def generate_filter_string(env: str, tags: Dict[str, str]):
     filters = tags_filter + status_filter + deploy_filter + env_filter
     filter_string = " and ".join(filters)
     return filter_string
-
-
-def prepare_job_config(api_client: ApiClient,
-                       job_conf_file: str,
-                       entrypoint_file: str) -> Dict[str, Any]:
-    dbfs_service = DbfsService(api_client)
-    raw_config_payload = dbfs_service.read(job_conf_file)["data"]
-    config_payload = base64.b64decode(raw_config_payload).decode("utf-8")
-    config = json.loads(config_payload)
-    config["spark_python_task"] = {"python_file": entrypoint_file}
-    dbx_echo("Full job configuration:")
-    dbx_echo(config)
-    return config
 
 
 def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
