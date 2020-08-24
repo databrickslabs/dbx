@@ -7,7 +7,7 @@ import mlflow
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import parse_params, InfoFile, DATABRICKS_MLFLOW_URI, dbx_echo
+from dbx.cli.utils import parse_params, dbx_echo, _provide_environment
 
 adopted_context = deepcopy(CONTEXT_SETTINGS)
 
@@ -34,10 +34,7 @@ def deploy(environment: str, dirs: str, files: str, rglobs: str, tags: List[str]
     deployment_tags = parse_params(tags)
     dbx_echo("Starting new deployment for environment %s" % environment)
 
-    environment_data = InfoFile.get("environments").get(environment)
-
-    mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
-    mlflow.set_experiment(environment_data["workspace_dir"])
+    _provide_environment(environment)
 
     prepared_fs_objects = []
 

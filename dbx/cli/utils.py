@@ -1,10 +1,11 @@
 import base64
 import datetime as dt
 import json
-from typing import Dict, Any
-from typing import List
+from typing import Dict, Any, List, Tuple
 
 import click
+import mlflow
+from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 
@@ -89,3 +90,12 @@ def prepare_job_config(api_client: ApiClient,
     dbx_echo("Full job configuration:")
     dbx_echo(config)
     return config
+
+
+def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
+    environment_data = InfoFile.get("environments").get(environment)
+    mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
+    mlflow.set_experiment(environment_data["workspace_dir"])
+    profile_config = ProfileConfigProvider(environment_data["profile"]).get_config()
+    api_client = ApiClient(host=profile_config.host, token=profile_config.token)
+    return environment_data, api_client

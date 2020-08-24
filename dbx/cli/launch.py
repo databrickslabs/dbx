@@ -4,13 +4,12 @@ from typing import List, Dict, Any
 import click
 import mlflow
 import time
-from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import dbx_echo, parse_params, InfoFile, generate_filter_string, \
-    prepare_job_config, DATABRICKS_MLFLOW_URI
+from dbx.cli.utils import dbx_echo, parse_params, generate_filter_string, \
+    prepare_job_config, _provide_environment
 
 """
 Logic behind this functionality:
@@ -42,14 +41,7 @@ def launch(environment: str, entrypoint_file: str, job_conf_file: str, trace: bo
     deployment_tags = parse_params(tags)
     dbx_echo("Launching job by given parameters")
 
-    environment_data = InfoFile.get("environments").get(environment)
-
-    profile_config = ProfileConfigProvider(environment_data["profile"]).get_config()
-
-    api_client = ApiClient(host=profile_config.host, token=profile_config.token)
-
-    mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
-    mlflow.set_experiment(environment_data["workspace_dir"])
+    environment_data, api_client = _provide_environment(environment)
 
     filter_string = generate_filter_string(environment, deployment_tags)
 
