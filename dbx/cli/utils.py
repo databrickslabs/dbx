@@ -1,26 +1,28 @@
 import base64
 import datetime as dt
 import json
-from typing import Dict, List
+from typing import Dict, Any
+from typing import List
 
 import click
 from databricks_cli.dbfs.api import DbfsService
+from databricks_cli.sdk.api_client import ApiClient
 
 INFO_FILE_NAME = ".dbx.json"
 DATABRICKS_MLFLOW_URI = "databricks"
 
 
-def read_json(file_path):
+def read_json(file_path: str) -> Dict[str, Any]:
     with open(file_path, "r") as f:
         return json.load(f)
 
 
-def write_json(content, file_path):
+def write_json(content: Dict[str, Any], file_path: str):
     with open(file_path, "w") as f:
         json.dump(content, f, indent=4)
 
 
-def update_json(new_content, file_path):
+def update_json(new_content: Dict[str, Any], file_path: str):
     content = read_json(file_path)
     content.update(new_content)
     write_json(content, file_path)
@@ -29,19 +31,19 @@ def update_json(new_content, file_path):
 class InfoFile:
 
     @staticmethod
-    def initialize(content):
+    def initialize(content: Dict[str, Any]):
         write_json(content, INFO_FILE_NAME)
 
     @staticmethod
-    def update(content) -> None:
+    def update(content: Dict[str, Any]) -> None:
         update_json(content, INFO_FILE_NAME)
 
     @staticmethod
-    def get(item):
+    def get(item: str) -> Any:
         return read_json(INFO_FILE_NAME).get(item)
 
 
-def dbx_echo(message):
+def dbx_echo(message: str):
     formatted_message = "[dbx][%s] %s" % (dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], message)
     click.echo(formatted_message)
 
@@ -63,7 +65,7 @@ def parse_params(params: List[str]):
     return formatted
 
 
-def generate_filter_string(env, tags: Dict[str, str]):
+def generate_filter_string(env: str, tags: Dict[str, str]):
     tags_filter = ['tags.%s="%s"' % (key, value) for key, value in tags.items()]
     env_filter = ['tags.dbx_environment="%s"' % env]
 
@@ -76,9 +78,9 @@ def generate_filter_string(env, tags: Dict[str, str]):
     return filter_string
 
 
-def prepare_job_config(api_client,
-                       job_conf_file,
-                       entrypoint_file):
+def prepare_job_config(api_client: ApiClient,
+                       job_conf_file: str,
+                       entrypoint_file: str) -> Dict[str, Any]:
     dbfs_service = DbfsService(api_client)
     raw_config_payload = dbfs_service.read(job_conf_file)["data"]
     config_payload = base64.b64decode(raw_config_payload).decode("utf-8")

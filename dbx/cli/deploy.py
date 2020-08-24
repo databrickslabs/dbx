@@ -1,5 +1,6 @@
 import pathlib
 from copy import deepcopy
+from typing import List
 
 import click
 import mlflow
@@ -29,7 +30,7 @@ adopted_context.update(dict(
               help="Recursive globs to select objects to be deployed, comma-separated.")
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 @debug_option
-def deploy(environment, dirs, files, rglobs, tags):
+def deploy(environment: str, dirs: str, files: str, rglobs: str, tags: List[str]):
     deployment_tags = parse_params(tags)
     dbx_echo("Starting new deployment for environment %s" % environment)
 
@@ -68,7 +69,7 @@ def deploy(environment, dirs, files, rglobs, tags):
         mlflow.set_tags(deployment_tags)
 
 
-def preprocess_files(files):
+def preprocess_files(files: str) -> List[pathlib.Path]:
     fs_objects = []
     for file_path in files.split(","):
         p_obj = pathlib.Path(file_path)
@@ -79,7 +80,7 @@ def preprocess_files(files):
     return fs_objects
 
 
-def preprocess_dirs(dirs):
+def preprocess_dirs(dirs: str) -> List[pathlib.Path]:
     fs_objects = []
     for directory in dirs.split(","):
         p_obj = pathlib.Path(directory)
@@ -92,7 +93,7 @@ def preprocess_dirs(dirs):
     return fs_objects
 
 
-def preprocess_rglobs(rglobs):
+def preprocess_rglobs(rglobs: str) -> List[pathlib.Path]:
     fs_objects = []
     for rglob in rglobs.split(","):
         dbx_echo("Checking files for rglob: %s" % rglob)

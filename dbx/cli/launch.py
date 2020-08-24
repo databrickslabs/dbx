@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import List, Dict, Any
 
 import click
 import mlflow
@@ -34,7 +35,7 @@ adopted_context.update(dict(
 @click.option("--job-conf-file", required=True, type=str, help="Job configuration path in artifactory")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes")
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
-def launch(environment, entrypoint_file, job_conf_file, trace, tags):
+def launch(environment: str, entrypoint_file: str, job_conf_file: str, trace: bool, tags: List[str]):
     """
     Launches job, choosing the latest version by given tags. Please provide tags in format: --tag1=value1 --tag2=value2
     """
@@ -101,7 +102,7 @@ def launch(environment, entrypoint_file, job_conf_file, trace, tags):
             mlflow.set_tags(deployment_tags)
 
 
-def trace_run(api_client, run_data):
+def trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
     dbx_echo("Tracing job run")
     while True:
         status = get_run_status(api_client, run_data)
@@ -117,6 +118,6 @@ def trace_run(api_client, run_data):
             time.sleep(5)
 
 
-def get_run_status(api_client, run_data):
+def get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
     run_status = api_client.perform_query('GET', '/jobs/runs/get', data={"run_id": run_data["run_id"]}, headers=None)
     return run_status

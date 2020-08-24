@@ -53,7 +53,7 @@ def configure(
     InfoFile.update({"environments": environments})
 
 
-def create_workspace_dir(api_client, path):
+def create_workspace_dir(api_client: ApiClient, path: str):
     workspace_service = WorkspaceService(api_client)
     parent_path = str(Path(path).parent)
     try:
@@ -62,7 +62,7 @@ def create_workspace_dir(api_client, path):
         workspace_service.mkdirs(parent_path)
 
 
-def initialize_artifact_storage(workspace_dir, artifact_location):
+def initialize_artifact_storage(workspace_dir: str, artifact_location: str):
     dbx_echo("Initializing artifact storage for the project with workspace dir %s" % workspace_dir)
     tracking_uri = "%s://%s" % (DATABRICKS_MLFLOW_URI, get_profile_from_context())
     mlflow.set_tracking_uri(tracking_uri)
