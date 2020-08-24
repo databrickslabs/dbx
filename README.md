@@ -46,21 +46,17 @@ dbx configure \
 
 This will configure a storage for project, and MLflow storage for deployment tracking.
 
-- Next step would be to deploy your code, dependencies and any related files to dbfs. You can do it via following command:
+- Next step would be to configure your deployment objects. To make this process easy and flexible, we're using jsonnet format. Please take a look on `.dbx/deployment.jsonnet` file for further configurations.
+- After you've configured the `deployment.jsonnet` file, it's time to perform an actual deployment:
 ```bash
-dbx deploy \
-    --environment=test \
-    --dirs=comma/separated/path1,comma/separated/path2 \
-    --files=some/file1,/some/file2 \
-    --rglobs=some/recursive/*.glob 
+dbx deploy --environment=test 
 ```
 
-- Finally, after deploying all your job-related files, you can create and launch a job via:
+The main idea of `.dbx/deployment.jsonnet` is to provide a flexible way to configure job with a lot of dependencies.
+ 
+- Finally, after deploying all your job-related files, you launch the job via the following command:
 ```bash
-dbx launch \
-    --environment=test \
-    --entrypoint-file=<entrypoint-file-location> \
-    --job-conf-file=<job-conf-file-location>
+dbx launch --environment=test --job=<any-job-name-provided in deployment.jsonnet>
 ```
 
 ## Dev documentation and notes

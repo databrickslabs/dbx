@@ -17,10 +17,9 @@ DEPLOYMENT_TEMPLATE_PATH = os.path.join(dbx.__path__[0], "template", "deployment
               help="Name of a project. Used to create an MLflow experiment")
 @click.option("--project-local-dir", required=False, type=str, default=".",
               help="Where to store generated project files")
+@click.option("--with-deployment", is_flag=True, help="Provide deployment.jsonnet sample file")
 @debug_option
-def init(
-        project_name: str,
-        project_local_dir: str):
+def init(project_name: str, project_local_dir: str, with_deployment: bool):
     dbx_echo("Initializing project %s in directory: %s" % (project_name, project_local_dir))
 
     with Path(project_local_dir):
@@ -29,5 +28,6 @@ def init(
             "project_name": project_name,
             "environments": {}
         })
-        shutil.copy(DEPLOYMENT_TEMPLATE_PATH, ".dbx/deployment.jsonnet")
+        if with_deployment:
+            shutil.copy(DEPLOYMENT_TEMPLATE_PATH, ".dbx/deployment.jsonnet")
         dbx_echo("Project initialization finished")
