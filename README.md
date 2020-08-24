@@ -60,7 +60,7 @@ dbx deploy \
 dbx launch \
     --environment=test \
     --entrypoint-file=<entrypoint-file-location> \
-    --jbo-conf-file=<job-conf-file-location>
+    --job-conf-file=<job-conf-file-location>
 ```
 
 ## Dev documentation and notes
