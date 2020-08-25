@@ -12,7 +12,7 @@ from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
 from dbx.cli.init import init
 from dbx.cli.launch import launch
-from utils import initialize_cookiecutter
+from .utils import initialize_cookiecutter
 
 
 def invoke_cli_runner(*args, **kwargs):
