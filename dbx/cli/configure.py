@@ -14,7 +14,7 @@ from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help='Initializes a plain new project in a new directory')
+               short_help='Initializes .dbx context in the directory')
 @click.option("--name", required=True, type=str,
               help="Environment name")
 @click.option("--workspace-dir", required=True, type=str,

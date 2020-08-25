@@ -27,6 +27,5 @@ htmlcov/*
 # MacOS
 .DS_Store
 
-# Secrets
-.env.aws
-.env.azure
+# Docs
+docs/build
