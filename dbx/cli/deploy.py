@@ -11,7 +11,7 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context
+from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file
 
 
 @click.command(context_settings=_adjust_context(),
@@ -109,8 +109,7 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
 def _upload_files(files: Dict[str, Any]):
     for _, file_path_str in files.items():
         file_path = pathlib.Path(file_path_str)
-        dbx_echo("Deploying file: %s" % file_path)
-        mlflow.log_artifact(str(file_path), str(file_path.parent))
+        _upload_file(file_path)
 
 
 def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str):

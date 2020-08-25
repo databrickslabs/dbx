@@ -1,0 +1,6 @@
+{
+  "cluster_name": "{project_name}-interactive",
+  "spark_version": "7.0.x-scala2.12",
+  "node_type_id": "Standard_F4s",
+  "num_workers": 2
+}

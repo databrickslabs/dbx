@@ -68,6 +68,21 @@ Create a new environment via given command:
 
 This command will configure environment by given profile and store project in a given :code:`workspace-dir` as an MLflow experiment.
 
+Interactive execution
+---------------------
+
+To execute the code in an interactive fashion, we recommend to use interactive clusters.
+This command executes content from a given source file on a provided cluster.
+You need to provide either :code:`cluster-id` or :code:`cluster-name`, and a :code:`--source-file` parameter.
+
+.. code-block:: python
+
+    dbx execute \
+        --cluster-id="<some-cluster-id>" \
+        --entrypoint="some/entrypoint.py"
+
+
+
 Preparing deployment file
 -------------------------
 

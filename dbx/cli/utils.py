@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import pathlib
 from copy import deepcopy
 from typing import Dict, Any, Tuple
 
@@ -76,3 +77,8 @@ def _adjust_context():
         ignore_unknown_options=True,
     ))
     return new_context
+
+
+def _upload_file(file_path: pathlib.Path):
+    dbx_echo("Deploying file: %s" % file_path)
+    mlflow.log_artifact(str(file_path), str(file_path.parent))
