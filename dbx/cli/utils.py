@@ -1,7 +1,7 @@
 import datetime as dt
 import json
 from copy import deepcopy
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, Tuple
 
 import click
 import mlflow
@@ -49,32 +49,14 @@ def dbx_echo(message: str):
     click.echo(formatted_message)
 
 
-def _parse_params(params: List[str]):
-    contains_equals = sum(["=" in t for t in params])
-    if contains_equals == len(params):
-        # if the format is --tag1=value2 --tag2=value2
-        formatted = {t.split("=")[0].replace("--", "").replace("-", "_"): t.split("=")[-1] for t in params}
-    else:
-        # format is --tag1 value1 --tag2 value2
-        if len(params) % 2 != 0:
-            raise NameError("Given tags are not in compatible format (either --param1=value1 or --param1 value1).")
-        else:
-            keys = params[::2]
-            values = params[1::2]
-            formatted = {keys[idx].replace("--", "").replace("-", "_"): values[idx] for idx in range(len(keys))}
-
-    return formatted
-
-
-def _generate_filter_string(env: str, tags: Dict[str, str]):
-    tags_filter = ['tags.%s="%s"' % (key, value) for key, value in tags.items()]
+def _generate_filter_string(env: str):
     env_filter = ['tags.dbx_environment="%s"' % env]
 
     # we are not using attribute.status due to it's behaviour with nested runs
     status_filter = ['tags.dbx_status="SUCCESS"']
     deploy_filter = ['tags.dbx_action_type="deploy"']
 
-    filters = tags_filter + status_filter + deploy_filter + env_filter
+    filters = status_filter + deploy_filter + env_filter
     filter_string = " and ".join(filters)
     return filter_string
 

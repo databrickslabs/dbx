@@ -1,6 +1,6 @@
 import base64
 import json
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 import click
 import mlflow
@@ -9,7 +9,7 @@ from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 
-from dbx.cli.utils import dbx_echo, _parse_params, _generate_filter_string, \
+from dbx.cli.utils import dbx_echo, _generate_filter_string, \
     _provide_environment, _adjust_context
 
 
@@ -18,14 +18,12 @@ from dbx.cli.utils import dbx_echo, _parse_params, _generate_filter_string, \
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
-@click.argument('tags', nargs=-1, type=click.UNPROCESSED)
-def launch(environment: str, job: str, trace: bool, tags: List[str]):
-    deployment_tags = _parse_params(tags)
+def launch(environment: str, job: str, trace: bool):
     dbx_echo("Launching job by given parameters")
 
     environment_data, api_client = _provide_environment(environment)
 
-    filter_string = _generate_filter_string(environment, deployment_tags)
+    filter_string = _generate_filter_string(environment)
 
     runs = mlflow.search_runs(experiment_ids=environment_data["experiment_id"],
                               filter_string=filter_string,
@@ -60,13 +58,13 @@ def launch(environment: str, job: str, trace: bool, tags: List[str]):
             else:
                 dbx_status = "NOT_TRACKED"
 
-            deployment_tags.update({
+            deployment_tags = {
                 "job_id": job_id,
                 "run_id": run_data["run_id"],
                 "dbx_action_type": "launch",
                 "dbx_status": dbx_status,
                 "dbx_environment": environment
-            })
+            }
 
             mlflow.set_tags(deployment_tags)
 

@@ -11,7 +11,7 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 
-from dbx.cli.utils import _parse_params, dbx_echo, _provide_environment, _adjust_context
+from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context
 
 
 @click.command(context_settings=_adjust_context(),
@@ -23,10 +23,8 @@ from dbx.cli.utils import _parse_params, dbx_echo, _provide_environment, _adjust
               help="""Comma-separated list of job names to be deployed. 
               If not provided, all jobs from deployment file will be deployed.
               """)
-@click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 @debug_option
-def deploy(environment: str, deployment_file: str, jobs: str, tags: List[str]):
-    deployment_tags = _parse_params(tags)
+def deploy(environment: str, deployment_file: str, jobs: str):
     dbx_echo("Starting new deployment for environment %s" % environment)
 
     _, api_client = _provide_environment(environment)
@@ -50,11 +48,11 @@ def deploy(environment: str, deployment_file: str, jobs: str, tags: List[str]):
         deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
-        deployment_tags.update({
+        deployment_tags = {
             "dbx_action_type": "deploy",
             "dbx_environment": environment,
             "dbx_status": "SUCCESS",
-        })
+        }
 
         mlflow.set_tags(deployment_tags)
 
