@@ -14,13 +14,14 @@
 import os
 
 import sys
-
-sys.path.insert(0, os.path.abspath('.'))
+import datetime as dt
+sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, os.path.abspath("."))
 
 # -- Project information -----------------------------------------------------
 
 project = 'dbx'
-copyright = 'Databricks Labs, 2020'
+copyright = 'Databricks Labs, %s' % dt.datetime.now().year
 author = 'dbx project team'
 
 # -- General configuration ---------------------------------------------------

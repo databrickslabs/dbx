@@ -1,7 +1,7 @@
 .. _cli:
 
-dbx cli
-=======
+cli
+===
 
 :code:`dbx` provides access to it's functions in a cli-oriented fashion.
 
