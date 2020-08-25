@@ -15,10 +15,7 @@ from dbx.cli.utils import _parse_params, dbx_echo, _provide_environment, _adjust
 
 
 @click.command(context_settings=_adjust_context(),
-               short_help="""
-               Deploys project to artifact storage with given tags.
-               Please provide either paths, or files or recursive globs to the FS objects which shall be deployed.
-               """)
+               short_help="""Deploys project to artifact storage with given tags.""")
 @click.option("--environment", required=True, type=str, help="Environment name")
 @click.option("--deployment-file", required=False, type=str,
               help="Path to deployment file. File should have .jsonnet extension.", default=".dbx/deployment.jsonnet")

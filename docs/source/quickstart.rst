@@ -20,7 +20,7 @@ Alternatively, you can install :code:`dbx` via :code:`conda`:
 
 .. note::
 
-    :code:`dbx` is developed on MacOS and tested on Linux with Python 3.+. If you run into issues running :code:`dbx` on Windows, please raise an issue in GitHub.
+    :code:`dbx` is developed on MacOS and tested on Linux with Python 3.+. If you run into issues running :code:`dbx` on Windows, please raise an issue on GitHub.
 
 Starting from a template
 ------------------------
@@ -30,8 +30,8 @@ As a first step, you need to create a project from a template. You can use your 
 .. code-block:: python
 
     cookiecutter --no-input \
-    https://github.com/databrickslabs/cicd-templates.git \
-    project_name="sample"
+        https://github.com/databrickslabs/cicd-templates.git \
+        project_name="sample"
 
     cd sample
 
@@ -56,20 +56,20 @@ Create a new environment via given command:
         --profile="some-profile-name" \
         --workspace-dir="/dbx/projects/sample"
 
-This will configure a storage for project, and MLflow storage for deployment tracking.
+This command will configure environment by given profile and store project in a given :code:`workspace-dir` as an MLflow experiment.
 
 Preparing deployment file
 -------------------------
 
-Next step would be to configure your deployment objects. To make this process easy and flexible, we're using jsonnet format.
-The main idea of `.dbx/deployment.jsonnet` is to provide a flexible way to configure job with a lot of dependencies.
+Next step would be to configure your deployment objects. To make this process easy and flexible, we're using `Jsonnet <https://jsonnet.org/>`_ .
+By default, deployment configuration is stored in :code:`.dbx/deployment.jsonnet`.
+The main idea of  is to provide a flexible way to configure job with a lot of dependencies.
 
-.. include:: ../../dbx/template/deployment.jsonnet
-   :code: json
-   :literal:
+.. literalinclude:: ../../dbx/template/deployment.jsonnet
+    :caption: .dbx/deployment.jsonnet
 
-Deployment via dbx
-------------------
+Deployment
+----------
 
 After you've configured the `deployment.jsonnet` file, it's time to perform an actual deployment:
 
@@ -77,8 +77,8 @@ After you've configured the `deployment.jsonnet` file, it's time to perform an a
 
     dbx deploy --environment=test
 
-Launch via dbx
---------------
+Launch
+------
 
 Finally, after deploying all your job-related files, you launch the job via the following command:
 

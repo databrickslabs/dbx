@@ -12,11 +12,11 @@ dbx documentation
 :code:`dbx` is language-agnostic. You can use it with projects written in any language, supported by Databricks Platform.
 
 
-Get started using the :ref:`quickstart`.
+Follow the :ref:`quickstart` to install the package and create the first sample project.
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 3
 
     quickstart
     cli
-    python_api/index
+    internal

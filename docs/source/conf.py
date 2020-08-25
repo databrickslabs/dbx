@@ -17,12 +17,15 @@ import sys
 import datetime as dt
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("."))
+from dbx import __version__ as dbx_version
 
 # -- Project information -----------------------------------------------------
 
 project = 'dbx'
 copyright = 'Databricks Labs, %s' % dt.datetime.now().year
 author = 'dbx project team'
+version = dbx_version
+release = dbx_version
 
 # -- General configuration ---------------------------------------------------
 
@@ -33,7 +36,6 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
-    "sphinx.ext.napoleon",
     "sphinx_click.ext"
 ]
 

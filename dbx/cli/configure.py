@@ -14,7 +14,7 @@ from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help='Initializes .dbx context in the directory.')
+               short_help='Configures new environment.')
 @click.option("--name", required=True, type=str,
               help="Environment name.")
 @click.option("--workspace-dir", required=True, type=str,
@@ -29,6 +29,14 @@ def configure(
         name: str,
         workspace_dir: str,
         artifact_location: str):
+    """
+    Configures a new environment for a given project.
+    :param api_client: (databricks_cli.sdk.api_client.ApiClient) preconfigured API client
+    :param name: (str) new environment name
+    :param workspace_dir: (str) Workspace path to create a new experiment
+    :param artifact_location: (str) Optional - artifact location.
+    :return: None
+    """
     dbx_echo("Configuring new environment with name %s" % name)
 
     if InfoFile.get("environments").get(name):

@@ -21,4 +21,4 @@ install-dev-reqs:
 	pip install -U -r requirements.txt
 
 docs:
-	sphinx-build -b html docs/source docs/build
+	sphinx-build -a -b html docs/source docs/build

@@ -20,9 +20,6 @@ from dbx.cli.utils import dbx_echo, _parse_params, _generate_filter_string, \
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 def launch(environment: str, job: str, trace: bool, tags: List[str]):
-    """
-    Launches job, choosing the latest version by given tags. Please provide tags in format: --tag1=value1 --tag2=value2
-    """
     deployment_tags = _parse_params(tags)
     dbx_echo("Launching job by given parameters")
 
