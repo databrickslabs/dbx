@@ -14,6 +14,8 @@ from databricks_cli.sdk.api_client import ApiClient
 from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file
 
 
+# TODO: add --requirements/conda-environment options to the deploy command
+# Provided dependencies shall be automatically added to the deployment dependencies
 @click.command(context_settings=_adjust_context(),
                short_help="""Deploys project to artifact storage with given tags.""")
 @click.option("--environment", required=True, type=str, help="Environment name")

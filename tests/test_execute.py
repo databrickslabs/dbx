@@ -128,6 +128,7 @@ class DbxExecuteTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         try:
+            self.cluster_api.delete_cluster(self.cluster_id)
             self.cluster_api.permanent_delete(self.cluster_id)
             logging.info("Successfully deleted test cluster with id: %s" % self.cluster_id)
         except Exception as e:
