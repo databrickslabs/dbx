@@ -25,8 +25,14 @@ SUFFIX_MAPPING = {
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @click.option("--source-file", required=True, type=str, help="Path to the file with source code")
+@click.option("--requirements", required=False, type=str, help="Path to the file with requirements.txt")
 @click.option('--package', multiple=True, type=str)
-def execute(environment: str, cluster_id: str, cluster_name: str, source_file: str, package: List[str]):
+def execute(environment: str,
+            cluster_id: str,
+            cluster_name: str,
+            source_file: str,
+            package: List[str],
+            requirements: str):
     dbx_echo("Launching job by given parameters")
 
     environment_data, api_client = _provide_environment(environment)
@@ -49,17 +55,27 @@ def execute(environment: str, cluster_id: str, cluster_name: str, source_file: s
     v1_client = get_v1_client(api_client)
     context_id = get_context_id(v1_client, cluster_id, language)
 
-    if package:
-        dbx_echo("Installing provided packages")
-        package_paths = _verify_packages(package)
+    with mlflow.start_run() as execution_run:
 
-        with mlflow.start_run() as execution_run:
-            artifact_base_uri = execution_run.info.artifact_uri
-            localized_base_path = artifact_base_uri.replace("dbfs:/", "/dbfs/")
+        artifact_base_uri = execution_run.info.artifact_uri
+        localized_base_path = artifact_base_uri.replace("dbfs:/", "/dbfs/")
+
+        if requirements:
+            requirements_path = pathlib.Path(requirements)
+            if not requirements_path.exists():
+                raise FileNotFoundError("Provided requirements file %s is non-existent" % requirements_path)
+            _upload_file(requirements_path)
+            localized_requirements_path = "%s/%s" % (localized_base_path, str(requirements_path))
+            installation_command = "%pip install --upgrade -r {path}".format(path=localized_requirements_path)
+            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+
+        if package:
+            dbx_echo("Installing provided packages")
+            package_paths = _verify_packages(package)
             for package_path in package_paths:
                 _upload_file(package_path)
                 localized_package_path = "%s/%s" % (localized_base_path, str(package_path))
-                installation_command = "%pip install {path}".format(path=localized_package_path)
+                installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
                 execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
 
     execute_command(v1_client, cluster_id, context_id, source_file_content)

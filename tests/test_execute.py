@@ -86,7 +86,8 @@ class DbxExecuteTest(unittest.TestCase):
                 invoke_cli_runner(execute, [
                     "--environment", "test",
                     "--cluster-id", self.cluster_id,
-                    "--source-file", "pipelines/pipeline1/pipeline_runner.py"
+                    "--source-file", "pipelines/pipeline1/pipeline_runner.py",
+                    "--requirements", "runtime_requirements.txt"
                 ])
 
                 logging.info("Test launch - done")
