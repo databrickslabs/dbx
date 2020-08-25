@@ -5,7 +5,6 @@ import unittest
 from uuid import uuid4
 
 from click.testing import CliRunner
-from cookiecutter.main import cookiecutter
 from path import Path
 from setuptools import sandbox
 
@@ -13,8 +12,7 @@ from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
 from dbx.cli.init import init
 from dbx.cli.launch import launch
-
-CICD_TEMPLATES_URI = "https://github.com/databrickslabs/cicd-templates.git"
+from utils import initialize_cookiecutter
 
 
 def invoke_cli_runner(*args, **kwargs):
@@ -43,7 +41,7 @@ class DbxLaunchTest(unittest.TestCase):
                                                                                          self.project_name)
 
         with Path(self.test_dir):
-            cookiecutter(CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": self.project_name})
+            initialize_cookiecutter(self.project_name)
             with Path(self.project_name):
                 invoke_cli_runner(init, ["--project-name", self.project_name])
                 self.assertTrue(Path(".dbx").exists())

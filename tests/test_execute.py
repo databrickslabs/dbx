@@ -8,7 +8,6 @@ from uuid import uuid4
 
 import time
 from click.testing import CliRunner
-from cookiecutter.main import cookiecutter
 from databricks_cli.clusters.api import ClusterApi
 from databricks_cli.configure.config import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
@@ -18,8 +17,7 @@ from setuptools import sandbox
 from dbx.cli.configure import configure
 from dbx.cli.execute import execute
 from dbx.cli.init import init
-
-CICD_TEMPLATES_URI = "https://github.com/databrickslabs/cicd-templates.git"
+from .utils import initialize_cookiecutter
 
 INTERACTIVE_CLUSTER_TEMPLATES_PATH = {
     "AWS": "tests/templates/interactive-aws.json",
@@ -62,7 +60,7 @@ class DbxExecuteTest(unittest.TestCase):
         conda_env_data = pathlib.Path(CONDA_ENV_TEMPLATE_PATH).read_text()
 
         with Path(self.test_dir):
-            cookiecutter(CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": self.project_name})
+            initialize_cookiecutter(self.project_name)
             with Path(self.project_name):
                 invoke_cli_runner(init, ["--project-name", self.project_name])
                 self.assertTrue(Path(".dbx").exists())

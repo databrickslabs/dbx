@@ -13,7 +13,7 @@
                     "first_on_demand": 1,
                     "availability": "SPOT"
                 },
-                "num_workers": 2
+                "num_workers": 1
             },
             "libraries": [
                 {"whl": $["dbfs"]["package"]}

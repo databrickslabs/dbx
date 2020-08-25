@@ -23,7 +23,7 @@ from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _uplo
               help="Path to deployment file. File should have .jsonnet extension.", default=".dbx/deployment.jsonnet")
 @click.option("--jobs", required=False, type=str,
               help="""Comma-separated list of job names to be deployed. 
-              If not provided, all jobs from deployment file will be deployed.
+              If not provided, all jobs from the deployment file will be deployed.
               """)
 @debug_option
 def deploy(environment: str, deployment_file: str, jobs: str):

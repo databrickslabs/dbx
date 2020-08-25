@@ -9,7 +9,7 @@
             "new_cluster": {
                 "spark_version": "7.0.x-scala2.12",
                 "node_type_id": "Standard_F4s",
-                "num_workers": 2
+                "num_workers": 1
             },
             "libraries": [
                 {"whl": $["dbfs"]["package"]}
