@@ -13,10 +13,6 @@ from dbx.cli.launch import launch
 @profile_option
 @debug_option
 def cli():
-    """
-    Function object to add different commands provided via click APIs.
-    :return: None
-    """
     pass
 
 

@@ -31,11 +31,6 @@ def configure(
         artifact_location: str):
     """
     Configures a new environment for a given project.
-    :param api_client: (databricks_cli.sdk.api_client.ApiClient) preconfigured API client
-    :param name: (str) new environment name
-    :param workspace_dir: (str) Workspace path to create a new experiment
-    :param artifact_location: (str) Optional - artifact location.
-    :return: None
     """
     dbx_echo("Configuring new environment with name %s" % name)
 

@@ -3,6 +3,11 @@
 Quickstart
 ==========
 
+Prerequisites
+-------------
+
+When using :code:`dbx`, you need Python 3.X and :code:`pip` or :code:`conda` for package management.
+
 Installing dbx
 --------------
 
@@ -20,7 +25,7 @@ Alternatively, you can install :code:`dbx` via :code:`conda`:
 
 .. note::
 
-    :code:`dbx` is developed on MacOS and tested on Linux with Python 3.+. If you run into issues running :code:`dbx` on Windows, please raise an issue on GitHub.
+    :code:`dbx` is developed on MacOS and tested on Linux with Python 3.+. If you run into a problem running :code:`dbx` on Windows, please raise an issue on GitHub.
 
 Starting from a template
 ------------------------
@@ -46,6 +51,11 @@ After creating a project, initialize :code:`dbx` inside a directory. Provide any
 
 Configuring environments
 ------------------------
+
+.. note::
+
+    :code:`dbx` heavily relies on `databricks-cli <https://docs.databricks.com/dev-tools/cli/index.html>`_ and uses the same set of profiles.
+    Please configure your profiles in advance using :code:`databricks configure` command as described `here <https://docs.databricks.com/dev-tools/cli/index.html#set-up-authentication>`_.
 
 Create a new environment via given command:
 
