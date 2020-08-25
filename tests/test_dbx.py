@@ -61,6 +61,13 @@ class DbxTest(unittest.TestCase):
                 sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
 
                 invoke_cli_runner(deploy, [
+                    "--environment=test",
+                    "--jobs=%s-pipeline1" % self.project_name
+                ])
+
+                logging.info("Test deployment (one job) - done")
+
+                invoke_cli_runner(deploy, [
                     "--environment=test"
                 ])
 
