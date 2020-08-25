@@ -8,7 +8,7 @@
         # please take a look on Databricks Jobs API for a reference with all possible parameters and settings
         # you can reference dependent objects via $["dbfs"]["<name-from-dbfs>"]
         {
-            "name": "my-job-name",
+            "name": "sample",
             "new_cluster": {},
             "libraries": [
                 # this is an example of self-referencing object

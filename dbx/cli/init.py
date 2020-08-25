@@ -12,12 +12,12 @@ DEPLOYMENT_TEMPLATE_PATH = os.path.join(dbx.__path__[0], "template", "deployment
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help='Initializes a plain new project in a new directory')
+               short_help='Initializes a plain new project in a new directory.')
 @click.option("--project-name", required=True, type=str,
-              help="Name of a project. Used to create an MLflow experiment")
+              help="Name of a project. Used to create an MLflow experiment.")
 @click.option("--project-local-dir", required=False, type=str, default=".",
-              help="Where to store generated project files")
-@click.option("--with-deployment", is_flag=True, help="Provide deployment.jsonnet sample file")
+              help="Where to store generated project files.")
+@click.option("--with-deployment", is_flag=True, help="Provide deployment.jsonnet sample file.")
 @debug_option
 def init(project_name: str, project_local_dir: str, with_deployment: bool):
     dbx_echo("Initializing project %s in directory: %s" % (project_name, project_local_dir))

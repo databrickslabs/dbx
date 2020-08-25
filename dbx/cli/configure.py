@@ -14,13 +14,13 @@ from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help='Initializes .dbx context in the directory')
+               short_help='Initializes .dbx context in the directory.')
 @click.option("--name", required=True, type=str,
-              help="Environment name")
+              help="Environment name.")
 @click.option("--workspace-dir", required=True, type=str,
-              help="Workspace directory for MLflow experiment")
+              help="Workspace directory for MLflow experiment.")
 @click.option("--artifact-location", required=False, type=str,
-              help="DBFS path to a custom artifact location")
+              help="DBFS path to a custom artifact location.")
 @debug_option
 @provide_api_client
 @profile_option

@@ -14,10 +14,10 @@ from dbx.cli.utils import dbx_echo, _parse_params, _generate_filter_string, \
 
 
 @click.command(context_settings=_adjust_context(),
-               short_help="Launches job, choosing the latest version by given tags")
-@click.option("--environment", required=True, type=str, help="Environment name")
-@click.option("--job", required=True, type=str, help="Job name")
-@click.option("--trace", is_flag=True, help="Trace the job until it finishes")
+               short_help="Launches job, choosing the latest version by given tags.")
+@click.option("--environment", required=True, type=str, help="Environment name.")
+@click.option("--job", required=True, type=str, help="Job name.")
+@click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 def launch(environment: str, job: str, trace: bool, tags: List[str]):
     """

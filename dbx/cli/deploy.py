@@ -21,10 +21,10 @@ from dbx.cli.utils import _parse_params, dbx_echo, _provide_environment, _adjust
                """)
 @click.option("--environment", required=True, type=str, help="Environment name")
 @click.option("--deployment-file", required=False, type=str,
-              help="Path to deployment file. File should have .jsonnet extension", default=".dbx/deployment.jsonnet")
+              help="Path to deployment file. File should have .jsonnet extension.", default=".dbx/deployment.jsonnet")
 @click.option("--jobs", required=False, type=str,
               help="""Comma-separated list of job names to be deployed. 
-              If not provided, all jobs from deployment file will be deployed
+              If not provided, all jobs from deployment file will be deployed.
               """)
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 @debug_option
