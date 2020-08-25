@@ -19,3 +19,4 @@ Get started using the :ref:`quickstart`.
 
     quickstart
     cli
+    python_api/index
