@@ -79,7 +79,8 @@ class DbxExecuteTest(unittest.TestCase):
                 invoke_cli_runner(execute, [
                     "--environment", "test",
                     "--cluster-name", "%s-interactive" % self.project_name,
-                    "--source-file", "pipelines/pipeline1/pipeline_runner.py"
+                    "--source-file", "pipelines/pipeline1/pipeline_runner.py",
+                    "--package", "dist/{project_name}-0.1.0-py3-none-any.whl".format(project_name=self.project_name)
                 ])
 
                 invoke_cli_runner(execute, [
@@ -112,6 +113,7 @@ class DbxExecuteTest(unittest.TestCase):
     def tearDown(self) -> None:
         try:
             self.cluster_api.permanent_delete(self.cluster_id)
+            logging.info("Successfully deleted test cluster with id: %s" % self.cluster_id)
         except Exception as e:
             logging.error("Couldn't delete interactive cluster from the test due to: %s" % e)
 

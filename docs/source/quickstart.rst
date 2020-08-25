@@ -79,7 +79,7 @@ You need to provide either :code:`cluster-id` or :code:`cluster-name`, and a :co
 
     dbx execute \
         --cluster-id="<some-cluster-id>" \
-        --entrypoint="some/entrypoint.py"
+        --source-file="some/entrypoint.py"
 
 
 

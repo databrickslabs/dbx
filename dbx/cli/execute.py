@@ -1,13 +1,15 @@
 import copy
 import pathlib
+from typing import List
 
 import click
+import mlflow
 import time
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from retry import retry
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context
+from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file
 
 SUFFIX_MAPPING = {
     ".py": "python",
@@ -18,12 +20,13 @@ SUFFIX_MAPPING = {
 
 
 @click.command(context_settings=_adjust_context(),
-               short_help="Executes given file on existing cluster")
+               short_help="Executes given file on existing cluster.")
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @click.option("--source-file", required=True, type=str, help="Path to the file with source code")
-def execute(environment: str, cluster_id: str, cluster_name: str, source_file: str):
+@click.option('--package', multiple=True, type=str)
+def execute(environment: str, cluster_id: str, cluster_name: str, source_file: str, package: List[str]):
     dbx_echo("Launching job by given parameters")
 
     environment_data, api_client = _provide_environment(environment)
@@ -46,7 +49,30 @@ def execute(environment: str, cluster_id: str, cluster_name: str, source_file: s
     v1_client = get_v1_client(api_client)
     context_id = get_context_id(v1_client, cluster_id, language)
 
+    if package:
+        dbx_echo("Installing provided packages")
+        package_paths = _verify_packages(package)
+
+        with mlflow.start_run() as execution_run:
+            artifact_base_uri = execution_run.info.artifact_uri
+            localized_base_path = artifact_base_uri.replace("dbfs:/", "/dbfs/")
+            for package_path in package_paths:
+                _upload_file(package_path)
+                localized_package_path = "%s/%s" % (localized_base_path, str(package_path))
+                installation_command = "%pip install {path}".format(path=localized_package_path)
+                execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+
     execute_command(v1_client, cluster_id, context_id, source_file_content)
+
+
+def _verify_packages(package: List[str]) -> List[pathlib.Path]:
+    verified_paths = []
+    for p in package:
+        package_path = pathlib.Path(p)
+        if not package_path.exists():
+            raise FileNotFoundError("Provided package path %s is non-existent" % package_path)
+        verified_paths.append(package_path)
+    return verified_paths
 
 
 def wait_for_command_execution(v1_client: ApiClient, cluster_id: str, context_id: str, command_id: str):
