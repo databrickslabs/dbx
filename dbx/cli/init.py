@@ -24,10 +24,13 @@ def init(project_name: str, project_local_dir: str, with_deployment: bool):
 
     with Path(project_local_dir):
         os.mkdir(".dbx")
+
         InfoFile.initialize({
             "project_name": project_name,
             "environments": {}
         })
+
         if with_deployment:
             shutil.copy(DEPLOYMENT_TEMPLATE_PATH, ".dbx/deployment.jsonnet")
+
         dbx_echo("Project initialization finished")

@@ -1,7 +1,6 @@
 import json
 import pathlib
 import tempfile
-from copy import deepcopy
 from typing import Dict, Any, Union
 from typing import List
 
@@ -11,18 +10,11 @@ import mlflow
 from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
-from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import parse_params, dbx_echo, _provide_environment
-
-adopted_context = deepcopy(CONTEXT_SETTINGS)
-
-adopted_context.update(dict(
-    ignore_unknown_options=True,
-))
+from dbx.cli.utils import _parse_params, dbx_echo, _provide_environment, _adjust_context
 
 
-@click.command(context_settings=adopted_context,
+@click.command(context_settings=_adjust_context(),
                short_help="""
                Deploys project to artifact storage with given tags.
                Please provide either paths, or files or recursive globs to the FS objects which shall be deployed.
@@ -37,7 +29,7 @@ adopted_context.update(dict(
 @click.argument('tags', nargs=-1, type=click.UNPROCESSED)
 @debug_option
 def deploy(environment: str, deployment_file: str, jobs: str, tags: List[str]):
-    deployment_tags = parse_params(tags)
+    deployment_tags = _parse_params(tags)
     dbx_echo("Starting new deployment for environment %s" % environment)
 
     _, api_client = _provide_environment(environment)
@@ -57,8 +49,8 @@ def deploy(environment: str, deployment_file: str, jobs: str, tags: List[str]):
 
         artifact_base_uri = deployment_run.info.artifact_uri
 
-        adjust_job_definitions(deployment["jobs"], artifact_base_uri)
-        deployment_data = create_jobs(deployment["jobs"], api_client)
+        _adjust_job_definitions(deployment["jobs"], artifact_base_uri)
+        deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
         deployment_tags.update({
@@ -126,13 +118,13 @@ def _upload_files(files: Dict[str, Any]):
         mlflow.log_artifact(str(file_path), str(file_path.parent))
 
 
-def adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str):
-    adjustment_callback = lambda p: adjust_path(p, artifact_base_uri)
+def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str):
+    adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri)
     for job in jobs:
-        walk_content(adjustment_callback, job)
+        _walk_content(adjustment_callback, job)
 
 
-def create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
+def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
     deployment_data = {}
     for job in jobs:
         dbx_echo("Processing deployment for job: %s" % job["name"])
@@ -152,18 +144,18 @@ def create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, 
     return deployment_data
 
 
-def walk_content(func, content, parent=None, index=None):
+def _walk_content(func, content, parent=None, index=None):
     if isinstance(content, dict):
         for key, item in content.items():
-            walk_content(func, item, content, key)
+            _walk_content(func, item, content, key)
     elif isinstance(content, list):
         for idx, sub_item in enumerate(content):
-            walk_content(func, sub_item, content, idx)
+            _walk_content(func, sub_item, content, idx)
     else:
         parent[index] = func(content)
 
 
-def adjust_path(candidate, adjustment):
+def _adjust_path(candidate, adjustment):
     if isinstance(candidate, str):
         if pathlib.Path(candidate).exists():
             adjusted_path = "%s/%s" % (adjustment, candidate)

@@ -1,11 +1,13 @@
 import datetime as dt
 import json
+from copy import deepcopy
 from typing import Dict, Any, List, Tuple
 
 import click
 import mlflow
 from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
+from databricks_cli.utils import CONTEXT_SETTINGS
 
 INFO_FILE_NAME = ".dbx/project.json"
 DATABRICKS_MLFLOW_URI = "databricks"
@@ -47,7 +49,7 @@ def dbx_echo(message: str):
     click.echo(formatted_message)
 
 
-def parse_params(params: List[str]):
+def _parse_params(params: List[str]):
     contains_equals = sum(["=" in t for t in params])
     if contains_equals == len(params):
         # if the format is --tag1=value2 --tag2=value2
@@ -64,7 +66,7 @@ def parse_params(params: List[str]):
     return formatted
 
 
-def generate_filter_string(env: str, tags: Dict[str, str]):
+def _generate_filter_string(env: str, tags: Dict[str, str]):
     tags_filter = ['tags.%s="%s"' % (key, value) for key, value in tags.items()]
     env_filter = ['tags.dbx_environment="%s"' % env]
 
@@ -84,3 +86,11 @@ def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
     profile_config = ProfileConfigProvider(environment_data["profile"]).get_config()
     api_client = ApiClient(host=profile_config.host, token=profile_config.token)
     return environment_data, api_client
+
+
+def _adjust_context():
+    new_context = deepcopy(CONTEXT_SETTINGS)
+    new_context.update(dict(
+        ignore_unknown_options=True,
+    ))
+    return new_context

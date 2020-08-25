@@ -1,6 +1,5 @@
 import base64
 import json
-from copy import deepcopy
 from typing import List, Dict, Any
 
 import click
@@ -9,19 +8,12 @@ import time
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
-from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import dbx_echo, parse_params, generate_filter_string, \
-    _provide_environment
-
-adopted_context = deepcopy(CONTEXT_SETTINGS)
-
-adopted_context.update(dict(
-    ignore_unknown_options=True,
-))
+from dbx.cli.utils import dbx_echo, _parse_params, _generate_filter_string, \
+    _provide_environment, _adjust_context
 
 
-@click.command(context_settings=adopted_context,
+@click.command(context_settings=_adjust_context(),
                short_help="Launches job, choosing the latest version by given tags")
 @click.option("--environment", required=True, type=str, help="Environment name")
 @click.option("--job", required=True, type=str, help="Job name")
@@ -31,12 +23,12 @@ def launch(environment: str, job: str, trace: bool, tags: List[str]):
     """
     Launches job, choosing the latest version by given tags. Please provide tags in format: --tag1=value1 --tag2=value2
     """
-    deployment_tags = parse_params(tags)
+    deployment_tags = _parse_params(tags)
     dbx_echo("Launching job by given parameters")
 
     environment_data, api_client = _provide_environment(environment)
 
-    filter_string = generate_filter_string(environment, deployment_tags)
+    filter_string = _generate_filter_string(environment, deployment_tags)
 
     runs = mlflow.search_runs(experiment_ids=environment_data["experiment_id"],
                               filter_string=filter_string,
@@ -67,7 +59,7 @@ def launch(environment: str, job: str, trace: bool, tags: List[str]):
             run_data = jobs_service.run_now(job_id)
 
             if trace:
-                dbx_status = trace_run(api_client, run_data)
+                dbx_status = _trace_run(api_client, run_data)
             else:
                 dbx_status = "NOT_TRACKED"
 
@@ -91,10 +83,10 @@ def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
     return deployments
 
 
-def trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
+def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
     dbx_echo("Tracing job run")
     while True:
-        status = get_run_status(api_client, run_data)
+        status = _get_run_status(api_client, run_data)
         result_state = status["state"].get("result_state", None)
         if result_state:
             if result_state == "SUCCESS":
@@ -107,6 +99,6 @@ def trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
             time.sleep(5)
 
 
-def get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
+def _get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
     run_status = api_client.perform_query('GET', '/jobs/runs/get', data={"run_id": run_data["run_id"]}, headers=None)
     return run_status
