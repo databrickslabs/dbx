@@ -79,9 +79,12 @@ You need to provide either :code:`cluster-id` or :code:`cluster-name`, and a :co
 
     dbx execute \
         --cluster-id="<some-cluster-id>" \
-        --source-file="some/entrypoint.py"
+        --source-file="some/entrypoint.py" \
+        --package="dist/my-package.whl" \
+        --requirements="requirements.txt" \
+        --conda-environment="conda-env.yml"
 
-
+You can also provide parameters to install .whl packages before launching code from the source file, as well as installing dependencies from pip-formatted requirements file or conda environment yml config.
 
 Preparing deployment file
 -------------------------

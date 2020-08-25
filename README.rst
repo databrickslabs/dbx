@@ -25,10 +25,5 @@ To launch :code:`dbx` tests from a local machine, please prepare two profiles:
 * :code:`dbx-dev-azure`
 
 
-TODO
-====
-
-* conda.yaml / requirements.txt parsing -> if exists, provide deps.
-* launch --now option with --cluster-id and --cluster-name
 
 

@@ -24,15 +24,17 @@ SUFFIX_MAPPING = {
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
-@click.option("--source-file", required=True, type=str, help="Path to the file with source code")
-@click.option("--requirements", required=False, type=str, help="Path to the file with requirements.txt")
+@click.option("--source-file", required=True, type=str, help="Path to the file with source code.")
+@click.option("--requirements", required=False, type=str, help="Path to the file with pip-based requirements.")
+@click.option("--conda-environment", required=False, type=str, help="Path to the file with conda environment.")
 @click.option('--package', multiple=True, type=str)
 def execute(environment: str,
             cluster_id: str,
             cluster_name: str,
             source_file: str,
             package: List[str],
-            requirements: str):
+            requirements: str,
+            conda_environment: str):
     dbx_echo("Launching job by given parameters")
 
     environment_data, api_client = _provide_environment(environment)
@@ -67,6 +69,15 @@ def execute(environment: str,
             _upload_file(requirements_path)
             localized_requirements_path = "%s/%s" % (localized_base_path, str(requirements_path))
             installation_command = "%pip install --upgrade -r {path}".format(path=localized_requirements_path)
+            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+
+        if conda_environment:
+            conda_environment_path = pathlib.Path(conda_environment)
+            if not conda_environment_path.exists():
+                raise conda_environment_path("Provided conda env file %s is non-existent" % conda_environment_path)
+            _upload_file(conda_environment_path)
+            localized_conda_environment_path = "%s/%s" % (localized_base_path, str(conda_environment_path))
+            installation_command = "%conda env update -f {path}".format(path=localized_conda_environment_path)
             execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
 
         if package:

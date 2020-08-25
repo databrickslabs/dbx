@@ -9,7 +9,7 @@ dbx documentation
 * Built-in version management
 * CLI-based access for CI/CD pipelines
 
-:code:`dbx` is language-agnostic. You can use it with projects written in any language, supported by Databricks Platform.
+:code:`dbx` is language-agnostic. You can use it with projects written in any language supported by Databricks Platform.
 
 Follow the :ref:`quickstart` to install the package and create the first sample project.
 

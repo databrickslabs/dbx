@@ -25,6 +25,7 @@ INTERACTIVE_CLUSTER_TEMPLATES_PATH = {
     "AWS": "tests/templates/interactive-aws.json",
     "Azure": "tests/templates/interactive-azure.json"
 }
+CONDA_ENV_TEMPLATE_PATH = "tests/templates/conda-env.yml"
 
 
 def invoke_cli_runner(*args, **kwargs):
@@ -58,6 +59,7 @@ class DbxExecuteTest(unittest.TestCase):
         self.cluster_id = self.cluster_api.create_cluster(template)["cluster_id"]
         logging.info("Created a new cluster for test with id: %s" % self.cluster_id)
         time.sleep(10)  # cluster creation is an eventually-consistent operation, better to wait a bit
+        conda_env_data = pathlib.Path(CONDA_ENV_TEMPLATE_PATH).read_text()
 
         with Path(self.test_dir):
             cookiecutter(CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": self.project_name})
@@ -82,6 +84,7 @@ class DbxExecuteTest(unittest.TestCase):
                     "--source-file", "pipelines/pipeline1/pipeline_runner.py",
                     "--package", "dist/{project_name}-0.1.0-py3-none-any.whl".format(project_name=self.project_name)
                 ])
+                logging.info("Execution with package option - done")
 
                 invoke_cli_runner(execute, [
                     "--environment", "test",
@@ -89,6 +92,18 @@ class DbxExecuteTest(unittest.TestCase):
                     "--source-file", "pipelines/pipeline1/pipeline_runner.py",
                     "--requirements", "runtime_requirements.txt"
                 ])
+                logging.info("Execution with requirements option - done")
+
+                pathlib.Path("conda-env.yml").write_text(conda_env_data)
+
+                invoke_cli_runner(execute, [
+                    "--environment", "test",
+                    "--cluster-id", self.cluster_id,
+                    "--source-file", "pipelines/pipeline1/pipeline_runner.py",
+                    "--conda-environment", "conda-env.yml"
+                ])
+
+                logging.info("Execution with conda-environment option - done")
 
                 logging.info("Test launch - done")
 
