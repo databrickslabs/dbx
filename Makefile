@@ -11,6 +11,9 @@ test:
 test-execute-aws:
 	pytest --cov dbx -s -k "test_execute_aws" --capture=sys
 
+test-launch-aws:
+	pytest --cov dbx -s -k "test_launch_aws" --capture=sys
+
 create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7
 

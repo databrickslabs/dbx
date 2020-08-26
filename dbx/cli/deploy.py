@@ -10,6 +10,7 @@ import mlflow
 from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
+from requests.exceptions import HTTPError
 
 from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file
 
@@ -71,7 +72,7 @@ def _preprocess_requirements(requirements):
         raise FileNotFoundError("Provided requirements file %s is non-existent" % requirements_path)
 
     requirements_content = requirements_path.read_text().split("\n")
-    requirements_payload = [{"package": req for req in requirements_content if not req.startswith("pyspark")}]
+    requirements_payload = [{"pypi": {"package": req}} for req in requirements_content if not req.startswith("pyspark")]
     return requirements_payload
 
 
@@ -147,15 +148,35 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
         matching_jobs = [j for j in all_jobs if j["settings"]["name"] == job["name"]]
 
         if not matching_jobs:
-            dbx_echo("Creating a new job")
-            job_id = api_client.perform_query('POST', '/jobs/create', data=job, headers=None)["job_id"]
+            job_id = _create_job(api_client, job)
         else:
             job_id = matching_jobs[0]["job_id"]
-            dbx_echo("Updating existing job with id: %s" % job_id)
-            jobs_service.reset_job(job_id, job)
+            _update_job(jobs_service, job_id, job)
 
         deployment_data[job["name"]] = job_id
     return deployment_data
+
+
+def _create_job(api_client: ApiClient, job: Dict[str, Any]) -> str:
+    dbx_echo("Creating a new job with name %s" % job["name"])
+    try:
+        job_id = api_client.perform_query('POST', '/jobs/create', data=job, headers=None)["job_id"]
+    except HTTPError as e:
+        dbx_echo("Failed to create job with definition:")
+        dbx_echo(json.dumps(job, indent=4))
+        raise e
+    return job_id
+
+
+def _update_job(jobs_service: JobsService, job_id: str, job: Dict[str, Any]) -> str:
+    dbx_echo("Updating existing job with id: %s and name: %s" % (job_id, job["name"]))
+    try:
+        jobs_service.reset_job(job_id, job)
+    except HTTPError as e:
+        dbx_echo("Failed to create job with definition:")
+        dbx_echo(json.dumps(job, indent=4))
+        raise e
+    return job_id
 
 
 def _walk_content(func, content, parent=None, index=None):
@@ -173,7 +194,6 @@ def _adjust_path(candidate, adjustment):
     if isinstance(candidate, str):
         if pathlib.Path(candidate).exists():
             adjusted_path = "%s/%s" % (adjustment, candidate)
-            dbx_echo("Adjusting path %s => %s" % (candidate, adjusted_path))
             return adjusted_path
         else:
             return candidate
