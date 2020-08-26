@@ -15,7 +15,6 @@ from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _uplo
 
 
 # TODO: add --requirements/conda-environment options to the deploy command
-# Provided dependencies shall be automatically added to the deployment dependencies
 @click.command(context_settings=_adjust_context(),
                short_help="""Deploys project to artifact storage with given tags.""")
 @click.option("--environment", required=True, type=str, help="Environment name")
@@ -25,8 +24,9 @@ from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _uplo
               help="""Comma-separated list of job names to be deployed. 
               If not provided, all jobs from the deployment file will be deployed.
               """)
+@click.option("--requirements", required=False, type=str, help="Path to the file with pip-based requirements.")
 @debug_option
-def deploy(environment: str, deployment_file: str, jobs: str):
+def deploy(environment: str, deployment_file: str, jobs: str, requirements: str):
     dbx_echo("Starting new deployment for environment %s" % environment)
 
     _, api_client = _provide_environment(environment)
@@ -39,6 +39,11 @@ def deploy(environment: str, deployment_file: str, jobs: str):
     else:
         requested_jobs = None
 
+    requirements_payload = []
+
+    if requirements:
+        requirements_payload = _preprocess_requirements(requirements)
+
     _preprocess_deployment(deployment, requested_jobs)
 
     with mlflow.start_run() as deployment_run:
@@ -46,7 +51,7 @@ def deploy(environment: str, deployment_file: str, jobs: str):
 
         artifact_base_uri = deployment_run.info.artifact_uri
 
-        _adjust_job_definitions(deployment["jobs"], artifact_base_uri)
+        _adjust_job_definitions(deployment["jobs"], artifact_base_uri, requirements_payload)
         deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
@@ -57,6 +62,17 @@ def deploy(environment: str, deployment_file: str, jobs: str):
         }
 
         mlflow.set_tags(deployment_tags)
+
+
+def _preprocess_requirements(requirements):
+    requirements_path = pathlib.Path(requirements)
+
+    if not requirements_path.exists():
+        raise FileNotFoundError("Provided requirements file %s is non-existent" % requirements_path)
+
+    requirements_content = requirements_path.read_text().split("\n")
+    requirements_payload = [{"package": req for req in requirements_content if not req.startswith("pyspark")}]
+    return requirements_payload
 
 
 def _log_deployments(deployment_data):
@@ -114,10 +130,12 @@ def _upload_files(files: Dict[str, Any]):
         _upload_file(file_path)
 
 
-def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str):
+def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
+                            requirements_payload: List[Dict[str, str]]):
     adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri)
     for job in jobs:
         _walk_content(adjustment_callback, job)
+        job["libraries"] = job["libraries"] + requirements_payload
 
 
 def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:

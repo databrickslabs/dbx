@@ -69,6 +69,13 @@ class DbxLaunchTest(unittest.TestCase):
                     "--environment=test"
                 ])
 
+                invoke_cli_runner(deploy, [
+                    "--environment=test",
+                    "--requirements=runtime_requirements.txt"
+                ])
+
+                logging.info("Test deployment (with requirements) - done")
+
                 logging.info("Test deployment - done")
 
                 invoke_cli_runner(launch, [

@@ -17,7 +17,7 @@ from setuptools import sandbox
 from dbx.cli.configure import configure
 from dbx.cli.execute import execute
 from dbx.cli.init import init
-from .utils import initialize_cookiecutter
+from .utils import initialize_cookiecutter, permanent_delete_cluster
 
 INTERACTIVE_CLUSTER_TEMPLATES_PATH = {
     "AWS": "tests/templates/interactive-aws.json",
@@ -49,11 +49,11 @@ class DbxExecuteTest(unittest.TestCase):
     def provide_suite(self):
         provider = ProfileConfigProvider(self.profile_name)
         config = provider.get_config()
-        api_client = ApiClient(host=config.host, token=config.token)
+        self.api_client = ApiClient(host=config.host, token=config.token)
         template_path = INTERACTIVE_CLUSTER_TEMPLATES_PATH[self.cloud_type]
         raw_template = pathlib.Path(template_path).read_text().replace("{project_name}", self.project_name)
         template = json.loads(raw_template)
-        self.cluster_api = ClusterApi(api_client)
+        self.cluster_api = ClusterApi(self.api_client)
         self.cluster_id = self.cluster_api.create_cluster(template)["cluster_id"]
         logging.info("Created a new cluster for test with id: %s" % self.cluster_id)
         time.sleep(10)  # cluster creation is an eventually-consistent operation, better to wait a bit
@@ -126,8 +126,7 @@ class DbxExecuteTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         try:
-            self.cluster_api.delete_cluster(self.cluster_id)
-            self.cluster_api.permanent_delete(self.cluster_id)
+            permanent_delete_cluster(self.api_client, self.cluster_id)
             logging.info("Successfully deleted test cluster with id: %s" % self.cluster_id)
         except Exception as e:
             logging.error("Couldn't delete interactive cluster from the test due to: %s" % e)

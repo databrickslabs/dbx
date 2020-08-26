@@ -27,7 +27,8 @@ SUFFIX_MAPPING = {
 @click.option("--source-file", required=True, type=str, help="Path to the file with source code.")
 @click.option("--requirements", required=False, type=str, help="Path to the file with pip-based requirements.")
 @click.option("--conda-environment", required=False, type=str, help="Path to the file with conda environment.")
-@click.option('--package', multiple=True, type=str)
+@click.option('--package', multiple=True, type=str,
+              help="Path to a .whl file. Option might be repeated multiple times.")
 def execute(environment: str,
             cluster_id: str,
             cluster_name: str,
@@ -35,7 +36,7 @@ def execute(environment: str,
             package: List[str],
             requirements: str,
             conda_environment: str):
-    dbx_echo("Launching job by given parameters")
+    dbx_echo("Executing code from file %s" % source_file)
 
     environment_data, api_client = _provide_environment(environment)
 
@@ -88,6 +89,13 @@ def execute(environment: str,
                 localized_package_path = "%s/%s" % (localized_base_path, str(package_path))
                 installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
                 execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+
+        tags = {
+            "dbx_action_type": "execute",
+            "dbx_environment": environment
+        }
+
+        mlflow.set_tags(tags)
 
     execute_command(v1_client, cluster_id, context_id, source_file_content)
 

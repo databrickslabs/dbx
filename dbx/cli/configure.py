@@ -29,9 +29,6 @@ def configure(
         name: str,
         workspace_dir: str,
         artifact_location: str):
-    """
-    Configures a new environment for a given project.
-    """
     dbx_echo("Configuring new environment with name %s" % name)
 
     if InfoFile.get("environments").get(name):
