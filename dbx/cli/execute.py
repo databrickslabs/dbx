@@ -137,6 +137,7 @@ def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, comm
     else:
         final_result = execution_result["results"]["resultType"]
         if final_result == 'error':
+            _destroy_context(v1_client, context_id, cluster_id)
             raise RuntimeError(execution_result["results"]["cause"])
         else:
             if verbose:
@@ -148,6 +149,12 @@ def get_v1_client(api_client: ApiClient):
     v1_client = copy.deepcopy(api_client)
     v1_client.url = v1_client.url.replace('/api/2.0', '/api/1.2')
     return v1_client
+
+
+def _destroy_context(v1_client: ApiClient, context_id: str, cluster_id: str):
+    v1_client.perform_query(method='POST',
+                            path='/contexts/destroy',
+                            data={"contextId": context_id, "clusterId": cluster_id})
 
 
 def get_context_id(v1_client: ApiClient, cluster_id: str, language: str):
