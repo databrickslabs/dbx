@@ -41,7 +41,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
+        pip install -r dev-requirements.txt
 
     - name: Install package
       run: |
@@ -57,9 +57,9 @@ jobs:
         echo "host = $AZURE_DATABRICKS_HOST" >> ~/.databrickscfg
         echo "token = $AZURE_DATABRICKS_TOKEN" >> ~/.databrickscfg
 
-    - name: Run tests
-      run: |
-        pytest --cov dbx -s -k "test_execute_aws" --capture=sys
+#    - name: Run tests
+#      run: |
+#        pytest --cov dbx -s -k "test_execute_aws" --capture=sys
 
     - name: Generate artifact
       run: |

@@ -9,7 +9,15 @@ setup(
     name='dbx',
     packages=find_packages(exclude=['tests', 'tests.*']),
     setup_requires=['wheel'],
-    install_requires=["databricks-cli", "click", "jsonnet", "retry", "path", "requests", "mlflow"],
+    install_requires=[
+        "path~=15.0.0",
+        "databricks-cli",
+        "click",
+        "jsonnet",
+        "retry",
+        "requests",
+        "mlflow"
+    ],
     entry_points='''
         [console_scripts]
         dbx=dbx.cli.cli:cli
