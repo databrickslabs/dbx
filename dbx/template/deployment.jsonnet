@@ -5,7 +5,7 @@
     },
     "jobs": [
         # this is a list with jobs to be created/updated during deployment
-        # please take a look on Databricks Jobs API for a reference with all possible parameters and settings
+        # please take a look on Databricks Jobs API for a reference
         # you can reference dependent objects via $["dbfs"]["<name-from-dbfs>"]
         {
             "name": "sample",

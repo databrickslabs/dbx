@@ -89,7 +89,7 @@ You can also provide parameters to install .whl packages before launching code f
 Preparing deployment file
 -------------------------
 
-Next step would be to configure your deployment objects. To make this process easy and flexible, we're using `Jsonnet <https://jsonnet.org/>`_ .
+Next step would be to configure your deployment objects. To make this process easy and flexible, we're using `Jsonnet <https://jsonnet.org/>`_.
 By default, deployment configuration is stored in :code:`.dbx/deployment.jsonnet`.
 The main idea of  is to provide a flexible way to configure job with a lot of dependencies.
 
