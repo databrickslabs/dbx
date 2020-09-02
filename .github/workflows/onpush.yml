@@ -59,5 +59,15 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest --cov dbx -n 4
+        pytest --cov dbx -s -k "test_execute_aws" --capture=sys
+
+    - name: Generate artifact
+      run: |
+        make artifact
+
+    - name: Download math result for job 2
+        uses: actions/download-artifact@v2
+        with:
+          name: dbx.zip
+          path: dist/dbx.zip
 

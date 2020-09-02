@@ -27,3 +27,9 @@ docs-html:
 docs-pdf:
 	rm -rf docs/build/pdf
 	sphinx-build -a -b pdf docs/source docs/build/pdf
+
+build:
+	python setup.py clean bdist_wheel
+
+artifact: build docs-pdf
+	zip dist/dbx.zip dist/* docs/build/pdf/dbx.pdf

@@ -43,6 +43,8 @@ extensions = [
 ]
 
 pdf_documents = [('index', project, project, author), ]
+pdf_use_index = False
+pdf_stylesheets = ['a4']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
