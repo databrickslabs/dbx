@@ -65,7 +65,7 @@ jobs:
       run: |
         make artifact
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/upload-artifact@v2
       with:
         name: dbx.zip
         path: dist/dbx.zip
