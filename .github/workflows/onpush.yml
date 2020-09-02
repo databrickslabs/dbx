@@ -57,9 +57,10 @@ jobs:
         echo "host = $AZURE_DATABRICKS_HOST" >> ~/.databrickscfg
         echo "token = $AZURE_DATABRICKS_TOKEN" >> ~/.databrickscfg
 
-#    - name: Run tests
-#      run: |
-#        pytest --cov dbx -s -k "test_execute_aws" --capture=sys
+    - name: Run tests
+      run: |
+        echo "Launching tests"
+         pytest --cov dbx -k "execute_aws" --show-capture=all --capture=sys
 
     - name: Generate artifact
       run: |
