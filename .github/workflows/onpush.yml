@@ -60,7 +60,7 @@ jobs:
     - name: Run tests
       run: |
         echo "Launching tests"
-         pytest --cov dbx -k "execute_aws" --show-capture=all --capture=sys
+         pytest --cov dbx --show-capture=all --capture=sys
 
     - name: Generate artifact
       run: |
