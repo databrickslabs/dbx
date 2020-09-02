@@ -63,7 +63,7 @@ Create a new environment via given command:
 
     dbx configure \
         --name="test" \
-        --profile="some-profile-name" \
+        --profile="test" \
         --workspace-dir="/dbx/projects/sample"
 
 This command will configure environment by given profile and store project in a given :code:`workspace-dir` as an MLflow experiment.
@@ -103,7 +103,11 @@ After you've configured the `deployment.jsonnet` file, it's time to perform an a
 
 .. code-block:: python
 
-    dbx deploy --environment=test
+    dbx deploy \
+        --environment=test \
+        --requirements=<requirements.txt>
+
+You can optionally provide requirements.txt file, all requirements will be automatically added to the job definition.
 
 Launch
 ------

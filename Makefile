@@ -20,6 +20,10 @@ create-dev-env:
 install-dev-reqs:
 	pip install -U -r requirements.txt
 
-docs:
-	rm -rf docs/build
-	sphinx-build -a -b html docs/source docs/build
+docs-html:
+	rm -rf docs/build/html
+	sphinx-build -a -b html docs/source docs/build/html
+
+docs-pdf:
+	rm -rf docs/build/pdf
+	sphinx-build -a -b pdf docs/source docs/build/pdf

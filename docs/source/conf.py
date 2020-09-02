@@ -15,6 +15,7 @@ import os
 
 import sys
 import datetime as dt
+
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("."))
 from dbx import __version__ as dbx_version
@@ -37,8 +38,11 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
-    "sphinx_click.ext"
+    "sphinx_click.ext",
+    'rst2pdf.pdfbuilder'
 ]
+
+pdf_documents = [('index', project, project, author), ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
