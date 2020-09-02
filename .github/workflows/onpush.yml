@@ -57,10 +57,10 @@ jobs:
         echo "host = $AZURE_DATABRICKS_HOST" >> ~/.databrickscfg
         echo "token = $AZURE_DATABRICKS_TOKEN" >> ~/.databrickscfg
 
-    - name: Run tests
-      run: |
-        echo "Launching tests"
-         pytest --cov dbx --show-capture=all --capture=sys
+#    - name: Run tests
+#      run: |
+#        echo "Launching tests"
+#         pytest --cov dbx --show-capture=all --capture=sys
 
     - name: Generate artifact
       run: |
@@ -68,6 +68,6 @@ jobs:
 
     - uses: actions/upload-artifact@v2
       with:
-        name: dbx.zip
-        path: dist/dbx.zip
+        name: dbx
+        path: artifact/
 

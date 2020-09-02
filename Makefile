@@ -32,4 +32,7 @@ build:
 	python setup.py clean bdist_wheel
 
 artifact: build docs-pdf
-	zip dist/dbx.zip dist/* docs/build/pdf/dbx.pdf
+	rm -rf artifact
+	mkdir artifact
+	cp dist/*.whl artifact/
+	cp docs/build/pdf/dbx.pdf artifact/

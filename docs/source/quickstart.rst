@@ -11,17 +11,11 @@ When using :code:`dbx`, you need Python 3.X and :code:`pip` or :code:`conda` for
 Installing dbx
 --------------
 
-You install :code:`dbx` via :code:`pip`:
+Download the .whl file which comes together with this documentation and install :code:`dbx` via :code:`pip`:
 
 .. code-block:: python
 
-    pip install dbx
-
-Alternatively, you can install :code:`dbx` via :code:`conda`:
-
-.. code-block:: python
-
-    conda install dbx
+    pip install /path/to/dbx.whl
 
 .. note::
 
