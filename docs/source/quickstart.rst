@@ -23,6 +23,7 @@ Download the .whl file which comes together with this documentation and install 
 
 Starting from a template
 ------------------------
+If you already have an existing project, you can skip this step and move directly to the next one.
 
 As a first step, you need to create a project from a template. You can use your own template, or you can choose from existing templates:
 
@@ -32,12 +33,10 @@ As a first step, you need to create a project from a template. You can use your 
         https://github.com/databrickslabs/cicd-templates.git \
         project_name="sample"
 
-    cd sample
-
 Initializing dbx in the project directory
 -----------------------------------------
 
-After creating a project, initialize :code:`dbx` inside a directory. Provide any project name as a parameter:
+Move the shell into the project directory and initialize :code:`dbx`. Provide any meaningful project name as a parameter:
 
 .. code-block:: python
 
@@ -89,6 +88,14 @@ The main idea of  is to provide a flexible way to configure job with a lot of de
 
 .. literalinclude:: ../../dbx/template/deployment.jsonnet
     :caption: .dbx/deployment.jsonnet
+
+A couple of examples for deployment definition could be found here:
+
+.. literalinclude:: ../../tests/templates/deployment-aws.jsonnet
+    :caption: AWS example - deployment.jsonnet
+
+.. literalinclude:: ../../tests/templates/deployment-azure.jsonnet
+    :caption: Azure example - deployment.jsonnet
 
 Deployment
 ----------
