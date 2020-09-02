@@ -65,9 +65,8 @@ jobs:
       run: |
         make artifact
 
-    - name: Download math result for job 2
-        uses: actions/download-artifact@v2
-        with:
-          name: dbx.zip
-          path: dist/dbx.zip
+    - uses: actions/download-artifact@v2
+      with:
+        name: dbx.zip
+        path: dist/dbx.zip
 
