@@ -7,7 +7,7 @@ from uuid import uuid4
 from click.testing import CliRunner
 from path import Path
 from setuptools import sandbox
-
+import traceback
 from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
 from dbx.cli.init import init
@@ -20,6 +20,12 @@ def invoke_cli_runner(*args, **kwargs):
     Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
     """
     res = CliRunner().invoke(*args, **kwargs)
+
+    if res.exit_code != 0:
+        logging.error("Exception in the cli runner: %s" % res.exception)
+        traceback_object = res.exc_info[2]
+        traceback.print_tb(traceback_object)
+
     assert res.exit_code == 0, 'Exit code was not 0. Output is: {}'.format(res.output)
     return res
 
@@ -83,6 +89,32 @@ class DbxLaunchTest(unittest.TestCase):
                     '--job=%s-pipeline1' % self.project_name,
                     '--trace'
                 ])
+
+                logging.info("Test launch (with trace) - done")
+
+                invoke_cli_runner(launch, [
+                    "--environment=test",
+                    '--job=%s-pipeline1' % self.project_name,
+                ])
+
+                logging.info("Test launch (without trace) - done")
+
+                invoke_cli_runner(launch, [
+                    "--environment=test",
+                    '--job=%s-pipeline1' % self.project_name,
+                    "--existing-runs=wait"
+                ])
+
+                logging.info("Test launch (with wait option) - done")
+
+                invoke_cli_runner(launch, [
+                    "--environment=test",
+                    '--job=%s-pipeline1' % self.project_name,
+                    "--existing-runs=cancel",
+                    "--trace"
+                ])
+
+                logging.info("Test launch (with cancel option) - done")
 
                 logging.info("Test launch - done")
 

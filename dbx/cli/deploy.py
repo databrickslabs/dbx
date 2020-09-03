@@ -15,7 +15,6 @@ from requests.exceptions import HTTPError
 from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file
 
 
-# TODO: add --requirements/conda-environment options to the deploy command
 @click.command(context_settings=_adjust_context(),
                short_help="""Deploys project to artifact storage with given tags.""")
 @click.option("--environment", required=True, type=str, help="Environment name")
@@ -65,6 +64,21 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str)
         mlflow.set_tags(deployment_tags)
 
 
+def _delete_managed_libraries(packages: List[str]) -> List[str]:
+    output_packages = []
+
+    for package in packages:
+
+        if package.startswith("pyspark"):
+            dbx_echo("pyspark dependency deleted from the list of libraries, because it's a managed library")
+        elif package.startswith("mlflow"):
+            dbx_echo("mlflow dependency deleted from the list of libraries, because it's a managed library")
+        else:
+            output_packages.append(package)
+
+    return output_packages
+
+
 def _preprocess_requirements(requirements):
     requirements_path = pathlib.Path(requirements)
 
@@ -72,7 +86,9 @@ def _preprocess_requirements(requirements):
         raise FileNotFoundError("Provided requirements file %s is non-existent" % requirements_path)
 
     requirements_content = requirements_path.read_text().split("\n")
-    requirements_payload = [{"pypi": {"package": req}} for req in requirements_content if not req.startswith("pyspark")]
+    filtered_libraries = _delete_managed_libraries(requirements_content)
+
+    requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries]
     return requirements_payload
 
 
@@ -150,6 +166,11 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
         if not matching_jobs:
             job_id = _create_job(api_client, job)
         else:
+
+            if len(matching_jobs) > 1:
+                raise Exception("""There are more than one job with name %s. 
+                Please delete duplicated jobs first""" % job["name"])
+
             job_id = matching_jobs[0]["job_id"]
             _update_job(jobs_service, job_id, job)
 

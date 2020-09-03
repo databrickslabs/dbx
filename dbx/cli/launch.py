@@ -18,7 +18,9 @@ from dbx.cli.utils import dbx_echo, _generate_filter_string, \
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
-def launch(environment: str, job: str, trace: bool):
+@click.option("--existing-runs", type=click.Choice(["wait", "cancel"]), default="wait",
+              help="Strategy to work with existing job runs")
+def launch(environment: str, job: str, trace: bool, existing_runs: str):
     dbx_echo("Launching job by given parameters")
 
     environment_data, api_client = _provide_environment(environment)
@@ -51,6 +53,18 @@ def launch(environment: str, job: str, trace: bool):
                 raise Exception("Job with name %s not found in the latest deployment" % job)
 
             jobs_service = JobsService(api_client)
+            active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
+
+            for run in active_runs:
+
+                if existing_runs == "wait":
+                    dbx_echo("Waiting for job run with id %s to be finished" % run["run_id"])
+                    _wait_run(api_client, run)
+
+                if existing_runs == "cancel":
+                    dbx_echo("Cancelling run with id %s" % run["run_id"])
+                    _cancel_run(api_client, run)
+
             run_data = jobs_service.run_now(job_id)
 
             if trace:
@@ -69,6 +83,15 @@ def launch(environment: str, job: str, trace: bool):
             mlflow.set_tags(deployment_tags)
 
 
+def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
+    api_client.perform_query('POST', '/jobs/runs/cancel', data={"run_id": run_data["run_id"]}, headers=None)
+    while True:
+        status = _get_run_status(api_client, run_data)
+        result_state = status["state"].get("result_state", None)
+        if result_state:
+            return None
+
+
 def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
     dbfs_service = DbfsService(api_client)
     dbx_deployments = "%s/.dbx/deployments.json" % artifact_base_uri
@@ -76,6 +99,14 @@ def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
     payload = base64.b64decode(raw_config_payload).decode("utf-8")
     deployments = json.loads(payload)
     return deployments
+
+
+def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]):
+    while True:
+        status = _get_run_status(api_client, run_data)
+        result_state = status["state"].get("result_state", None)
+        if result_state:
+            return None
 
 
 def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:

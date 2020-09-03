@@ -195,7 +195,7 @@ def _define_language(path: pathlib.Path) -> str:
     language = SUFFIX_MAPPING.get(suffix)
 
     if not language:
-        raise Exception("Unexpected file extension: %s" % suffix)
+        raise Exception("Unexpected file extension: %s, should be one of %s" % (suffix, SUFFIX_MAPPING.keys()))
 
     return language
 
@@ -213,6 +213,9 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) ->
 
         if not matching_clusters:
             raise Exception("No clusters with name %s found" % cluster_name)
+        if len(matching_clusters) > 1:
+            raise Exception("Found more then one cluster with name %s: %s" % (cluster_name, matching_clusters))
+
         cluster_id = matching_clusters[0]["cluster_id"]
 
     if cluster_id:
