@@ -3,14 +3,12 @@ import json
 import os
 import pathlib
 import shutil
-from copy import deepcopy
 from typing import Dict, Any, Tuple
 
 import click
 import mlflow
 from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
-from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
 
 import dbx
@@ -96,14 +94,6 @@ def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
     profile_config = ProfileConfigProvider(environment_data["profile"]).get_config()
     api_client = ApiClient(host=profile_config.host, token=profile_config.token)
     return environment_data, api_client
-
-
-def _adjust_context():
-    new_context = deepcopy(CONTEXT_SETTINGS)
-    new_context.update(dict(
-        ignore_unknown_options=True,
-    ))
-    return new_context
 
 
 @retry(tries=10, delay=5, backoff=5)

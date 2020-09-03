@@ -7,9 +7,10 @@ import mlflow
 import time
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
+from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file, ContextLockFile
+from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, ContextLockFile
 
 SUFFIX_MAPPING = {
     ".py": "python",
@@ -19,7 +20,7 @@ SUFFIX_MAPPING = {
 }
 
 
-@click.command(context_settings=_adjust_context(),
+@click.command(context_settings=CONTEXT_SETTINGS,
                short_help="Executes given file on existing cluster.")
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")

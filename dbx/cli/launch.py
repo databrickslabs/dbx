@@ -8,12 +8,12 @@ import time
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
+from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import dbx_echo, _generate_filter_string, \
-    _provide_environment, _adjust_context
+from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environment
 
 
-@click.command(context_settings=_adjust_context(),
+@click.command(context_settings=CONTEXT_SETTINGS,
                short_help="Launches job, choosing the latest version by given tags.")
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--job", required=True, type=str, help="Job name.")

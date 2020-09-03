@@ -10,12 +10,13 @@ import mlflow
 from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
+from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file
+from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file
 
 
-@click.command(context_settings=_adjust_context(),
+@click.command(context_settings=CONTEXT_SETTINGS,
                short_help="""Deploys project to artifact storage with given tags.""")
 @click.option("--environment", required=True, type=str, help="Environment name")
 @click.option("--deployment-file", required=False, type=str,

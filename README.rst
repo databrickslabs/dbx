@@ -1,7 +1,7 @@
 dbx by Databricks Labs
 ======================
 
-DataBricks eXtensions - aka :code:`dbx` is a project, developed by Databricks Labs to  provide functionality for rapid development lifecycle on Databricks platform.
+DataBricks eXtensions - aka :code:`dbx` is a project, developed by Databricks Labs to provide functionality for rapid development lifecycle on Databricks platform.
 
 Project Support
 ===============

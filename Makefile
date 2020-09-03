@@ -1,5 +1,4 @@
 # This Makefile is for project development purposes only.
-.PHONY: docs
 ENV_NAME=dbx
 
 install-dev:
@@ -14,11 +13,17 @@ test-execute-aws:
 test-launch-aws:
 	pytest --cov dbx -s -k "test_launch_aws" --capture=sys
 
+test-execute-azure:
+	pytest --cov dbx -s -k "test_execute_azure" --capture=sys
+
+test-launch-azure:
+	pytest --cov dbx -s -k "test_launch_azure" --capture=sys
+
 create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7
 
 install-dev-reqs:
-	pip install -U -r requirements.txt
+	pip install -U -r dev-requirements.txt
 
 docs-html:
 	rm -rf docs/build/html
