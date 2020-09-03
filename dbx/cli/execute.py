@@ -9,7 +9,7 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from retry import retry
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file
+from dbx.cli.utils import dbx_echo, _provide_environment, _adjust_context, _upload_file, ContextLockFile
 
 SUFFIX_MAPPING = {
     ".py": "python",
@@ -157,10 +157,28 @@ def _destroy_context(v1_client: ApiClient, context_id: str, cluster_id: str):
                             data={"contextId": context_id, "clusterId": cluster_id})
 
 
+def _is_context_available(v1_client: ApiClient, cluster_id: str, context_id: str):
+    if not context_id:
+        return False
+    else:
+        resp = v1_client.perform_query(method='GET',
+                                       path='/contexts/status', data={"clusterId": cluster_id, "contextId": context_id})
+        if resp.get("status"):
+            return resp["status"] == "Running"
+        else:
+            return False
+
+
 def get_context_id(v1_client: ApiClient, cluster_id: str, language: str):
     dbx_echo("Preparing execution context")
-    context_id = create_context(v1_client, cluster_id, language)
-    return context_id
+    lock_context_id = ContextLockFile.get_context()
+
+    if _is_context_available(v1_client, cluster_id, lock_context_id):
+        return lock_context_id
+    else:
+        context_id = create_context(v1_client, cluster_id, language)
+        ContextLockFile.set_context(context_id)
+        return context_id
 
 
 # sometimes cluster is already in the status="RUNNING", however it couldn't yet provide execution context

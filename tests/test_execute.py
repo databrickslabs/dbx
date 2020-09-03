@@ -16,7 +16,6 @@ from setuptools import sandbox
 
 from dbx.cli.configure import configure
 from dbx.cli.execute import execute
-from dbx.cli.init import init
 from .utils import initialize_cookiecutter, permanent_delete_cluster
 
 INTERACTIVE_CLUSTER_TEMPLATES_PATH = {
@@ -62,9 +61,6 @@ class DbxExecuteTest(unittest.TestCase):
         with Path(self.test_dir):
             initialize_cookiecutter(self.project_name)
             with Path(self.project_name):
-                invoke_cli_runner(init, ["--project-name", self.project_name])
-                self.assertTrue(Path(".dbx").exists())
-                logging.info("Project initialization - done")
 
                 invoke_cli_runner(configure, [
                     "--name", "test",

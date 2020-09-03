@@ -33,17 +33,10 @@ As a first step, you need to create a project from a template. You can use your 
         https://github.com/databrickslabs/cicd-templates.git \
         project_name="sample"
 
-Initializing dbx in the project directory
------------------------------------------
-
-Move the shell into the project directory and initialize :code:`dbx`. Provide any meaningful project name as a parameter:
-
-.. code-block:: python
-
-    dbx init --project-name="sample"
-
 Configuring environments
 ------------------------
+
+Move the shell into the project directory and configure :code:`dbx`.
 
 .. note::
 
@@ -63,6 +56,10 @@ This command will configure environment by given profile and store project in a 
 
 Interactive execution
 ---------------------
+
+.. note::
+
+    :code:`dbx` expects that cluster for interactive execution supports :code:`%pip` and :code:`%conda` magic `commands <https://docs.databricks.com/libraries/notebooks-python-libraries.html>`_ in case if you use additional options (requirements, package and conda-environment).
 
 To execute the code in an interactive fashion, we recommend to use interactive clusters.
 This command executes content from a given source file on a provided cluster.

@@ -1,6 +1,8 @@
 import datetime as dt
 import json
+import os
 import pathlib
+import shutil
 from copy import deepcopy
 from typing import Dict, Any, Tuple
 
@@ -9,9 +11,14 @@ import mlflow
 from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+from retry import retry
+
+import dbx
 
 INFO_FILE_NAME = ".dbx/project.json"
+LOCK_FILE_NAME = ".dbx/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
+DEPLOYMENT_TEMPLATE_PATH = os.path.join(dbx.__path__[0], "template", "deployment.jsonnet")
 
 
 def read_json(file_path: str) -> Dict[str, Any]:
@@ -30,10 +37,30 @@ def update_json(new_content: Dict[str, Any], file_path: str):
     write_json(content, file_path)
 
 
+class ContextLockFile:
+
+    @staticmethod
+    def set_context(context_id: str) -> None:
+        update_json({"context_id": context_id}, LOCK_FILE_NAME)
+
+    @staticmethod
+    def get_context() -> Any:
+        return read_json(LOCK_FILE_NAME).get("context_id")
+
+
 class InfoFile:
 
     @staticmethod
     def initialize(content: Dict[str, Any]):
+
+        if not os.path.exists(".dbx"):
+            os.mkdir(".dbx")
+
+        if not os.path.exists(".dbx/deployment.jsonnet"):
+            shutil.copy(DEPLOYMENT_TEMPLATE_PATH, ".dbx/deployment.jsonnet")
+
+        if not os.path.exists(LOCK_FILE_NAME):
+            pathlib.Path(LOCK_FILE_NAME).write_text("{}")
         write_json(content, INFO_FILE_NAME)
 
     @staticmethod
@@ -79,6 +106,7 @@ def _adjust_context():
     return new_context
 
 
+@retry(tries=10, delay=5, backoff=5)
 def _upload_file(file_path: pathlib.Path):
     dbx_echo("Deploying file: %s" % file_path)
     mlflow.log_artifact(str(file_path), str(file_path.parent))

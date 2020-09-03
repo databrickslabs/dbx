@@ -1,16 +1,16 @@
 import logging
 import pathlib
 import tempfile
+import traceback
 import unittest
 from uuid import uuid4
 
 from click.testing import CliRunner
 from path import Path
 from setuptools import sandbox
-import traceback
+
 from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
-from dbx.cli.init import init
 from dbx.cli.launch import launch
 from .utils import initialize_cookiecutter
 
@@ -49,10 +49,6 @@ class DbxLaunchTest(unittest.TestCase):
         with Path(self.test_dir):
             initialize_cookiecutter(self.project_name)
             with Path(self.project_name):
-                invoke_cli_runner(init, ["--project-name", self.project_name])
-                self.assertTrue(Path(".dbx").exists())
-                logging.info("Project initialization - done")
-
                 invoke_cli_runner(configure, [
                     "--name", "test",
                     "--profile", self.profile_name,

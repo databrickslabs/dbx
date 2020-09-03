@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 import click
@@ -10,7 +11,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from databricks_cli.workspace.api import WorkspaceService
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI
+from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_NAME
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -30,6 +31,9 @@ def configure(
         workspace_dir: str,
         artifact_location: str):
     dbx_echo("Configuring new environment with name %s" % name)
+
+    if not os.path.exists(INFO_FILE_NAME):
+        InfoFile.initialize({"environments": {}})
 
     if InfoFile.get("environments").get(name):
         raise Exception("Environment with name %s already exists" % name)
