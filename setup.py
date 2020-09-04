@@ -22,6 +22,7 @@ setup(
         [console_scripts]
         dbx=dbx.cli.cli:cli
     ''',
+    package_data={'dbx': ['template/deployment.jsonnet']},
     version=__version__,
     description='DataBricks eXtensions aka dbx',
     author='Thunder Shiviah, Michael Shtelma, Ivan Trusov',

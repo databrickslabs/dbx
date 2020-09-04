@@ -7,16 +7,15 @@ from typing import Dict, Any, Tuple
 
 import click
 import mlflow
+import pkg_resources
 from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
 from retry import retry
 
-import dbx
-
 INFO_FILE_NAME = ".dbx/project.json"
 LOCK_FILE_NAME = ".dbx/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
-DEPLOYMENT_TEMPLATE_PATH = os.path.join(dbx.__path__[0], "template", "deployment.jsonnet")
+DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.jsonnet')
 
 
 def read_json(file_path: str) -> Dict[str, Any]:

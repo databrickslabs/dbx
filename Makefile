@@ -1,4 +1,5 @@
 # This Makefile is for project development purposes only.
+.PHONY: build
 ENV_NAME=dbx
 
 install-dev:
