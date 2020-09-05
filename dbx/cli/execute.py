@@ -56,7 +56,7 @@ def execute(environment: str,
     dbx_echo("Preparing cluster to accept jobs")
     awake_cluster(cluster_service, cluster_id)
 
-    v1_client = get_v1_client(api_client)
+    v1_client = _get_v1_client(api_client)
     context_id = get_context_id(v1_client, cluster_id, language)
 
     with mlflow.start_run() as execution_run:
@@ -146,7 +146,7 @@ def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, comm
                 print(execution_result["results"]["data"])
 
 
-def get_v1_client(api_client: ApiClient):
+def _get_v1_client(api_client: ApiClient):
     v1_client = copy.deepcopy(api_client)
     v1_client.url = v1_client.url.replace('/api/2.0', '/api/1.2')
     return v1_client

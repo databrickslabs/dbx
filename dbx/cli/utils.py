@@ -12,6 +12,8 @@ from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
 from retry import retry
 
+from dbx import __version__
+
 INFO_FILE_NAME = ".dbx/project.json"
 LOCK_FILE_NAME = ".dbx/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
@@ -86,12 +88,17 @@ def _generate_filter_string(env: str):
     return filter_string
 
 
+def _get_api_client(profile: str) -> ApiClient:
+    profile_config = ProfileConfigProvider(profile).get_config()
+    api_client = ApiClient(host=profile_config.host, token=profile_config.token, command_name="dbx-%s" % __version__)
+    return api_client
+
+
 def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
     environment_data = InfoFile.get("environments").get(environment)
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
     mlflow.set_experiment(environment_data["workspace_dir"])
-    profile_config = ProfileConfigProvider(environment_data["profile"]).get_config()
-    api_client = ApiClient(host=profile_config.host, token=profile_config.token, command_name="dbx")
+    api_client = _get_api_client(environment_data["profile"])
     return environment_data, api_client
 
 

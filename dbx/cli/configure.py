@@ -5,13 +5,13 @@ from pathlib import Path
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option, profile_option
-from databricks_cli.configure.config import get_profile_from_context, ProfileConfigProvider
+from databricks_cli.configure.config import get_profile_from_context
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from databricks_cli.workspace.api import WorkspaceService
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_NAME
+from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_NAME, _get_api_client
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -36,9 +36,8 @@ def configure(
     if InfoFile.get("environments").get(name):
         raise Exception("Environment with name %s already exists" % name)
 
-    provider = ProfileConfigProvider(get_profile_from_context())
-    config = provider.get_config()
-    api_client = ApiClient(token=config.token, host=config.host)
+    profile = get_profile_from_context()
+    api_client = _get_api_client(profile)
 
     create_workspace_dir(api_client, workspace_dir)
     experiment_data = initialize_artifact_storage(workspace_dir, artifact_location)
