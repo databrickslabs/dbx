@@ -10,6 +10,7 @@ import mlflow
 import pkg_resources
 from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
+from path import Path
 from retry import retry
 
 from dbx import __version__
@@ -50,17 +51,31 @@ class ContextLockFile:
 class InfoFile:
 
     @staticmethod
-    def initialize(content: Dict[str, Any]):
-
-        if not os.path.exists(".dbx"):
+    def _create_dir() -> None:
+        if not Path(".dbx").exists():
+            dbx_echo("dbx directory is not present, creating it")
             os.mkdir(".dbx")
 
-        if not os.path.exists(".dbx/deployment.json"):
+    @staticmethod
+    def _create_deployment_file() -> None:
+        if not Path(".dbx/deployment.json").exists():
+            dbx_echo("dbx deployment file is not present, creating it from template")
             shutil.copy(DEPLOYMENT_TEMPLATE_PATH, ".dbx/deployment.json")
 
-        if not os.path.exists(LOCK_FILE_NAME):
+    @staticmethod
+    def _create_lock_file() -> None:
+        if not Path(LOCK_FILE_NAME).exists():
             pathlib.Path(LOCK_FILE_NAME).write_text("{}")
-        write_json(content, INFO_FILE_NAME)
+
+    @staticmethod
+    def initialize():
+
+        InfoFile._create_dir()
+        InfoFile._create_deployment_file()
+        InfoFile._create_lock_file()
+
+        init_content = {"environments": {}}
+        write_json(init_content, INFO_FILE_NAME)
 
     @staticmethod
     def update(content: Dict[str, Any]) -> None:

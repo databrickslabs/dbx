@@ -5,11 +5,14 @@ ENV_NAME=dbx
 install-dev:
 	pip install -e .
 
+install-dev-dependencies:
+	pip install -r dev-requirements.txt
+
 test:
-	pytest --cov dbx
+	pytest --cov dbx -s
 
 test-with-html-report:
-	pytest --cov dbx --cov-report html
+	pytest --cov dbx --cov-report html -s
 
 create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7

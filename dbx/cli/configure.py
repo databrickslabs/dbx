@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 
 import click
@@ -30,8 +29,8 @@ def configure(
         artifact_location: str):
     dbx_echo("Configuring new environment with name %s" % name)
 
-    if not os.path.exists(INFO_FILE_NAME):
-        InfoFile.initialize({"environments": {}})
+    if not Path(INFO_FILE_NAME).exists():
+        InfoFile.initialize()
 
     if InfoFile.get("environments").get(name):
         raise Exception("Environment with name %s already exists" % name)

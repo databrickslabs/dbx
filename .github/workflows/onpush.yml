@@ -34,16 +34,16 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -r dev-requirements.txt
+        install-dev-dependencies
 
     - name: Install package
       run: |
-        pip install -e .
+        make install-dev
 
     - name: Run tests
       run: |
         echo "Launching tests"
-        pytest --cov dbx
+        make test
 
     - name: Generate artifact
       run: |
