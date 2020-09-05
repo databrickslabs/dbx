@@ -31,4 +31,6 @@ htmlcov/*
 docs/build
 
 # Artifact
-artifact
+artifact/
+
+htmlcov

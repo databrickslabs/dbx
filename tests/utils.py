@@ -1,7 +1,8 @@
-import json
+import logging
+import traceback
 
+from click.testing import CliRunner
 from cookiecutter.main import cookiecutter
-from databricks_cli.sdk.api_client import ApiClient
 from retry import retry
 
 CICD_TEMPLATES_URI = "https://github.com/databrickslabs/cicd-templates.git"
@@ -12,10 +13,20 @@ def initialize_cookiecutter(project_name):
     cookiecutter(CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": project_name})
 
 
-@retry(tries=10, delay=5, backoff=5)
-def permanent_delete_cluster(api_client: ApiClient, cluster_id: str):
-    payload = {"cluster_id": cluster_id}
-    full_uri = api_client.url + "/clusters/permanent-delete"
-    api_client.session.request("POST", full_uri, data=json.dumps(payload),
-                               verify=True,
-                               headers=api_client.default_headers, timeout=30)
+def invoke_cli_runner(*args, **kwargs):
+    """
+    Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
+    """
+    expected_error = kwargs.pop("expected_error") if kwargs.get("expected_error") else None
+
+    res = CliRunner().invoke(*args, **kwargs)
+
+    if res.exit_code != 0:
+        if not expected_error:
+            logging.error("Exception in the cli runner: %s" % res.exception)
+            traceback_object = res.exc_info[2]
+            traceback.print_tb(traceback_object)
+        else:
+            logging.info("Expected exception in the cli runner: %s" % res.exception)
+
+    return res

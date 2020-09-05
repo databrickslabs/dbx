@@ -91,14 +91,17 @@ By default, deployment configuration is stored in :code:`.dbx/deployment.json`.
 The main idea of  is to provide a flexible way to configure job with it's dependencies.
 
 .. literalinclude:: ../../dbx/template/deployment.json
+    :language: JSON
     :caption: .dbx/deployment.json
 
 A couple of examples for deployment definition could be found here:
 
 .. literalinclude:: ../../tests/templates/deployment-aws.json
+    :language: JSON
     :caption: AWS example - deployment.json
 
 .. literalinclude:: ../../tests/templates/deployment-azure.json
+    :language: JSON
     :caption: Azure example - deployment.json
 
 Deployment

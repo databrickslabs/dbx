@@ -14,8 +14,11 @@ test-execute-aws:
 test-launch-aws:
 	pytest --cov dbx -s -k "test_launch_aws" --capture=sys
 
+test-configure:
+	pytest --cov dbx -s -k "ConfigureTest" --capture=sys --cov-report html
+
 test-execute-azure:
-	pytest --cov dbx -s -k "test_execute_azure" --capture=sys
+	pytest --cov dbx -s -k "test_execute_azure"
 
 test-launch-azure:
 	pytest --cov dbx -s -k "test_launch_azure" --capture=sys
