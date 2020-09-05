@@ -8,3 +8,4 @@ rst2pdf==0.98
 wheel
 pytest
 pytest-cov
+pandas

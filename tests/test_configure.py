@@ -1,16 +1,12 @@
 import unittest
 from unittest.mock import patch
 
-from databricks_cli.configure.provider import DatabricksConfig
 from mlflow.entities import Experiment
 from requests.exceptions import HTTPError
 
 from dbx.cli.configure import configure
 from dbx.cli.utils import InfoFile
-from .utils import invoke_cli_runner, DbxTest
-
-TEST_HOST = "https:/dbx.cloud.databricks.com"
-TEST_TOKEN = "dapiDBXTEST"
+from .utils import invoke_cli_runner, DbxTest, test_dbx_config
 
 """
 What do we test: dbx configure
@@ -21,7 +17,7 @@ Expected behaviour: if no .dbx folder provided -> create folder, initialize Info
 class ConfigureTest(DbxTest):
 
     @patch("databricks_cli.configure.provider.ProfileConfigProvider.get_config",
-           return_value=DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN))
+           return_value=test_dbx_config)
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
     def test_configure_with_existing_path(self, *args) -> None:
@@ -52,7 +48,7 @@ class ConfigureTest(DbxTest):
             self.assertEqual(second_result.exit_code, 1)
 
     @patch("databricks_cli.configure.provider.ProfileConfigProvider.get_config",
-           return_value=DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN))
+           return_value=test_dbx_config)
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", side_effect=HTTPError())
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value={"status": "fine"})
     @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
@@ -67,7 +63,7 @@ class ConfigureTest(DbxTest):
             self.assertEqual(first_result.exit_code, 0)
 
     @patch("databricks_cli.configure.provider.ProfileConfigProvider.get_config",
-           return_value=DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN))
+           return_value=test_dbx_config)
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     # we return none on the first function call, and experiment on the second function call
     @patch("mlflow.get_experiment_by_name", side_effect=[None, Experiment("123", None, None, None)])

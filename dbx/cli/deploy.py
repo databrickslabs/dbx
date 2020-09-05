@@ -12,14 +12,14 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_json
+from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_json, DEFAULT_DEPLOYMENT_FILE_PATH
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help="""Deploys project to artifact storage with given tags.""")
 @click.option("--environment", required=True, type=str, help="Environment name")
 @click.option("--deployment-file", required=False, type=str,
-              help="Path to deployment file in json format", default=".dbx/deployment.json")
+              help="Path to deployment file in json format", default=DEFAULT_DEPLOYMENT_FILE_PATH)
 @click.option("--jobs", required=False, type=str,
               help="""Comma-separated list of job names to be deployed. 
               If not provided, all jobs from the deployment file will be deployed.

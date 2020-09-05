@@ -19,6 +19,7 @@ INFO_FILE_NAME = ".dbx/project.json"
 LOCK_FILE_NAME = ".dbx/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
 DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.json')
+DEFAULT_DEPLOYMENT_FILE_PATH = ".dbx/deployment.json"
 
 
 def read_json(file_path: str) -> Dict[str, Any]:
@@ -60,7 +61,7 @@ class InfoFile:
     def _create_deployment_file() -> None:
         if not Path(".dbx/deployment.json").exists():
             dbx_echo("dbx deployment file is not present, creating it from template")
-            shutil.copy(DEPLOYMENT_TEMPLATE_PATH, ".dbx/deployment.json")
+            shutil.copy(DEPLOYMENT_TEMPLATE_PATH, DEFAULT_DEPLOYMENT_FILE_PATH)
 
     @staticmethod
     def _create_lock_file() -> None:
