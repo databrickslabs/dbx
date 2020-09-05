@@ -86,7 +86,7 @@ class ConfigureTest(unittest.TestCase):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             first_result = invoke_cli_runner(configure, [
-                "--name", "mkdirs-test",
+                "--name", "create-experiment-test",
                 "--profile", self.profile_name,
                 "--workspace-dir", ws_dir
             ])
