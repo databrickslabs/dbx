@@ -1,0 +1,18 @@
+{
+  "environment-name": {
+    "dbfs": {
+      "package": "dist/package.whl"
+    },
+    "jobs": [
+      {
+        "name": "sample",
+        "new_cluster": {},
+        "libraries": [
+          {
+            "whl": "dist/package.whl"
+          }
+        ]
+      }
+    ]
+  }
+}

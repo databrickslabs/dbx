@@ -13,7 +13,6 @@ setup(
         "path~=15.0.0",
         "databricks-cli",
         "click",
-        "jsonnet",
         "retry",
         "requests",
         "mlflow"
@@ -22,7 +21,7 @@ setup(
         [console_scripts]
         dbx=dbx.cli.cli:cli
     ''',
-    package_data={'dbx': ['template/deployment.jsonnet']},
+    package_data={'dbx': ['template/deployment.json']},
     version=__version__,
     description='DataBricks eXtensions aka dbx',
     author='Thunder Shiviah, Michael Shtelma, Ivan Trusov',

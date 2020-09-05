@@ -4,7 +4,6 @@ import tempfile
 from typing import Dict, Any, Union
 from typing import List
 
-import _jsonnet
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
@@ -13,14 +12,14 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file
+from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_json
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help="""Deploys project to artifact storage with given tags.""")
 @click.option("--environment", required=True, type=str, help="Environment name")
 @click.option("--deployment-file", required=False, type=str,
-              help="Path to deployment file. File should have .jsonnet extension.", default=".dbx/deployment.jsonnet")
+              help="Path to deployment file in json format", default=".dbx/deployment.json")
 @click.option("--jobs", required=False, type=str,
               help="""Comma-separated list of job names to be deployed. 
               If not provided, all jobs from the deployment file will be deployed.
@@ -33,7 +32,7 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str)
     _, api_client = _provide_environment(environment)
     _verify_deployment_file(deployment_file)
 
-    all_deployments = json.loads(_jsonnet.evaluate_file(deployment_file))
+    all_deployments = read_json(deployment_file)
 
     deployment = all_deployments.get(environment)
 
@@ -107,8 +106,8 @@ def _log_deployments(deployment_data):
 
 
 def _verify_deployment_file(deployment_file: str):
-    if not deployment_file.endswith(".jsonnet"):
-        raise Exception("Deployment file should have .jsonnet extension")
+    if not deployment_file.endswith(".json"):
+        raise Exception("Deployment file should have .json extension")
 
     if not pathlib.Path(deployment_file).exists():
         raise Exception("Deployment file %s is non-existent: %s" % deployment_file)

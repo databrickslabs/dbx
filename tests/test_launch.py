@@ -30,9 +30,9 @@ def invoke_cli_runner(*args, **kwargs):
     return res
 
 
-JSONNET_TEMPLATES_PATH = {
-    "AWS": "tests/templates/deployment-aws.jsonnet",
-    "Azure": "tests/templates/deployment-azure.jsonnet"
+JSON_TEMPLATES_PATH = {
+    "AWS": "tests/templates/deployment-aws.json",
+    "Azure": "tests/templates/deployment-azure.json"
 }
 
 
@@ -42,7 +42,7 @@ class DbxLaunchTest(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
 
     def provide_suite(self):
-        deployment_template_path = JSONNET_TEMPLATES_PATH[self.cloud_type]
+        deployment_template_path = JSON_TEMPLATES_PATH[self.cloud_type]
         deployment_template = pathlib.Path(deployment_template_path).read_text().replace("{project_name}",
                                                                                          self.project_name)
 
@@ -56,7 +56,7 @@ class DbxLaunchTest(unittest.TestCase):
                 ])
 
                 logging.info("Project configuration - done")
-                pathlib.Path(".dbx/deployment.jsonnet").write_text(deployment_template)
+                pathlib.Path(".dbx/deployment.json").write_text(deployment_template)
 
                 sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
 

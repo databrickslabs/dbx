@@ -79,25 +79,32 @@ You can also provide parameters to install .whl packages before launching code f
 Preparing deployment file
 -------------------------
 
-Next step would be to configure your deployment objects. To make this process easy and flexible, we're using `Jsonnet <https://jsonnet.org/>`_.
-By default, deployment configuration is stored in :code:`.dbx/deployment.jsonnet`.
-The main idea of  is to provide a flexible way to configure job with a lot of dependencies.
+Next step would be to configure your deployment objects. To make this process easy and flexible, we're using JSON for configuration.
 
-.. literalinclude:: ../../dbx/template/deployment.jsonnet
-    :caption: .dbx/deployment.jsonnet
+.. note::
+
+    As you can notice, a lot of elements in the deployment file reference other paths.
+    For big deployments, we recommend to generate the deployment file programmatically, for example via `Jsonnet <https://jsonnet.org>`_.
+
+
+By default, deployment configuration is stored in :code:`.dbx/deployment.json`.
+The main idea of  is to provide a flexible way to configure job with it's dependencies.
+
+.. literalinclude:: ../../dbx/template/deployment.json
+    :caption: .dbx/deployment.json
 
 A couple of examples for deployment definition could be found here:
 
-.. literalinclude:: ../../tests/templates/deployment-aws.jsonnet
-    :caption: AWS example - deployment.jsonnet
+.. literalinclude:: ../../tests/templates/deployment-aws.json
+    :caption: AWS example - deployment.json
 
-.. literalinclude:: ../../tests/templates/deployment-azure.jsonnet
-    :caption: Azure example - deployment.jsonnet
+.. literalinclude:: ../../tests/templates/deployment-azure.json
+    :caption: Azure example - deployment.json
 
 Deployment
 ----------
 
-After you've configured the `deployment.jsonnet` file, it's time to perform an actual deployment:
+After you've configured the `deployment.json` file, it's time to perform an actual deployment:
 
 .. code-block:: python
 
