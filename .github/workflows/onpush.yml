@@ -60,7 +60,7 @@ jobs:
     - name: Run tests
       run: |
         echo "Launching tests"
-         pytest --cov dbx
+        pytest --cov dbx
 
     - name: Generate artifact
       run: |
