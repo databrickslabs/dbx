@@ -33,7 +33,12 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str)
     _, api_client = _provide_environment(environment)
     _verify_deployment_file(deployment_file)
 
-    deployment = json.loads(_jsonnet.evaluate_file(deployment_file))
+    all_deployments = json.loads(_jsonnet.evaluate_file(deployment_file))
+
+    deployment = all_deployments.get(environment)
+
+    if not deployment:
+        raise Exception("No environment %s provided in the deployment file" % environment)
 
     if jobs:
         requested_jobs = jobs.split(",")
