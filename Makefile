@@ -8,20 +8,8 @@ install-dev:
 test:
 	pytest --cov dbx
 
-test-execute-aws:
-	pytest --cov dbx -s -k "test_execute_aws" --capture=sys
-
-test-launch-aws:
-	pytest --cov dbx -s -k "test_launch_aws" --capture=sys
-
-test-configure:
-	pytest --cov dbx -s -k "ConfigureTest" --capture=sys --cov-report html
-
-test-execute-azure:
-	pytest --cov dbx -s -k "test_execute_azure"
-
-test-launch-azure:
-	pytest --cov dbx -s -k "test_launch_azure" --capture=sys
+test-with-html-report:
+	pytest --cov dbx --cov-report html
 
 create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7
