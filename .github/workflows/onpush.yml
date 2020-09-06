@@ -34,7 +34,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        install-dev-dependencies
+        make install-dev-dependencies
 
     - name: Install package
       run: |
