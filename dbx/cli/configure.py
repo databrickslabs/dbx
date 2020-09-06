@@ -10,7 +10,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from databricks_cli.workspace.api import WorkspaceService
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_NAME, _get_api_client
+from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_PATH, _get_api_client
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -29,7 +29,7 @@ def configure(
         artifact_location: str):
     dbx_echo("Configuring new environment with name %s" % name)
 
-    if not Path(INFO_FILE_NAME).exists():
+    if not Path(INFO_FILE_PATH).exists():
         InfoFile.initialize()
 
     if InfoFile.get("environments").get(name):

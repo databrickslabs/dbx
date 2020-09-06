@@ -15,11 +15,12 @@ from retry import retry
 
 from dbx import __version__
 
-INFO_FILE_NAME = ".dbx/project.json"
-LOCK_FILE_NAME = ".dbx/lock.json"
+DBX_PATH = ".dbx"
+INFO_FILE_PATH = "%s/project.json" % DBX_PATH
+LOCK_FILE_PATH = "%s/lock.json" % DBX_PATH
 DATABRICKS_MLFLOW_URI = "databricks"
 DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.json')
-DEFAULT_DEPLOYMENT_FILE_PATH = ".dbx/deployment.json"
+DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % DBX_PATH
 
 
 def read_json(file_path: str) -> Dict[str, Any]:
@@ -42,31 +43,31 @@ class ContextLockFile:
 
     @staticmethod
     def set_context(context_id: str) -> None:
-        update_json({"context_id": context_id}, LOCK_FILE_NAME)
+        update_json({"context_id": context_id}, LOCK_FILE_PATH)
 
     @staticmethod
     def get_context() -> Any:
-        return read_json(LOCK_FILE_NAME).get("context_id")
+        return read_json(LOCK_FILE_PATH).get("context_id")
 
 
 class InfoFile:
 
     @staticmethod
     def _create_dir() -> None:
-        if not Path(".dbx").exists():
+        if not Path(DBX_PATH).exists():
             dbx_echo("dbx directory is not present, creating it")
-            os.mkdir(".dbx")
+            os.mkdir(DBX_PATH)
 
     @staticmethod
     def _create_deployment_file() -> None:
-        if not Path(".dbx/deployment.json").exists():
+        if not Path(DEFAULT_DEPLOYMENT_FILE_PATH).exists():
             dbx_echo("dbx deployment file is not present, creating it from template")
             shutil.copy(DEPLOYMENT_TEMPLATE_PATH, DEFAULT_DEPLOYMENT_FILE_PATH)
 
     @staticmethod
     def _create_lock_file() -> None:
-        if not Path(LOCK_FILE_NAME).exists():
-            pathlib.Path(LOCK_FILE_NAME).write_text("{}")
+        if not Path(LOCK_FILE_PATH).exists():
+            pathlib.Path(LOCK_FILE_PATH).write_text("{}")
 
     @staticmethod
     def initialize():
@@ -76,15 +77,15 @@ class InfoFile:
         InfoFile._create_lock_file()
 
         init_content = {"environments": {}}
-        write_json(init_content, INFO_FILE_NAME)
+        write_json(init_content, INFO_FILE_PATH)
 
     @staticmethod
     def update(content: Dict[str, Any]) -> None:
-        update_json(content, INFO_FILE_NAME)
+        update_json(content, INFO_FILE_PATH)
 
     @staticmethod
     def get(item: str) -> Any:
-        return read_json(INFO_FILE_NAME).get(item)
+        return read_json(INFO_FILE_PATH).get(item)
 
 
 def dbx_echo(message: str):
