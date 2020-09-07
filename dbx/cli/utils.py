@@ -138,6 +138,11 @@ def _generate_filter_string(env: str):
 
 def _get_api_client(profile: str) -> ApiClient:
     profile_config = ProfileConfigProvider(profile).get_config()
+
+    if not profile_config.is_valid_with_token:
+        raise Exception(
+            "Profile %s is incorrectly configured or not provided. Please check ~/.databrickscfg file" % profile)
+
     api_client = ApiClient(host=profile_config.host, token=profile_config.token, command_name="dbx-%s" % __version__)
     return api_client
 
