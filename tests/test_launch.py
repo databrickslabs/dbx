@@ -46,7 +46,7 @@ class LaunchTest(DbxTest):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(configure, [
-                "--name", "test",
+                "--environment", "test",
                 "--profile", self.profile_name,
                 "--workspace-dir", ws_dir
             ])

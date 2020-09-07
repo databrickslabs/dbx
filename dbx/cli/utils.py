@@ -24,6 +24,11 @@ DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/depl
 DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % DBX_PATH
 
 
+def environment_option(f):
+    return click.option('--environment', required=True, default=None,
+                        help='Environment name.')(f)
+
+
 def read_json(file_path: str) -> Dict[str, Any]:
     with open(file_path, "r") as f:
         return json.load(f)

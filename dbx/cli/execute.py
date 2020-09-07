@@ -7,9 +7,9 @@ import time
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-from retry import retry
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, ContextLockFile, ApiV12Client
+from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, ContextLockFile, ApiV12Client, \
+    environment_option
 
 SUFFIX_MAPPING = {
     ".py": "python",
@@ -21,7 +21,6 @@ SUFFIX_MAPPING = {
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help="Executes given file on existing cluster.")
-@click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @click.option("--source-file", required=True, type=str, help="Path to the file with source code.")
@@ -29,6 +28,7 @@ SUFFIX_MAPPING = {
 @click.option("--conda-environment", required=False, type=str, help="Path to the file with conda environment.")
 @click.option('--package', multiple=True, type=str,
               help="Path to a .whl file. Option might be repeated multiple times.")
+@environment_option
 def execute(environment: str,
             cluster_id: str,
             cluster_name: str,

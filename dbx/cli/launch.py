@@ -10,7 +10,7 @@ from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environment
+from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environment, environment_option
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -20,6 +20,7 @@ from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environmen
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
 @click.option("--existing-runs", type=click.Choice(["wait", "cancel"]), default="wait",
               help="Strategy to work with existing job runs")
+@environment_option
 def launch(environment: str, job: str, trace: bool, existing_runs: str):
     dbx_echo("Launching job by given parameters")
 

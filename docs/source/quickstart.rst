@@ -48,7 +48,7 @@ Create a new environment via given command:
 .. code-block:: python
 
     dbx configure \
-        --name="test" \
+        --environment="test" \
         --profile="test" \
         --workspace-dir="/dbx/projects/sample"
 

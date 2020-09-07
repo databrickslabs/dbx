@@ -24,7 +24,7 @@ class ConfigureTest(DbxTest):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             first_result = invoke_cli_runner(configure, [
-                "--name", "test",
+                "--environment", "test",
                 "--profile", self.profile_name,
                 "--workspace-dir", ws_dir
             ])
@@ -40,7 +40,7 @@ class ConfigureTest(DbxTest):
 
             # repeating test for the second time to check if configure raises error with the same arguments
             second_result = invoke_cli_runner(configure, [
-                "--name", "test",
+                "--environment", "test",
                 "--profile", self.profile_name,
                 "--workspace-dir", ws_dir
             ], expected_error=True)
@@ -56,7 +56,7 @@ class ConfigureTest(DbxTest):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             first_result = invoke_cli_runner(configure, [
-                "--name", "mkdirs-test",
+                "--environment", "mkdirs-test",
                 "--profile", self.profile_name,
                 "--workspace-dir", ws_dir
             ])
@@ -72,7 +72,7 @@ class ConfigureTest(DbxTest):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             first_result = invoke_cli_runner(configure, [
-                "--name", "create-experiment-test",
+                "--environment", "create-experiment-test",
                 "--profile", self.profile_name,
                 "--workspace-dir", ws_dir
             ])

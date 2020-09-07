@@ -10,30 +10,29 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from databricks_cli.workspace.api import WorkspaceService
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_PATH, _get_api_client
+from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_PATH, _get_api_client, environment_option
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help='Configures new environment.')
-@click.option("--name", required=True, type=str,
-              help="Environment name.")
 @click.option("--workspace-dir", required=True, type=str,
               help="Workspace directory for MLflow experiment.")
 @click.option("--artifact-location", required=False, type=str,
               help="DBFS path to a custom artifact location.")
+@environment_option
 @debug_option
 @profile_option
 def configure(
-        name: str,
+        environment: str,
         workspace_dir: str,
         artifact_location: str):
-    dbx_echo("Configuring new environment with name %s" % name)
+    dbx_echo("Configuring new environment with name %s" % environment)
 
     if not Path(INFO_FILE_PATH).exists():
         InfoFile.initialize()
 
-    if InfoFile.get("environments").get(name):
-        raise Exception("Environment with name %s already exists" % name)
+    if InfoFile.get("environments").get(environment):
+        raise Exception("Environment with name %s already exists" % environment)
 
     profile = get_profile_from_context()
     api_client = _get_api_client(profile)
@@ -42,7 +41,7 @@ def configure(
     experiment_data = initialize_artifact_storage(workspace_dir, artifact_location)
 
     environment_info = {
-        name: {
+        environment: {
             "profile": get_profile_from_context(),
             "workspace_dir": workspace_dir,
             "experiment_id": experiment_data.experiment_id,
