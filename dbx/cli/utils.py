@@ -144,6 +144,10 @@ def _get_api_client(profile: str) -> ApiClient:
 
 def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
     environment_data = InfoFile.get("environments").get(environment)
+
+    if not environment_data:
+        raise Exception("No environment %s provided in the deployment file" % environment)
+
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
     mlflow.set_experiment(environment_data["workspace_dir"])
     api_client = _get_api_client(environment_data["profile"])

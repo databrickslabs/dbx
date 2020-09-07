@@ -7,7 +7,7 @@ from typing import List
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
-from databricks_cli.jobs.api import JobsService
+from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
@@ -35,9 +35,6 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str)
     all_deployments = read_json(deployment_file)
 
     deployment = all_deployments.get(environment)
-
-    if not deployment:
-        raise Exception("No environment %s provided in the deployment file" % environment)
 
     if jobs:
         requested_jobs = jobs.split(",")
@@ -76,8 +73,6 @@ def _delete_managed_libraries(packages: List[str]) -> List[str]:
 
         if package.startswith("pyspark"):
             dbx_echo("pyspark dependency deleted from the list of libraries, because it's a managed library")
-        elif package.startswith("mlflow"):
-            dbx_echo("mlflow dependency deleted from the list of libraries, because it's a managed library")
         else:
             output_packages.append(package)
 
@@ -157,7 +152,7 @@ def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
     adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri)
     for job in jobs:
         _walk_content(adjustment_callback, job)
-        job["libraries"] = job["libraries"] + requirements_payload
+        job["libraries"] = job.get("libraries", []) + requirements_payload
 
 
 def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
@@ -165,7 +160,7 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
     for job in jobs:
         dbx_echo("Processing deployment for job: %s" % job["name"])
         jobs_service = JobsService(api_client)
-        all_jobs = jobs_service.list_jobs()["jobs"]
+        all_jobs = jobs_service.list_jobs().get("jobs", [])
         matching_jobs = [j for j in all_jobs if j["settings"]["name"] == job["name"]]
 
         if not matching_jobs:
@@ -186,7 +181,8 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
 def _create_job(api_client: ApiClient, job: Dict[str, Any]) -> str:
     dbx_echo("Creating a new job with name %s" % job["name"])
     try:
-        job_id = api_client.perform_query('POST', '/jobs/create', data=job, headers=None)["job_id"]
+        jobs_api = JobsApi(api_client)
+        job_id = jobs_api.create_job(job)["job_id"]
     except HTTPError as e:
         dbx_echo("Failed to create job with definition:")
         dbx_echo(json.dumps(job, indent=4))
