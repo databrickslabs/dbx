@@ -111,14 +111,12 @@ def _verify_deployment_file(deployment_file: str):
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
-    if not deployment.get("dbfs"):
+    if "dbfs" not in deployment:
         raise Exception("No local files provided for deployment")
 
     _preprocess_files(deployment["dbfs"])
 
-    jobs_list = deployment.get("jobs", [])
-
-    if not jobs_list:
+    if "jobs" not in deployment:
         raise Exception("No jobs provided for deployment")
 
     deployment["jobs"] = _preprocess_jobs(deployment["jobs"], requested_jobs)
