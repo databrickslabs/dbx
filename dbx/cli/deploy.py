@@ -1,5 +1,6 @@
 import json
 import pathlib
+import shutil
 import tempfile
 from typing import Dict, Any, Union
 from typing import List
@@ -98,6 +99,7 @@ def _log_deployments(deployment_data):
     temp_path = pathlib.Path(temp_dir, "deployments.json")
     temp_path.write_text(serialized_data)
     mlflow.log_artifact(str(temp_path), ".dbx")
+    shutil.rmtree(temp_dir)
 
 
 def _verify_deployment_file(deployment_file: str):
