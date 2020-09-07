@@ -1,3 +1,4 @@
+import copy
 import datetime as dt
 import json
 import os
@@ -86,6 +87,36 @@ class InfoFile:
     @staticmethod
     def get(item: str) -> Any:
         return read_json(INFO_FILE_PATH).get(item)
+
+
+class ApiV12Client:
+    def __init__(self, api_client: ApiClient):
+        self.v1_client = copy.deepcopy(api_client)
+        self.v1_client.url = self.v1_client.url.replace('/api/2.0', '/api/1.2')
+
+    def get_command_status(self, payload) -> Dict[Any, Any]:
+        result = self.v1_client.perform_query(method='GET', path='/commands/status', data=payload)
+        return result
+
+    def cancel_command(self, payload) -> None:
+        self.v1_client.perform_query(method='POST', path='/commands/cancel', data=payload)
+
+    def execute_command(self, payload) -> Dict[Any, Any]:
+        result = self.v1_client.perform_query(method='POST',
+                                              path='/commands/execute',
+                                              data=payload)
+        return result
+
+    def get_context_status(self, payload):
+        result = self.v1_client.perform_query(method='GET',
+                                              path='/contexts/status', data=payload)
+        return result
+
+    def create_context(self, payload):
+        result = self.v1_client.perform_query(method='POST',
+                                              path='/contexts/create',
+                                              data=payload)
+        return result
 
 
 def dbx_echo(message: str):

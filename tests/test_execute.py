@@ -1,18 +1,14 @@
-import base64
 import datetime as dt
-import json
+import pathlib
 import unittest
 from unittest.mock import patch
 
-import pandas as pd
 from mlflow import ActiveRun
 from mlflow.entities import Experiment
 from mlflow.entities.run import Run, RunInfo, RunData
 
 from dbx.cli.configure import configure
-from dbx.cli.deploy import deploy
-from dbx.cli.launch import launch
-from dbx.cli.utils import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
+from dbx.cli.execute import execute
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
 run_info = RunInfo(
@@ -22,26 +18,28 @@ run_info = RunInfo(
     status="STATUS",
     start_time=dt.datetime.now(),
     end_time=dt.datetime.now(),
-    lifecycle_stage="STAGE")
+    lifecycle_stage="STAGE",
+    artifact_uri="dbfs:/dbx.unique.uri"
+)
 run_data = RunData()
 run_mock = ActiveRun(Run(run_info, run_data))
 
-data_mock = {"data": base64.b64encode(json.dumps({"sample": "1"}).encode("utf-8"))}
 
-
-class LaunchTest(DbxTest):
+class ExecuteTest(DbxTest):
     @patch("databricks_cli.configure.provider.ProfileConfigProvider.get_config",
            return_value=test_dbx_config)
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
+    @patch("databricks_cli.clusters.api.ClusterService.get_cluster",
+           return_value={"cluster_name": "some-name", "state": "RUNNING"})
     @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
+    @patch("dbx.cli.utils.ApiV12Client.create_context", return_value={"id": 1})
+    @patch("dbx.cli.utils.ApiV12Client.execute_command", return_value={"id": 1})
+    @patch("dbx.cli.utils.ApiV12Client.get_command_status",
+           return_value={"status": "Finished", "results": {"resultType": "Ok", "data": "Ok!"}})
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
-    @patch("mlflow.search_runs", return_value=pd.DataFrame([{"run_id": 1}]))
-    @patch("databricks_cli.dbfs.api.DbfsService.read", return_value=data_mock)
-    @patch("databricks_cli.jobs.api.JobsService.list_runs", return_value={"runs": []})
-    @patch("databricks_cli.jobs.api.JobsService.run_now", return_value={"run_id": "1"})
     def test_launch(self, *args):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -52,27 +50,17 @@ class LaunchTest(DbxTest):
             ])
             self.assertEqual(configure_result.exit_code, 0)
 
-            deployment_content = {
-                "test": {
-                    "dbfs": {},
-                    "jobs": []
-                }
-            }
+            pathlib.Path("pipelines/pipeline1/entrypoint.py").write_text("""
+            spark.createDataFrame([(1,)], "id long")
+            """)
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
-
-            deploy_result = invoke_cli_runner(deploy, [
-                "--environment", "test"
-            ])
-
-            self.assertEqual(deploy_result.exit_code, 0)
-
-            launch_result = invoke_cli_runner(launch, [
+            execute_result = invoke_cli_runner(execute, [
                 "--environment", "test",
-                "--job", "sample"
+                "--cluster-id", "000-some-cluster-id",
+                "--source-file", "pipelines/pipeline1/entrypoint.py"
             ])
 
-            self.assertEqual(launch_result.exit_code, 0)
+            self.assertEqual(execute_result.exit_code, 0)
 
 
 if __name__ == '__main__':

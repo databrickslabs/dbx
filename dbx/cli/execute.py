@@ -1,4 +1,3 @@
-import copy
 import pathlib
 from typing import List
 
@@ -10,7 +9,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from retry import retry
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, ContextLockFile
+from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, ContextLockFile, ApiV12Client
 
 SUFFIX_MAPPING = {
     ".py": "python",
@@ -111,26 +110,24 @@ def _verify_packages(package: List[str]) -> List[pathlib.Path]:
     return verified_paths
 
 
-def wait_for_command_execution(v1_client: ApiClient, cluster_id: str, context_id: str, command_id: str):
+def wait_for_command_execution(v1_client: ApiV12Client, cluster_id: str, context_id: str, command_id: str):
     finished = False
     payload = {'clusterId': cluster_id, 'contextId': context_id, 'commandId': command_id}
     while not finished:
         try:
-            result = v1_client.perform_query(method='GET', path='/commands/status', data=payload)
+            result = v1_client.get_command_status(payload)
             status = result.get("status")
             if status in ["Finished", "Cancelled", "Error"]:
                 return result
             else:
                 time.sleep(5)
         except KeyboardInterrupt:
-            v1_client.perform_query(method='POST', path='/commands/cancel', data=payload)
+            v1_client.cancel_command(payload)
 
 
-def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, command: str, verbose=True):
+def execute_command(v1_client: ApiV12Client, cluster_id: str, context_id: str, command: str, verbose=True):
     payload = {'language': 'python', 'clusterId': cluster_id, 'contextId': context_id, 'command': command}
-    command_execution_data = v1_client.perform_query(method='POST',
-                                                     path='/commands/execute',
-                                                     data=payload)
+    command_execution_data = v1_client.execute_command(payload)
     command_id = command_execution_data['id']
     execution_result = wait_for_command_execution(v1_client, cluster_id, context_id, command_id)
     if execution_result["status"] == "Cancelled":
@@ -138,7 +135,6 @@ def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, comm
     else:
         final_result = execution_result["results"]["resultType"]
         if final_result == 'error':
-            _destroy_context(v1_client, context_id, cluster_id)
             raise RuntimeError(execution_result["results"]["cause"])
         else:
             if verbose:
@@ -146,31 +142,24 @@ def execute_command(v1_client: ApiClient, cluster_id: str, context_id: str, comm
                 print(execution_result["results"]["data"])
 
 
-def _get_v1_client(api_client: ApiClient):
-    v1_client = copy.deepcopy(api_client)
-    v1_client.url = v1_client.url.replace('/api/2.0', '/api/1.2')
+def _get_v1_client(api_client: ApiClient) -> ApiV12Client:
+    v1_client = ApiV12Client(api_client)
     return v1_client
 
 
-def _destroy_context(v1_client: ApiClient, context_id: str, cluster_id: str):
-    v1_client.perform_query(method='POST',
-                            path='/contexts/destroy',
-                            data={"contextId": context_id, "clusterId": cluster_id})
-
-
-def _is_context_available(v1_client: ApiClient, cluster_id: str, context_id: str):
+def _is_context_available(v1_client: ApiV12Client, cluster_id: str, context_id: str):
     if not context_id:
         return False
     else:
-        resp = v1_client.perform_query(method='GET',
-                                       path='/contexts/status', data={"clusterId": cluster_id, "contextId": context_id})
+        payload = {"clusterId": cluster_id, "contextId": context_id}
+        resp = v1_client.get_context_status(payload)
         if resp.get("status"):
             return resp["status"] == "Running"
         else:
             return False
 
 
-def get_context_id(v1_client: ApiClient, cluster_id: str, language: str):
+def get_context_id(v1_client: ApiV12Client, cluster_id: str, language: str):
     dbx_echo("Preparing execution context")
     lock_context_id = ContextLockFile.get_context()
 
@@ -184,12 +173,11 @@ def get_context_id(v1_client: ApiClient, cluster_id: str, language: str):
 
 # sometimes cluster is already in the status="RUNNING", however it couldn't yet provide execution context
 # to make the execute command stable is such situations, we add retry handler.
-@retry(tries=10, delay=5, backoff=5)
-def create_context(v1_client, cluster_id, language):
-    payload = v1_client.perform_query(method='POST',
-                                      path='/contexts/create',
-                                      data={'language': language, 'clusterId': cluster_id})
-    return payload["id"]
+# @retry(tries=10, delay=5, backoff=5)
+def create_context(v1_client: ApiV12Client, cluster_id: str, language: str):
+    payload = {'language': language, 'clusterId': cluster_id}
+    response = v1_client.create_context(payload)
+    return response["id"]
 
 
 def awake_cluster(cluster_service: ClusterService, cluster_id):
