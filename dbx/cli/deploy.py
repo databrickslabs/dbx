@@ -109,12 +109,14 @@ def _verify_deployment_file(deployment_file: str):
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
-    if "dbfs" not in deployment:
+    if not deployment.get("dbfs"):
         raise Exception("No local files provided for deployment")
 
     _preprocess_files(deployment["dbfs"])
 
-    if "jobs" not in deployment:
+    jobs_list = deployment.get("jobs", [])
+
+    if not jobs_list:
         raise Exception("No jobs provided for deployment")
 
     deployment["jobs"] = _preprocess_jobs(deployment["jobs"], requested_jobs)
@@ -124,7 +126,7 @@ def _preprocess_files(files: Dict[str, Any]):
     for key, file_path_str in files.items():
         file_path = pathlib.Path(file_path_str)
         if not file_path.exists():
-            raise Exception("File path %s is non-existent" % file_path)
+            raise FileNotFoundError("File path %s is non-existent" % file_path)
         files[key] = file_path
 
 
