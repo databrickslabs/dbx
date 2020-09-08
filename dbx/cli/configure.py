@@ -15,8 +15,8 @@ from dbx.cli.utils import InfoFile, dbx_echo, DATABRICKS_MLFLOW_URI, INFO_FILE_P
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help='Configures new environment.')
-@click.option("--workspace-dir", required=True, type=str,
-              help="Workspace directory for MLflow experiment.")
+@click.option("--workspace-dir", required=False, type=str,
+              help="Workspace directory for MLflow experiment.", default=None)
 @click.option("--artifact-location", required=False, type=str,
               help="DBFS path to a custom artifact location.")
 @environment_option
@@ -27,6 +27,10 @@ def configure(
         workspace_dir: str,
         artifact_location: str):
     dbx_echo("Configuring new environment with name %s" % environment)
+
+    if not workspace_dir:
+        workspace_dir = "/Shared/dbx/projects/%s" % Path(".").absolute().name
+        dbx_echo("Workspace directory is not provided, using the following directory: %s" % workspace_dir)
 
     if not Path(INFO_FILE_PATH).exists():
         InfoFile.initialize()
