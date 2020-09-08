@@ -85,7 +85,8 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str):
 
 
 def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
-    api_client.perform_query('POST', '/jobs/runs/cancel', data={"run_id": run_data["run_id"]}, headers=None)
+    jobs_service = JobsService(api_client)
+    jobs_service.cancel_run(run_data["run_id"])
     while True:
         time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
         status = _get_run_status(api_client, run_data)
@@ -129,5 +130,6 @@ def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
 
 
 def _get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
-    run_status = api_client.perform_query('GET', '/jobs/runs/get', data={"run_id": run_data["run_id"]}, headers=None)
+    jobs_service = JobsService(api_client)
+    run_status = jobs_service.get_run(run_data["run_id"])
     return run_status
