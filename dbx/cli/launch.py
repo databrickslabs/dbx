@@ -87,6 +87,7 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str):
 def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
     api_client.perform_query('POST', '/jobs/runs/cancel', data={"run_id": run_data["run_id"]}, headers=None)
     while True:
+        time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
         status = _get_run_status(api_client, run_data)
         result_state = status["state"].get("result_state", None)
         if result_state:
@@ -104,6 +105,7 @@ def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
 
 def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]):
     while True:
+        time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
         status = _get_run_status(api_client, run_data)
         result_state = status["state"].get("result_state", None)
         if result_state:
