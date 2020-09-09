@@ -37,7 +37,7 @@ JSON_TEMPLATES_PATH = {
 
 
 # noinspection PyBroadException
-class DbxLaunchTest(unittest.TestCase):
+class IntegrationLaunchTest(unittest.TestCase):
     def setUp(self) -> None:
         self.test_dir = tempfile.mkdtemp()
 

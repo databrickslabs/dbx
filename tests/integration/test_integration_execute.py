@@ -41,7 +41,7 @@ def invoke_cli_runner(*args, **kwargs):
 
 
 # noinspection PyBroadException
-class DbxExecuteTest(unittest.TestCase):
+class IntegrationExecuteTest(unittest.TestCase):
     def setUp(self) -> None:
         self.test_dir = tempfile.mkdtemp()
 
