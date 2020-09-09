@@ -146,7 +146,7 @@ def _get_api_client(profile: str) -> ApiClient:
 
     if not profile_config.is_valid_with_token:
         raise Exception(
-            "Profile %s is incorrectly configured or not provided. Please check ~/.databrickscfg file" % profile)
+            "Profile %s is incorrectly configured or not provided. Please check the ~/.databrickscfg file" % profile)
 
     api_client = ApiClient(host=profile_config.host, token=profile_config.token, command_name="dbx-%s" % __version__)
     return api_client
@@ -156,7 +156,7 @@ def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
     environment_data = InfoFile.get("environments").get(environment)
 
     if not environment_data:
-        raise Exception("No environment %s provided in the deployment file" % environment)
+        raise Exception("No environment %s provided in the project file" % environment)
 
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
     mlflow.set_experiment(environment_data["workspace_dir"])

@@ -14,12 +14,12 @@ from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environmen
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help="Launches job, choosing the latest version by given tags.")
+               short_help="Launch the job by it's name on the given environment.")
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
 @click.option("--existing-runs", type=click.Choice(["wait", "cancel"]), default="wait",
-              help="Strategy to work with existing job runs")
+              help="Strategy to handle existing active job runs.")
 @environment_option
 def launch(environment: str, job: str, trace: bool, existing_runs: str):
     dbx_echo("Launching job by given parameters")

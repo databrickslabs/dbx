@@ -20,7 +20,7 @@ SUFFIX_MAPPING = {
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help="Executes given file on existing cluster.")
+               short_help="Executes given code on the existing cluster.")
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @click.option("--source-file", required=True, type=str, help="Path to the file with source code.")

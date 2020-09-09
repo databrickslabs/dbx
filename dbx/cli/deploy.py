@@ -18,7 +18,7 @@ from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_jso
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help="""Deploys project to artifact storage with given tags.""")
+               short_help="""Deploy project to artifact storage.""")
 @click.option("--deployment-file", required=False, type=str,
               help="Path to deployment file in json format", default=DEFAULT_DEPLOYMENT_FILE_PATH)
 @click.option("--jobs", required=False, type=str,

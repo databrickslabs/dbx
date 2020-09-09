@@ -79,7 +79,7 @@ def initialize_artifact_storage(workspace_dir: str, artifact_location: str):
         mlflow.create_experiment(workspace_dir, artifact_location)
         dbx_echo("Project registered in dbx artifact storage")
     else:
-        dbx_echo("Project is already registered in dbx artifact storage")
+        dbx_echo("Project is already registered in dbx artifact storage, no additional action is required")
 
     experiment_data = mlflow.get_experiment_by_name(workspace_dir)
     return experiment_data
