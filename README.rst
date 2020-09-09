@@ -19,7 +19,7 @@ Please refer to the documentation in docs folder.
 Developer documentation and notes
 =================================
 
-To launch :code:`dbx` tests from a local machine, please prepare two profiles:
+To launch :code:`dbx` integration tests from a local machine, please prepare two profiles:
 
 * :code:`dbx-dev-aws`
 * :code:`dbx-dev-azure`
