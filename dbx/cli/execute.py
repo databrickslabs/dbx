@@ -171,9 +171,6 @@ def get_context_id(v1_client: ApiV12Client, cluster_id: str, language: str):
         return context_id
 
 
-# sometimes cluster is already in the status="RUNNING", however it couldn't yet provide execution context
-# to make the execute command stable is such situations, we add retry handler.
-# @retry(tries=10, delay=5, backoff=5)
 def create_context(v1_client: ApiV12Client, cluster_id: str, language: str):
     payload = {'language': language, 'clusterId': cluster_id}
     response = v1_client.create_context(payload)
