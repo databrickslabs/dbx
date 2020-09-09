@@ -61,9 +61,8 @@ class DbxExecuteTest(unittest.TestCase):
         with Path(self.test_dir):
             initialize_cookiecutter(self.project_name)
             with Path(self.project_name):
-
                 invoke_cli_runner(configure, [
-                    "--name", "test",
+                    "--environment", "test",
                     "--profile", self.profile_name,
                     "--workspace-dir", self.workspace_dir
                 ])
