@@ -70,7 +70,9 @@ def execute(environment: str,
             _upload_file(requirements_path)
             localized_requirements_path = "%s/%s" % (localized_base_path, str(requirements_path))
             installation_command = "%pip install --upgrade -r {path}".format(path=localized_requirements_path)
+            dbx_echo("Installing provided requirements")
             execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+            dbx_echo("Provided requirements installed")
 
         if conda_environment:
             conda_environment_path = pathlib.Path(conda_environment)
@@ -85,10 +87,12 @@ def execute(environment: str,
             dbx_echo("Installing provided packages")
             package_paths = _verify_packages(package)
             for package_path in package_paths:
+                dbx_echo("Installing package from path: %s" % package_path)
                 _upload_file(package_path)
                 localized_package_path = "%s/%s" % (localized_base_path, str(package_path))
                 installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
                 execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+                dbx_echo("Package installed")
 
         tags = {
             "dbx_action_type": "execute",
@@ -97,7 +101,9 @@ def execute(environment: str,
 
         mlflow.set_tags(tags)
 
+    dbx_echo("Starting command execution")
     execute_command(v1_client, cluster_id, context_id, source_file_content)
+    dbx_echo("Command execution finished")
 
 
 def _verify_packages(package: List[str]) -> List[pathlib.Path]:
