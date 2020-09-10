@@ -9,6 +9,7 @@ from typing import Dict, Any, Tuple
 import click
 import mlflow
 import pkg_resources
+import requests
 from databricks_cli.configure.provider import ProfileConfigProvider
 from databricks_cli.sdk.api_client import ApiClient
 from path import Path
@@ -113,9 +114,12 @@ class ApiV12Client:
         return result
 
     def get_context_status(self, payload):
-        result = self.v1_client.perform_query(method='GET',
-                                              path='/contexts/status', data=payload)
-        return result
+        try:
+            result = self.v1_client.perform_query(method='GET',
+                                                  path='/contexts/status', data=payload)
+            return result
+        except requests.exceptions.HTTPError:
+            return None
 
     # sometimes cluster is already in the status="RUNNING", however it couldn't yet provide execution context
     # to make the execute command stable is such situations, we add retry handler.
