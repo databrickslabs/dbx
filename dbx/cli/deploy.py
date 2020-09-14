@@ -4,7 +4,7 @@ import shutil
 import tempfile
 from typing import Dict, Any, Union
 from typing import List
-
+from pygit2 import Repository, GitError
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
@@ -59,13 +59,28 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str)
         deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
+        git_tags = _get_git_tags()
+
         deployment_tags = {
             "dbx_action_type": "deploy",
             "dbx_environment": environment,
             "dbx_status": "SUCCESS",
         }
 
+        deployment_tags.update(git_tags)
+
         mlflow.set_tags(deployment_tags)
+
+
+def _get_git_tags():
+    try:
+        repo = Repository('.')
+        branch = repo.head.shorthand
+        commit_id = repo.head.target
+        tags = {"dbx_branch": branch, "dbx_commit_id": commit_id}
+        return tags
+    except GitError:
+        return {}
 
 
 def _delete_managed_libraries(packages: List[str]) -> List[str]:

@@ -15,7 +15,8 @@ setup(
         "click",
         "retry",
         "requests",
-        "mlflow"
+        "mlflow",
+        "pygit2"
     ],
     entry_points='''
         [console_scripts]
