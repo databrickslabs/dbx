@@ -15,8 +15,6 @@ from databricks_cli.sdk.api_client import ApiClient
 from path import Path
 from retry import retry
 
-from dbx import __version__
-
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = "%s/project.json" % DBX_PATH
 LOCK_FILE_PATH = "%s/lock.json" % DBX_PATH
@@ -161,7 +159,7 @@ def _get_api_client(profile: str) -> ApiClient:
         raise Exception(
             "Profile %s is incorrectly configured or not provided. Please check the ~/.databrickscfg file" % profile)
 
-    api_client = ApiClient(host=profile_config.host, token=profile_config.token, command_name="dbx-%s" % __version__)
+    api_client = ApiClient(host=profile_config.host, token=profile_config.token, command_name="cicdtemplates-")
     return api_client
 
 

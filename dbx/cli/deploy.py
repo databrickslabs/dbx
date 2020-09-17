@@ -79,6 +79,7 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str,
         deployment_tags.update(additional_tags)
 
         mlflow.set_tags(deployment_tags)
+        dbx_echo("Deployment for environment %s finished successfully" % environment)
 
 
 def _get_git_tags():

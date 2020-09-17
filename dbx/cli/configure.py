@@ -58,6 +58,7 @@ def configure(
     environments.update(environment_info)
 
     InfoFile.update({"environments": environments})
+    dbx_echo("Environment configuration successfully finished")
 
 
 def create_workspace_dir(api_client: ApiClient, path: str):
