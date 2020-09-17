@@ -27,7 +27,7 @@ SUFFIX_MAPPING = {
 @click.option("--requirements", required=False, type=str, help="Path to the file with pip-based requirements.")
 @click.option("--conda-environment", required=False, type=str, help="Path to the file with conda environment.")
 @click.option('--package', multiple=True, type=str,
-              help="Path to a .whl file. Option might be repeated multiple times.")
+              help="Path to an additional .whl file. Option might be repeated multiple times.")
 @environment_option
 def execute(environment: str,
             cluster_id: str,

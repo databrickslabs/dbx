@@ -20,9 +20,15 @@ from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environmen
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
 @click.option("--existing-runs", type=click.Choice(["wait", "cancel"]), default="wait",
               help="Strategy to handle existing active job runs.")
+@click.option('--tag', multiple=True, type=str,
+              help="""Additional tags to search for the latest deployment.
+              Format: (--tag="tag_name=tag_value"). 
+              Option might be repeated multiple times.""")
 @environment_option
 def launch(environment: str, job: str, trace: bool, existing_runs: str):
     dbx_echo("Launching job by given parameters")
+
+    additional_tags = parse_tags(tags)
 
     environment_data, api_client = _provide_environment(environment)
 

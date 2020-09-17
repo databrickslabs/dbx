@@ -14,7 +14,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
 from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_json, DEFAULT_DEPLOYMENT_FILE_PATH, \
-    environment_option
+    environment_option, parse_tags
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -26,10 +26,15 @@ from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_jso
               If not provided, all jobs from the deployment file will be deployed.
               """)
 @click.option("--requirements", required=False, type=str, help="Path to the file with pip-based requirements.")
+@click.option('--tags', multiple=True, type=str,
+              help="""Additional tags for deployment in format (tag_name=tag_value). 
+              Option might be repeated multiple times.""")
 @debug_option
 @environment_option
-def deploy(environment: str, deployment_file: str, jobs: str, requirements: str):
+def deploy(environment: str, deployment_file: str, jobs: str, requirements: str, tags: List[str]):
     dbx_echo("Starting new deployment for environment %s" % environment)
+
+    additional_tags = parse_tags(tags)
 
     _, api_client = _provide_environment(environment)
     _verify_deployment_file(deployment_file)

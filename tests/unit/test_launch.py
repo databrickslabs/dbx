@@ -62,14 +62,17 @@ class LaunchTest(DbxTest):
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
             deploy_result = invoke_cli_runner(deploy, [
-                "--environment", "test"
+                "--environment", "test",
+                "--tag", 'version="0.0.1"',
+                "--tag", 'branch="master"'
             ])
 
             self.assertEqual(deploy_result.exit_code, 0)
 
             launch_result = invoke_cli_runner(launch, [
                 "--environment", "test",
-                "--job", "sample"
+                "--job", "sample",
+                "--tag", 'branch="master"'
             ])
 
             self.assertEqual(launch_result.exit_code, 0)

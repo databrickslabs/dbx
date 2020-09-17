@@ -4,7 +4,7 @@ import json
 import os
 import pathlib
 import shutil
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, List
 
 import click
 import mlflow
@@ -28,6 +28,12 @@ DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % DBX_PATH
 def environment_option(f):
     return click.option('--environment', required=True, default=None,
                         help='Environment name.')(f)
+
+
+def parse_tags(tags: List[str]) -> Dict[str, str]:
+    tags_splitted = [t.split("=") for t in tags]
+    tags_dict = {t[0]: t[1] for t in tags_splitted}
+    return tags_dict
 
 
 def read_json(file_path: str) -> Dict[str, Any]:
@@ -136,14 +142,14 @@ def dbx_echo(message: str):
     click.echo(formatted_message)
 
 
-def _generate_filter_string(env: str):
+def _generate_filter_string(env: str, tags: Dict[str, str]) -> str:
     env_filter = ['tags.dbx_environment="%s"' % env]
 
     # we are not using attribute.status due to it's behaviour with nested runs
     status_filter = ['tags.dbx_status="SUCCESS"']
     deploy_filter = ['tags.dbx_action_type="deploy"']
-
-    filters = status_filter + deploy_filter + env_filter
+    tags_filter = ['tags.%s="%s"' % (k, v) for k, v in tags.items()]
+    filters = status_filter + deploy_filter + env_filter + tags_filter
     filter_string = " and ".join(filters)
     return filter_string
 

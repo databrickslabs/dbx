@@ -33,7 +33,6 @@ build:
 	python setup.py clean bdist_wheel
 
 artifact: build docs-pdf
-
 	rm -rf artifact
 	mkdir artifact
 	cp dist/*.whl artifact/
