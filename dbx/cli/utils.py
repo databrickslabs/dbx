@@ -157,7 +157,7 @@ def _generate_filter_string(env: str, tags: Dict[str, str]) -> str:
 def _get_api_client(profile: str) -> ApiClient:
     profile_config = ProfileConfigProvider(profile).get_config()
 
-    if not profile_config.is_valid_with_token:
+    if not profile_config:
         raise Exception(
             "Profile %s is incorrectly configured or not provided. Please check the ~/.databrickscfg file" % profile)
 

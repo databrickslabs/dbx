@@ -43,6 +43,9 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str,
 
     deployment = all_deployments.get(environment)
 
+    if not deployment:
+        raise Exception("Provided environment %s is non-existent in the deployment file" % environment)
+
     if jobs:
         requested_jobs = jobs.split(",")
     else:
@@ -73,6 +76,7 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str,
         }
 
         deployment_tags.update(git_tags)
+        deployment_tags.update(additional_tags)
 
         mlflow.set_tags(deployment_tags)
 

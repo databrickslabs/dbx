@@ -9,8 +9,8 @@ from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-
-from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environment, environment_option
+from typing import List
+from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environment, environment_option, parse_tags
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -20,19 +20,19 @@ from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environmen
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
 @click.option("--existing-runs", type=click.Choice(["wait", "cancel"]), default="wait",
               help="Strategy to handle existing active job runs.")
-@click.option('--tag', multiple=True, type=str,
+@click.option('--tags', multiple=True, type=str,
               help="""Additional tags to search for the latest deployment.
-              Format: (--tag="tag_name=tag_value"). 
+              Format: (--tags="tag_name=tag_value"). 
               Option might be repeated multiple times.""")
 @environment_option
-def launch(environment: str, job: str, trace: bool, existing_runs: str):
-    dbx_echo("Launching job by given parameters")
+def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: List[str]):
+    dbx_echo("Launching job %s on environment %s" % (job, environment))
 
     additional_tags = parse_tags(tags)
 
     environment_data, api_client = _provide_environment(environment)
 
-    filter_string = _generate_filter_string(environment)
+    filter_string = _generate_filter_string(environment, additional_tags)
 
     runs = mlflow.search_runs(experiment_ids=environment_data["experiment_id"],
                               filter_string=filter_string,
@@ -46,6 +46,8 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str):
         """ % filter_string)
 
     run_info = runs.iloc[0].to_dict()
+
+    dbx_echo("Successfully found deployment per given job name")
 
     deployment_run_id = run_info["run_id"]
 
@@ -76,8 +78,11 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str):
 
             if trace:
                 dbx_status = _trace_run(api_client, run_data)
+                if dbx_status == "ERROR":
+                    raise Exception("Tracked job failed during execution. Please check Databricks UI for job logs")
             else:
                 dbx_status = "NOT_TRACKED"
+                dbx_echo("Job successfully launched in non-tracking mode. Please check Databricks UI for job status")
 
             deployment_tags = {
                 "job_id": job_id,

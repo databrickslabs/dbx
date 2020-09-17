@@ -37,3 +37,24 @@ artifact: build docs-pdf
 	mkdir artifact
 	cp dist/*.whl artifact/
 	cp docs/build/pdf/dbx.pdf artifact/
+
+
+test-local-azure:
+	rm -rf dbx_dev_azure
+	cookiecutter https://github.com/databrickslabs/cicd-templates.git --no-input project_name=dbx_dev_azure
+	cd dbx_dev_azure && dbx configure  \
+		--environment=test \
+		--workspace-dir=/dbx/projects/dbx_dev_azure \
+		--profile=dbx-dev-azure
+
+deploy-local-azure:
+	cd dbx_dev_azure && python setup.py clean bdist_wheel
+	cd dbx_dev_azure && dbx deploy  \
+		--environment="test" \
+		--tags="cake=cheesecake" \
+		--tags="branch=test"
+
+launch-local-azure:
+	cd dbx_dev_azure && dbx launch  \
+		--environment="test" \
+		--job="dbx_dev_azure-pipeline1"
