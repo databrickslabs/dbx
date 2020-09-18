@@ -9,7 +9,7 @@ install-dev-dependencies:
 	pip install -r dev-requirements.txt
 
 test:
-	pytest --cov dbx --timeout=3600
+	pytest --cov dbx
 
 test-with-html-report:
 	pytest --cov dbx --cov-report html -s
