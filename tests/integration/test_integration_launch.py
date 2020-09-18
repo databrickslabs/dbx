@@ -95,14 +95,6 @@ class IntegrationLaunchTest(unittest.TestCase):
 
                 logging.info("Test launch (without trace) - done")
 
-                # invoke_cli_runner(launch, [
-                #     "--environment=test",
-                #     '--job=%s-pipeline1' % self.project_name,
-                #     "--existing-runs=wait"
-                # ])
-                #
-                # logging.info("Test launch (with wait option) - done")
-
                 invoke_cli_runner(launch, [
                     "--environment=test",
                     '--job=%s-pipeline1' % self.project_name,
