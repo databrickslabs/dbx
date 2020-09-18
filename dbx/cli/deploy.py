@@ -4,7 +4,7 @@ import shutil
 import tempfile
 from typing import Dict, Any, Union
 from typing import List
-from pygit2 import Repository, GitError
+import git
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
@@ -83,12 +83,12 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str,
 
 def _get_git_tags():
     try:
-        repo = Repository('.')
-        branch = repo.head.shorthand
-        commit_id = repo.head.target
-        tags = {"dbx_branch": branch, "dbx_commit_id": commit_id}
+        repo = git.Repo(".")
+        branch = repo.active_branch.name
+        commit_sha = repo.head.commit.hexsha
+        tags = {"dbx_branch": branch, "dbx_commit_sha": commit_sha}
         return tags
-    except GitError:
+    except git.exc.InvalidGitRepositoryError:
         return {}
 
 

@@ -10,4 +10,4 @@ pytest
 pytest-cov
 pytest-timeout
 pandas
-pygit2
+gitpython

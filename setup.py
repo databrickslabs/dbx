@@ -16,7 +16,7 @@ setup(
         "retry",
         "requests",
         "mlflow",
-        "pygit2"
+        "gitpython"
     ],
     entry_points='''
         [console_scripts]
