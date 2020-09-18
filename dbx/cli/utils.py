@@ -96,6 +96,8 @@ class InfoFile:
 
     @staticmethod
     def get(item: str) -> Any:
+        if not pathlib.Path(INFO_FILE_PATH).exists():
+            raise Exception("Your project is not yet configured, please configure it via `dbx configure`")
         return read_json(INFO_FILE_PATH).get(item)
 
 

@@ -1,8 +1,5 @@
 {
   "environment-name": {
-    "dbfs": {
-      "package": "dist/package.whl"
-    },
     "jobs": [
       {
         "name": "sample",

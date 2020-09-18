@@ -59,7 +59,6 @@ def deploy(environment: str, deployment_file: str, jobs: str, requirements: str,
     _preprocess_deployment(deployment, requested_jobs)
 
     with mlflow.start_run() as deployment_run:
-        _upload_files(deployment["dbfs"])
 
         artifact_base_uri = deployment_run.info.artifact_uri
 
@@ -137,11 +136,6 @@ def _verify_deployment_file(deployment_file: str):
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
-    if "dbfs" not in deployment:
-        raise Exception("No local files provided for deployment")
-
-    _preprocess_files(deployment["dbfs"])
-
     if "jobs" not in deployment:
         raise Exception("No jobs provided for deployment")
 
@@ -167,13 +161,6 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
     else:
         preprocessed_jobs = jobs
     return preprocessed_jobs
-
-
-def _upload_files(files: Dict[str, Any]):
-    # TBD: add distinct check for files
-    for _, file_path_str in files.items():
-        file_path = pathlib.Path(file_path_str)
-        _upload_file(file_path)
 
 
 def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
@@ -244,6 +231,8 @@ def _walk_content(func, content, parent=None, index=None):
 def _adjust_path(candidate, adjustment):
     if isinstance(candidate, str):
         if pathlib.Path(candidate).exists():
+            file_path = pathlib.Path(candidate)
+            _upload_file(file_path)
             adjusted_path = "%s/%s" % (adjustment, candidate)
             return adjusted_path
         else:

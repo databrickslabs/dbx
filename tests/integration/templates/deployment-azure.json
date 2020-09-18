@@ -1,9 +1,5 @@
 {
   "test": {
-    "dbfs": {
-      "package": "dist/{project_name}-0.1.0-py3-none-any.whl",
-      "entrypoint": "pipelines/pipeline1/pipeline_runner.py"
-    },
     "jobs": [
       {
         "name": "{project_name}-pipeline1",
