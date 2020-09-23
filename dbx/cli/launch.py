@@ -10,7 +10,7 @@ from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from typing import List
-from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environment, environment_option, parse_tags
+from dbx.cli.utils import dbx_echo, _generate_filter_string, prepare_environment, environment_option, parse_tags
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -28,15 +28,12 @@ from dbx.cli.utils import dbx_echo, _generate_filter_string, _provide_environmen
 def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: List[str]):
     dbx_echo("Launching job %s on environment %s" % (job, environment))
 
+    api_client = prepare_environment(environment)
     additional_tags = parse_tags(tags)
-
-    environment_data, api_client = _provide_environment(environment)
 
     filter_string = _generate_filter_string(environment, additional_tags)
 
-    runs = mlflow.search_runs(experiment_ids=environment_data["experiment_id"],
-                              filter_string=filter_string,
-                              max_results=1)
+    runs = mlflow.search_runs(filter_string=filter_string, max_results=1)
 
     if runs.empty:
         raise EnvironmentError("""

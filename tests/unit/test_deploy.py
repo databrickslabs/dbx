@@ -25,14 +25,14 @@ run_mock = ActiveRun(Run(run_info, run_data))
 
 
 class DeployTest(DbxTest):
+
     @patch("databricks_cli.configure.provider.ProfileConfigProvider.get_config",
            return_value=test_dbx_config)
-    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
-    @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
+    @patch("databricks_cli.configure.config._get_api_client", return_value=None)
     def test_deploy_basic(self, *args):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -45,7 +45,6 @@ class DeployTest(DbxTest):
 
             deployment_content = {
                 "test": {
-                    "dbfs": {},
                     "jobs": []
                 }
             }
@@ -113,7 +112,6 @@ class DeployTest(DbxTest):
 
             deployment_content = {
                 "test": {
-                    "dbfs": {},
                     "jobs": [{"name": "job-1"}, {"name": "job-2"}]
                 }
             }
@@ -149,7 +147,6 @@ class DeployTest(DbxTest):
 
             deployment_content = {
                 "test": {
-                    "dbfs": {},
                     "jobs": []
                 }
             }

@@ -4,13 +4,14 @@ import json
 import os
 import pathlib
 import shutil
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, List
 
 import click
 import mlflow
 import pkg_resources
 import requests
-from databricks_cli.configure.provider import ProfileConfigProvider
+from databricks_cli.configure.config import _get_api_client
+from databricks_cli.configure.provider import ProfileConfigProvider, DEFAULT_SECTION
 from databricks_cli.sdk.api_client import ApiClient
 from path import Path
 from retry import retry
@@ -22,11 +23,6 @@ DATABRICKS_MLFLOW_URI = "databricks"
 DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.json')
 CONF_PATH = "conf"
 DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % CONF_PATH
-
-
-def environment_option(f):
-    return click.option('--environment', required=True, default=None,
-                        help='Environment name.')(f)
 
 
 def parse_tags(tags: List[str]) -> Dict[str, str]:
@@ -104,7 +100,7 @@ class InfoFile:
         return read_json(INFO_FILE_PATH).get(item)
 
 
-class ApiV12Client:
+class ApiV1Client:
     def __init__(self, api_client: ApiClient):
         self.v1_client = copy.deepcopy(api_client)
         self.v1_client.url = self.v1_client.url.replace('/api/2.0', '/api/1.2')
@@ -147,7 +143,6 @@ def dbx_echo(message: str):
 
 def _generate_filter_string(env: str, tags: Dict[str, str]) -> str:
     env_filter = ['tags.dbx_environment="%s"' % env]
-
     # we are not using attribute.status due to it's behaviour with nested runs
     status_filter = ['tags.dbx_status="SUCCESS"']
     deploy_filter = ['tags.dbx_action_type="deploy"']
@@ -157,18 +152,17 @@ def _generate_filter_string(env: str, tags: Dict[str, str]) -> str:
     return filter_string
 
 
-def _get_api_client(profile: str) -> ApiClient:
-    profile_config = ProfileConfigProvider(profile).get_config()
-
-    if not profile_config:
-        raise Exception(
-            "Profile %s is incorrectly configured or not provided. Please check the ~/.databrickscfg file" % profile)
-
-    api_client = ApiClient(host=profile_config.host, token=profile_config.token, command_name="cicdtemplates-")
-    return api_client
+def environment_option(f):
+    return click.option('--environment', required=True, default=None,
+                        help='Environment name.')(f)
 
 
-def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
+def profile_option(f):
+    return click.option('--profile', required=False, default=DEFAULT_SECTION,
+                        help='CLI connection profile to use. The default profile is "DEFAULT".')(f)
+
+
+def prepare_environment(environment: str):
     environment_data = InfoFile.get("environments").get(environment)
 
     if not environment_data:
@@ -176,8 +170,9 @@ def _provide_environment(environment: str) -> Tuple[Dict[str, Any], ApiClient]:
 
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
     mlflow.set_experiment(environment_data["workspace_dir"])
-    api_client = _get_api_client(environment_data["profile"])
-    return environment_data, api_client
+    config = ProfileConfigProvider(environment_data["profile"]).get_config()
+    api_client = _get_api_client(config, command_name="cicdtemplates-")
+    return api_client
 
 
 @retry(tries=10, delay=5, backoff=5)

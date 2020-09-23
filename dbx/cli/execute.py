@@ -8,7 +8,7 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, ContextLockFile, ApiV12Client, \
+from dbx.cli.utils import dbx_echo, prepare_environment, _upload_file, ContextLockFile, ApiV1Client, \
     environment_option
 
 SUFFIX_MAPPING = {
@@ -38,7 +38,7 @@ def execute(environment: str,
             conda_environment: str):
     dbx_echo("Executing code from file %s" % source_file)
 
-    environment_data, api_client = _provide_environment(environment)
+    api_client = prepare_environment(environment)
 
     cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
 
@@ -55,7 +55,7 @@ def execute(environment: str,
     dbx_echo("Preparing cluster to accept jobs")
     awake_cluster(cluster_service, cluster_id)
 
-    v1_client = _get_v1_client(api_client)
+    v1_client = ApiV1Client(api_client)
     context_id = get_context_id(v1_client, cluster_id, language)
 
     with mlflow.start_run() as execution_run:
@@ -116,7 +116,7 @@ def _verify_packages(package: List[str]) -> List[pathlib.Path]:
     return verified_paths
 
 
-def wait_for_command_execution(v1_client: ApiV12Client, cluster_id: str, context_id: str, command_id: str):
+def wait_for_command_execution(v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str):
     finished = False
     payload = {'clusterId': cluster_id, 'contextId': context_id, 'commandId': command_id}
     while not finished:
@@ -131,7 +131,7 @@ def wait_for_command_execution(v1_client: ApiV12Client, cluster_id: str, context
             v1_client.cancel_command(payload)
 
 
-def execute_command(v1_client: ApiV12Client, cluster_id: str, context_id: str, command: str, verbose=True):
+def execute_command(v1_client: ApiV1Client, cluster_id: str, context_id: str, command: str, verbose=True):
     payload = {'language': 'python', 'clusterId': cluster_id, 'contextId': context_id, 'command': command}
     command_execution_data = v1_client.execute_command(payload)
     command_id = command_execution_data['id']
@@ -148,12 +148,7 @@ def execute_command(v1_client: ApiV12Client, cluster_id: str, context_id: str, c
                 print(execution_result["results"]["data"])
 
 
-def _get_v1_client(api_client: ApiClient) -> ApiV12Client:
-    v1_client = ApiV12Client(api_client)
-    return v1_client
-
-
-def _is_context_available(v1_client: ApiV12Client, cluster_id: str, context_id: str):
+def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: str):
     if not context_id:
         return False
     else:
@@ -165,7 +160,7 @@ def _is_context_available(v1_client: ApiV12Client, cluster_id: str, context_id: 
             return False
 
 
-def get_context_id(v1_client: ApiV12Client, cluster_id: str, language: str):
+def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     dbx_echo("Preparing execution context")
     lock_context_id = ContextLockFile.get_context()
 
@@ -177,7 +172,7 @@ def get_context_id(v1_client: ApiV12Client, cluster_id: str, language: str):
         return context_id
 
 
-def create_context(v1_client: ApiV12Client, cluster_id: str, language: str):
+def create_context(v1_client: ApiV1Client, cluster_id: str, language: str):
     payload = {'language': language, 'clusterId': cluster_id}
     response = v1_client.create_context(payload)
     return response["id"]

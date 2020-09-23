@@ -4,6 +4,7 @@ import shutil
 import tempfile
 from typing import Dict, Any, Union
 from typing import List
+
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
@@ -12,7 +13,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_json, DEFAULT_DEPLOYMENT_FILE_PATH, \
+from dbx.cli.utils import dbx_echo, prepare_environment, _upload_file, read_json, DEFAULT_DEPLOYMENT_FILE_PATH, \
     environment_option, parse_tags
 
 
@@ -30,12 +31,18 @@ from dbx.cli.utils import dbx_echo, _provide_environment, _upload_file, read_jso
               Option might be repeated multiple times.""")
 @debug_option
 @environment_option
-def deploy(environment: str, deployment_file: str, jobs: str, requirements: str, tags: List[str]):
+def deploy(
+        deployment_file: str,
+        jobs: str,
+        requirements: str,
+        tags: List[str],
+        environment: str
+):
     dbx_echo("Starting new deployment for environment %s" % environment)
 
+    api_client = prepare_environment(environment)
     additional_tags = parse_tags(tags)
 
-    _, api_client = _provide_environment(environment)
     _verify_deployment_file(deployment_file)
 
     all_deployments = read_json(deployment_file)
