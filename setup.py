@@ -15,8 +15,7 @@ setup(
         "click",
         "retry",
         "requests",
-        "mlflow",
-        "gitpython"
+        "mlflow"
     ],
     entry_points='''
         [console_scripts]

@@ -87,7 +87,7 @@ Next step would be to configure your deployment objects. To make this process ea
     For big deployments, we recommend to generate the deployment file programmatically, for example via `Jsonnet <https://jsonnet.org>`_.
 
 
-By default, deployment configuration is stored in :code:`.dbx/deployment.json`.
+By default, deployment configuration is stored in :code:`conf/deployment.json`.
 The main idea of  is to provide a flexible way to configure job with it's dependencies.
 
 .. literalinclude:: ../../dbx/template/deployment.json

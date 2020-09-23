@@ -13,6 +13,7 @@ from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
 from dbx.cli.launch import launch
 from .utils import initialize_cookiecutter
+from dbx.cli.utils import DEFAULT_DEPLOYMENT_FILE_PATH
 
 
 def invoke_cli_runner(*args, **kwargs):
@@ -56,7 +57,7 @@ class IntegrationLaunchTest(unittest.TestCase):
                 ])
 
                 logging.info("Project configuration - done")
-                pathlib.Path(".dbx/deployment.json").write_text(deployment_template)
+                pathlib.Path(DEFAULT_DEPLOYMENT_FILE_PATH).write_text(deployment_template)
 
                 sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
 

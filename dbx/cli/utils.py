@@ -20,7 +20,8 @@ INFO_FILE_PATH = "%s/project.json" % DBX_PATH
 LOCK_FILE_PATH = "%s/lock.json" % DBX_PATH
 DATABRICKS_MLFLOW_URI = "databricks"
 DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.json')
-DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % DBX_PATH
+CONF_PATH = "conf"
+DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % CONF_PATH
 
 
 def environment_option(f):
@@ -71,6 +72,8 @@ class InfoFile:
 
     @staticmethod
     def _create_deployment_file() -> None:
+        if not Path(CONF_PATH).exists():
+            os.mkdir(CONF_PATH)
         if not Path(DEFAULT_DEPLOYMENT_FILE_PATH).exists():
             dbx_echo("dbx deployment file is not present, creating it from template")
             shutil.copy(DEPLOYMENT_TEMPLATE_PATH, DEFAULT_DEPLOYMENT_FILE_PATH)
