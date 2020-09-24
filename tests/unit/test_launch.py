@@ -32,7 +32,7 @@ data_mock = {"data": base64.b64encode(json.dumps({"sample": "1"}).encode("utf-8"
 class LaunchTest(DbxTest):
     @patch("databricks_cli.configure.provider.ProfileConfigProvider.get_config",
            return_value=test_dbx_config)
-    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)

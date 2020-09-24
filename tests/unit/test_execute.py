@@ -28,7 +28,7 @@ run_mock = ActiveRun(Run(run_info, run_data))
 class ExecuteTest(DbxTest):
     @patch("databricks_cli.configure.provider.ProfileConfigProvider.get_config",
            return_value=test_dbx_config)
-    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("databricks_cli.clusters.api.ClusterService.get_cluster",
            return_value={"cluster_name": "some-name", "state": "RUNNING"})
     @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
