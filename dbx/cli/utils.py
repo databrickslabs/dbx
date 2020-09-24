@@ -13,6 +13,7 @@ import requests
 from databricks_cli.configure.config import _get_api_client
 from databricks_cli.configure.provider import ProfileConfigProvider, DEFAULT_SECTION
 from databricks_cli.sdk.api_client import ApiClient
+from databricks_cli.workspace.api import WorkspaceService
 from path import Path
 from retry import retry
 
@@ -162,6 +163,12 @@ def profile_option(f):
                         help='CLI connection profile to use. The default profile is "DEFAULT".')(f)
 
 
+def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
+    p = str(pathlib.Path(ws_dir).parent)
+    service = WorkspaceService(api_client)
+    service.mkdirs(p)
+
+
 def prepare_environment(environment: str):
     environment_data = InfoFile.get("environments").get(environment)
 
@@ -169,9 +176,12 @@ def prepare_environment(environment: str):
         raise Exception("No environment %s provided in the project file" % environment)
 
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
-    mlflow.set_experiment(environment_data["workspace_dir"])
     config = ProfileConfigProvider(environment_data["profile"]).get_config()
     api_client = _get_api_client(config, command_name="cicdtemplates-")
+
+    _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
+    mlflow.set_experiment(environment_data["workspace_dir"])
+
     return api_client
 
 
