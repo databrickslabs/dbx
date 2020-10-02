@@ -124,7 +124,7 @@ def _verify_deployment_file(deployment_file: str):
         raise Exception("Deployment file should have .json extension")
 
     if not pathlib.Path(deployment_file).exists():
-        raise Exception("Deployment file %s is non-existent: %s" % deployment_file)
+        raise Exception("Deployment file is non-existent: %s" % deployment_file)
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
