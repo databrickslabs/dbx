@@ -15,7 +15,11 @@ setup(
         "click",
         "retry",
         "requests",
-        "mlflow"
+        "mlflow",
+        "tqdm",
+        "paramiko",
+        "cryptography",
+        "watchdog"
     ],
     entry_points='''
         [console_scripts]

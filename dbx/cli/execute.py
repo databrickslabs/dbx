@@ -143,9 +143,12 @@ def execute_command(v1_client: ApiV1Client, cluster_id: str, context_id: str, co
         if final_result == 'error':
             raise RuntimeError(execution_result["results"]["cause"])
         else:
+
             if verbose:
                 dbx_echo("Command successfully executed")
                 print(execution_result["results"]["data"])
+
+            return execution_result["results"]["data"]
 
 
 def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: str):
@@ -154,10 +157,10 @@ def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: s
     else:
         payload = {"clusterId": cluster_id, "contextId": context_id}
         resp = v1_client.get_context_status(payload)
-        if resp.get("status"):
-            return resp["status"] == "Running"
-        else:
+        if not resp:
             return False
+        elif resp.get("status"):
+            return resp["status"] == "Running"
 
 
 def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
@@ -165,8 +168,10 @@ def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     lock_context_id = ContextLockFile.get_context()
 
     if _is_context_available(v1_client, cluster_id, lock_context_id):
+        dbx_echo("Existing context is active, using it")
         return lock_context_id
     else:
+        dbx_echo("Existing context is not active, creating a new one")
         context_id = create_context(v1_client, cluster_id, language)
         ContextLockFile.set_context(context_id)
         return context_id

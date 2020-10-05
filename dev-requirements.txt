@@ -11,3 +11,7 @@ pytest-cov
 pytest-timeout
 pandas
 gitpython
+tqdm
+cryptography
+paramiko
+watchdog

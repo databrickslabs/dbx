@@ -43,7 +43,7 @@ test-local-azure:
 	rm -rf dbx_dev_azure
 	cookiecutter https://github.com/databrickslabs/cicd-templates.git --no-input project_name=dbx_dev_azure
 	cd dbx_dev_azure && dbx configure  \
-		--environment=test \
+		--environment=dev \
 		--workspace-dir=/dbx/projects/dbx_dev_azure \
 		--profile=dbx-dev-azure
 

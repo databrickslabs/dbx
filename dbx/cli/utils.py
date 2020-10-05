@@ -16,6 +16,10 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
 from retry import retry
+import logging
+from typing import NamedTuple
+import paramiko
+from paramiko.client import SSHClient
 
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = "%s/project.json" % DBX_PATH
@@ -24,6 +28,16 @@ DATABRICKS_MLFLOW_URI = "databricks"
 DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.json')
 CONF_PATH = "conf"
 DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % CONF_PATH
+
+
+class TunnelInfo(NamedTuple):
+    host: str
+    port: int
+    private_key_file: str
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def parse_tags(tags: List[str]) -> Dict[str, str]:
@@ -57,6 +71,14 @@ class ContextLockFile:
     @staticmethod
     def get_context() -> Any:
         return read_json(LOCK_FILE_PATH).get("context_id")
+
+    @staticmethod
+    def set_url(ssh_url: str) -> None:
+        update_json({"ssh_url": ssh_url}, LOCK_FILE_PATH)
+
+    @staticmethod
+    def get_url() -> Any:
+        return read_json(LOCK_FILE_PATH).get("ssh_url")
 
 
 class InfoFile:
@@ -185,7 +207,25 @@ def prepare_environment(environment: str):
     return api_client
 
 
+def dbx_log(message):
+    logger.info(message)
+
+
 @retry(tries=10, delay=5, backoff=5)
 def _upload_file(file_path: pathlib.Path):
     dbx_echo("Deploying file: %s" % file_path)
     mlflow.log_artifact(str(file_path), str(file_path.parent))
+
+
+def get_ssh_client(info: TunnelInfo) -> SSHClient:
+    client = SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(
+        hostname=info.host,
+        port=info.port,
+        username='root',
+        key_filename=info.private_key_file
+    )
+    transport = client.get_transport()
+    transport.set_keepalive(30)
+    return client
