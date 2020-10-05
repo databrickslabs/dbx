@@ -10,7 +10,7 @@ from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from typing import List
-from dbx.cli.utils import dbx_echo, _generate_filter_string, prepare_environment, environment_option, parse_tags
+from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environment, environment_option, parse_tags
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -31,7 +31,7 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: Li
     api_client = prepare_environment(environment)
     additional_tags = parse_tags(tags)
 
-    filter_string = _generate_filter_string(environment, additional_tags)
+    filter_string = generate_filter_string(environment, additional_tags)
 
     runs = mlflow.search_runs(filter_string=filter_string, max_results=1)
 

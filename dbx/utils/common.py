@@ -177,7 +177,7 @@ def dbx_echo(message: str):
     click.echo(formatted_message)
 
 
-def _generate_filter_string(env: str, tags: Dict[str, str]) -> str:
+def generate_filter_string(env: str, tags: Dict[str, str]) -> str:
     env_filter = ['tags.dbx_environment="%s"' % env]
     # we are not using attribute.status due to it's behaviour with nested runs
     status_filter = ['tags.dbx_status="SUCCESS"']
@@ -230,7 +230,7 @@ def dbx_log(message):
 
 
 @retry(tries=10, delay=5, backoff=5)
-def _upload_file(file_path: pathlib.Path):
+def upload_file(file_path: pathlib.Path):
     dbx_echo("Deploying file: %s" % file_path)
     mlflow.log_artifact(str(file_path), str(file_path.parent))
 

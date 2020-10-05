@@ -9,7 +9,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 
 from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
-from dbx.cli.utils import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
+from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
 run_info = RunInfo(

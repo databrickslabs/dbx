@@ -13,7 +13,7 @@ from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
 from dbx.cli.launch import launch
 from .utils import initialize_cookiecutter
-from dbx.cli.utils import DEFAULT_DEPLOYMENT_FILE_PATH
+from utils.common import DEFAULT_DEPLOYMENT_FILE_PATH
 
 
 def invoke_cli_runner(*args, **kwargs):

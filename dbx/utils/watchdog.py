@@ -7,7 +7,7 @@ from watchdog.events import (
     DirDeletedEvent, DirMovedEvent
 )
 import time
-from dbx.cli.utils import TunnelInfo, dbx_echo, get_ssh_client
+from utils.common import TunnelInfo, dbx_echo, get_ssh_client
 import pathlib
 import os
 import paramiko
@@ -58,17 +58,17 @@ class RsyncHandler(watchdog.events.FileSystemEventHandler):
         remote_src_path = self._remote_project_path.joinpath(event.src_path)
         if isinstance(event, DirDeletedEvent):
             dbx_echo("Deleting directory: %s" % event.src_path)
-            self._sftp_client.rmdir(str(remote_src_path))
+            self._ssh_client.exec_command(f"rm -rf {remote_src_path}")
         else:
             dbx_echo("Deleting file: %s" % event.src_path)
-            self._sftp_client.remove(str(remote_src_path))
+            self._ssh_client.exec_command(f"rm -rf {remote_src_path}")
 
 
 class Rsync:
 
     def _initial_sync(self):
         dbx_echo("Performing initial synchronization into remote directory: %s" % self._remote_project_path)
-        current_dir = pathlib.Path('.').absolute()
+        current_dir = pathlib.Path('').absolute()
 
         # collecting nested file list and flattening it
         all_files = sum([[(head_path, f) for f in files] for head_path, _, files in os.walk(current_dir)], [])
@@ -83,7 +83,7 @@ class Rsync:
 
     @staticmethod
     def _get_remote_project_path():
-        return pathlib.Path(f"/databricks/driver/{getpass.getuser()}/{pathlib.Path('.').absolute().name}")
+        return pathlib.Path(f"/databricks/driver/{getpass.getuser()}/{pathlib.Path('').absolute().name}")
 
     def _prepare_remote(self):
         self._ssh_client.exec_command(f"rm -rf {self._remote_project_path}")
@@ -97,7 +97,7 @@ class Rsync:
         self._initial_sync()
         self.observer = watchdog.observers.Observer()
         handler = RsyncHandler(self._ssh_client, self._sftp_client, self._remote_project_path)
-        self.observer.schedule(handler, path=".", recursive=True)
+        self.observer.schedule(handler, path="", recursive=True)
         dbx_echo("Starting directory synchronization via tunnel, all file changes will be saved to cluster")
         self.observer.start()
 

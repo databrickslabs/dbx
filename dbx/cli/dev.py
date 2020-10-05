@@ -9,9 +9,9 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from databricks_cli.cli import debug_option
 import pathlib
 from dbx.cli.execute import _preprocess_cluster_args, awake_cluster, get_context_id, execute_command
-from dbx.cli.utils import environment_option, dbx_echo, prepare_environment, ApiV1Client, ContextLockFile, dbx_log, \
+from dbx.utils.common import environment_option, dbx_echo, prepare_environment, ApiV1Client, ContextLockFile, dbx_log, \
     TunnelInfo, get_ssh_client
-from dbx.cli.watchdog import Rsync
+from utils.watchdog import Rsync
 from typing import Tuple
 import paramiko
 import sys

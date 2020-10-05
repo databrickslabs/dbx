@@ -7,8 +7,8 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from setuptools import sandbox
-from dbx.cli.utils import (
-    dbx_echo, prepare_environment, _upload_file, ContextLockFile, ApiV1Client,
+from dbx.utils.common import (
+    dbx_echo, prepare_environment, upload_file, ContextLockFile, ApiV1Client,
     environment_option, DeploymentFile, DEFAULT_DEPLOYMENT_FILE_PATH
 )
 
@@ -84,7 +84,7 @@ def execute(environment: str,
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
-            _upload_file(requirements_fp)
+            upload_file(requirements_fp)
             localized_requirements_path = "%s/%s" % (localized_base_path, str(requirements_fp))
             installation_command = "%pip install -U -r {path}".format(path=localized_requirements_path)
             dbx_echo("Installing provided requirements")
@@ -92,7 +92,7 @@ def execute(environment: str,
             dbx_echo("Provided requirements installed")
 
         project_package_path = list(pathlib.Path(".").rglob("dist/*.whl"))[0]
-        _upload_file(project_package_path)
+        upload_file(project_package_path)
         localized_package_path = "%s/%s" % (localized_base_path, str(project_package_path))
         installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
         execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)

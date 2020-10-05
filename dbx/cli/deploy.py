@@ -13,8 +13,10 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
-from dbx.cli.utils import dbx_echo, prepare_environment, _upload_file, read_json, DEFAULT_DEPLOYMENT_FILE_PATH, \
+from dbx.utils.common import (
+    dbx_echo, prepare_environment, upload_file, read_json, DEFAULT_DEPLOYMENT_FILE_PATH,
     environment_option, parse_tags
+)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -224,7 +226,7 @@ def _adjust_path(candidate, adjustment):
     if isinstance(candidate, str):
         if pathlib.Path(candidate).exists():
             file_path = pathlib.Path(candidate)
-            _upload_file(file_path)
+            upload_file(file_path)
             adjusted_path = "%s/%s" % (adjustment, candidate)
             return adjusted_path
         else:

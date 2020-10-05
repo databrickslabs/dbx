@@ -10,7 +10,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.cli.configure import configure
 from dbx.cli.execute import execute
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
-from dbx.cli.utils import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
+from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
 
 run_info = RunInfo(
     run_uuid="1",
@@ -33,9 +33,9 @@ class ExecuteTest(DbxTest):
     @patch("databricks_cli.clusters.api.ClusterService.get_cluster",
            return_value={"cluster_name": "some-name", "state": "RUNNING"})
     @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
-    @patch("dbx.cli.utils.ApiV1Client.create_context", return_value={"id": 1})
-    @patch("dbx.cli.utils.ApiV1Client.execute_command", return_value={"id": 1})
-    @patch("dbx.cli.utils.ApiV1Client.get_command_status",
+    @patch("dbx.utils.common.ApiV1Client.create_context", return_value={"id": 1})
+    @patch("dbx.utils.common.ApiV1Client.execute_command", return_value={"id": 1})
+    @patch("dbx.utils.common.ApiV1Client.get_command_status",
            return_value={"status": "Finished", "results": {"resultType": "Ok", "data": "Ok!"}})
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)

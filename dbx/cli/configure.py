@@ -4,7 +4,7 @@ import click
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.utils import InfoFile, dbx_echo, INFO_FILE_PATH, environment_option, profile_option
+from dbx.utils.common import InfoFile, dbx_echo, INFO_FILE_PATH, environment_option, profile_option
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,

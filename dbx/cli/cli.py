@@ -6,7 +6,7 @@ from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
 from dbx.cli.execute import execute
 from dbx.cli.launch import launch
-from dbx.cli.dev import dev
+from cli import dev
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
