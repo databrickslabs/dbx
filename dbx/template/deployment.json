@@ -1,5 +1,5 @@
 {
-  "environment-name": {
+  "default": {
     "jobs": [
       {
         "name": "sample",

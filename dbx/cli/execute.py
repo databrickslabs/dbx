@@ -1,5 +1,4 @@
 import pathlib
-from typing import List
 
 import click
 import mlflow
@@ -7,92 +6,97 @@ import time
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-
-from dbx.cli.utils import dbx_echo, prepare_environment, _upload_file, ContextLockFile, ApiV1Client, \
-    environment_option
-
-SUFFIX_MAPPING = {
-    ".py": "python",
-    ".scala": "scala",
-    ".R": "R",
-    ".sql": "sql"
-}
+from setuptools import sandbox
+from dbx.cli.utils import (
+    dbx_echo, prepare_environment, _upload_file, ContextLockFile, ApiV1Client,
+    environment_option, DeploymentFile, DEFAULT_DEPLOYMENT_FILE_PATH
+)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help="Executes given code on the existing cluster.")
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
-@click.option("--source-file", required=True, type=str, help="Path to the file with source code.")
-@click.option("--requirements", required=False, type=str, help="Path to the file with pip-based requirements.")
-@click.option("--conda-environment", required=False, type=str, help="Path to the file with conda environment.")
-@click.option('--package', multiple=True, type=str,
-              help="Path to an additional .whl file. Option might be repeated multiple times.")
+@click.option("--job", required=True, type=str, help="Job name to be executed")
+@click.option("--deployment-file", required=False, type=str,
+              help="Path to deployment file in json format", default=DEFAULT_DEPLOYMENT_FILE_PATH)
+@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+@click.option("--no-rebuild", is_flag=True, help="Disable job rebuild")
 @environment_option
 def execute(environment: str,
             cluster_id: str,
             cluster_name: str,
-            source_file: str,
-            package: List[str],
-            requirements: str,
-            conda_environment: str):
-    dbx_echo("Executing code from file %s" % source_file)
-
+            job: str,
+            deployment_file: str,
+            requirements_file: str,
+            no_rebuild: bool):
     api_client = prepare_environment(environment)
 
     cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
 
-    source_file_obj = pathlib.Path(source_file)
+    dbx_echo("Executing job: %s with environment: %s on cluster: %s" % (job, environment, cluster_id))
 
-    if not source_file_obj.exists():
-        raise FileNotFoundError("Source file %s is non-existent" % source_file)
+    if not pathlib.Path("setup.py").exists():
+        raise Exception("no setup.py provided in project directory. Please create one.")
 
-    source_file_content = source_file_obj.read_text()
-    language = _define_language(source_file_obj)
+    if no_rebuild:
+        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
+    else:
+        sandbox.run_setup('setup.py', ['clean', 'bdist_wheel'])
+
+    env_data = DeploymentFile(deployment_file).get_environment(environment)
+
+    if not env_data:
+        raise Exception(
+            f"Environment {environment} is not provided in deployment file {deployment_file}" +
+            " please add this environment first"
+        )
+
+    env_jobs = env_data.get("jobs")
+    if not env_jobs:
+        raise Exception(f"No jobs section found in environment {environment}, please check the deployment file")
+
+    found_jobs = [j for j in env_data["jobs"] if j["name"] == job]
+
+    if not found_jobs:
+        raise Exception(f"Job {job} was not found in environment jobs, please check the deployment file")
+
+    job_payload = found_jobs[0]
+
+    entrypoint_file = job_payload.get("spark_python_task").get("python_file")
+
+    if not entrypoint_file:
+        raise Exception(f"No entrypoint file provided in job {job}. "
+                        f"Please add one under spark_python_task.python_file section")
 
     cluster_service = ClusterService(api_client)
 
-    dbx_echo("Preparing cluster to accept jobs")
+    dbx_echo("Preparing interactive cluster to accept jobs")
     awake_cluster(cluster_service, cluster_id)
 
     v1_client = ApiV1Client(api_client)
-    context_id = get_context_id(v1_client, cluster_id, language)
+    context_id = get_context_id(v1_client, cluster_id, "python")
 
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
         localized_base_path = artifact_base_uri.replace("dbfs:/", "/dbfs/")
 
-        if requirements:
-            requirements_path = pathlib.Path(requirements)
-            if not requirements_path.exists():
-                raise FileNotFoundError("Provided requirements file %s is non-existent" % requirements_path)
-            _upload_file(requirements_path)
-            localized_requirements_path = "%s/%s" % (localized_base_path, str(requirements_path))
-            installation_command = "%pip install --upgrade -r {path}".format(path=localized_requirements_path)
+        requirements_fp = pathlib.Path(requirements_file)
+        if requirements_fp.exists():
+            _upload_file(requirements_fp)
+            localized_requirements_path = "%s/%s" % (localized_base_path, str(requirements_fp))
+            installation_command = "%pip install -U -r {path}".format(path=localized_requirements_path)
             dbx_echo("Installing provided requirements")
             execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
             dbx_echo("Provided requirements installed")
 
-        if conda_environment:
-            conda_environment_path = pathlib.Path(conda_environment)
-            if not conda_environment_path.exists():
-                raise conda_environment_path("Provided conda env file %s is non-existent" % conda_environment_path)
-            _upload_file(conda_environment_path)
-            localized_conda_environment_path = "%s/%s" % (localized_base_path, str(conda_environment_path))
-            installation_command = "%conda env update -f {path}".format(path=localized_conda_environment_path)
-            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
-
-        if package:
-            dbx_echo("Installing provided packages")
-            package_paths = _verify_packages(package)
-            for package_path in package_paths:
-                dbx_echo("Installing package from path: %s" % package_path)
-                _upload_file(package_path)
-                localized_package_path = "%s/%s" % (localized_base_path, str(package_path))
-                installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
-                execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
-                dbx_echo("Package installed")
+        project_package_path = list(pathlib.Path(".").rglob("dist/*.whl"))[0]
+        _upload_file(project_package_path)
+        localized_package_path = "%s/%s" % (localized_base_path, str(project_package_path))
+        installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
+        execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+        dbx_echo("Package installed")
 
         tags = {
             "dbx_action_type": "execute",
@@ -101,19 +105,9 @@ def execute(environment: str,
 
         mlflow.set_tags(tags)
 
-    dbx_echo("Starting command execution")
-    execute_command(v1_client, cluster_id, context_id, source_file_content)
-    dbx_echo("Command execution finished")
-
-
-def _verify_packages(package: List[str]) -> List[pathlib.Path]:
-    verified_paths = []
-    for p in package:
-        package_path = pathlib.Path(p)
-        if not package_path.exists():
-            raise FileNotFoundError("Provided package path %s is non-existent" % package_path)
-        verified_paths.append(package_path)
-    return verified_paths
+        dbx_echo("Starting entrypoint file execution")
+        execute_command(v1_client, cluster_id, context_id, entrypoint_file)
+        dbx_echo("Command execution finished")
 
 
 def wait_for_command_execution(v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str):
@@ -198,16 +192,6 @@ def awake_cluster(cluster_service: ClusterService, cluster_id):
         dbx_echo("Cluster is getting prepared, current state: %s" % cluster_info["state"])
         time.sleep(10)
         awake_cluster(cluster_service, cluster_id)
-
-
-def _define_language(path: pathlib.Path) -> str:
-    suffix = path.suffix
-    language = SUFFIX_MAPPING.get(suffix)
-
-    if not language:
-        raise Exception("Unexpected file extension: %s, should be one of %s" % (suffix, SUFFIX_MAPPING.keys()))
-
-    return language
 
 
 def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) -> str:

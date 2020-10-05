@@ -81,6 +81,19 @@ class ContextLockFile:
         return read_json(LOCK_FILE_PATH).get("ssh_url")
 
 
+class DeploymentFile:
+    def __init__(self, path):
+        self._path = path
+
+    def get_environment(self, environment: str) -> Any:
+        return read_json(self._path).get(environment)
+
+    def update_environment(self, environment: str, content):
+        environment_data = self.get_environment(environment)
+        environment_data.update(content)
+        update_json({environment: environment_data}, self._path)
+
+
 class InfoFile:
 
     @staticmethod
@@ -200,8 +213,13 @@ def prepare_environment(environment: str):
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
     config = ProfileConfigProvider(environment_data["profile"]).get_config()
     api_client = _get_api_client(config, command_name="cicdtemplates-")
-
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
+
+    experiment = mlflow.get_experiment_by_name(environment_data["workspace_dir"])
+
+    if not experiment:
+        mlflow.create_experiment(environment_data["workspace_dir"], environment_data["artifact_location"])
+
     mlflow.set_experiment(environment_data["workspace_dir"])
 
     return api_client

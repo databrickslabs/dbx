@@ -11,6 +11,9 @@ install-dev-dependencies:
 test:
 	pytest --cov dbx
 
+unit-test:
+	pytest tests/unit --cov dbx
+
 test-with-html-report:
 	pytest --cov dbx --cov-report html -s
 

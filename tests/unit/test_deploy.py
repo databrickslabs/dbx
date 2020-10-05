@@ -34,6 +34,8 @@ class DeployTest(DbxTest):
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
+    @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
+    @patch("mlflow.set_experiment", return_value=None)
     def test_deploy_basic(self, *args):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name

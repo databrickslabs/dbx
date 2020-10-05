@@ -10,6 +10,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.cli.configure import configure
 from dbx.cli.execute import execute
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
+from dbx.cli.utils import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
 
 run_info = RunInfo(
     run_uuid="1",
@@ -36,10 +37,11 @@ class ExecuteTest(DbxTest):
     @patch("dbx.cli.utils.ApiV1Client.execute_command", return_value={"id": 1})
     @patch("dbx.cli.utils.ApiV1Client.get_command_status",
            return_value={"status": "Finished", "results": {"resultType": "Ok", "data": "Ok!"}})
-    @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
+    @patch("mlflow.get_experiment_by_name", return_value=Experiment("id", None, "location", None, None))
+    @patch("mlflow.set_experiment", return_value=None)
     def test_execute(self, *args):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -54,10 +56,23 @@ class ExecuteTest(DbxTest):
             spark.createDataFrame([(1,)], "id long")
             """)
 
+            deployment_content = {
+                "test": {
+                    "jobs": [{
+                        "name": "test-job",
+                        "spark_python_task": {
+                            "python_file": "pipelines/pipeline1/entrypoint.py"
+                        }
+                    }]
+                }
+            }
+
+            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+
             execute_result = invoke_cli_runner(execute, [
                 "--environment", "test",
                 "--cluster-id", "000-some-cluster-id",
-                "--source-file", "pipelines/pipeline1/entrypoint.py"
+                "--job", "test-job"
             ])
 
             self.assertEqual(execute_result.exit_code, 0)

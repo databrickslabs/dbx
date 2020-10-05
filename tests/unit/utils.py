@@ -34,8 +34,7 @@ def invoke_cli_runner(*args, **kwargs):
     if res.exit_code != 0:
         if not expected_error:
             logging.error("Exception in the cli runner: %s" % res.exception)
-            traceback_object = res.exc_info[2]
-            traceback.print_tb(traceback_object)
+            raise res.exception
         else:
             logging.info("Expected exception in the cli runner: %s" % res.exception)
 

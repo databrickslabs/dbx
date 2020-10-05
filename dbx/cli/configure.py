@@ -11,10 +11,12 @@ from dbx.cli.utils import InfoFile, dbx_echo, INFO_FILE_PATH, environment_option
                short_help='Configures new environment.')
 @click.option("--workspace-dir", required=False, type=str,
               help="Workspace directory for MLflow experiment.", default=None)
+@click.option("--artifact-location", required=False, type=str,
+              help="Artifact location (dbfs path)", default=None)
 @environment_option
 @debug_option
 @profile_option
-def configure(environment: str, workspace_dir: str, profile: str):
+def configure(environment: str, workspace_dir: str, artifact_location: str, profile: str):
     dbx_echo("Configuring new environment with name %s" % environment)
 
     if not workspace_dir:
@@ -27,10 +29,14 @@ def configure(environment: str, workspace_dir: str, profile: str):
     if InfoFile.get("environments").get(environment):
         raise Exception("Environment with name %s already exists" % environment)
 
+    if not artifact_location:
+        artifact_location = f'dbfs:/dbx/{Path(".").absolute().name}'
+
     environment_info = {
         environment: {
             "profile": profile,
-            "workspace_dir": workspace_dir
+            "workspace_dir": workspace_dir,
+            "artifact_location": artifact_location
         }
     }
 
