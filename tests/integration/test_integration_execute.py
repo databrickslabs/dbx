@@ -56,7 +56,6 @@ class IntegrationExecuteTest(unittest.TestCase):
         self.cluster_id = self.cluster_api.create_cluster(template)["cluster_id"]
         logging.info("Created a new cluster for test with id: %s" % self.cluster_id)
         time.sleep(10)  # cluster creation is an eventually-consistent operation, better to wait a bit
-        conda_env_data = pathlib.Path(CONDA_ENV_TEMPLATE_PATH).read_text()
 
         with Path(self.test_dir):
             initialize_cookiecutter(self.project_name)
@@ -69,34 +68,20 @@ class IntegrationExecuteTest(unittest.TestCase):
 
                 logging.info("Project configuration - done")
 
-                sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
-
                 invoke_cli_runner(execute, [
                     "--environment", "test",
                     "--cluster-name", "%s-interactive" % self.project_name,
-                    "--source-file", "pipelines/pipeline1/pipeline_runner.py",
-                    "--package", "dist/{project_name}-0.1.0-py3-none-any.whl".format(project_name=self.project_name)
+                    "--job", f"{self.project_name}-pipeline1"
                 ])
                 logging.info("Execution with package option - done")
 
                 invoke_cli_runner(execute, [
                     "--environment", "test",
                     "--cluster-id", self.cluster_id,
-                    "--source-file", "pipelines/pipeline1/pipeline_runner.py",
+                    "--job", f"{self.project_name}-pipeline1"
                     "--requirements", "runtime_requirements.txt"
                 ])
                 logging.info("Execution with requirements option - done")
-
-                pathlib.Path("conda-env.yml").write_text(conda_env_data)
-
-                invoke_cli_runner(execute, [
-                    "--environment", "test",
-                    "--cluster-id", self.cluster_id,
-                    "--source-file", "pipelines/pipeline1/pipeline_runner.py",
-                    "--conda-environment", "conda-env.yml"
-                ])
-
-                logging.info("Execution with conda-environment option - done")
 
                 logging.info("Test launch - done")
 

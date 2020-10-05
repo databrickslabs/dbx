@@ -57,7 +57,7 @@ jobs:
           echo "token = $AZURE_DATABRICKS_TOKEN" >> ~/.databrickscfg
 
       - name: Run tests
-        run: pytest --cov dbx
+        run:  pytest tests/unit --cov dbx
 
       - name: Generate artifact
         run: |
