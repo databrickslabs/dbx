@@ -100,14 +100,16 @@ def launch(
                     try:
                         dbx_status = _trace_run(api_client, run_data)
                     except KeyboardInterrupt:
+                        dbx_status = "CANCELLED"
+                        dbx_echo("Cancelling the run gracefully")
                         _cancel_run(api_client, run_data)
+                        dbx_echo("Run cancelled successfully")
                 else:
                     dbx_status = _trace_run(api_client, run_data)
-                dbx_echo("Run finished, checking the status")
                 if dbx_status == "ERROR":
                     raise Exception("Tracked job failed during execution. Please check Databricks UI for job logs")
                 else:
-                    dbx_echo("Job run successfully finished")
+                    dbx_echo("Launch command finished")
             else:
                 dbx_status = "NOT_TRACKED"
                 dbx_echo("Job successfully launched in non-tracking mode. Please check Databricks UI for job status")
