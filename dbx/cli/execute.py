@@ -1,12 +1,13 @@
 import pathlib
+import time
 
 import click
 import mlflow
-import time
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from setuptools import sandbox
+
 from dbx.utils.common import (
     dbx_echo, prepare_environment, upload_file, ContextLockFile, ApiV1Client,
     environment_option, DeploymentFile, DEFAULT_DEPLOYMENT_FILE_PATH
@@ -39,9 +40,12 @@ def execute(environment: str,
     if no_rebuild:
         dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
     else:
+        dbx_echo("Re-building package")
         if not pathlib.Path("setup.py").exists():
-            raise Exception("no setup.py provided in project directory. Please create one.")
-        sandbox.run_setup('setup.py', ['clean', 'bdist_wheel'])
+            raise Exception(
+                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild")
+        sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
+        dbx_echo("Package re-build finished")
 
     env_data = DeploymentFile(deployment_file).get_environment(environment)
 
@@ -89,6 +93,9 @@ def execute(environment: str,
             dbx_echo("Installing provided requirements")
             execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
             dbx_echo("Provided requirements installed")
+        else:
+            dbx_echo(f"Requirements file {requirements_fp} is not provided" +
+                     ", following the execution without any additional packages")
 
         project_package_path = list(pathlib.Path(".").rglob("dist/*.whl"))[0]
         upload_file(project_package_path)
@@ -134,9 +141,10 @@ def execute_command(v1_client: ApiV1Client, cluster_id: str, context_id: str, co
     else:
         final_result = execution_result["results"]["resultType"]
         if final_result == 'error':
-            raise RuntimeError(execution_result["results"]["cause"])
+            dbx_echo("Execution failed, please follow the given error")
+            raise RuntimeError(
+                "Command execution failed. Cluster error cause: %s" % execution_result["results"]["cause"])
         else:
-
             if verbose:
                 dbx_echo("Command successfully executed")
                 print(execution_result["results"]["data"])
@@ -167,6 +175,7 @@ def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
         dbx_echo("Existing context is not active, creating a new one")
         context_id = create_context(v1_client, cluster_id, language)
         ContextLockFile.set_context(context_id)
+        dbx_echo("New context prepared, ready to use it")
         return context_id
 
 
@@ -197,7 +206,7 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) ->
     cluster_service = ClusterService(api_client)
 
     if not cluster_name and not cluster_id:
-        raise Exception("Parameters cluster-name and cluster-id couldn't be empty at the same time.")
+        raise Exception("Parameters --cluster-name and --cluster-id couldn't be empty at the same time.")
 
     if cluster_name:
 
