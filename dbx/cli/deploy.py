@@ -15,7 +15,7 @@ from requests.exceptions import HTTPError
 
 from dbx.utils.common import (
     dbx_echo, prepare_environment, upload_file, read_json, DEFAULT_DEPLOYMENT_FILE_PATH,
-    environment_option, parse_tags
+    environment_option, parse_multiple
 )
 
 
@@ -43,7 +43,7 @@ def deploy(
     dbx_echo("Starting new deployment for environment %s" % environment)
 
     api_client = prepare_environment(environment)
-    additional_tags = parse_tags(tags)
+    additional_tags = parse_multiple(tags)
 
     _verify_deployment_file(deployment_file)
 

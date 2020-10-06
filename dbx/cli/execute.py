@@ -36,12 +36,11 @@ def execute(environment: str,
 
     dbx_echo("Executing job: %s with environment: %s on cluster: %s" % (job, environment, cluster_id))
 
-    if not pathlib.Path("setup.py").exists():
-        raise Exception("no setup.py provided in project directory. Please create one.")
-
     if no_rebuild:
         dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
     else:
+        if not pathlib.Path("setup.py").exists():
+            raise Exception("no setup.py provided in project directory. Please create one.")
         sandbox.run_setup('setup.py', ['clean', 'bdist_wheel'])
 
     env_data = DeploymentFile(deployment_file).get_environment(environment)
@@ -106,7 +105,7 @@ def execute(environment: str,
         mlflow.set_tags(tags)
 
         dbx_echo("Starting entrypoint file execution")
-        execute_command(v1_client, cluster_id, context_id, entrypoint_file)
+        execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text())
         dbx_echo("Command execution finished")
 
 

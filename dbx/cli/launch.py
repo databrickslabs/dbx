@@ -10,7 +10,7 @@ from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from typing import List
-from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environment, environment_option, parse_tags
+from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environment, environment_option, parse_multiple
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -18,18 +18,23 @@ from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environme
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
-@click.option("--existing-runs", type=click.Choice(["wait", "cancel"]), default="wait",
+@click.option("--existing-runs", type=click.Choice(["wait", "cancel", "pass"]), default="pass",
               help="Strategy to handle existing active job runs.")
 @click.option('--tags', multiple=True, type=str,
               help="""Additional tags to search for the latest deployment.
               Format: (--tags="tag_name=tag_value"). 
               Option might be repeated multiple times.""")
+@click.option('--parameters', multiple=True, type=str,
+              help="""Parameters of the job. If provided, default job arguments will be overridden.
+              Format: (--parameters="param_name=param_value"). 
+              Option might be repeated multiple times.""")
 @environment_option
-def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: List[str]):
+def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: List[str], parameters: List[str]):
     dbx_echo("Launching job %s on environment %s" % (job, environment))
 
     api_client = prepare_environment(environment)
-    additional_tags = parse_tags(tags)
+    additional_tags = parse_multiple(tags)
+    override_parameters = parse_multiple(parameters)
 
     filter_string = generate_filter_string(environment, additional_tags)
 
@@ -62,7 +67,8 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: Li
             active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
 
             for run in active_runs:
-
+                if existing_runs == "pass":
+                    pass
                 if existing_runs == "wait":
                     dbx_echo("Waiting for job run with id %s to be finished" % run["run_id"])
                     _wait_run(api_client, run)
@@ -71,7 +77,12 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: Li
                     dbx_echo("Cancelling run with id %s" % run["run_id"])
                     _cancel_run(api_client, run)
 
-            run_data = jobs_service.run_now(job_id)
+            if override_parameters:
+                _prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
+                dbx_echo(f"Default launch parameters are overridden with the following: {_prepared_parameters}")
+                run_data = jobs_service.run_now(job_id, python_params=_prepared_parameters)
+            else:
+                run_data = jobs_service.run_now(job_id)
 
             if trace:
                 dbx_status = _trace_run(api_client, run_data)

@@ -32,7 +32,8 @@ docs-pdf:
 	sphinx-build -a -b pdf docs/source docs/build/pdf
 
 build:
-	rm -rf dist
+	rm -rf dist/*
+	rm -rf build/*
 	python setup.py clean bdist_wheel
 
 artifact: build docs-pdf

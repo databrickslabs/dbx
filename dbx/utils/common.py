@@ -40,8 +40,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def parse_tags(tags: List[str]) -> Dict[str, str]:
-    tags_splitted = [t.split("=") for t in tags]
+def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
+    tags_splitted = [t.split("=") for t in multiple_argument]
     tags_dict = {t[0]: t[1] for t in tags_splitted}
     return tags_dict
 
