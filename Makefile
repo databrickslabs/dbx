@@ -45,7 +45,7 @@ artifact: build docs-pdf
 
 test-local-azure:
 	rm -rf dbx_dev_azure
-	cookiecutter https://github.com/databrickslabs/cicd-templates.git --no-input project_name=dbx_dev_azure environment=dbx-dev-azure --checkout dbx
+	cookiecutter https://github.com/databrickslabs/cicd-templates.git --no-input project_name=dbx_dev_azure environment=dbx-dev-azure cloud=Azure --checkout dbx
 	cd dbx_dev_azure && dbx configure  \
 		--environment=dev \
 		--workspace-dir=/dbx/projects/dbx_dev_azure \

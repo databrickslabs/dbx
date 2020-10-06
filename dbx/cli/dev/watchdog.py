@@ -9,8 +9,10 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from databricks_cli.cli import debug_option
 import pathlib
 from dbx.cli.execute import _preprocess_cluster_args, awake_cluster, get_context_id, execute_command
-from dbx.utils.common import environment_option, dbx_echo, prepare_environment, ApiV1Client, ContextLockFile, dbx_log, \
+from dbx.utils.common import (
+    environment_option, dbx_echo, prepare_environment, ApiV1Client, ContextLockFile,
     TunnelInfo, get_ssh_client
+)
 from dbx.utils.watchdog import Rsync
 from typing import Tuple
 import paramiko
@@ -64,8 +66,8 @@ def watchdog(environment: str,
     tunnel_manager = TunnelManager(v1_client, cluster_id, context_id)
 
     tunnel_manager.provide_tunnel()
-
     tunnel_info = tunnel_manager.get_tunnel_info()
+    dbx_echo(f"Tunnel created via: {tunnel_info.host}:${tunnel_info.port}")
     rsync = Rsync(tunnel_info)
     rsync.launch()
 
@@ -96,12 +98,10 @@ class TunnelManager:
         return TunnelInfo(host, int(port), str(self._private_key_file))
 
     def _prepare_sshd(self):
-        dbx_log("Preparing sshd config")
         client = get_ssh_client(self.get_tunnel_info())
         client.exec_command("mkdir -p /usr/lib/ssh")
         client.exec_command("ln -s /usr/lib/openssh/sftp-server /usr/lib/ssh/sftp-server")
         client.exec_command("systemctl restart ssh.service")
-        dbx_log("Preparing sshd config - done")
 
     def initialize_tunnel(self):
         dbx_echo("Initializing a tunnel")
@@ -130,7 +130,6 @@ class TunnelManager:
         self._prepare_sshd()
 
     def provide_tunnel(self):
-        dbx_log(f"Providing tunnel with existing tunnel url {self._url}")
         if not self._url:
             dbx_echo("No existing tunnel metadata found, initializing a new one")
             self.initialize_tunnel()
