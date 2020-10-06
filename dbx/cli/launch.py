@@ -18,6 +18,7 @@ from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environme
 @click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
+@click.option("--kill-on-sigterm", is_flag=True, help="If provided, kills the job on SIGTERM (Ctrl+C) signal")
 @click.option("--existing-runs", type=click.Choice(["wait", "cancel", "pass"]), default="pass",
               help="Strategy to handle existing active job runs.")
 @click.option('--tags', multiple=True, type=str,
@@ -29,7 +30,15 @@ from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environme
               Format: (--parameters="param_name=param_value"). 
               Option might be repeated multiple times.""")
 @environment_option
-def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: List[str], parameters: List[str]):
+def launch(
+        environment: str,
+        job: str,
+        trace: bool,
+        kill_on_sigterm: bool,
+        existing_runs: str,
+        tags: List[str],
+        parameters: List[str]
+):
     dbx_echo("Launching job %s on environment %s" % (job, environment))
 
     api_client = prepare_environment(environment)
@@ -85,9 +94,20 @@ def launch(environment: str, job: str, trace: bool, existing_runs: str, tags: Li
                 run_data = jobs_service.run_now(job_id)
 
             if trace:
-                dbx_status = _trace_run(api_client, run_data)
+                dbx_echo("Tracing job run")
+                if kill_on_sigterm:
+                    dbx_echo("Click Ctrl+C to stop the job run")
+                    try:
+                        dbx_status = _trace_run(api_client, run_data)
+                    except KeyboardInterrupt:
+                        _cancel_run(api_client, run_data)
+                else:
+                    dbx_status = _trace_run(api_client, run_data)
+                dbx_echo("Run finished, checking the status")
                 if dbx_status == "ERROR":
                     raise Exception("Tracked job failed during execution. Please check Databricks UI for job logs")
+                else:
+                    dbx_echo("Job run successfully finished")
             else:
                 dbx_status = "NOT_TRACKED"
                 dbx_echo("Job successfully launched in non-tracking mode. Please check Databricks UI for job status")
@@ -133,7 +153,6 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]):
 
 
 def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
-    dbx_echo("Tracing job run")
     while True:
         status = _get_run_status(api_client, run_data)
         result_state = status["state"].get("result_state", None)
