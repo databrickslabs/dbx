@@ -7,7 +7,7 @@ from watchdog.events import (
     DirDeletedEvent, DirMovedEvent
 )
 import time
-from utils.common import TunnelInfo, dbx_echo, get_ssh_client
+from dbx.utils.common import TunnelInfo, dbx_echo, get_ssh_client
 import pathlib
 import os
 import paramiko
@@ -97,7 +97,7 @@ class Rsync:
         self._initial_sync()
         self.observer = watchdog.observers.Observer()
         handler = RsyncHandler(self._ssh_client, self._sftp_client, self._remote_project_path)
-        self.observer.schedule(handler, path="", recursive=True)
+        self.observer.schedule(handler, path=".", recursive=True)
         dbx_echo("Starting directory synchronization via tunnel, all file changes will be saved to cluster")
         self.observer.start()
 

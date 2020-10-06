@@ -11,7 +11,7 @@ import pathlib
 from dbx.cli.execute import _preprocess_cluster_args, awake_cluster, get_context_id, execute_command
 from dbx.utils.common import environment_option, dbx_echo, prepare_environment, ApiV1Client, ContextLockFile, dbx_log, \
     TunnelInfo, get_ssh_client
-from utils.watchdog import Rsync
+from dbx.utils.watchdog import Rsync
 from typing import Tuple
 import paramiko
 import sys
@@ -41,18 +41,17 @@ COMMANDS = {
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
-               short_help="Launches development appliance")
+               short_help="Launches local development appliance")
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @environment_option
 @debug_option
-def dev(environment: str,
-        cluster_id: str,
-        cluster_name: str):
-
+def watchdog(environment: str,
+             cluster_id: str,
+             cluster_name: str):
     check_ngrok_env()
 
-    dbx_echo("Starting development appliance in environment %s" % environment)
+    dbx_echo("Starting watchdog in environment %s" % environment)
     api_client = prepare_environment(environment)
     cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
     cluster_service = ClusterService(api_client)
