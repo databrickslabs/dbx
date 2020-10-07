@@ -53,7 +53,6 @@ class ClusterManager:
         self._api_client = api_client
         self._cluster_service = ClusterService(api_client)
         self._cluster_id = cluster_id
-        await self._awake_cluster()
 
     async def status(self):
         return self._cluster_service.get_cluster(self._cluster_id).get("state").lower()
