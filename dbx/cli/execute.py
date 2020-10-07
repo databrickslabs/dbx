@@ -9,7 +9,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from setuptools import sandbox
 
 from dbx.utils.common import (
-    dbx_echo, prepare_environment, upload_file, ContextLockFile, ApiV1Client,
+    dbx_echo, prepare_environment, FileUploader, ContextLockFile, ApiV1Client,
     environment_option, DeploymentFile, DEFAULT_DEPLOYMENT_FILE_PATH
 )
 
@@ -79,6 +79,7 @@ def execute(environment: str,
 
     v1_client = ApiV1Client(api_client)
     context_id = get_context_id(v1_client, cluster_id, "python")
+    file_uploader = FileUploader(api_client)
 
     with mlflow.start_run() as execution_run:
 
@@ -87,7 +88,7 @@ def execute(environment: str,
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
-            upload_file(requirements_fp)
+            file_uploader.upload_file(requirements_fp)
             localized_requirements_path = "%s/%s" % (localized_base_path, str(requirements_fp))
             installation_command = "%pip install -U -r {path}".format(path=localized_requirements_path)
             dbx_echo("Installing provided requirements")
@@ -98,7 +99,7 @@ def execute(environment: str,
                      ", following the execution without any additional packages")
 
         project_package_path = list(pathlib.Path(".").rglob("dist/*.whl"))[0]
-        upload_file(project_package_path)
+        file_uploader.upload_file(project_package_path)
         localized_package_path = "%s/%s" % (localized_base_path, str(project_package_path))
         installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
         execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
@@ -195,7 +196,7 @@ def awake_cluster(cluster_service: ClusterService, cluster_id):
         time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
     elif cluster_info["state"] == "ERROR":
-        raise Exception("Cluster is misconfigured and cannot be started, please check cluster settings at first")
+        raise Exception("Cluster is mis-configured and cannot be started, please check cluster settings at first")
     elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
         dbx_echo("Cluster is getting prepared, current state: %s" % cluster_info["state"])
         time.sleep(10)

@@ -20,6 +20,7 @@ import logging
 from typing import NamedTuple
 import paramiko
 from paramiko.client import SSHClient
+from databricks_cli.dbfs.api import DbfsService
 
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = "%s/project.json" % DBX_PATH
@@ -229,10 +230,24 @@ def dbx_log(message):
     logger.info(message)
 
 
-@retry(tries=10, delay=5, backoff=5)
-def upload_file(file_path: pathlib.Path):
-    dbx_echo("Deploying file: %s" % file_path)
-    mlflow.log_artifact(str(file_path), str(file_path.parent))
+class FileUploader:
+    def __init__(self, api_client: ApiClient):
+        self._dbfs_service = DbfsService(api_client)
+
+    def _file_exists(self, file_path: pathlib.Path):
+        try:
+            _ = self._dbfs_service.get_status(str(file_path))
+            return True
+        except:
+            return False
+
+    @retry(tries=10, delay=5, backoff=5)
+    def upload_file(self, file_path: pathlib.Path):
+        if self._file_exists(file_path):
+            dbx_echo("File was already uploaded during current deployment")
+        else:
+            dbx_echo("Deploying file: %s" % file_path)
+            mlflow.log_artifact(str(file_path), str(file_path.parent))
 
 
 def get_ssh_client(info: TunnelInfo) -> SSHClient:
