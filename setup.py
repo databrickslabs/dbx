@@ -19,7 +19,8 @@ setup(
         "tqdm",
         "paramiko",
         "cryptography",
-        "watchdog"
+        "watchdog",
+        "urwid"
     ],
     entry_points='''
         [console_scripts]

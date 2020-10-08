@@ -68,13 +68,11 @@ def deploy(
 
     _file_uploader = FileUploader(api_client)
 
-    _upload_file_callback = lambda path: _file_uploader.upload_file(path)
-
     with mlflow.start_run() as deployment_run:
 
         artifact_base_uri = deployment_run.info.artifact_uri
 
-        _adjust_job_definitions(deployment["jobs"], artifact_base_uri, requirements_payload, _upload_file_callback)
+        _adjust_job_definitions(deployment["jobs"], artifact_base_uri, requirements_payload, _file_uploader)
         deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
@@ -162,8 +160,8 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
 
 
 def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
-                            requirements_payload: List[Dict[str, str]], file_upload_callback):
-    adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri, file_upload_callback)
+                            requirements_payload: List[Dict[str, str]], file_uploader: FileUploader):
+    adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri, file_uploader)
     for job in jobs:
         _walk_content(adjustment_callback, job)
         job["libraries"] = job.get("libraries", []) + requirements_payload
@@ -226,12 +224,16 @@ def _walk_content(func, content, parent=None, index=None):
         parent[index] = func(content)
 
 
-def _adjust_path(candidate, adjustment, file_upload_callback):
+def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
     if isinstance(candidate, str):
         if pathlib.Path(candidate).exists():
             file_path = pathlib.Path(candidate)
-            file_upload_callback(file_path)
             adjusted_path = "%s/%s" % (adjustment, candidate)
+            if file_uploader.file_exists(adjusted_path):
+                dbx_echo("File already is stored in the deployment, no action needed")
+            else:
+                dbx_echo("Uploading file %s" % file_path)
+                file_uploader.upload_file(file_path)
             return adjusted_path
         else:
             return candidate
