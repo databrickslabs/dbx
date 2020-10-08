@@ -86,6 +86,12 @@ class ContextManager:
         status_info = self._api_v1_client.get_context_status(payload)
         return status_info
 
+    async def _creation_routine(self):
+        self._status = "creating a new context"
+        self._context_id = await self._create_context()
+        ContextLockFile.set_context(self._context_id)
+        await asyncio.sleep(5)
+
     async def context_routine(self):
         while True:
             if not self._cluster_manager.status == "running":
@@ -93,32 +99,28 @@ class ContextManager:
                 await asyncio.sleep(5)
             else:
                 if not self._context_id:
-                    self._status = "creating a new context"
-                    self._context_id = await self._create_context()
-                    ContextLockFile.set_context(self._context_id)
+                    await self._creation_routine()
                 else:
                     self._status = "verifying if existing context is active"
                     status_info = await self._get_context_status_info()
 
                     if not status_info:
                         self._status = "no info provided from the existing context"
-                        self._context_id = None
-                        await asyncio.sleep(3)
-
-                    current_status = status_info.get("status")
-
-                    if not current_status:
-                        self._status = "existing context is not active, creating a new one"
-                        self._context_id = None
-                        await asyncio.sleep(3)
+                        await self._creation_routine()
                     else:
-                        if current_status == "Running":
-                            self._status = "running"
-                            await asyncio.sleep(5)
-                        else:
+                        current_status = status_info.get("status")
+
+                        if not current_status:
                             self._status = "existing context is not active, creating a new one"
-                            self._context_id = None
-                            await asyncio.sleep(3)
+                            await self._creation_routine()
+                        else:
+                            if current_status == "Running":
+                                self._status = "running"
+                                await asyncio.sleep(5)
+                            else:
+                                self._status = "existing context is not active, creating a new one"
+                                self._context_id = None
+                                await asyncio.sleep(3)
 
 
 class DevApp:
