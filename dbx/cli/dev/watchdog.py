@@ -151,6 +151,7 @@ class TunnelManager:
         return TunnelInfo(host, int(port), str(self._private_key_file))
 
     def _prepare_sshd(self):
+        self._status = "preparing sshd service"
         client = get_ssh_client(self.get_tunnel_info())
         client.exec_command("mkdir -p /usr/lib/ssh")
         client.exec_command("ln -s /usr/lib/openssh/sftp-server /usr/lib/ssh/sftp-server")
@@ -180,8 +181,11 @@ class TunnelManager:
                     await asyncio.sleep(5)
 
     async def initialize_tunnel(self):
+        self._status = "installing libraries"
         self._exec(COMMANDS["install_libraries"])
+        self._status = "restarting tunnel appliance"
         self._exec(COMMANDS["stop_ngrok"])
+        self._status = "preparing ssh keys"
 
         private_key, public_key = await self.generate_key_pair()
 
@@ -197,6 +201,7 @@ class TunnelManager:
         )
 
         self._exec(remote_keys_cmd, verbose=False)
+        self._status = "generating tunnel url"
         self._exec(COMMANDS['generate_url'].format(token=os.environ["DBX_NGROK_TOKEN"]))
 
         url = self._exec(COMMANDS['print_url'])
