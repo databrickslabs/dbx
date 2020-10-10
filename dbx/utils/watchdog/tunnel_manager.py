@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import pathlib
 from typing import Tuple
@@ -75,8 +76,13 @@ class TunnelManager:
                         self._status = "running"
                         await asyncio.sleep(5)
                     except Exception as e:
+                        logging.info(f"Error on tunnel check: {e}")
                         self._status = "tunnel is unreachable, initializing a new one"
-                        await self.initialize_tunnel()
+                        try:
+                            await self.initialize_tunnel()
+                        except Exception as e:
+                            logging.info(f"Error on tunnel initialization: {e}")
+                            await asyncio.sleep(2)
                     await asyncio.sleep(5)
                 else:
                     self._status = "initializing a plain new tunnel"

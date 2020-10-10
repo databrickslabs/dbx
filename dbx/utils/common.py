@@ -31,7 +31,7 @@ CONF_PATH = "conf"
 DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % CONF_PATH
 
 FORMAT = u'[%(asctime)s] %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.basicConfig(filename=".dbx/dev.log", format=FORMAT, level=logging.INFO)
 logging.getLogger("paramiko").setLevel(logging.ERROR)
 
 

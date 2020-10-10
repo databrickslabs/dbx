@@ -134,9 +134,8 @@ class SyncManager:
 
     async def sync_routine(self):
         while True:
-            logging.info(f"Starting sync routine with status: {self._status}")
             if self._tunnel_manager.status.startswith("running"):
-                if self._status in ("initializing", "failed"):
+                if self._status in ("initializing", "failed", "waiting for tunnel"):
                     self._status = "Preparing SSH & SFTP clients"
                     self._ssh_client = get_ssh_client(self._tunnel_manager.get_tunnel_info())
                     self._sftp_client: paramiko.SFTPClient = self._ssh_client.open_sftp()
@@ -144,7 +143,10 @@ class SyncManager:
                     self._ssh_client.exec_command(f"mkdir -p {self._remote_project_path}")
                     self._sftp_client.chdir(str(self._remote_project_path))
                     self._status = "Performing initial bootstrap"
+                    if self._observer.is_alive():
+                        self._observer.stop()
                     self._bootstrap_sync()
+                    self._observer.start()
                     await asyncio.sleep(2)
                 else:
                     self._status = "running"
@@ -172,5 +174,4 @@ class SyncManager:
                 event = we.FileCreatedEvent(src_path=localized_path)
                 self._handler.dispatch(event)
         logging.info("Starting observer process")
-        self._observer.start()
         logging.info("Observer is launched")

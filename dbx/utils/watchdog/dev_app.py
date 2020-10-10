@@ -139,7 +139,7 @@ class DevApp:
                                      ])
 
     def launch(self):
-        # self._ur_main_loop.start()
+        self._ur_main_loop.start()
 
         try:
             self._asyncio_loop.run_forever()
