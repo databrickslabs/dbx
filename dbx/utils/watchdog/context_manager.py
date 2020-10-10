@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from dbx.utils.common import ApiV1Client, ContextLockFile
 from dbx.utils.watchdog.cluster_manager import ClusterManager
@@ -55,7 +56,25 @@ class ContextManager:
                         else:
                             if current_status == "Running":
                                 self._status = "running"
-                                await asyncio.sleep(5)
+                                try:
+                                    testing_payload = {
+                                        'language': 'python',
+                                        'clusterId': self._cluster_manager.cluster_id,
+                                        'contextId': self.context_id,
+                                        'command': "import pandas as pd"
+                                    }
+                                    self._api_v1_client.execute_command(testing_payload)
+                                    await asyncio.sleep(4)
+                                except KeyboardInterrupt:
+                                    logging.info("Gracefully stopping context manager")
+                                except Exception as e:
+                                    logging.info(
+                                        f"Command execution failed in context {self.context_id} with error: {e}"
+                                    )
+                                    self._status = "existing context is not active, creating a new one"
+                                    self.context_id = None
+                                    await asyncio.sleep(3)
+
                             else:
                                 self._status = "existing context is not active, creating a new one"
                                 self.context_id = None

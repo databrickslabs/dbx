@@ -3,8 +3,6 @@ import logging
 import os
 import pathlib
 from typing import Tuple
-
-import paramiko
 from dbx.cli.execute import execute_command
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
@@ -75,6 +73,8 @@ class TunnelManager:
                         await self._check_tunnel()
                         self._status = "running"
                         await asyncio.sleep(5)
+                    except KeyboardInterrupt:
+                        logging.info("Gracefully stopping tunnel manager")
                     except Exception as e:
                         logging.info(f"Error on tunnel check: {e}")
                         self._status = "tunnel is unreachable, initializing a new one"

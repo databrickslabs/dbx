@@ -1,6 +1,5 @@
 import asyncio
 import datetime as dt
-import logging
 
 import urwid as ur
 from dbx.utils.common import dbx_echo
@@ -147,8 +146,16 @@ class DevApp:
             self._ur_main_loop.stop()
             dbx_echo("Dev server successfully stopped")
 
-        for t in asyncio.tasks.all_tasks(self._asyncio_loop):
-            t.cancel()
+        self._header_task.cancel()
+        self._sync_status_task.cancel()
+        self._tunnel_status_task.cancel()
+        self._context_status_task.cancel()
+        self._cluster_status_task.cancel()
+
+        self._sync_routine_task.cancel()
+        self._tunnel_routine_task.cancel()
+        self._context_routine_task.cancel()
+        self._cluster_routine_task.cancel()
 
         self._server.close()
 
