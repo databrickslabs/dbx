@@ -1,5 +1,4 @@
 import click
-from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.cli.configure import configure
@@ -11,7 +10,6 @@ from dbx.cli.dev import dev_group
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(message='DataBricks eXtensions aka dbx, version ~> %(version)s')
-@debug_option
 def cli():
     pass
 

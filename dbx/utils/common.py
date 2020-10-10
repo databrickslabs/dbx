@@ -30,6 +30,10 @@ DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/depl
 CONF_PATH = "conf"
 DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % CONF_PATH
 
+FORMAT = u'[%(asctime)s] %(levelname)s %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.getLogger("paramiko").setLevel(logging.ERROR)
+
 
 class TunnelInfo(NamedTuple):
     host: str
@@ -38,7 +42,6 @@ class TunnelInfo(NamedTuple):
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -224,10 +227,6 @@ def prepare_environment(environment: str):
     mlflow.set_experiment(environment_data["workspace_dir"])
 
     return api_client
-
-
-def dbx_log(message):
-    logger.info(message)
 
 
 class FileUploader:
