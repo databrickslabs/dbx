@@ -31,8 +31,10 @@ class TunnelManager:
             from pyngrok import ngrok
             ngrok.set_auth_token('{token}')
             ssh_url = ngrok.connect(22, "tcp")
+            pydev_url = ngrok.connect(3000, "tcp")
         """,
-        'print_url': 'print(ssh_url)'
+        'print_ssh_url': 'print(ssh_url)',
+        'print_pydev_url': 'print(pydev_url)'
     }
 
     def __init__(self, api_v1_client: ApiV1Client, cluster_id: str, context_manager: ContextManager):
@@ -40,8 +42,7 @@ class TunnelManager:
         self._context_manager = context_manager
         self._status = "initializing"
         self._cluster_id = cluster_id
-        self._url = ContextLockFile.get_url()
-        self._private_key_file = pathlib.Path("~/.ssh/%s" % self._cluster_id).expanduser()
+        self.tunnel_info = ContextLockFile.get_tunnel_info()
 
     def _exec(self, cmd, verbose=False):
         return execute_command(self._api_v1_client, self._cluster_id, self._context_manager.context_id, cmd, verbose)
@@ -50,13 +51,14 @@ class TunnelManager:
     def status(self):
         return self._status
 
-    def get_tunnel_info(self) -> TunnelInfo:
-        (host, port) = self._url.replace('tcp://', "").split(":")
-        return TunnelInfo(host, int(port), str(self._private_key_file))
+    @staticmethod
+    def _parse_url(url: str) -> Tuple[str, int]:
+        (host, port) = url.replace('tcp://', "").split(":")
+        return host, int(port)
 
     def _prepare_sshd(self):
         self._status = "preparing sshd service"
-        client = get_ssh_client(self.get_tunnel_info())
+        client = get_ssh_client(self.tunnel_info)
         client.exec_command("mkdir -p /usr/lib/ssh")
         client.exec_command("ln -s /usr/lib/openssh/sftp-server /usr/lib/ssh/sftp-server")
         client.exec_command("systemctl restart ssh.service")
@@ -67,7 +69,7 @@ class TunnelManager:
                 self._status = "waiting for the context"
                 await asyncio.sleep(5)
             else:
-                if self._url:
+                if self.tunnel_info:
                     self._status = "checking cached tunnel url"
                     try:
                         await self._check_tunnel()
@@ -98,11 +100,13 @@ class TunnelManager:
 
         private_key, public_key = await self.generate_key_pair()
 
-        if self._private_key_file.exists():
-            self._private_key_file.unlink()
+        private_key_path = pathlib.Path("~/.ssh/%s" % self._cluster_id).expanduser()
 
-        self._private_key_file.write_bytes(private_key)
-        os.chmod(self._private_key_file, 0o600)
+        if private_key_path.exists():
+            private_key_path.unlink()
+
+        private_key_path.write_bytes(private_key)
+        os.chmod(private_key_path, 0o600)
 
         remote_keys_cmd = self.COMMANDS['install_ssh_keys'].format(
             private_key=private_key.decode('utf-8'),
@@ -113,13 +117,15 @@ class TunnelManager:
         self._status = "generating tunnel url"
         self._exec(self.COMMANDS['generate_url'].format(token=os.environ["DBX_NGROK_TOKEN"]))
 
-        url = self._exec(self.COMMANDS['print_url'])
-        ContextLockFile.set_url(url)
-        self._url = url
+        raw_ssh_url = self._exec(self.COMMANDS['print_ssh_url'])
+        raw_pydev_url = self._exec(self.COMMANDS['print_pydev_url'])
+        _host, _port = self._parse_url(raw_ssh_url)
+        self.tunnel_info = TunnelInfo(_host, _port, str(private_key_path))
+        ContextLockFile.set_tunnel_info(self.tunnel_info)
         self._prepare_sshd()
 
     async def _check_tunnel(self):
-        client = get_ssh_client(self.get_tunnel_info())
+        client = get_ssh_client(self.tunnel_info)
         client.exec_command("ls -la")
 
     @staticmethod

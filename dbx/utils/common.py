@@ -17,7 +17,7 @@ from databricks_cli.workspace.api import WorkspaceService
 from path import Path
 from retry import retry
 import logging
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 import paramiko
 from paramiko.client import SSHClient
 from databricks_cli.dbfs.api import DbfsService
@@ -83,6 +83,23 @@ class ContextLockFile:
     @staticmethod
     def get_url() -> Any:
         return read_json(LOCK_FILE_PATH).get("ssh_url")
+
+    @staticmethod
+    def get_tunnel_info() -> Optional[TunnelInfo]:
+        info = read_json(LOCK_FILE_PATH).get("tunnel_info")
+        if not info:
+            return None
+        else:
+            return TunnelInfo(info["host"], info["port"], info["private_key_file"])
+
+    @staticmethod
+    def set_tunnel_info(info: TunnelInfo):
+        payload = {
+            "host": info.host,
+            "port": info.port,
+            "private_key_file": info.private_key_file
+        }
+        update_json({"tunnel_info": payload}, LOCK_FILE_PATH)
 
 
 class DeploymentFile:

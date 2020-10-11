@@ -117,7 +117,7 @@ class DevApp:
 
     def _update_tunnel_status(self):
         if self._tunnel_manager.status == "running":
-            info = self._tunnel_manager.get_tunnel_info()
+            info = self._tunnel_manager.tunnel_info
             msg = f"Tunnel status: {self._tunnel_manager.status} @ {info.host}:{info.port}"
             self.tunnel_status_widget.set_text(msg)
         else:

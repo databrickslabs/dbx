@@ -137,7 +137,7 @@ class SyncManager:
             if self._tunnel_manager.status.startswith("running"):
                 if self._status in ("initializing", "failed", "waiting for tunnel"):
                     self._status = "Preparing SSH & SFTP clients"
-                    self._ssh_client = get_ssh_client(self._tunnel_manager.get_tunnel_info())
+                    self._ssh_client = get_ssh_client(self._tunnel_manager.tunnel_info)
                     self._sftp_client: paramiko.SFTPClient = self._ssh_client.open_sftp()
                     self._ssh_client.exec_command(f"rm -rf {self._remote_project_path}")
                     self._ssh_client.exec_command(f"mkdir -p {self._remote_project_path}")
