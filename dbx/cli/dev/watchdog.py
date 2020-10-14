@@ -11,7 +11,6 @@ from dbx.utils.watchdog.cluster_manager import ClusterManager
 from dbx.utils.watchdog.context_manager import ContextManager
 from dbx.utils.watchdog.dev_app import DevApp
 from dbx.utils.watchdog.tunnel_manager import TunnelManager
-from dbx.utils.watchdog.sync_manager import SyncManager
 
 
 def check_ngrok_env():
@@ -43,6 +42,5 @@ def watchdog(environment: str,
     cluster_manager = ClusterManager(api_client, cluster_id)
     context_manager = ContextManager(api_v1_client, cluster_manager)
     tunnel_manager = TunnelManager(api_v1_client, cluster_id, context_manager)
-    sync_manager = SyncManager(tunnel_manager)
-    app = DevApp(environment, cluster_manager, context_manager, tunnel_manager, sync_manager)
+    app = DevApp(environment, cluster_manager, context_manager, tunnel_manager)
     app.launch()

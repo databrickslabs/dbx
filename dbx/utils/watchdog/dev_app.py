@@ -6,7 +6,6 @@ from dbx.utils.common import dbx_echo
 from dbx.utils.watchdog.cluster_manager import ClusterManager
 from dbx.utils.watchdog.context_manager import ContextManager
 from dbx.utils.watchdog.tunnel_manager import TunnelManager
-from dbx.utils.watchdog.sync_manager import SyncManager
 
 
 class DevApp:
@@ -39,13 +38,11 @@ class DevApp:
                  cluster_manager: ClusterManager,
                  context_manager: ContextManager,
                  tunnel_manager: TunnelManager,
-                 sync_manager: SyncManager,
                  port: int = 4004):
 
         self._cluster_manager = cluster_manager
         self._context_manager = context_manager
         self._tunnel_manager = tunnel_manager
-        self._sync_manager = sync_manager
 
         self._port = port
         self._environment = environment
@@ -56,12 +53,10 @@ class DevApp:
         self._cluster_routine_task = self._asyncio_loop.create_task(self._cluster_manager.cluster_routine())
         self._context_routine_task = self._asyncio_loop.create_task(self._context_manager.context_routine())
         self._tunnel_routine_task = self._asyncio_loop.create_task(self._tunnel_manager.tunnel_routine())
-        self._sync_routine_task = self._asyncio_loop.create_task(self._sync_manager.sync_routine())
 
         self._cluster_status_task = self._asyncio_loop.create_task(self._cluster_status_handler())
         self._context_status_task = self._asyncio_loop.create_task(self._context_status_handler())
         self._tunnel_status_task = self._asyncio_loop.create_task(self._tunnel_status_handler())
-        self._sync_status_task = self._asyncio_loop.create_task(self._sync_status_handler())
 
         self._server_coroutine = asyncio.start_server(self._server_routine, '127.0.0.1', 4004, loop=self._asyncio_loop)
         self._server = self._asyncio_loop.run_until_complete(self._server_coroutine)
@@ -73,13 +68,11 @@ class DevApp:
         self._ur_main_loop.watch_pipe(self._update_cluster_status)
         self._ur_main_loop.watch_pipe(self._update_context_status)
         self._ur_main_loop.watch_pipe(self._update_tunnel_status)
-        self._ur_main_loop.watch_pipe(self._update_sync_status)
 
         self._update_header()
         self._update_cluster_status()
         self._update_context_status()
         self._update_tunnel_status()
-        self._update_sync_status()
 
     async def _server_routine(self, _, reader):
         pass
@@ -104,11 +97,6 @@ class DevApp:
             await asyncio.sleep(2)
             self._update_tunnel_status()
 
-    async def _sync_status_handler(self):
-        while True:
-            await asyncio.sleep(0.5)
-            self._update_sync_status()
-
     def _update_context_status(self):
         self.context_status_widget.set_text(f"Context status: {self._context_manager.status}")
 
@@ -122,9 +110,6 @@ class DevApp:
             self.tunnel_status_widget.set_text(msg)
         else:
             self.tunnel_status_widget.set_text(f"Tunnel status: {self._tunnel_manager.status}")
-
-    def _update_sync_status(self):
-        self.sync_status_widget.set_text(f"Sync status: {self._sync_manager.status}")
 
     @staticmethod
     def _current_dttm():
@@ -147,12 +132,10 @@ class DevApp:
             dbx_echo("Dev server successfully stopped")
 
         self._header_task.cancel()
-        self._sync_status_task.cancel()
         self._tunnel_status_task.cancel()
         self._context_status_task.cancel()
         self._cluster_status_task.cancel()
 
-        self._sync_routine_task.cancel()
         self._tunnel_routine_task.cancel()
         self._context_routine_task.cancel()
         self._cluster_routine_task.cancel()
