@@ -19,13 +19,11 @@ class DevApp:
     cluster_status_widget = ur.Text("")
     context_status_widget = ur.Text("")
     tunnel_status_widget = ur.Text("")
-    sync_status_widget = ur.Text("")
 
     status_widget = ur.Pile([
         ur.LineBox(cluster_status_widget),
         ur.LineBox(context_status_widget),
-        ur.LineBox(tunnel_status_widget),
-        ur.LineBox(sync_status_widget),
+        ur.LineBox(tunnel_status_widget)
     ])
 
     main_widget = ur.Filler(ur.Pile([
@@ -94,7 +92,7 @@ class DevApp:
 
     async def _tunnel_status_handler(self):
         while True:
-            await asyncio.sleep(2)
+            await asyncio.sleep(0.2)
             self._update_tunnel_status()
 
     def _update_context_status(self):
@@ -106,7 +104,8 @@ class DevApp:
     def _update_tunnel_status(self):
         if self._tunnel_manager.status == "running":
             info = self._tunnel_manager.tunnel_info
-            msg = f"Tunnel status: {self._tunnel_manager.status} @ {info.host}:{info.port}"
+            c_id = self._cluster_manager.cluster_id
+            msg = f"Tunnel status: {self._tunnel_manager.status} @ {info.host}:{info.port} (ssh config: {c_id})"
             self.tunnel_status_widget.set_text(msg)
         else:
             self.tunnel_status_widget.set_text(f"Tunnel status: {self._tunnel_manager.status}")

@@ -20,7 +20,8 @@ setup(
         "paramiko",
         "cryptography",
         "watchdog",
-        "urwid"
+        "urwid",
+        "sshconf"
     ],
     entry_points='''
         [console_scripts]
