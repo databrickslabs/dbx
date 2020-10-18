@@ -7,8 +7,8 @@ from mlflow import ActiveRun
 from mlflow.entities import Experiment
 from mlflow.entities.run import Run, RunInfo, RunData
 
-from dbx.cli.configure import configure
-from dbx.cli.execute import execute
+from dbx.commands.configure import configure
+from dbx.commands.execute import execute
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
 

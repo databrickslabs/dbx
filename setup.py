@@ -20,7 +20,7 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        dbx=dbx.cli.cli:cli
+        dbx=dbx.cli:cli
     ''',
     package_data={'dbx': ['template/deployment.json']},
     version=__version__,

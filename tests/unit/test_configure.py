@@ -1,6 +1,6 @@
 import unittest
 
-from dbx.cli.configure import configure
+from dbx.commands.configure import configure
 from dbx.utils.common import InfoFile
 from .utils import invoke_cli_runner, DbxTest
 

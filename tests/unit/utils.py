@@ -1,7 +1,6 @@
 import logging
 import shutil
 import tempfile
-import traceback
 import unittest
 from uuid import uuid4
 

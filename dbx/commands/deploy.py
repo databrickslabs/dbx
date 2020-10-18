@@ -206,7 +206,7 @@ def _update_job(jobs_service: JobsService, job_id: str, job: Dict[str, Any]) -> 
     try:
         jobs_service.reset_job(job_id, job)
     except HTTPError as e:
-        dbx_echo("Failed to create job with definition:")
+        dbx_echo("Failed to update job with definition:")
         dbx_echo(json.dumps(job, indent=4))
         raise e
     return job_id

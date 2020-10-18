@@ -1,10 +1,10 @@
 import click
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.cli.configure import configure
-from dbx.cli.deploy import deploy
-from dbx.cli.execute import execute
-from dbx.cli.launch import launch
+from dbx.commands.configure import configure
+from dbx.commands.deploy import deploy
+from dbx.commands.execute import execute
+from dbx.commands.launch import launch
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
