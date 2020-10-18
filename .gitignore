@@ -16,6 +16,7 @@ htmlcov/*
 
 # Caches
 .pytest_cache/
+mlruns
 
 # VSCode
 .vscode/
