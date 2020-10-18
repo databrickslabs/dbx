@@ -1,16 +1,13 @@
 import copy
 import datetime as dt
 import json
-import logging
 import os
 import pathlib
 import shutil
 from typing import Dict, Any, List
-from typing import NamedTuple
 
 import click
 import mlflow
-import paramiko
 import pkg_resources
 import requests
 from databricks_cli.configure.config import _get_api_client
@@ -18,7 +15,6 @@ from databricks_cli.configure.provider import ProfileConfigProvider, DEFAULT_SEC
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
-from paramiko.client import SSHClient
 from path import Path
 from retry import retry
 
@@ -29,19 +25,6 @@ DATABRICKS_MLFLOW_URI = "databricks"
 DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.json')
 CONF_PATH = "conf"
 DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % CONF_PATH
-
-FORMAT = u'[%(asctime)s] %(levelname)s %(message)s'
-logging.basicConfig(filename=".dbx/dev.log", format=FORMAT, level=logging.INFO)
-logging.getLogger("paramiko").setLevel(logging.ERROR)
-
-
-class TunnelInfo(NamedTuple):
-    host: str
-    port: int
-    private_key_file: str
-
-
-logger = logging.getLogger(__name__)
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -244,17 +227,3 @@ class FileUploader:
     def upload_file(self, file_path: pathlib.Path):
         dbx_echo("Deploying file: %s" % file_path)
         mlflow.log_artifact(str(file_path), str(file_path.parent))
-
-
-def get_ssh_client(info: TunnelInfo) -> SSHClient:
-    client = SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(
-        hostname=info.host,
-        port=info.port,
-        username='root',
-        key_filename=info.private_key_file
-    )
-    transport = client.get_transport()
-    transport.set_keepalive(30)
-    return client

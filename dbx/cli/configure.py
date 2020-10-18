@@ -21,7 +21,7 @@ def configure(environment: str, workspace_dir: str, artifact_location: str, prof
 
     if not workspace_dir:
         workspace_dir = "/Shared/dbx/projects/%s" % Path(".").absolute().name
-        dbx_echo("Workspace directory is not provided, using the following directory: %s" % workspace_dir)
+        dbx_echo("Workspace directory argument is not provided, using the following directory: %s" % workspace_dir)
 
     if not Path(INFO_FILE_PATH).exists():
         InfoFile.initialize()

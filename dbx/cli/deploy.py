@@ -38,8 +38,7 @@ def deploy(
         jobs: str,
         requirements: str,
         tags: List[str],
-        environment: str
-):
+        environment: str):
     dbx_echo("Starting new deployment for environment %s" % environment)
 
     api_client = prepare_environment(environment)
@@ -230,7 +229,7 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
             file_path = pathlib.Path(candidate)
             adjusted_path = "%s/%s" % (adjustment, candidate)
             if file_uploader.file_exists(adjusted_path):
-                dbx_echo("File already is stored in the deployment, no action needed")
+                dbx_echo("File is already stored in the deployment, no action needed")
             else:
                 dbx_echo("Uploading file %s" % file_path)
                 file_uploader.upload_file(file_path)
