@@ -16,12 +16,7 @@ setup(
         "retry",
         "requests",
         "mlflow",
-        "tqdm",
-        "paramiko",
-        "cryptography",
-        "watchdog",
-        "urwid",
-        "sshconf"
+        "tqdm"
     ],
     entry_points='''
         [console_scripts]

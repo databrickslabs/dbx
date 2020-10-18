@@ -5,7 +5,6 @@ from dbx.cli.configure import configure
 from dbx.cli.deploy import deploy
 from dbx.cli.execute import execute
 from dbx.cli.launch import launch
-from dbx.cli.dev import dev_group
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -14,7 +13,6 @@ def cli():
     pass
 
 
-cli.add_command(dev_group, name='dev')
 cli.add_command(configure, name="configure")
 cli.add_command(deploy, name="deploy")
 cli.add_command(launch, name="launch")
