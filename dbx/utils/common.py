@@ -1,26 +1,26 @@
 import copy
 import datetime as dt
 import json
+import logging
 import os
 import pathlib
 import shutil
 from typing import Dict, Any, List
+from typing import NamedTuple
 
 import click
 import mlflow
+import paramiko
 import pkg_resources
 import requests
 from databricks_cli.configure.config import _get_api_client
 from databricks_cli.configure.provider import ProfileConfigProvider, DEFAULT_SECTION
+from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
+from paramiko.client import SSHClient
 from path import Path
 from retry import retry
-import logging
-from typing import NamedTuple, Optional
-import paramiko
-from paramiko.client import SSHClient
-from databricks_cli.dbfs.api import DbfsService
 
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = "%s/project.json" % DBX_PATH
