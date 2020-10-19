@@ -27,7 +27,6 @@ from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environme
               Option might be repeated multiple times.""")
 @click.option('--parameters', multiple=True, type=str,
               help="""Parameters of the job. If provided, default job arguments will be overridden.
-              Format: (--parameters="param_name=param_value"). 
               Option might be repeated multiple times.""")
 @environment_option
 def launch(
