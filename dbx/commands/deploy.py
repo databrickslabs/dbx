@@ -13,10 +13,9 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from dbx.utils.common import (
     dbx_echo, prepare_environment, read_json, DEFAULT_DEPLOYMENT_FILE_PATH,
-    environment_option, parse_multiple, FileUploader, handle_package
+    environment_option, parse_multiple, FileUploader, handle_package, get_package_file
 )
 from requests.exceptions import HTTPError
-from setuptools import sandbox
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -47,6 +46,7 @@ def deploy(
     additional_tags = parse_multiple(tags)
 
     handle_package(no_rebuild)
+    package_file = get_package_file()
 
     _verify_deployment_file(deployment_file)
 
@@ -75,7 +75,13 @@ def deploy(
 
         artifact_base_uri = deployment_run.info.artifact_uri
 
-        _adjust_job_definitions(deployment["jobs"], artifact_base_uri, requirements_payload, _file_uploader)
+        if package_file:
+            package_requirement = [{"whl": str(package_file)}]
+        else:
+            package_requirement = []
+
+        _adjust_job_definitions(deployment["jobs"], artifact_base_uri,
+                                requirements_payload, package_requirement, _file_uploader)
         deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
@@ -164,11 +170,13 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
 
 
 def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
-                            requirements_payload: List[Dict[str, str]], file_uploader: FileUploader):
+                            requirements_payload: List[Dict[str, str]],
+                            package_payload: List[Dict[str, str]],
+                            file_uploader: FileUploader):
     adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri, file_uploader)
     for job in jobs:
         _walk_content(adjustment_callback, job)
-        job["libraries"] = job.get("libraries", []) + requirements_payload
+        job["libraries"] = job.get("libraries", []) + requirements_payload + package_payload
 
 
 def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:

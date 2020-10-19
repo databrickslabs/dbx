@@ -4,11 +4,7 @@
       {
         "name": "sample",
         "new_cluster": {},
-        "libraries": [
-          {
-            "whl": "dist/package.whl"
-          }
-        ]
+        "libraries": []
       }
     ]
   }

@@ -4,7 +4,7 @@ import json
 import os
 import pathlib
 import shutil
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 import click
 import mlflow
@@ -211,6 +211,14 @@ def prepare_environment(environment: str):
     mlflow.set_experiment(environment_data["workspace_dir"])
 
     return api_client
+
+
+def get_package_file() -> Optional[pathlib.Path]:
+    file_locator = list(pathlib.Path("dist").glob("*.whl"))
+    if file_locator:
+        return file_locator[0]
+    else:
+        return None
 
 
 def handle_package(rebuild_arg):
