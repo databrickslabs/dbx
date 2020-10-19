@@ -168,7 +168,7 @@ class DeployTest(DbxTest):
 
             deploy_result = invoke_cli_runner(deploy, [
                 "--environment", "test",
-                "--requirements", "runtime_requirements.txt"
+                "--requirements-file", "runtime_requirements.txt"
             ])
 
             self.assertEqual(deploy_result.exit_code, 0)

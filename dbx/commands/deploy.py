@@ -11,12 +11,12 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-from requests.exceptions import HTTPError
-
 from dbx.utils.common import (
     dbx_echo, prepare_environment, read_json, DEFAULT_DEPLOYMENT_FILE_PATH,
     environment_option, parse_multiple, FileUploader
 )
+from requests.exceptions import HTTPError
+from setuptools import sandbox
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
@@ -27,7 +27,8 @@ from dbx.utils.common import (
               help="""Comma-separated list of job names to be deployed. 
               If not provided, all jobs from the deployment file will be deployed.
               """)
-@click.option("--requirements", required=False, type=str, help="Path to the file with pip-based requirements.")
+@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+@click.option("--no-rebuild", is_flag=True, help="Disable job rebuild")
 @click.option('--tags', multiple=True, type=str,
               help="""Additional tags for deployment in format (tag_name=tag_value). 
               Option might be repeated multiple times.""")
@@ -36,13 +37,24 @@ from dbx.utils.common import (
 def deploy(
         deployment_file: str,
         jobs: str,
-        requirements: str,
+        requirements_file: str,
         tags: List[str],
-        environment: str):
+        environment: str,
+        no_rebuild: bool):
     dbx_echo("Starting new deployment for environment %s" % environment)
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
+
+    if no_rebuild:
+        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
+    else:
+        dbx_echo("Re-building package")
+        if not pathlib.Path("setup.py").exists():
+            raise Exception(
+                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild")
+        sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
+        dbx_echo("Package re-build finished")
 
     _verify_deployment_file(deployment_file)
 
@@ -60,8 +72,8 @@ def deploy(
 
     requirements_payload = []
 
-    if requirements:
-        requirements_payload = _preprocess_requirements(requirements)
+    if requirements_file:
+        requirements_payload = _preprocess_requirements(requirements_file)
 
     _preprocess_deployment(deployment, requested_jobs)
 
@@ -104,13 +116,14 @@ def _preprocess_requirements(requirements):
     requirements_path = pathlib.Path(requirements)
 
     if not requirements_path.exists():
-        raise FileNotFoundError("Provided requirements file %s is non-existent" % requirements_path)
+        dbx_echo("Requirements file is not provided")
+        return []
+    else:
+        requirements_content = requirements_path.read_text().split("\n")
+        filtered_libraries = _delete_managed_libraries(requirements_content)
 
-    requirements_content = requirements_path.read_text().split("\n")
-    filtered_libraries = _delete_managed_libraries(requirements_content)
-
-    requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries]
-    return requirements_payload
+        requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries]
+        return requirements_payload
 
 
 def _log_deployments(deployment_data):

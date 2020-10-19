@@ -7,6 +7,6 @@ CLI Reference
 
 Each individual command has a detailed help screen accessible via ``dbx command_name --help``.
 
-.. click:: dbx.cli.cli:cli
+.. click:: dbx.cli:cli
   :prog: dbx
   :nested: full
