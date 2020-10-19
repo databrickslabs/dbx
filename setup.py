@@ -10,13 +10,13 @@ setup(
     packages=find_packages(exclude=['tests', 'tests.*']),
     setup_requires=['wheel'],
     install_requires=[
-        "path~=15.0.0",
-        "databricks-cli",
-        "click",
-        "retry",
-        "requests",
-        "mlflow",
-        "tqdm"
+        "path>=15.0.0",
+        "databricks-cli>=0.12.2",
+        "click>=7.1.2",
+        "retry>=0.9.2",
+        "requests>=2.24.0",
+        "mlflow>=1.11.0",
+        "tqdm>=4.50.0"
     ],
     entry_points='''
         [console_scripts]
