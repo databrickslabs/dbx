@@ -6,11 +6,9 @@ import mlflow
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-from setuptools import sandbox
-
 from dbx.utils.common import (
     dbx_echo, prepare_environment, FileUploader, ContextLockFile, ApiV1Client,
-    environment_option, DeploymentFile, DEFAULT_DEPLOYMENT_FILE_PATH
+    environment_option, DeploymentFile, DEFAULT_DEPLOYMENT_FILE_PATH, handle_package
 )
 
 
@@ -37,15 +35,7 @@ def execute(environment: str,
 
     dbx_echo("Executing job: %s with environment: %s on cluster: %s" % (job, environment, cluster_id))
 
-    if no_rebuild:
-        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
-    else:
-        dbx_echo("Re-building package")
-        if not pathlib.Path("setup.py").exists():
-            raise Exception(
-                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild")
-        sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
-        dbx_echo("Package re-build finished")
+    handle_package(no_rebuild)
 
     env_data = DeploymentFile(deployment_file).get_environment(environment)
 

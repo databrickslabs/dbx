@@ -13,7 +13,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from dbx.utils.common import (
     dbx_echo, prepare_environment, read_json, DEFAULT_DEPLOYMENT_FILE_PATH,
-    environment_option, parse_multiple, FileUploader
+    environment_option, parse_multiple, FileUploader, handle_package
 )
 from requests.exceptions import HTTPError
 from setuptools import sandbox
@@ -46,15 +46,7 @@ def deploy(
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
 
-    if no_rebuild:
-        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
-    else:
-        dbx_echo("Re-building package")
-        if not pathlib.Path("setup.py").exists():
-            raise Exception(
-                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild")
-        sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
-        dbx_echo("Package re-build finished")
+    handle_package(no_rebuild)
 
     _verify_deployment_file(deployment_file)
 

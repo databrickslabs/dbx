@@ -17,6 +17,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
 from retry import retry
+from setuptools import sandbox
 
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = "%s/project.json" % DBX_PATH
@@ -210,6 +211,18 @@ def prepare_environment(environment: str):
     mlflow.set_experiment(environment_data["workspace_dir"])
 
     return api_client
+
+
+def handle_package(rebuild_arg):
+    if rebuild_arg:
+        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
+    else:
+        dbx_echo("Re-building package")
+        if not pathlib.Path("setup.py").exists():
+            raise Exception(
+                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild")
+        sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
+        dbx_echo("Package re-build finished")
 
 
 class FileUploader:
