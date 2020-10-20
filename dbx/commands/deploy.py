@@ -55,7 +55,10 @@ def deploy(
     deployment = all_deployments.get(environment)
 
     if not deployment:
-        raise Exception("Provided environment %s is non-existent in the deployment file" % environment)
+        raise Exception(f"""
+        Requested environment {environment} is non-existent in the deployment file {deployment_file}.
+        Available environments are: {list(all_deployments.keys())}
+        """)
 
     if jobs:
         requested_jobs = jobs.split(",")
