@@ -207,6 +207,8 @@ def prepare_environment(environment: str):
 
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
     config = get_config_for_profile(environment_data["profile"])
+    if not config:
+        raise Exception("Couldn't get profile with name: %s. Please check the config settings" % config)
     api_client = _get_api_client(config, command_name="cicdtemplates-")
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
 
@@ -255,7 +257,7 @@ class FileUploader:
         except:
             return False
 
-    @retry(tries=10, delay=5, backoff=5)
+    @retry(tries=3, delay=1, backoff=0.3)
     def upload_file(self, file_path: pathlib.Path):
         dbx_echo("Deploying file: %s" % file_path)
         mlflow.log_artifact(str(file_path), str(file_path.parent))
