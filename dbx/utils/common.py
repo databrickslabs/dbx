@@ -221,10 +221,14 @@ def prepare_environment(environment: str):
 
 
 def get_package_file() -> Optional[pathlib.Path]:
+    dbx_echo("Locating package file")
     file_locator = list(pathlib.Path("dist").glob("*.whl"))
     if file_locator:
-        return file_locator[0]
+        file_path = file_locator[0]
+        dbx_echo(f"Package file located in: {file_path}")
+        return file_path
     else:
+        dbx_echo("Package file was not found")
         return None
 
 

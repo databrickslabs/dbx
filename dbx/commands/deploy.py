@@ -124,7 +124,7 @@ def _preprocess_requirements(requirements):
         requirements_content = requirements_path.read_text().split("\n")
         filtered_libraries = _delete_managed_libraries(requirements_content)
 
-        requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries]
+        requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries if req]
         return requirements_payload
 
 
@@ -179,8 +179,9 @@ def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
                             file_uploader: FileUploader):
     adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri, file_uploader)
     for job in jobs:
+        job["libraries"] = job.get("libraries", []) + package_payload
         _walk_content(adjustment_callback, job)
-        job["libraries"] = job.get("libraries", []) + requirements_payload + package_payload
+        job["libraries"] = job.get("libraries", []) + requirements_payload
 
 
 def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
@@ -248,7 +249,6 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
             if file_uploader.file_exists(adjusted_path):
                 dbx_echo("File is already stored in the deployment, no action needed")
             else:
-                dbx_echo("Uploading file %s" % file_path)
                 file_uploader.upload_file(file_path)
             return adjusted_path
         else:
