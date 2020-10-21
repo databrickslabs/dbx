@@ -17,7 +17,6 @@ from dbx.utils.common import (
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help="Launch the job by it's name on the given environment.")
-@click.option("--environment", required=True, type=str, help="Environment name.")
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
 @click.option("--kill-on-sigterm", is_flag=True, help="If provided, kills the job on SIGTERM (Ctrl+C) signal")
