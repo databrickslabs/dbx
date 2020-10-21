@@ -62,3 +62,6 @@ launch-local-azure:
 	cd dbx_dev_azure && dbx launch  \
 		--environment="test" \
 		--job="dbx_dev_azure-pipeline1"
+
+release: build
+	cp dist/* ~/IdeaProjects/cicd-templates/{{cookiecutter.project_slug}}/tools/*
