@@ -4,7 +4,6 @@ import shutil
 import tempfile
 from typing import Dict, Any, Union
 from typing import List
-
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
@@ -13,7 +12,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from dbx.utils.common import (
     dbx_echo, prepare_environment, read_json, DEFAULT_DEPLOYMENT_FILE_PATH,
-    environment_option, parse_multiple, FileUploader, handle_package, get_package_file
+    environment_option, parse_multiple, FileUploader, handle_package, get_package_file, get_current_branch_name
 )
 from requests.exceptions import HTTPError
 
@@ -44,7 +43,7 @@ def deploy(
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
-
+    branch_name = get_current_branch_name()
     handle_package(no_rebuild)
     package_file = get_package_file()
 
@@ -95,6 +94,8 @@ def deploy(
         }
 
         deployment_tags.update(additional_tags)
+        if branch_name:
+            deployment_tags["dbx_branch_name"] = branch_name
 
         mlflow.set_tags(deployment_tags)
         dbx_echo("Deployment for environment %s finished successfully" % environment)

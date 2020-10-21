@@ -7,11 +7,12 @@ import shutil
 from typing import Dict, Any, List, Optional
 
 import click
+import git
 import mlflow
 import pkg_resources
 import requests
 from databricks_cli.configure.config import _get_api_client
-from databricks_cli.configure.provider import ProfileConfigProvider, DEFAULT_SECTION
+from databricks_cli.configure.provider import DEFAULT_SECTION, get_config_for_profile
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
@@ -166,13 +167,19 @@ def dbx_echo(message: str):
 
 
 def generate_filter_string(env: str, tags: Dict[str, str]) -> str:
-    env_filter = ['tags.dbx_environment="%s"' % env]
-    # we are not using attribute.status due to it's behaviour with nested runs
-    status_filter = ['tags.dbx_status="SUCCESS"']
-    deploy_filter = ['tags.dbx_action_type="deploy"']
-    tags_filter = ['tags.%s="%s"' % (k, v) for k, v in tags.items()]
-    filters = status_filter + deploy_filter + env_filter + tags_filter
-    filter_string = " and ".join(filters)
+    general_filters = [
+        'tags.dbx_environment="%s"' % env,
+        'tags.dbx_status="SUCCESS"',
+        'tags.dbx_action_type="deploy"'
+    ]
+
+    branch_name = get_current_branch_name()
+    if branch_name:
+        general_filters.append(f'tags.dbx_branch_name="{branch_name}"')
+
+    tags_filters = ['tags.%s="%s"' % (k, v) for k, v in tags.items()]
+    all_filters = general_filters + tags_filters
+    filter_string = " and ".join(all_filters)
     return filter_string
 
 
@@ -199,7 +206,7 @@ def prepare_environment(environment: str):
         raise Exception("No environment %s provided in the project file" % environment)
 
     mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
-    config = ProfileConfigProvider(environment_data["profile"]).get_config()
+    config = get_config_for_profile(environment_data["profile"])
     api_client = _get_api_client(config, command_name="cicdtemplates-")
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
 
@@ -248,3 +255,11 @@ class FileUploader:
     def upload_file(self, file_path: pathlib.Path):
         dbx_echo("Deploying file: %s" % file_path)
         mlflow.log_artifact(str(file_path), str(file_path.parent))
+
+
+def get_current_branch_name() -> Optional[str]:
+    try:
+        repo = git.Repo(".")
+        return repo.active_branch.name
+    except git.InvalidGitRepositoryError:
+        return None

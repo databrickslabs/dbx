@@ -10,7 +10,9 @@ from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from typing import List
-from dbx.utils.common import dbx_echo, generate_filter_string, prepare_environment, environment_option, parse_multiple
+from dbx.utils.common import (
+    dbx_echo, generate_filter_string, prepare_environment, environment_option, parse_multiple,
+)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS,
