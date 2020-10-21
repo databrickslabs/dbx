@@ -28,15 +28,6 @@ class ConfigureTest(DbxTest):
             self.assertEqual(env["profile"], self.profile_name)
             self.assertEqual(env["workspace_dir"], ws_dir)
 
-            # repeating test for the second time to check if configure raises error with the same arguments
-            second_result = invoke_cli_runner(configure, [
-                "--environment", "test",
-                "--profile", self.profile_name,
-                "--workspace-dir", ws_dir
-            ], expected_error=True)
-
-            self.assertEqual(second_result.exit_code, 1)
-
 
 if __name__ == '__main__':
     unittest.main()
