@@ -264,12 +264,15 @@ class FileUploader:
 
 
 def get_current_branch_name() -> Optional[str]:
-    try:
-        repo = git.Repo(".")
-        if repo.head.is_detached:
-            detached_branch = [b for b in repo.branches if b.is_detached][0]
-            return detached_branch.name
-        else:
-            return repo.active_branch.name
-    except git.InvalidGitRepositoryError:
-        return None
+    if "GITHUB_REF" in os.environ:
+        ref = os.environ["GITHUB_REF"].split("/")
+        return ref[-1]
+    else:
+        try:
+            repo = git.Repo(".")
+            if repo.head.is_detached:
+                return None
+            else:
+                return repo.active_branch.name
+        except git.InvalidGitRepositoryError:
+            return None
