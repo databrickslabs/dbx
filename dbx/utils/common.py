@@ -184,7 +184,7 @@ def generate_filter_string(env: str, tags: Dict[str, str]) -> str:
 
 
 def environment_option(f):
-    return click.option('-e', '--environment', required=True, default=None,
+    return click.option('-e', '--environment', required=False, default="default",
                         help='Environment name.')(f)
 
 
