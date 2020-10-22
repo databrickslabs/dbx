@@ -10,6 +10,7 @@ dist
 
 # Unit test / coverage reports
 .coverage
+.coverage.*
 coverage.xml
 junit/*
 htmlcov/*

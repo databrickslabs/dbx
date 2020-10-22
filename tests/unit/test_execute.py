@@ -1,5 +1,4 @@
 import datetime as dt
-import pathlib
 import unittest
 from unittest.mock import patch
 
@@ -10,7 +9,6 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.commands.configure import configure
 from dbx.commands.execute import execute
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
-from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
 
 run_info = RunInfo(
     run_uuid="1",
@@ -52,27 +50,10 @@ class ExecuteTest(DbxTest):
             ])
             self.assertEqual(configure_result.exit_code, 0)
 
-            pathlib.Path("pipelines/pipeline1/entrypoint.py").write_text("""
-            spark.createDataFrame([(1,)], "id long")
-            """)
-
-            deployment_content = {
-                "test": {
-                    "jobs": [{
-                        "name": "test-job",
-                        "spark_python_task": {
-                            "python_file": "pipelines/pipeline1/entrypoint.py"
-                        }
-                    }]
-                }
-            }
-
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
-
             execute_result = invoke_cli_runner(execute, [
-                "--environment", "test",
+                "--environment", "default",
                 "--cluster-id", "000-some-cluster-id",
-                "--job", "test-job"
+                "--job", f"{self.project_name}-sample"
             ])
 
             self.assertEqual(execute_result.exit_code, 0)
