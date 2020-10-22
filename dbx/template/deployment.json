@@ -1,0 +1,11 @@
+{
+  "default": {
+    "jobs": [
+      {
+        "name": "sample",
+        "new_cluster": {},
+        "libraries": []
+      }
+    ]
+  }
+}

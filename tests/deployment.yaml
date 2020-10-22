@@ -1,3 +1,0 @@
-model-name: LSTMForecasting2
-experiment-path: /Users/michael.shtelma@databricks.com/experiments/mlflowcicd
-cloud: aws

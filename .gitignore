@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+dev_dbx_azure/
+# Distribution / packaging
+*.egg-info/
+build
+dist
+
+# Unit test / coverage reports
+.coverage
+coverage.xml
+junit/*
+htmlcov/*
+
+# Caches
+.pytest_cache/
+mlruns
+
+# VSCode
+.vscode/
+
+# Idea
+.idea/
+*.iml
+
+# MacOS
+.DS_Store
+
+# Docs
+docs/build
+
+# Artifact
+artifact/
+
+htmlcov
