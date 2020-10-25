@@ -26,7 +26,8 @@ from requests.exceptions import HTTPError
               If not provided, all jobs from the deployment file will be deployed.
               """)
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")
-@click.option("--no-rebuild", is_flag=True, help="Disable job rebuild")
+@click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
+@click.option("--no-package", is_flag=True, help="Do not add package reference into the job description")
 @click.option('--tags', multiple=True, type=str,
               help="""Additional tags for deployment in format (tag_name=tag_value). 
               Option might be repeated multiple times.""")
@@ -38,7 +39,9 @@ def deploy(
         requirements_file: str,
         tags: List[str],
         environment: str,
-        no_rebuild: bool):
+        no_rebuild: bool,
+        no_package: bool
+):
     dbx_echo("Starting new deployment for environment %s" % environment)
 
     api_client = prepare_environment(environment)
@@ -77,10 +80,15 @@ def deploy(
 
         artifact_base_uri = deployment_run.info.artifact_uri
 
-        if package_file:
-            package_requirement = [{"whl": str(package_file)}]
-        else:
+        if no_package:
+            dbx_echo("No package definition will be added into job description")
             package_requirement = []
+        else:
+            if package_file:
+                package_requirement = [{"whl": str(package_file)}]
+            else:
+                dbx_echo("Package file was not found! Please check your /dist/ folder")
+                package_requirement = []
 
         _adjust_job_definitions(deployment["jobs"], artifact_base_uri,
                                 requirements_payload, package_requirement, _file_uploader)
