@@ -194,7 +194,7 @@ def profile_option(f):
 
 
 def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
-    p = str(pathlib.PosixPath(ws_dir).parent)
+    p = str(pathlib.PurePosixPath(ws_dir).parent)
     service = WorkspaceService(api_client)
     service.mkdirs(p)
 
