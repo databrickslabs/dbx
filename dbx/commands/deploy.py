@@ -251,9 +251,12 @@ def _walk_content(func, content, parent=None, index=None):
 
 def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
     if isinstance(candidate, str):
+        dbx_echo(f"Checking string object: {candidate}")
         if pathlib.Path(candidate).exists():
+            dbx_echo(f"Found existing path {candidate}")
             file_path = pathlib.Path(candidate)
-            adjusted_path = "%s/%s" % (adjustment, candidate)
+            adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
+            dbx_echo(f"Adjusted path: {adjusted_path}")
             if file_uploader.file_exists(adjusted_path):
                 dbx_echo("File is already stored in the deployment, no action needed")
             else:
