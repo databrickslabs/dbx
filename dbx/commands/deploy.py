@@ -252,7 +252,9 @@ def _walk_content(func, content, parent=None, index=None):
 def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
     if isinstance(candidate, str):
         dbx_echo(f"Checking string object: {candidate}")
-        if pathlib.Path(candidate).exists():
+        if candidate.startswith("dbfs"):
+            return candidate
+        elif pathlib.Path(candidate).exists():
             dbx_echo(f"Found existing path {candidate}")
             file_path = pathlib.Path(candidate)
             adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
