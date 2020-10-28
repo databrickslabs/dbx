@@ -262,7 +262,7 @@ class FileUploader:
         posix_path_str = file_path.as_posix()
         posix_path = pathlib.PurePosixPath(posix_path_str)
         dbx_echo("Deploying file: %s" % file_path)
-        mlflow.log_artifact(str(posix_path), str(posix_path.parent))
+        mlflow.log_artifact(str(file_path), str(posix_path.parent))
 
 
 def get_current_branch_name() -> Optional[str]:
