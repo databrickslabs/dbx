@@ -261,7 +261,7 @@ class FileUploader:
     def upload_file(self, file_path: pathlib.Path):
         posix_path_str = file_path.as_posix()
         posix_path = pathlib.PurePosixPath(posix_path_str)
-        dbx_echo("Deploying file: %s" % file_path)
+        dbx_echo(f"Deploying file: {file_path} with parent: {posix_path.parent}")
         mlflow.log_artifact(str(file_path), str(posix_path.parent))
 
 
