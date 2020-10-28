@@ -90,7 +90,7 @@ def execute(environment: str,
 
         project_package_path = list(pathlib.Path(".").rglob("dist/*.whl"))[0]
         file_uploader.upload_file(project_package_path)
-        localized_package_path = "%s/%s" % (localized_base_path, str(project_package_path))
+        localized_package_path = "%s/%s" % (localized_base_path, project_package_path.as_posix())
         installation_command = "%pip install --upgrade {path}".format(path=localized_package_path)
         execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
         dbx_echo("Package installed")
