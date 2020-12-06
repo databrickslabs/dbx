@@ -11,12 +11,6 @@ jobs:
       matrix:
         python-version: [ 3.7 ]
 
-    env:
-      AWS_DATABRICKS_HOST: ${{ secrets.AWS_DATABRICKS_HOST }}
-      AWS_DATABRICKS_TOKEN: ${{ secrets.AWS_DATABRICKS_TOKEN }}
-      AZURE_DATABRICKS_HOST: ${{ secrets.AZURE_DATABRICKS_HOST }}
-      AZURE_DATABRICKS_TOKEN: ${{ secrets.AZURE_DATABRICKS_TOKEN }}
-
     steps:
       - uses: actions/checkout@v1
 
@@ -46,17 +40,7 @@ jobs:
         run: |
           make install-dev
 
-      - name: Configure profiles
-        run: |
-          echo "[dbx-dev-aws]" >> ~/.databrickscfg
-          echo "host = $AWS_DATABRICKS_HOST" >> ~/.databrickscfg
-          echo "token = $AWS_DATABRICKS_TOKEN" >> ~/.databrickscfg
-          echo "" >> ~/.databrickscfg
-          echo "[dbx-dev-azure]" >> ~/.databrickscfg
-          echo "host = $AZURE_DATABRICKS_HOST" >> ~/.databrickscfg
-          echo "token = $AZURE_DATABRICKS_TOKEN" >> ~/.databrickscfg
-
-      - name: Run tests
+      - name: Run unit tests
         run:  pytest tests/unit --cov dbx
 
       - name: Generate artifact

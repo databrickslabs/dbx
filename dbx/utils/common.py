@@ -12,7 +12,7 @@ import mlflow
 import pkg_resources
 import requests
 from databricks_cli.configure.config import _get_api_client
-from databricks_cli.configure.provider import DEFAULT_SECTION, get_config_for_profile
+from databricks_cli.configure.provider import DEFAULT_SECTION, ProfileConfigProvider, EnvironmentVariableConfigProvider
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
@@ -203,12 +203,26 @@ def prepare_environment(environment: str):
     if not environment_data:
         raise Exception("No environment %s provided in the project file" % environment)
 
-    mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
-    config = get_config_for_profile(environment_data["profile"])
-    if not config:
-        raise Exception("Couldn't get profile with name: %s. Please check the config settings" % config)
+    config = EnvironmentVariableConfigProvider().get_config()
+    if config:
+        config_type = "ENV"
+        dbx_echo("Using configuration from the environment variables")
+    else:
+        dbx_echo("No environment variables provided, using the ~/.databrickscfg")
+        config = ProfileConfigProvider(environment_data["profile"]).get_config()
+        config_type = "PROFILE"
+        if not config:
+            raise Exception("Couldn't get profile with name: %s. Please check the config settings" % config)
+
     api_client = _get_api_client(config, command_name="cicdtemplates-")
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
+
+    if config_type == "ENV":
+        mlflow.set_tracking_uri(DATABRICKS_MLFLOW_URI)
+    elif config_type == "PROFILE":
+        mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
+    else:
+        raise NotImplementedError("Config type: %s is not implemented" % config_type)
 
     experiment = mlflow.get_experiment_by_name(environment_data["workspace_dir"])
 
