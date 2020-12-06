@@ -34,12 +34,11 @@ class AzureE2ETest(unittest.TestCase):
         self._project_name = f"dbx_dev_azure_{str(uuid4()).split('-')[0]}"
         self._temp_dir = tempfile.mkdtemp()
         cookiecutter("https://github.com/databrickslabs/cicd-templates.git",
-                     checkout="dbx",
                      output_dir=self._temp_dir,
                      extra_context={
                          "cloud": "Azure",
                          "project_name": self._project_name,
-                         "environment": "dbx-dev-azure"
+                         "environment": "demo-az"
                      },
                      no_input=True)
 
@@ -48,24 +47,21 @@ class AzureE2ETest(unittest.TestCase):
         logging.info(f"Local project directory: {project_path}")
         with project_path:
             configure_result = invoke_cli_runner(configure, [
-                "-e", "dbx-dev-azure",
-                "--profile", "dbx-dev-azure",
+                "--profile", "demo-az",
                 "--workspace-dir", f"/dbx/projects/{self._project_name}"
             ])
 
             self.assertEqual(configure_result.exit_code, 0)
             logging.info(configure_result.output)
             deploy_result = invoke_cli_runner(deploy, [
-                "-e", "dbx-dev-azure",
                 "--requirements-file", "unit-requirements.txt"
             ])
 
             self.assertEqual(deploy_result.exit_code, 0)
             logging.info(deploy_result.output)
 
-            logging.info("Launching job ib the e2e test")
+            logging.info("Launching job in the e2e test")
             launch_result = invoke_cli_runner(launch, [
-                "-e", "dbx-dev-azure",
                 "--job", f"{self._project_name}-sample",
                 "--trace"
             ])

@@ -45,11 +45,7 @@ artifact: build docs-pdf
 
 test-local-azure:
 	rm -rf dbx_dev_azure
-	cookiecutter https://github.com/databrickslabs/cicd-templates.git --no-input project_name=dbx_dev_azure environment=dbx-dev-azure cloud=Azure --checkout dbx
-	cd dbx_dev_azure && dbx configure  \
-		--environment=dev \
-		--workspace-dir=/dbx/projects/dbx_dev_azure \
-		--profile=dbx-dev-azure
+	cookiecutter https://github.com/databrickslabs/cicd-templates.git --no-input project_name=dbx_dev_azure environment=demo-az cloud=Azure
 
 deploy-local-azure:
 	cd dbx_dev_azure && python setup.py clean bdist_wheel

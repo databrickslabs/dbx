@@ -27,7 +27,7 @@ def configure(environment: str, workspace_dir: str, artifact_location: str, prof
         InfoFile.initialize()
 
     if InfoFile.get("environments").get(environment):
-        dbx_echo("Environment %s will be overridden with new properties")
+        dbx_echo(f"Environment {environment} will be overridden with new properties")
 
     if not artifact_location:
         artifact_location = f'dbfs:/dbx/{Path(".").absolute().name}'
