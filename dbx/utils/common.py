@@ -46,7 +46,10 @@ def write_json(content: Dict[str, Any], file_path: str):
 
 
 def update_json(new_content: Dict[str, Any], file_path: str):
-    content = read_json(file_path)
+    try:
+        content = read_json(file_path)
+    except FileNotFoundError:
+        content = {}
     content.update(new_content)
     write_json(content, file_path)
 
@@ -59,15 +62,10 @@ class ContextLockFile:
 
     @staticmethod
     def get_context() -> Any:
-        return read_json(LOCK_FILE_PATH).get("context_id")
-
-    @staticmethod
-    def set_url(ssh_url: str) -> None:
-        update_json({"ssh_url": ssh_url}, LOCK_FILE_PATH)
-
-    @staticmethod
-    def get_url() -> Any:
-        return read_json(LOCK_FILE_PATH).get("ssh_url")
+        if pathlib.Path(LOCK_FILE_PATH).exists():
+            return read_json(LOCK_FILE_PATH).get("context_id")
+        else:
+            return None
 
 
 class DeploymentFile:
