@@ -251,6 +251,7 @@ def _walk_content(func, content, parent=None, index=None):
 
 def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
     if isinstance(candidate, str):
+        # path already adjusted or points to another dbfs object - pass it
         if candidate.startswith("dbfs"):
             return candidate
         elif pathlib.Path(candidate).exists():
