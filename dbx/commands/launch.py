@@ -14,6 +14,12 @@ from dbx.utils.common import (
     dbx_echo, generate_filter_string, prepare_environment, environment_option, parse_multiple,
 )
 
+TERMINAL_RUN_LIFECYCLE_STATES = [
+    "TERMINATED",
+    "SKIPPED",
+    "INTERNAL_ERROR"
+]
+
 
 @click.command(context_settings=CONTEXT_SETTINGS,
                short_help="Launch the job by it's name on the given environment.")
@@ -77,7 +83,8 @@ def launch(
 
             for run in active_runs:
                 if existing_runs == "pass":
-                    pass
+                    dbx_echo("Passing the existing runs status check")
+
                 if existing_runs == "wait":
                     dbx_echo("Waiting for job run with id %s to be finished" % run["run_id"])
                     _wait_run(api_client, run)
@@ -128,12 +135,7 @@ def launch(
 def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
     jobs_service = JobsService(api_client)
     jobs_service.cancel_run(run_data["run_id"])
-    while True:
-        time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
-        status = _get_run_status(api_client, run_data)
-        result_state = status["state"].get("result_state", None)
-        if result_state:
-            return None
+    _wait_run(api_client, run_data)
 
 
 def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
@@ -145,28 +147,36 @@ def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
     return deployments
 
 
-def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]):
+def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
+    dbx_echo(f"Tracing run with id {run_data['run_id']}")
     while True:
         time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
         status = _get_run_status(api_client, run_data)
-        result_state = status["state"].get("result_state", None)
-        if result_state:
-            return None
+        run_state = status["state"]
+        result_state = run_state.get("result_state", None)
+        life_cycle_state = run_state.get("life_cycle_state", None)
+        state_message = run_state.get("state_message")
+
+        dbx_echo(
+            f"[Run Id: {run_data['run_id']}] Current run status info - "
+            f"result state: {result_state}, "
+            f"lifecycle state: {life_cycle_state}, "
+            f"state message: {state_message}")
+
+
+        if life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
+            dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
+            return status
 
 
 def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
-    while True:
-        status = _get_run_status(api_client, run_data)
-        result_state = status["state"].get("result_state", None)
-        if result_state:
-            if result_state == "SUCCESS":
-                dbx_echo("Job run finished successfully")
-                return "SUCCESS"
-            else:
-                return "ERROR"
-        else:
-            dbx_echo("Job run is not yet finished, current status message: %s" % status["state"]["state_message"])
-            time.sleep(5)
+    final_status = _wait_run(api_client, run_data)
+    result_state = final_status["state"].get("result_state", None)
+    if result_state == "SUCCESS":
+        dbx_echo("Job run finished successfully")
+        return "SUCCESS"
+    else:
+        return "ERROR"
 
 
 def _get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
