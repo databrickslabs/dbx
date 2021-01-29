@@ -212,7 +212,7 @@ def prepare_environment(environment: str):
         config = ProfileConfigProvider(environment_data["profile"]).get_config()
         config_type = "PROFILE"
         if not config:
-            raise Exception("Couldn't get profile with name: %s. Please check the config settings" % config)
+            raise Exception("Couldn't get profile with name: %s. Please check the config settings" % environment_data["profile"])
 
     api_client = _get_api_client(config, command_name="cicdtemplates-")
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
