@@ -1,28 +1,61 @@
 dbx by Databricks Labs
 ======================
 
-DataBricks eXtensions - aka :code:`dbx` is a project, developed by Databricks Labs to provide functionality for rapid development lifecycle on Databricks platform.
+DataBricks eXtensions - aka :code:`dbx` is a CLI tool for advanced jobs management in CI/CD pipelines.
 
-Project Support
-===============
+Concept
+-------
 
-Please note that all projects in the databrickslabs github account are provided for your exploration only, and are not formally supported by Databricks with Service Level Agreements (SLAs). 
-They are provided AS-IS and we do not make any guarantees of any kind. Please do not submit a support ticket relating to any issues arising from the use of these projects.
+:code:`dbx` simplifies daily routine operations, such as jobs launch and deployment across multiple environments.
+Designed as a CLI-tool, it is built to be actively used both inside CI/CD pipelines, and as a local CLI tool for fast prototyping.
 
-Any issues discovered through the use of this project should be filed as GitHub Issues on the Repo. They will be reviewed as time permits, but there are no formal SLAs for support.
+Quickstart
+----------
 
-Documentation
-=============
+Docs & Examples
+---------------
 
-Please refer to the documentation in docs folder.
+Both documentation and examples could e found in the `docs <docs>`_ folder.
 
-Developer documentation and notes
-=================================
+Differences from other tools
+----------------------------
 
-To launch :code:`dbx` integration tests from a local machine, please prepare two profiles:
+#TBD
 
-* :code:`dbx-dev-aws`
-* :code:`dbx-dev-azure`
+* databricks-cli
+* mlflow cli
+* terraform provider
+* cicd-templates
+* Databricks Stack CLI
+
+Limitations
+-----------
+
+# TBD
+
+Developer docs
+--------------
+
+# TBD
+
+Legal Information
+-----------------
+
+This software is provided as-is and is not officially supported by Databricks through customer technical support channels.
+Support, questions, and feature requests can be communicated through the Issues page of this repo.
+Please see the legal agreement and understand that issues with the use of this code will not be answered or investigated by Databricks Support.
+
+Feedback
+--------
+
+Issues with :code:`dbx`? Found a bug? Have a great idea for an addition? Feel free to file an issue.
+
+Contributing
+------------
+
+Have a great idea that you want to add? Fork the repo and submit a PR!
+
+
 
 
 
