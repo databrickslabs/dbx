@@ -6,11 +6,27 @@ DataBricks eXtensions - aka :code:`dbx` is a CLI tool for advanced jobs manageme
 Concept
 -------
 
-:code:`dbx` simplifies daily routine operations, such as jobs launch and deployment across multiple environments.
+:code:`dbx` simplifies jobs launch and deployment process across multiple environments.
 Designed as a CLI-tool, it is built to be actively used both inside CI/CD pipelines, and as a local CLI tool for fast prototyping.
 
-Quickstart
-----------
+Requirements
+------------
+
+* Python Version > 3.6
+* :code:`pip` or :code:`conda`
+
+Installation
+------------
+
+* with :code:`pip`:
+
+.. code-block:: python
+    pip install dbx
+
+* with :code:`conda`:
+
+.. code-block:: python
+    conda install dbx
 
 Docs & Examples
 ---------------
@@ -20,23 +36,26 @@ Both documentation and examples could e found in the `docs <docs>`_ folder.
 Differences from other tools
 ----------------------------
 
-#TBD
-
-* databricks-cli
-* mlflow cli
-* terraform provider
-* cicd-templates
-* Databricks Stack CLI
++-------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Tool                          | Comment                                                                                                                                                                                                                                               |
++===============================+=======================================================================================================================================================================================================================================================+
+| `databricks-cli <https://github.com/databricks/databricks-cli>`_                                   | dbx is NOT a replacement for databricks-cli. Quite the opposite - dbx is heavily dependent on databricks-cli and uses most of the APIs exactly from databricks-cli SDK.          |
++-------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `mlflow cli <https://www.mlflow.org/docs/latest/cli.html>`_                                        | dbx is NOT a replacement for mlflow cli. dbx uses some of the MLflow APIs under the hood to store serialized job objects, but doesn't use mlflow CLI directly.                   |
++-------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `Databricks Terraform Provider <https://github.com/databrickslabs/terraform-provider-databricks>`_ | While dbx is primarily oriented on versioned job management, Databricks Terraform Provider provides much wider set of infrastructure settings.                                   |
++-------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `cicd-templates <https://github.com/databrickslabs/cicd-templates>`_                               | cicd-templates is a Python project template, which actively uses dbx for jobs management and CI-related operations. You can choose, whenever you would like to use this template, or use dbx separately and choose the project structure on your own. |
++-------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `Databricks Stack CLI <https://docs.databricks.com/dev-tools/cli/stack-cli.html>`_                 | Databricks Stack CLI is a great component for managing a stack of objects. dbx concentrates on the versioning and packaging jobs together, not treating files and notebooks as a separate component.                                                  |
++-------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Limitations
 -----------
 
-# TBD
+* Python > 3.6
+* :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X
 
-Developer docs
---------------
-
-# TBD
 
 Legal Information
 -----------------
