@@ -1,6 +1,15 @@
 name: Python package
 
-on: [ push ]
+on:
+  push:
+    branches-ignore:
+      - 'master' # the branch will be tested before push to master
+    tags-ignore:
+      - '*.*'
+    paths-ignore:
+      # since we're not using autodoc, if we change documentation only, we don't need to run tests
+      - 'README.rst'
+      - 'docs'
 
 jobs:
   test-pipeline:
