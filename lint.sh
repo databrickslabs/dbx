@@ -1,10 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -ex
 
-set -ex
-
-FWDIR="$(cd "`dirname $0`"; pwd)"
-cd "$FWDIR"
-
-prospector --profile "$FWDIR/prospector.yaml"
-
+prospector --profile prospector.yaml
 rstcheck README.rst
