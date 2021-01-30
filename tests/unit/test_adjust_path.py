@@ -56,9 +56,14 @@ class AdjustPathTest(unittest.TestCase):
         package_requirement = []
         api_client = MagicMock()
         _file_uploader = FileUploader(api_client)
-        _adjust_job_definitions(deployment["jobs"], artifact_base_uri,
-                                requirements_payload, package_requirement, _file_uploader)
+        _adjust_job_definitions(
+            deployment["jobs"],
+            artifact_base_uri,
+            requirements_payload,
+            package_requirement,
+            _file_uploader,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

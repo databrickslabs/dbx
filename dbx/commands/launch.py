@@ -11,41 +11,59 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from typing import List
 from dbx.utils.common import (
-    dbx_echo, generate_filter_string, prepare_environment, environment_option, parse_multiple,
+    dbx_echo,
+    generate_filter_string,
+    prepare_environment,
+    environment_option,
+    parse_multiple,
 )
 
-TERMINAL_RUN_LIFECYCLE_STATES = [
-    "TERMINATED",
-    "SKIPPED",
-    "INTERNAL_ERROR"
-]
+TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 
 
-@click.command(context_settings=CONTEXT_SETTINGS,
-               short_help="Launch the job by it's name on the given environment.")
+@click.command(
+    context_settings=CONTEXT_SETTINGS,
+    short_help="Launch the job by it's name on the given environment.",
+)
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
-@click.option("--kill-on-sigterm", is_flag=True, help="If provided, kills the job on SIGTERM (Ctrl+C) signal")
-@click.option("--existing-runs", type=click.Choice(["wait", "cancel", "pass"]), default="pass",
-              help="Strategy to handle existing active job runs.")
-@click.option('--tags', multiple=True, type=str,
-              help="""Additional tags to search for the latest deployment.
+@click.option(
+    "--kill-on-sigterm",
+    is_flag=True,
+    help="If provided, kills the job on SIGTERM (Ctrl+C) signal",
+)
+@click.option(
+    "--existing-runs",
+    type=click.Choice(["wait", "cancel", "pass"]),
+    default="pass",
+    help="Strategy to handle existing active job runs.",
+)
+@click.option(
+    "--tags",
+    multiple=True,
+    type=str,
+    help="""Additional tags to search for the latest deployment.
               Format: (--tags="tag_name=tag_value"). 
-              Option might be repeated multiple times.""")
-@click.option('--parameters', multiple=True, type=str,
-              help="""Parameters of the job. If provided, default job arguments will be overridden.
-              Option might be repeated multiple times.""")
+              Option might be repeated multiple times.""",
+)
+@click.option(
+    "--parameters",
+    multiple=True,
+    type=str,
+    help="""Parameters of the job. If provided, default job arguments will be overridden.
+              Option might be repeated multiple times.""",
+)
 @environment_option
 def launch(
-        environment: str,
-        job: str,
-        trace: bool,
-        kill_on_sigterm: bool,
-        existing_runs: str,
-        tags: List[str],
-        parameters: List[str]
+    environment: str,
+    job: str,
+    trace: bool,
+    kill_on_sigterm: bool,
+    existing_runs: str,
+    tags: List[str],
+    parameters: List[str],
 ):
-    dbx_echo("Launching job %s on environment %s" % (job, environment))
+    dbx_echo(f"Launching job {job} on environment {environment}")
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
@@ -56,11 +74,13 @@ def launch(
     runs = mlflow.search_runs(filter_string=filter_string, max_results=1)
 
     if runs.empty:
-        raise EnvironmentError("""
+        raise EnvironmentError(
+            f"""
         No runs provided per given set of filters:
-            %s
-        Please check filters experiment UI to verify current status of deployments.
-        """ % filter_string)
+            {filter_string}
+        Please check experiment UI to verify current status of deployments.
+        """
+        )
 
     run_info = runs.iloc[0].to_dict()
 
@@ -76,27 +96,39 @@ def launch(
             job_id = deployments.get(job)
 
             if not job_id:
-                raise Exception("Job with name %s not found in the latest deployment" % job)
+                raise Exception(
+                    f"Job with name {job} not found in the latest deployment" % job
+                )
 
             jobs_service = JobsService(api_client)
-            active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
+            active_runs = jobs_service.list_runs(job_id, active_only=True).get(
+                "runs", []
+            )
 
             for run in active_runs:
                 if existing_runs == "pass":
                     dbx_echo("Passing the existing runs status check")
 
                 if existing_runs == "wait":
-                    dbx_echo("Waiting for job run with id %s to be finished" % run["run_id"])
+                    dbx_echo(
+                        f'Waiting for job run with id {run["run_id"]} to be finished'
+                    )
                     _wait_run(api_client, run)
 
                 if existing_runs == "cancel":
-                    dbx_echo("Cancelling run with id %s" % run["run_id"])
+                    dbx_echo(f'Cancelling run with id {run["run_id"]}')
                     _cancel_run(api_client, run)
 
             if override_parameters:
-                _prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
-                dbx_echo(f"Default launch parameters are overridden with the following: {_prepared_parameters}")
-                run_data = jobs_service.run_now(job_id, python_params=_prepared_parameters)
+                _prepared_parameters = sum(
+                    [[k, v] for k, v in override_parameters.items()], []
+                )
+                dbx_echo(
+                    f"Default launch parameters are overridden with the following: {_prepared_parameters}"
+                )
+                run_data = jobs_service.run_now(
+                    job_id, python_params=_prepared_parameters
+                )
             else:
                 run_data = jobs_service.run_now(job_id)
 
@@ -114,19 +146,23 @@ def launch(
                 else:
                     dbx_status = _trace_run(api_client, run_data)
                 if dbx_status == "ERROR":
-                    raise Exception("Tracked job failed during execution. Please check Databricks UI for job logs")
+                    raise Exception(
+                        "Tracked job failed during execution. Please check Databricks UI for job logs"
+                    )
                 else:
                     dbx_echo("Launch command finished")
             else:
                 dbx_status = "NOT_TRACKED"
-                dbx_echo("Job successfully launched in non-tracking mode. Please check Databricks UI for job status")
+                dbx_echo(
+                    "Job successfully launched in non-tracking mode. Please check Databricks UI for job status"
+                )
 
             deployment_tags = {
                 "job_id": job_id,
                 "run_id": run_data["run_id"],
                 "dbx_action_type": "launch",
                 "dbx_status": dbx_status,
-                "dbx_environment": environment
+                "dbx_environment": environment,
             }
 
             mlflow.set_tags(deployment_tags)
@@ -140,7 +176,7 @@ def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
 
 def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
     dbfs_service = DbfsService(api_client)
-    dbx_deployments = "%s/.dbx/deployments.json" % artifact_base_uri
+    dbx_deployments = f"{artifact_base_uri}/.dbx/deployments.json"
     raw_config_payload = dbfs_service.read(dbx_deployments)["data"]
     payload = base64.b64decode(raw_config_payload).decode("utf-8")
     deployments = json.loads(payload)
@@ -150,7 +186,9 @@ def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
 def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
     dbx_echo(f"Tracing run with id {run_data['run_id']}")
     while True:
-        time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
+        time.sleep(
+            5
+        )  # runs API is eventually consistent, it's better to have a short pause for status update
         status = _get_run_status(api_client, run_data)
         run_state = status["state"]
         result_state = run_state.get("result_state", None)
@@ -161,7 +199,8 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]
             f"[Run Id: {run_data['run_id']}] Current run status info - "
             f"result state: {result_state}, "
             f"lifecycle state: {life_cycle_state}, "
-            f"state message: {state_message}")
+            f"state message: {state_message}"
+        )
 
         if life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
             dbx_echo(f"Finished tracing run with id {run_data['run_id']}")

@@ -11,38 +11,67 @@ from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from dbx.utils.common import (
-    dbx_echo, prepare_environment, read_json, DEFAULT_DEPLOYMENT_FILE_PATH,
-    environment_option, parse_multiple, FileUploader, handle_package, get_package_file, get_current_branch_name
+    dbx_echo,
+    prepare_environment,
+    read_json,
+    DEFAULT_DEPLOYMENT_FILE_PATH,
+    environment_option,
+    parse_multiple,
+    FileUploader,
+    handle_package,
+    get_package_file,
+    get_current_branch_name,
 )
 from requests.exceptions import HTTPError
 
 
-@click.command(context_settings=CONTEXT_SETTINGS,
-               short_help="""Deploy project to artifact storage.""")
-@click.option("--deployment-file", required=False, type=str,
-              help="Path to deployment file in json format", default=DEFAULT_DEPLOYMENT_FILE_PATH)
-@click.option("--jobs", required=False, type=str,
-              help="""Comma-separated list of job names to be deployed. 
+@click.command(
+    context_settings=CONTEXT_SETTINGS,
+    short_help="""Deploy project to artifact storage.""",
+)
+@click.option(
+    "--deployment-file",
+    required=False,
+    type=str,
+    help="Path to deployment file in json format",
+    default=DEFAULT_DEPLOYMENT_FILE_PATH,
+)
+@click.option(
+    "--jobs",
+    required=False,
+    type=str,
+    help="""Comma-separated list of job names to be deployed. 
               If not provided, all jobs from the deployment file will be deployed.
-              """)
-@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+              """,
+)
+@click.option(
+    "--requirements-file", required=False, type=str, default="requirements.txt"
+)
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
-@click.option("--no-package", is_flag=True, help="Do not add package reference into the job description")
-@click.option('--tags', multiple=True, type=str,
-              help="""Additional tags for deployment in format (tag_name=tag_value). 
-              Option might be repeated multiple times.""")
+@click.option(
+    "--no-package",
+    is_flag=True,
+    help="Do not add package reference into the job description",
+)
+@click.option(
+    "--tags",
+    multiple=True,
+    type=str,
+    help="""Additional tags for deployment in format (tag_name=tag_value). 
+              Option might be repeated multiple times.""",
+)
 @debug_option
 @environment_option
 def deploy(
-        deployment_file: str,
-        jobs: str,
-        requirements_file: str,
-        tags: List[str],
-        environment: str,
-        no_rebuild: bool,
-        no_package: bool
+    deployment_file: str,
+    jobs: str,
+    requirements_file: str,
+    tags: List[str],
+    environment: str,
+    no_rebuild: bool,
+    no_package: bool,
 ):
-    dbx_echo("Starting new deployment for environment %s" % environment)
+    dbx_echo(f"Starting new deployment for environment {environment}")
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
@@ -57,10 +86,12 @@ def deploy(
     deployment = all_deployments.get(environment)
 
     if not deployment:
-        raise Exception(f"""
+        raise Exception(
+            f"""
         Requested environment {environment} is non-existent in the deployment file {deployment_file}.
         Available environments are: {list(all_deployments.keys())}
-        """)
+        """
+        )
 
     if jobs:
         requested_jobs = jobs.split(",")
@@ -90,8 +121,13 @@ def deploy(
                 dbx_echo("Package file was not found! Please check your /dist/ folder")
                 package_requirement = []
 
-        _adjust_job_definitions(deployment["jobs"], artifact_base_uri,
-                                requirements_payload, package_requirement, _file_uploader)
+        _adjust_job_definitions(
+            deployment["jobs"],
+            artifact_base_uri,
+            requirements_payload,
+            package_requirement,
+            _file_uploader,
+        )
         deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
@@ -106,7 +142,7 @@ def deploy(
             deployment_tags["dbx_branch_name"] = branch_name
 
         mlflow.set_tags(deployment_tags)
-        dbx_echo("Deployment for environment %s finished successfully" % environment)
+        dbx_echo(f"Deployment for environment {environment} finished successfully")
 
 
 def _delete_managed_libraries(packages: List[str]) -> List[str]:
@@ -115,7 +151,9 @@ def _delete_managed_libraries(packages: List[str]) -> List[str]:
     for package in packages:
 
         if package.startswith("pyspark"):
-            dbx_echo("pyspark dependency deleted from the list of libraries, because it's a managed library")
+            dbx_echo(
+                "pyspark dependency deleted from the list of libraries, because it's a managed library"
+            )
         else:
             output_packages.append(package)
 
@@ -132,7 +170,9 @@ def _preprocess_requirements(requirements):
         requirements_content = requirements_path.read_text().split("\n")
         filtered_libraries = _delete_managed_libraries(requirements_content)
 
-        requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries if req]
+        requirements_payload = [
+            {"pypi": {"package": req}} for req in filtered_libraries if req
+        ]
         return requirements_payload
 
 
@@ -150,10 +190,12 @@ def _verify_deployment_file(deployment_file: str):
         raise Exception("Deployment file should have .json extension")
 
     if not pathlib.Path(deployment_file).exists():
-        raise Exception("Deployment file is non-existent: %s" % deployment_file)
+        raise Exception(f"Deployment {deployment_file} file is non-existent")
 
 
-def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
+def _preprocess_deployment(
+    deployment: Dict[str, Any], requested_jobs: Union[List[str], None]
+):
     if "jobs" not in deployment:
         raise Exception("No jobs provided for deployment")
 
@@ -164,27 +206,36 @@ def _preprocess_files(files: Dict[str, Any]):
     for key, file_path_str in files.items():
         file_path = pathlib.Path(file_path_str)
         if not file_path.exists():
-            raise FileNotFoundError("File path %s is non-existent" % file_path)
+            raise FileNotFoundError(f"File path {file_path} is non-existent")
         files[key] = file_path
 
 
-def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:
+def _preprocess_jobs(
+    jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]
+) -> List[Dict[str, Any]]:
     job_names = [job["name"] for job in jobs]
     if requested_jobs:
-        dbx_echo("Deployment will be performed only for the following jobs: %s" % requested_jobs)
+        dbx_echo(
+            f"Deployment will be performed only for the following jobs: {requested_jobs}"
+        )
         for requested_job_name in requested_jobs:
             if requested_job_name not in job_names:
-                raise Exception("Job %s was requested, but not provided in deployment file" % requested_job_name)
+                raise Exception(
+                    f"Job {requested_job_name} was requested, but not provided in deployment file"
+                )
         preprocessed_jobs = [job for job in jobs if job["name"] in requested_jobs]
     else:
         preprocessed_jobs = jobs
     return preprocessed_jobs
 
 
-def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
-                            requirements_payload: List[Dict[str, str]],
-                            package_payload: List[Dict[str, str]],
-                            file_uploader: FileUploader):
+def _adjust_job_definitions(
+    jobs: List[Dict[str, Any]],
+    artifact_base_uri: str,
+    requirements_payload: List[Dict[str, str]],
+    package_payload: List[Dict[str, str]],
+    file_uploader: FileUploader,
+):
     adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri, file_uploader)
     for job in jobs:
         job["libraries"] = job.get("libraries", []) + package_payload
@@ -195,7 +246,7 @@ def _adjust_job_definitions(jobs: List[Dict[str, Any]], artifact_base_uri: str,
 def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
     deployment_data = {}
     for job in jobs:
-        dbx_echo("Processing deployment for job: %s" % job["name"])
+        dbx_echo(f'Processing deployment for job: {job["name"]}')
         jobs_service = JobsService(api_client)
         all_jobs = jobs_service.list_jobs().get("jobs", [])
         matching_jobs = [j for j in all_jobs if j["settings"]["name"] == job["name"]]
@@ -205,8 +256,10 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
         else:
 
             if len(matching_jobs) > 1:
-                raise Exception("""There are more than one job with name %s. 
-                Please delete duplicated jobs first""" % job["name"])
+                raise Exception(
+                    f"""There are more than one job with name {job["name"]}. 
+                Please delete duplicated jobs first"""
+                )
 
             job_id = matching_jobs[0]["job_id"]
             _update_job(jobs_service, job_id, job)
@@ -216,7 +269,7 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
 
 
 def _create_job(api_client: ApiClient, job: Dict[str, Any]) -> str:
-    dbx_echo("Creating a new job with name %s" % job["name"])
+    dbx_echo(f'Creating a new job with name {job["name"]}')
     try:
         jobs_api = JobsApi(api_client)
         job_id = jobs_api.create_job(job)["job_id"]
@@ -228,7 +281,7 @@ def _create_job(api_client: ApiClient, job: Dict[str, Any]) -> str:
 
 
 def _update_job(jobs_service: JobsService, job_id: str, job: Dict[str, Any]) -> str:
-    dbx_echo("Updating existing job with id: %s and name: %s" % (job_id, job["name"]))
+    dbx_echo(f'Updating existing job with id: {job_id} and name: {job["name"]}')
     try:
         jobs_service.reset_job(job_id, job)
     except HTTPError as e:
@@ -267,7 +320,9 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
             if local_file_exists:
                 adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
                 if file_uploader.file_exists(adjusted_path):
-                    dbx_echo("File is already stored in the deployment, no action needed")
+                    dbx_echo(
+                        "File is already stored in the deployment, no action needed"
+                    )
                 else:
                     file_uploader.upload_file(file_path)
                 return adjusted_path

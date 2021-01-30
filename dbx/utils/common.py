@@ -10,7 +10,11 @@ import git
 import mlflow
 import requests
 from databricks_cli.configure.config import _get_api_client  # noqa
-from databricks_cli.configure.provider import DEFAULT_SECTION, ProfileConfigProvider, EnvironmentVariableConfigProvider
+from databricks_cli.configure.provider import (
+    DEFAULT_SECTION,
+    ProfileConfigProvider,
+    EnvironmentVariableConfigProvider,
+)
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
@@ -19,8 +23,8 @@ from retry import retry
 from setuptools import sandbox
 
 DBX_PATH = ".dbx"
-INFO_FILE_PATH = "%s/project.json" % DBX_PATH
-LOCK_FILE_PATH = "%s/lock.json" % DBX_PATH
+INFO_FILE_PATH = f"{DBX_PATH}/project.json"
+LOCK_FILE_PATH = f"{DBX_PATH}/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
 DEFAULT_DEPLOYMENT_FILE_PATH = "conf/deployment.json"
 
@@ -51,7 +55,6 @@ def update_json(new_content: Dict[str, Any], file_path: str):
 
 
 class ContextLockFile:
-
     @staticmethod
     def set_context(context_id: str) -> None:
         update_json({"context_id": context_id}, LOCK_FILE_PATH)
@@ -78,7 +81,6 @@ class DeploymentFile:
 
 
 class InfoFile:
-
     @staticmethod
     def _create_dir() -> None:
         if not Path(DBX_PATH).exists():
@@ -106,32 +108,39 @@ class InfoFile:
     @staticmethod
     def get(item: str) -> Any:
         if not pathlib.Path(INFO_FILE_PATH).exists():
-            raise Exception("Your project is not yet configured, please configure it via `dbx configure`")
+            raise Exception(
+                "Your project is not yet configured, please configure it via `dbx configure`"
+            )
         return read_json(INFO_FILE_PATH).get(item)
 
 
 class ApiV1Client:
     def __init__(self, api_client: ApiClient):
         self.v1_client = copy.deepcopy(api_client)
-        self.v1_client.url = self.v1_client.url.replace('/api/2.0', '/api/1.2')
+        self.v1_client.url = self.v1_client.url.replace("/api/2.0", "/api/1.2")
 
     def get_command_status(self, payload) -> Dict[Any, Any]:
-        result = self.v1_client.perform_query(method='GET', path='/commands/status', data=payload)
+        result = self.v1_client.perform_query(
+            method="GET", path="/commands/status", data=payload
+        )
         return result
 
     def cancel_command(self, payload) -> None:
-        self.v1_client.perform_query(method='POST', path='/commands/cancel', data=payload)
+        self.v1_client.perform_query(
+            method="POST", path="/commands/cancel", data=payload
+        )
 
     def execute_command(self, payload) -> Dict[Any, Any]:
-        result = self.v1_client.perform_query(method='POST',
-                                              path='/commands/execute',
-                                              data=payload)
+        result = self.v1_client.perform_query(
+            method="POST", path="/commands/execute", data=payload
+        )
         return result
 
     def get_context_status(self, payload):
         try:
-            result = self.v1_client.perform_query(method='GET',
-                                                  path='/contexts/status', data=payload)
+            result = self.v1_client.perform_query(
+                method="GET", path="/contexts/status", data=payload
+            )
             return result
         except requests.exceptions.HTTPError:
             return None
@@ -140,42 +149,52 @@ class ApiV1Client:
     # to make the execute command stable is such situations, we add retry handler.
     @retry(tries=10, delay=5, backoff=5)
     def create_context(self, payload):
-        result = self.v1_client.perform_query(method='POST',
-                                              path='/contexts/create',
-                                              data=payload)
+        result = self.v1_client.perform_query(
+            method="POST", path="/contexts/create", data=payload
+        )
         return result
 
 
 def dbx_echo(message: str):
-    formatted_message = "[dbx][%s] %s" % (dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], message)
+    formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    formatted_message = f"[dbx][{formatted_time}] {message}"
     click.echo(formatted_message)
 
 
 def generate_filter_string(env: str, tags: Dict[str, str]) -> str:
     general_filters = [
-        'tags.dbx_environment="%s"' % env,
+        f'tags.dbx_environment="{env}"',
         'tags.dbx_status="SUCCESS"',
-        'tags.dbx_action_type="deploy"'
+        'tags.dbx_action_type="deploy"',
     ]
 
     branch_name = get_current_branch_name()
     if branch_name:
         general_filters.append(f'tags.dbx_branch_name="{branch_name}"')
 
-    tags_filters = ['tags.%s="%s"' % (k, v) for k, v in tags.items()]
+    tags_filters = [f'tags.{k}="{v}"' for k, v in tags.items()]
     all_filters = general_filters + tags_filters
     filter_string = " and ".join(all_filters)
     return filter_string
 
 
 def environment_option(f):
-    return click.option('-e', '--environment', required=False, default="default",
-                        help='Environment name.')(f)
+    return click.option(
+        "-e",
+        "--environment",
+        required=False,
+        default="default",
+        help="Environment name.",
+    )(f)
 
 
 def profile_option(f):
-    return click.option('--profile', required=False, default=DEFAULT_SECTION,
-                        help='CLI connection profile to use. The default profile is "DEFAULT".')(f)
+    return click.option(
+        "--profile",
+        required=False,
+        default=DEFAULT_SECTION,
+        help='CLI connection profile to use. The default profile is "DEFAULT".',
+    )(f)
 
 
 def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
@@ -188,7 +207,7 @@ def prepare_environment(environment: str):
     environment_data = InfoFile.get("environments").get(environment)
 
     if not environment_data:
-        raise Exception("No environment %s provided in the project file" % environment)
+        raise Exception(f"No environment {environment} provided in the project file")
 
     config = EnvironmentVariableConfigProvider().get_config()
     if config:
@@ -200,7 +219,8 @@ def prepare_environment(environment: str):
         config_type = "PROFILE"
         if not config:
             raise Exception(
-                "Couldn't get profile with name: %s. Please check the config settings" % environment_data["profile"])
+                f"""Couldn't get profile with name: {environment_data["profile"]}. Please check the config settings"""
+            )
 
     api_client = _get_api_client(config, command_name="cicdtemplates-")
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
@@ -208,14 +228,18 @@ def prepare_environment(environment: str):
     if config_type == "ENV":
         mlflow.set_tracking_uri(DATABRICKS_MLFLOW_URI)
     elif config_type == "PROFILE":
-        mlflow.set_tracking_uri("%s://%s" % (DATABRICKS_MLFLOW_URI, environment_data["profile"]))
+        mlflow.set_tracking_uri(
+            f'{DATABRICKS_MLFLOW_URI}://{environment_data["profile"]}'
+        )
     else:
-        raise NotImplementedError("Config type: %s is not implemented" % config_type)
+        raise NotImplementedError(f"Config type: {config_type} is not implemented")
 
     experiment = mlflow.get_experiment_by_name(environment_data["workspace_dir"])
 
     if not experiment:
-        mlflow.create_experiment(environment_data["workspace_dir"], environment_data["artifact_location"])
+        mlflow.create_experiment(
+            environment_data["workspace_dir"], environment_data["artifact_location"]
+        )
 
     mlflow.set_experiment(environment_data["workspace_dir"])
 
@@ -236,13 +260,16 @@ def get_package_file() -> Optional[pathlib.Path]:
 
 def handle_package(rebuild_arg):
     if rebuild_arg:
-        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
+        dbx_echo(
+            "No rebuild will be done, please ensure that the package distribution is in dist folder"
+        )
     else:
         dbx_echo("Re-building package")
         if not pathlib.Path("setup.py").exists():
             raise Exception(
-                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild")
-        sandbox.run_setup('setup.py', ['-q', 'clean', 'bdist_wheel'])
+                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild"
+            )
+        sandbox.run_setup("setup.py", ["-q", "clean", "bdist_wheel"])
         dbx_echo("Package re-build finished")
 
 

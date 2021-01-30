@@ -8,7 +8,7 @@ from dbx.commands.launch import launch
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(message='DataBricks eXtensions aka dbx, version ~> %(version)s')
+@click.version_option(message="DataBricks eXtensions aka dbx, version ~> %(version)s")
 def cli():
     pass
 

@@ -11,15 +11,20 @@ Expected behaviour: if no .dbx folder provided -> create folder, initialize Info
 
 
 class ConfigureTest(DbxTest):
-
     def test_configure(self, *args) -> None:
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
-            first_result = invoke_cli_runner(configure, [
-                "--environment", "test",
-                "--profile", self.profile_name,
-                "--workspace-dir", ws_dir
-            ])
+            first_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "test",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
 
             self.assertEqual(first_result.exit_code, 0)
 
@@ -29,5 +34,5 @@ class ConfigureTest(DbxTest):
             self.assertEqual(env["workspace_dir"], ws_dir)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

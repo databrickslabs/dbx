@@ -6,9 +6,9 @@ with open("LICENSE", "r") as fh:
     lic = fh.read()
 
 setup(
-    name='dbx',
-    packages=find_packages(exclude=['tests', 'tests.*']),
-    setup_requires=['wheel'],
+    name="dbx",
+    packages=find_packages(exclude=["tests", "tests.*"]),
+    setup_requires=["wheel"],
     install_requires=[
         "path>=15.0.0",
         "databricks-cli>=0.12.2",
@@ -16,18 +16,18 @@ setup(
         "retry>=0.9.2",
         "requests>=2.24.0",
         "mlflow>=1.11.0",
-        "tqdm>=4.50.0"
+        "tqdm>=4.50.0",
     ],
-    entry_points='''
+    entry_points="""
         [console_scripts]
         dbx=dbx.cli:cli
-    ''',
+    """,
     version=__version__,
-    description='DataBricks eXtensions aka dbx',
-    author='Thunder Shiviah, Michael Shtelma, Ivan Trusov',
+    description="DataBricks eXtensions aka dbx",
+    author="Thunder Shiviah, Michael Shtelma, Ivan Trusov",
     license=lic,
     classifiers=[
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
+        "Intended Audience :: Developers",
+        "Intended Audience :: System Administrators",
     ],
 )
