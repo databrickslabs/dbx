@@ -4,12 +4,15 @@ import shutil
 import tempfile
 from typing import Dict, Any, Union
 from typing import List
+
 import click
 import mlflow
 from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+from requests.exceptions import HTTPError
+
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
@@ -22,7 +25,6 @@ from dbx.utils.common import (
     get_package_file,
     get_current_branch_name,
 )
-from requests.exceptions import HTTPError
 
 
 @click.command(
@@ -63,13 +65,13 @@ from requests.exceptions import HTTPError
 @debug_option
 @environment_option
 def deploy(
-    deployment_file: str,
-    jobs: str,
-    requirements_file: str,
-    tags: List[str],
-    environment: str,
-    no_rebuild: bool,
-    no_package: bool,
+        deployment_file: str,
+        jobs: str,
+        requirements_file: str,
+        tags: List[str],
+        environment: str,
+        no_rebuild: bool,
+        no_package: bool,
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 
@@ -194,7 +196,7 @@ def _verify_deployment_file(deployment_file: str):
 
 
 def _preprocess_deployment(
-    deployment: Dict[str, Any], requested_jobs: Union[List[str], None]
+        deployment: Dict[str, Any], requested_jobs: Union[List[str], None]
 ):
     if "jobs" not in deployment:
         raise Exception("No jobs provided for deployment")
@@ -211,7 +213,7 @@ def _preprocess_files(files: Dict[str, Any]):
 
 
 def _preprocess_jobs(
-    jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]
+        jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]
 ) -> List[Dict[str, Any]]:
     job_names = [job["name"] for job in jobs]
     if requested_jobs:
@@ -230,13 +232,15 @@ def _preprocess_jobs(
 
 
 def _adjust_job_definitions(
-    jobs: List[Dict[str, Any]],
-    artifact_base_uri: str,
-    requirements_payload: List[Dict[str, str]],
-    package_payload: List[Dict[str, str]],
-    file_uploader: FileUploader,
+        jobs: List[Dict[str, Any]],
+        artifact_base_uri: str,
+        requirements_payload: List[Dict[str, str]],
+        package_payload: List[Dict[str, str]],
+        file_uploader: FileUploader,
 ):
-    adjustment_callback = lambda p: _adjust_path(p, artifact_base_uri, file_uploader)
+    def adjustment_callback(p: Any):
+        _adjust_path(p, artifact_base_uri, file_uploader)
+
     for job in jobs:
         job["libraries"] = job.get("libraries", []) + package_payload
         _walk_content(adjustment_callback, job)

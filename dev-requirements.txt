@@ -12,3 +12,5 @@ pytest-timeout
 pandas
 gitpython
 tqdm
+rstcheck
+prospector

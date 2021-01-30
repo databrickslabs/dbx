@@ -1,15 +1,16 @@
 import base64
 import json
+import time
 from typing import Dict, Any
+from typing import List
 
 import click
 import mlflow
-import time
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-from typing import List
+
 from dbx.utils.common import (
     dbx_echo,
     generate_filter_string,
@@ -55,13 +56,13 @@ TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 )
 @environment_option
 def launch(
-    environment: str,
-    job: str,
-    trace: bool,
-    kill_on_sigterm: bool,
-    existing_runs: str,
-    tags: List[str],
-    parameters: List[str],
+        environment: str,
+        job: str,
+        trace: bool,
+        kill_on_sigterm: bool,
+        existing_runs: str,
+        tags: List[str],
+        parameters: List[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -145,12 +146,14 @@ def launch(
                         dbx_echo("Run cancelled successfully")
                 else:
                     dbx_status = _trace_run(api_client, run_data)
+
                 if dbx_status == "ERROR":
                     raise Exception(
-                        "Tracked job failed during execution. Please check Databricks UI for job logs"
+                        "Tracked job failed during execution. "
+                        "Please check Databricks UI for job logs"
                     )
-                else:
-                    dbx_echo("Launch command finished")
+                dbx_echo("Launch command finished")
+
             else:
                 dbx_status = "NOT_TRACKED"
                 dbx_echo(

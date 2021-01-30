@@ -6,6 +6,7 @@ import mlflow
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
@@ -39,13 +40,13 @@ from dbx.utils.common import (
 @click.option("--no-rebuild", is_flag=True, help="Disable job rebuild")
 @environment_option
 def execute(
-    environment: str,
-    cluster_id: str,
-    cluster_name: str,
-    job: str,
-    deployment_file: str,
-    requirements_file: str,
-    no_rebuild: bool,
+        environment: str,
+        cluster_id: str,
+        cluster_name: str,
+        job: str,
+        deployment_file: str,
+        requirements_file: str,
+        no_rebuild: bool,
 ):
     api_client = prepare_environment(environment)
 
@@ -145,7 +146,7 @@ def execute(
 
 
 def wait_for_command_execution(
-    v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str
+        v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str
 ):
     finished = False
     payload = {
@@ -166,7 +167,7 @@ def wait_for_command_execution(
 
 
 def execute_command(
-    v1_client: ApiV1Client, cluster_id: str, context_id: str, command: str, verbose=True
+        v1_client: ApiV1Client, cluster_id: str, context_id: str, command: str, verbose=True
 ):
     payload = {
         "language": "python",
@@ -186,14 +187,15 @@ def execute_command(
         if final_result == "error":
             dbx_echo("Execution failed, please follow the given error")
             raise RuntimeError(
-                f'Command execution failed. Cluster error cause: {execution_result["results"]["cause"]}'
+                f'Command execution failed. '
+                f'Cluster error cause: {execution_result["results"]["cause"]}'
             )
-        else:
-            if verbose:
-                dbx_echo("Command successfully executed")
-                print(execution_result["results"]["data"])
 
-            return execution_result["results"]["data"]
+        if verbose:
+            dbx_echo("Command successfully executed")
+            print(execution_result["results"]["data"])
+
+        return execution_result["results"]["data"]
 
 
 def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: str):
@@ -243,7 +245,7 @@ def awake_cluster(cluster_service: ClusterService, cluster_id):
             "Cluster is mis-configured and cannot be started, please check cluster settings at first"
         )
     elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
-        dbx_echo(f'Cluster is getting prepared, current state: cluster_info["state"]')
+        dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
         time.sleep(10)
         awake_cluster(cluster_service, cluster_id)
 
