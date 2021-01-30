@@ -34,11 +34,11 @@ jobs:
       - name: Install dependencies
         run: pip install -U -r dev-requirements.txt
 
-      - name: Lint
-        run: ./lint.sh
-
       - name: Install package
         run: python setup.py install
+
+      - name: Lint
+        run: ./lint.sh
 
       - name: Run unit tests
         run:  pytest tests/unit --cov dbx
