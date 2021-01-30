@@ -1,6 +1,5 @@
 import unittest
 from dbx.commands.deploy import _adjust_job_definitions, FileUploader
-from databricks_cli.sdk.api_client import ApiClient
 import json
 from unittest.mock import MagicMock
 
@@ -9,7 +8,7 @@ class AdjustPathTest(unittest.TestCase):
     def test_single_node(self):
         dep_file_content = """
         {
-                "name": "anabricks_cd-sample",
+                "name": "sample-test-job",
                 "new_cluster": {
                     "spark_version": "7.3.x-scala2.12",
                     "spark_conf": {
