@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 from dbx import __version__
 
-with open("LICENSE", "r") as fh:
+with open("LICENSE", "r", encoding='utf-8') as fh:
     lic = fh.read()
 
 setup(
