@@ -2,8 +2,6 @@ name: Python package
 
 on:
   push:
-    branches-ignore:
-      - 'master' # the branch will be tested before push to master
     tags-ignore:
       - '*.*'
     paths-ignore:
