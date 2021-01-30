@@ -18,7 +18,7 @@ test-with-html-report:
 	pytest --cov dbx --cov-report html -s
 
 create-dev-env:
-	conda create -n $(ENV_NAME) python=3.7
+	conda create -n $(ENV_NAME) python=3.7.5
 
 install-dev-reqs:
 	pip install -U -r dev-requirements.txt
@@ -35,29 +35,3 @@ build:
 	rm -rf dist/*
 	rm -rf build/*
 	python setup.py clean bdist_wheel
-
-artifact: build docs-pdf
-	rm -rf artifact
-	mkdir artifact
-	cp dist/*.whl artifact/
-	cp docs/build/pdf/dbx.pdf artifact/
-
-
-test-local-azure:
-	rm -rf dbx_dev_azure
-	cookiecutter https://github.com/databrickslabs/cicd-templates.git --no-input project_name=dbx_dev_azure environment=demo-az cloud=Azure profile=demo-az
-
-deploy-local-azure:
-	cd dbx_dev_azure && python setup.py clean bdist_wheel
-	cd dbx_dev_azure && dbx deploy  \
-		--environment="test" \
-		--tags="cake=cheesecake" \
-		--tags="branch=test"
-
-launch-local-azure:
-	cd dbx_dev_azure && dbx launch  \
-		--environment="test" \
-		--job="dbx_dev_azure-pipeline1"
-
-release: build
-	cp dist/* ~/IdeaProjects/cicd-templates/{{cookiecutter.project_slug}}/tools/*

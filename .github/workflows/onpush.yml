@@ -43,12 +43,3 @@ jobs:
       - name: Run unit tests
         run:  pytest tests/unit --cov dbx
 
-      - name: Generate artifact
-        run: |
-          make artifact
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: dbx
-          path: artifact/
-
