@@ -28,6 +28,9 @@ jobs:
             ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
             ${{ runner.os }}-pip-
 
+      - name: Lint
+        run: ./lint.sh
+
       - name: Install pip
         run: python -m pip install --upgrade pip
 
