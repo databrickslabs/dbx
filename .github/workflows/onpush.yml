@@ -1,13 +1,6 @@
 name: Python package
 
-on:
-  push:
-    tags-ignore:
-      - '*.*'
-    paths-ignore:
-      # since we're not using autodoc, if we change documentation only, we don't need to run tests
-      - 'README.rst'
-      - 'docs'
+on: push
 
 jobs:
   test-pipeline:
