@@ -254,16 +254,16 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
         # path already adjusted or points to another dbfs object - pass it
         if candidate.startswith("dbfs"):
             return candidate
-        else: 
+        else:
             file_path = pathlib.Path(candidate)
-            
+
             # this is a fix for pathlib behaviour related to WinError
             # in case if we pass incorrect or unsupported string, for example local[*] on Win we receive a OSError
             try:
                 local_file_exists = file_path.exists()
             except OSError:
                 local_file_exists = False
-            
+
             if local_file_exists:
                 adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
                 if file_uploader.file_exists(adjusted_path):

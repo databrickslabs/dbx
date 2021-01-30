@@ -163,7 +163,6 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]
             f"lifecycle state: {life_cycle_state}, "
             f"state message: {state_message}")
 
-
         if life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
             dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
             return status

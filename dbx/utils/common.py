@@ -3,15 +3,13 @@ import datetime as dt
 import json
 import os
 import pathlib
-import shutil
 from typing import Dict, Any, List, Optional
 
 import click
 import git
 import mlflow
-import pkg_resources
 import requests
-from databricks_cli.configure.config import _get_api_client
+from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import DEFAULT_SECTION, ProfileConfigProvider, EnvironmentVariableConfigProvider
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
@@ -24,9 +22,7 @@ DBX_PATH = ".dbx"
 INFO_FILE_PATH = "%s/project.json" % DBX_PATH
 LOCK_FILE_PATH = "%s/lock.json" % DBX_PATH
 DATABRICKS_MLFLOW_URI = "databricks"
-DEPLOYMENT_TEMPLATE_PATH = pkg_resources.resource_filename('dbx', 'template/deployment.json')
-CONF_PATH = "conf"
-DEFAULT_DEPLOYMENT_FILE_PATH = "%s/deployment.json" % CONF_PATH
+DEFAULT_DEPLOYMENT_FILE_PATH = "conf/deployment.json"
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -90,14 +86,6 @@ class InfoFile:
             os.mkdir(DBX_PATH)
 
     @staticmethod
-    def _create_deployment_file() -> None:
-        if not Path(CONF_PATH).exists():
-            os.mkdir(CONF_PATH)
-        if not Path(DEFAULT_DEPLOYMENT_FILE_PATH).exists():
-            dbx_echo("dbx deployment file is not present, creating it from template")
-            shutil.copy(DEPLOYMENT_TEMPLATE_PATH, DEFAULT_DEPLOYMENT_FILE_PATH)
-
-    @staticmethod
     def _create_lock_file() -> None:
         if not Path(LOCK_FILE_PATH).exists():
             pathlib.Path(LOCK_FILE_PATH).write_text("{}")
@@ -106,7 +94,6 @@ class InfoFile:
     def initialize():
 
         InfoFile._create_dir()
-        InfoFile._create_deployment_file()
         InfoFile._create_lock_file()
 
         init_content = {"environments": {}}
@@ -212,7 +199,8 @@ def prepare_environment(environment: str):
         config = ProfileConfigProvider(environment_data["profile"]).get_config()
         config_type = "PROFILE"
         if not config:
-            raise Exception("Couldn't get profile with name: %s. Please check the config settings" % environment_data["profile"])
+            raise Exception(
+                "Couldn't get profile with name: %s. Please check the config settings" % environment_data["profile"])
 
     api_client = _get_api_client(config, command_name="cicdtemplates-")
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
@@ -266,7 +254,7 @@ class FileUploader:
         try:
             self._dbfs_service.get_status(file_path)
             return True
-        except:
+        except:  # noqa
             return False
 
     @retry(tries=3, delay=1, backoff=0.3)
