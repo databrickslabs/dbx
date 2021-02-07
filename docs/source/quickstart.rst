@@ -25,7 +25,8 @@ Starting from a template
 ------------------------
 If you already have an existing project, you can skip this step and move directly to the next one.
 
-As a first step, you need to create a project from a template. You can use your own template, or you can choose from existing templates:
+As a first step, you need to create a project from a template. You can use your own template, or you can choose from existing templates.
+Here is a sample project for Python:
 
 .. code-block:: python
 
@@ -83,26 +84,12 @@ Next step would be to configure your deployment objects. To make this process ea
 
 .. note::
 
-    As you can notice, a lot of elements in the deployment file reference other paths.
+    As you can notice, a lot of elements in the deployment file are referencing other paths.
     For big deployments, we recommend to generate the deployment file programmatically, for example via `Jsonnet <https://jsonnet.org>`_.
 
 
 By default, deployment configuration is stored in :code:`conf/deployment.json`.
 The main idea of  is to provide a flexible way to configure job with it's dependencies.
-
-.. literalinclude:: ../../dbx/template/deployment.json
-    :language: JSON
-    :caption: .dbx/deployment.json
-
-A couple of examples for deployment definition could be found here:
-
-.. literalinclude:: ../../tests/integration/templates/deployment-aws.json
-    :language: JSON
-    :caption: AWS example - deployment.json
-
-.. literalinclude:: ../../tests/integration/templates/deployment-azure.json
-    :language: JSON
-    :caption: Azure example - deployment.json
 
 Deployment
 ----------
