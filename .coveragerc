@@ -14,4 +14,4 @@ omit =
     tests/*
     tools/*
     setup.py
-    dbx/cli/cli.py
+    dbx/cli.py
