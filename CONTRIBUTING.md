@@ -11,7 +11,7 @@ To make e2e runs you'll need a Databricks account, and a configured profile.
 
 ## Pull Request Process
 
-1. Please create a fork of this repository, and a development branch in it. You can name the branch as you would like, but please make it meaningful.
+1. Please create a fork of this repository, and a development branch in it. You can name the branch as you would like to, but please make thr branch name meaningful.
 2. After finishing the development, please run the `./lint.sh` to make sure that code is properly formatted.
 3. When opening a PR, it's mandatory to reference an issue (or set of issues) it resolves. PRs without linked issues won't be reviewed.
 4. Please describe the PR is 4-5 meaningful sentences. These sentences shall answer 3W questions (What is the problem, What is the impact, What is the solution)
