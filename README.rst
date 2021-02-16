@@ -96,12 +96,12 @@ Please see the legal agreement and understand that issues with the use of this c
 Feedback
 --------
 
-Issues with :code:`dbx`? Found a bug? Have a great idea for an addition? Feel free to file an issue.
+Issues with :code:`dbx`? Found a bug? Have a great idea for an addition? Feel free to file an `issue <https://github.com/databrickslabs/dbx/issues/new/choose>`_.
 
 Contributing
 ------------
 
-Have a great idea that you want to add? Fork the repo and submit a PR!
+Please find more details about contributing to :code:`dbx` in the contributing `doc <https://github.com/databrickslabs/dbx/blob/master/CONTRIBUTING.md>`_.
 
 
 
