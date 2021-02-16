@@ -3,6 +3,8 @@ dbx by Databricks Labs
 
 DataBricks eXtensions - aka :code:`dbx` is a CLI tool for advanced Databricks jobs management.
 
+.. contents:: :local:
+
 Concept
 -------
 
