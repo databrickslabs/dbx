@@ -41,7 +41,7 @@ Quickstart
 
 
 For Python-based deployments, we recommend to use `cicd-templates <https://github.com/databrickslabs/cicd-templates>`_ for quickstart.
-However, if you don't like the project structure defined in cicd-templates, feel free to use the instruction below for fully customized deployment.
+However, if you don't like the project structure defined in cicd-templates, feel free to use the instruction below for full customization.
 
 After configuring the profile, please do the following in the root of your project:
 
