@@ -2,9 +2,6 @@ from setuptools import find_packages, setup
 
 from dbx import __version__
 
-with open("LICENSE", "r", encoding='utf-8') as fh:
-    lic = fh.read()
-
 with open("README.rst", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
@@ -30,7 +27,7 @@ setup(
     version=__version__,
     description="DataBricks eXtensions aka dbx",
     author="Thunder Shiviah, Michael Shtelma, Ivan Trusov",
-    license=lic,
+    license='Databricks License',
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
