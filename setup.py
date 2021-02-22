@@ -5,6 +5,9 @@ from dbx import __version__
 with open("LICENSE", "r", encoding='utf-8') as fh:
     lic = fh.read()
 
+with open("README.rst", "r", encoding='utf-8') as fh:
+    long_description = fh.read()
+
 setup(
     name="dbx",
     packages=find_packages(exclude=["tests", "tests.*"]),
@@ -22,6 +25,8 @@ setup(
         [console_scripts]
         dbx=dbx.cli:cli
     """,
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
     version=__version__,
     description="DataBricks eXtensions aka dbx",
     author="Thunder Shiviah, Michael Shtelma, Ivan Trusov",
