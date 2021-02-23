@@ -1,7 +1,10 @@
 dbx by Databricks Labs
 ======================
 
-DataBricks eXtensions - aka :code:`dbx` is a CLI tool for advanced Databricks jobs management.
+DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databricks jobs management.
+
+.. image:: https://badge.fury.io/py/dbx.svg
+    :target: https://badge.fury.io/py/dbx
 
 .. image:: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml/badge.svg?branch=master
     :target: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml
@@ -21,6 +24,7 @@ Concept
 -------
 
 :code:`dbx` simplifies jobs launch and deployment process across multiple environments.
+It also helps to package your project and deliver it to your Databricks environment in a versioned fashion.
 Designed in a CLI-first manner, it is built to be actively used both inside CI/CD pipelines and as a part of local tooling for fast prototyping.
 
 Requirements
