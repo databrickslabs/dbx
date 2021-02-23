@@ -3,20 +3,20 @@ dbx by Databricks Labs
 
 DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databricks jobs management.
 
-.. image:: https://badge.fury.io/py/dbx.svg
-    :target: https://badge.fury.io/py/dbx
+|pypi| |build| |codecov| |lgtm-alerts|
 
-.. image:: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml/badge.svg?branch=master
+.. |pypi| image:: https://img.shields.io/pypi/v/dbx.svg
+    :target: https://pypi.org/project/dbx/
+    :alt: Latest Python Release
+
+.. |build| image:: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml/badge.svg?branch=master
     :target: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml
 
-.. image:: https://codecov.io/gh/databrickslabs/dbx/branch/master/graph/badge.svg?token=S7ADH3W2E3
+.. |codecov| image:: https://codecov.io/gh/databrickslabs/dbx/branch/master/graph/badge.svg?token=S7ADH3W2E3
     :target: https://codecov.io/gh/databrickslabs/dbx
 
-.. image:: https://img.shields.io/lgtm/alerts/g/databrickslabs/dbx.svg?logo=lgtm&logoWidth=18
+.. |lgtm-alerts| image:: https://img.shields.io/lgtm/alerts/g/databrickslabs/dbx.svg?logo=lgtm&logoWidth=18
     :target: https://lgtm.com/projects/g/databrickslabs/dbx/alerts
-
-.. image:: https://img.shields.io/lgtm/grade/python/g/databrickslabs/dbx.svg?logo=lgtm&logoWidth=18
-    :target: https://lgtm.com/projects/g/databrickslabs/dbx/context:python
 
 .. contents:: :local:
 
@@ -41,12 +41,6 @@ Installation
 .. code-block::
 
     pip install dbx
-
-* with :code:`conda`:
-
-.. code-block::
-
-    conda install dbx
 
 Quickstart
 ----------
