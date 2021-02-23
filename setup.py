@@ -25,7 +25,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/x-rst",
     version=__version__,
-    description="DataBricks eXtensions aka dbx",
+    description="DataBricks CLI eXtensions aka dbx",
     author="Thunder Shiviah, Michael Shtelma, Ivan Trusov",
     license='Databricks License',
     classifiers=[
