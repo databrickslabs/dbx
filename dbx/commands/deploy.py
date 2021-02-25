@@ -239,7 +239,7 @@ def _adjust_job_definitions(
         file_uploader: FileUploader,
 ):
     def adjustment_callback(p: Any):
-        _adjust_path(p, artifact_base_uri, file_uploader)
+        return _adjust_path(p, artifact_base_uri, file_uploader)
 
     for job in jobs:
         job["libraries"] = job.get("libraries", []) + package_payload
