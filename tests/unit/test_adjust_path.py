@@ -64,6 +64,10 @@ class AdjustPathTest(unittest.TestCase):
             _file_uploader,
         )
 
+        for job_spec in deployment.get("jobs"):
+            for key, value in job_spec.items():
+                self.assertIsNotNone(value)
+
 
 if __name__ == "__main__":
     unittest.main()
