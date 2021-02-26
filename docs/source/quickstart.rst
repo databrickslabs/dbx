@@ -6,33 +6,29 @@ Quickstart
 Prerequisites
 -------------
 
-When using :code:`dbx`, you need Python 3.X and :code:`pip` or :code:`conda` for package management.
+- Python >=3.6 environment on your local machine
+- `databricks-cli <https://github.com/databricks/databricks-cli>`_ with a `configured profile <https://docs.databricks.com/dev-tools/cli/index.html#set-up-authentication>`_
+
+
+In this instruction we're based on `Databricks Runtime 7.3 LTS ML <https://docs.databricks.com/release-notes/runtime/7.3ml.html>`_.
+If you don't need to use ML libraries, we still recommend to use ML-based version due to :code:`%pip` magic `support <https://docs.databricks.com/libraries/notebooks-python-libraries.html>`_.
 
 Installing dbx
 --------------
 
-Download the .whl file which comes together with this documentation and install :code:`dbx` via :code:`pip`:
+Install :code:`dbx` via :code:`pip`:
 
 .. code-block:: python
 
     pip install dbx
 
-.. note::
-
-    :code:`dbx` is developed on MacOS and tested on Linux with Python 3.+. If you run into a problem running :code:`dbx` on Windows, please raise an issue on GitHub.
-
-Starting from a template
-------------------------
+Starting from a template (Python)
+---------------------------------
 If you already have an existing project, you can skip this step and move directly to the next one.
 
-As a first step, you need to create a project from a template. You can use your own template, or you can choose from existing templates.
-Here is a sample project for Python:
+For Python-based deployments, we recommend to use `cicd-templates <https://github.com/databrickslabs/cicd-templates>`_ for quickstart.
+However, if you don't like the project structure defined in cicd-templates, feel free to use the instruction below for full customization.
 
-.. code-block:: python
-
-    cookiecutter --no-input \
-        https://github.com/databrickslabs/cicd-templates.git \
-        project_name="sample"
 
 Configuring environments
 ------------------------
@@ -49,33 +45,9 @@ Create a new environment via given command:
 .. code-block:: python
 
     dbx configure \
-        --environment="test" \
-        --profile="test" \
-        --workspace-dir="/dbx/projects/sample"
+        --profile=test # name of your profile, omit if you would like to use the DEFAULT one
 
-This command will configure environment by given profile and store project in a given :code:`workspace-dir` as an MLflow experiment.
-
-Interactive execution
----------------------
-
-.. note::
-
-    :code:`dbx` expects that cluster for interactive execution supports :code:`%pip` and :code:`%conda` magic `commands <https://docs.databricks.com/libraries/notebooks-python-libraries.html>`_ in case if you use additional options (requirements, package and conda-environment).
-
-To execute the code in an interactive fashion, we recommend to use interactive clusters.
-This command executes content from a given source file on a provided cluster.
-You need to provide either :code:`cluster-id` or :code:`cluster-name`, and a :code:`--source-file` parameter.
-
-.. code-block:: python
-
-    dbx execute \
-        --cluster-id="<some-cluster-id>" \
-        --source-file="some/entrypoint.py" \
-        --package="dist/my-package.whl" \
-        --requirements="requirements.txt" \
-        --conda-environment="conda-env.yml"
-
-You can also provide parameters to install .whl packages before launching code from the source file, as well as installing dependencies from pip-formatted requirements file or conda environment yml config.
+This command will configure a project file in :code:`.dbx/project.json` file. Feel free to repeat this command multiple times to reconfigure the environment.
 
 Preparing deployment file
 -------------------------
@@ -89,7 +61,66 @@ Next step would be to configure your deployment objects. To make this process ea
 
 
 By default, deployment configuration is stored in :code:`conf/deployment.json`.
-The main idea of  is to provide a flexible way to configure job with it's dependencies.
+The main idea of the deployment file is to provide a flexible way to configure job with it's dependencies.
+You can use multiple different deployment files, providing the filename as an argument to :code:`dbx deploy` via :code:`--deployment-file=/path/to/file` option.
+Here are some samples of deployment files for different cloud providers:
+
+.. tabs::
+
+    .. tab:: AWS
+
+        .. literalinclude:: ../../tests/deployment-configs/aws-example.json
+            :language: JSON
+
+   .. tab:: Azure
+
+        .. literalinclude:: ../../tests/deployment-configs/azure-example.json
+            :language: JSON
+
+Expected structure of the deployment file is the following:
+
+.. code-block:: javascript
+
+    {
+        // you may have multiple environments defined per one deployment.json file
+        "<environment-name>": [
+                // here goes a list of jobs, every job is one dictionary
+                {
+                    "name": "this-parameter-is-required!",
+                    // everything else is as per Databricks Jobs API
+                    // however, you might reference any local file (such as entrypoint or job configuration)
+                    "spark_python_task": {
+                        "python_file": "path/to/entrypoint.py" // references entrypoint file relatively to the project root directory
+                    },
+                    "parameters": [
+                        "--conf-file",
+                        "conf/test/sample.json" // references entrypoint file relatively to the project root directory
+                    ]
+                }
+            ]
+    }
+
+As you can see, we simply follow the `Databricks Jobs API <https://docs.databricks.com/dev-tools/api/latest/jobs.html>`_ with one enhancement -
+any local files can be referenced and will be uploaded to dbfs in a versioned way during the :code:`dbx deploy` command.
+
+Interactive execution
+---------------------
+
+.. note::
+
+    :code:`dbx` expects that cluster for interactive execution supports :code:`%pip` and :code:`%conda` magic `commands <https://docs.databricks.com/libraries/notebooks-python-libraries.html>`_.
+
+
+The :code:`dbx execute` executes given job on an interactive cluster.
+You need to provide either :code:`cluster-id` or :code:`cluster-name`, and a :code:`--job` parameter.
+
+.. code-block:: python
+
+    dbx execute \
+        --cluster-name=some-name \
+        --job=your-job-name
+
+You can also provide parameters to install .whl packages before launching code from the source file, as well as installing dependencies from pip-formatted requirements file or conda environment yml config.
 
 Deployment
 ----------
@@ -99,17 +130,18 @@ After you've configured the `deployment.json` file, it's time to perform an actu
 .. code-block:: python
 
     dbx deploy \
-        --environment=test \
-        --requirements=<requirements.txt>
+        --environment=test
 
 You can optionally provide requirements.txt file, all requirements will be automatically added to the job definition.
+Please refer to the full description of deploy command in the CLI section for more options on setup.
 
 Launch
 ------
 
-Finally, after deploying all your job-related files, you launch the job via the following command:
+Finally, after deploying all your job-related files, you can launch the job via the following command:
 
 .. code-block:: python
 
     dbx launch --environment=test --job=sample
 
+Please refer to the full description of launch command in the CLI section for more options.

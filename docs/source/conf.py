@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_click.ext",
     "rst2pdf.pdfbuilder",
+    'sphinx_tabs.tabs'
 ]
 
 pdf_documents = [

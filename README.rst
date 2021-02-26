@@ -5,8 +5,9 @@ DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databrick
 
 |docs| |pypi| |build| |codecov| |lgtm-alerts| |downloads|
 
-.. |docs| image:: https://img.shields.io/badge/docs-latest-success.svg
-    :target: https://databrickslabs.github.io/dbx/index.html
+.. |docs| image:: https://readthedocs.org/projects/dbx/badge/?version=latest
+    :target: https://dbx.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
 .. |pypi| image:: https://img.shields.io/pypi/v/dbx.svg
     :target: https://pypi.org/project/dbx/
@@ -52,32 +53,12 @@ Installation
 Quickstart
 ----------
 
-    As a prerequisite, you need to install `databricks-cli <https://github.com/databricks/databricks-cli>`_ with a `configured profile <https://docs.databricks.com/dev-tools/cli/index.html#set-up-authentication>`_.
-    In this instruction we're based on `Databricks Runtime 7.3 LTS ML <https://docs.databricks.com/release-notes/runtime/7.3ml.html>`_.
-    If you don't need to use ML libraries, we still recommend to use ML-based version due to :code:`%pip` magic `support <https://docs.databricks.com/libraries/notebooks-python-libraries.html>`_.
-
-
-For Python-based deployments, we recommend to use `cicd-templates <https://github.com/databrickslabs/cicd-templates>`_ for quickstart.
-However, if you don't like the project structure defined in cicd-templates, feel free to use the instruction below for full customization.
-
-After configuring the profile, please do the following in the root of your project:
-
-- Configure your project environments and storage locations:
-
-.. code-block::
-
-    dbx configure
-
-- Create a :code:`conf/deployment.json` file with specs defined in documentation
-- Run :code:`dbx deploy` to perform an initial deployment
-- Run :code:`dbx launch --job=<job-name> --trace` to launch the job and trace it's status
-
-
+Please refer to the `Quickstart section <https://dbx.readthedocs.io/en/latest/quickstart.html>`_.
 
 Documentation
 -------------
 
-Please refer to the docs provided in the `docs <docs>`_ folder.
+Please refer to the `docs page <https://dbx.readthedocs.io/en/latest/index.html>`_.
 
 Differences from other tools
 ----------------------------
