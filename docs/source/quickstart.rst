@@ -15,7 +15,7 @@ Download the .whl file which comes together with this documentation and install 
 
 .. code-block:: python
 
-    pip install /path/to/dbx.whl
+    pip install dbx
 
 .. note::
 

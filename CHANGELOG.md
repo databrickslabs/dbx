@@ -10,3 +10,6 @@ Initial public release version.
 
 This version finalizes the CI setup for the project. No code changes were done, release is required to start correct numeration in pypi.
 
+# 0.0.10
+
+This version fixes issue with job spec adjustment.
