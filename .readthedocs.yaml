@@ -17,4 +17,4 @@ formats:
 python:
    version: 3.7
    install:
-   - requirements: docs/dev-requirements.txt
+   - requirements: dev-requirements.txt
