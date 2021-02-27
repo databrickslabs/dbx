@@ -6,6 +6,7 @@ import mlflow
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+from databricks_cli.configure.config import debug_option
 
 from dbx.utils.common import (
     dbx_echo,
@@ -22,7 +23,30 @@ from dbx.utils.common import (
 
 @click.command(
     context_settings=CONTEXT_SETTINGS,
-    short_help="Executes given code on the existing cluster.",
+    short_help="Executes given job on the interactive cluster.",
+    help="""
+    Executes given job on the interactive cluster.
+    
+    This command is very suitable to interactively execute your code on the interactive clusters.
+    
+    .. warning::
+        
+        There are some limitations for :code:`dbx execute`:
+
+        * Only clusters which support :code:`%pip` magic can work with execute.
+        * Currently, only Python-based execution is supported.
+    
+    The following set of actions will be done during execution:
+    
+    1. If interactive cluster is stooped, it will be automatically started 
+    2. Package will be rebuilt from the source (can be disabled via :option:`--no-rebuild`)
+    3. Job configuration will be taken from deployment file for given environment
+    4. All referenced will be uploaded to the MLflow experiment
+    5. | Code will be executed in a separate context. Other users can work with the same package 
+       | on the same cluster without any limitations or overlapping.
+    6. Execution results will be printed out in the shell. If result was an error, command will have error exit code.
+
+    """
 )
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
@@ -39,6 +63,7 @@ from dbx.utils.common import (
 )
 @click.option("--no-rebuild", is_flag=True, help="Disable job rebuild")
 @environment_option
+@debug_option
 def execute(
         environment: str,
         cluster_id: str,

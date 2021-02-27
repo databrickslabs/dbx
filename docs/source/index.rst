@@ -16,5 +16,6 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
 .. toctree::
     :maxdepth: 3
 
+    README
     quickstart
     cli

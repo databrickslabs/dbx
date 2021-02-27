@@ -14,27 +14,38 @@ from dbx.utils.common import (
 
 
 @click.command(
-    context_settings=CONTEXT_SETTINGS, short_help="Configures new environment."
+    context_settings=CONTEXT_SETTINGS,
+    short_help="Configures project environment in the current folder.",
+    help="""
+    Configures project environment in the current folder.
+    
+    This command might be used multiple times to change configuration of a given environment.
+    If project file (located in :code:`.dbx/project.json`) is non-existent, it will be initialized.
+    There is no strict requirement to configure project file via this command.
+    You can also configure it directly via any file editor.
+    """
 )
 @click.option(
     "--workspace-dir",
     required=False,
     type=str,
-    help="Workspace directory for MLflow experiment.",
+    help="""Workspace directory for MLflow experiment. \n
+         If not provided, default directory will be :code:`/Shared/dbx/projects/<current-folder-name>`.""",
     default=None,
 )
 @click.option(
     "--artifact-location",
     required=False,
     type=str,
-    help="Artifact location (dbfs path)",
+    help="""Artifact location in DBFS. \n
+        If not provided, default location will be :code:`dbfs:/dbx/<current-folder-name>`.""",
     default=None,
 )
 @environment_option
 @debug_option
 @profile_option
 def configure(
-    environment: str, workspace_dir: str, artifact_location: str, profile: str
+        environment: str, workspace_dir: str, artifact_location: str, profile: str
 ):
     dbx_echo("Configuring new environment with name %s" % environment)
 

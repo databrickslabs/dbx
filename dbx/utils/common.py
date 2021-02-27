@@ -184,7 +184,8 @@ def environment_option(f):
         "--environment",
         required=False,
         default="default",
-        help="Environment name.",
+        help="""Environment name. \n
+            If not provided, :code:`default` will be used.""",
     )(f)
 
 
@@ -193,7 +194,8 @@ def profile_option(f):
         "--profile",
         required=False,
         default=DEFAULT_SECTION,
-        help='CLI connection profile to use. The default profile is "DEFAULT".',
+        help="""CLI connection profile to use.\n
+             The default profile is :code:`DEFAULT`.""",
     )(f)
 
 
