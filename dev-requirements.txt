@@ -1,7 +1,7 @@
 setuptools==49.1.1
 sphinx==2.2.1
 sphinx_rtd_theme
-sphinx-autobuild==0.7.1
+sphinx-autobuild==2020.9.1
 sphinx-click
 sphinx-tabs
 cookiecutter~=1.7.2
