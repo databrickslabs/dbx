@@ -83,24 +83,24 @@ def execute(
 
     handle_package(no_rebuild)
 
-    env_data = DeploymentFile(deployment_file).get_environment(environment)
+    deployment = DeploymentFile(deployment_file).get_environment(environment)
 
-    if not env_data:
-        raise Exception(
+    if not deployment:
+        raise NameError(
             f"Environment {environment} is not provided in deployment file {deployment_file}"
             + " please add this environment first"
         )
 
-    env_jobs = env_data.get("jobs")
+    env_jobs = deployment.get("jobs")
     if not env_jobs:
-        raise Exception(
+        raise RuntimeError(
             f"No jobs section found in environment {environment}, please check the deployment file"
         )
 
-    found_jobs = [j for j in env_data["jobs"] if j["name"] == job]
+    found_jobs = [j for j in deployment["jobs"] if j["name"] == job]
 
     if not found_jobs:
-        raise Exception(
+        raise RuntimeError(
             f"Job {job} was not found in environment jobs, please check the deployment file"
         )
 
@@ -109,7 +109,7 @@ def execute(
     entrypoint_file = job_payload.get("spark_python_task").get("python_file")
 
     if not entrypoint_file:
-        raise Exception(
+        raise FileNotFoundError(
             f"No entrypoint file provided in job {job}. "
             f"Please add one under spark_python_task.python_file section"
         )
@@ -285,15 +285,15 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) ->
 
     if cluster_name:
 
-        existing_clusters = cluster_service.list_clusters()["clusters"]
+        existing_clusters = cluster_service.list_clusters().get("clusters")
         matching_clusters = [
-            c for c in existing_clusters if c["cluster_name"] == cluster_name
+            c for c in existing_clusters if c.get("cluster_name") == cluster_name
         ]
 
         if not matching_clusters:
-            raise Exception(f"No clusters with name {cluster_name} found")
+            raise NameError(f"No clusters with name {cluster_name} found")
         if len(matching_clusters) > 1:
-            raise Exception(
+            raise NameError(
                 f"Found more then one cluster with name {cluster_name}: {matching_clusters}"
             )
 
@@ -301,6 +301,6 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) ->
 
     if cluster_id:
         if not cluster_service.get_cluster(cluster_id):
-            raise Exception(f"Cluster with id {cluster_id} not found")
+            raise NameError(f"Cluster with id {cluster_id} not found")
 
     return cluster_id
