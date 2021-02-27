@@ -1,8 +1,8 @@
 setuptools==49.1.1
 sphinx==2.2.1
-sphinx_rtd_theme==0.4.3
+sphinx_rtd_theme
 sphinx-autobuild==0.7.1
-sphinx-click==2.3.1
+sphinx-click
 sphinx-tabs
 cookiecutter~=1.7.2
 rst2pdf==0.98
@@ -15,3 +15,4 @@ gitpython
 tqdm
 rstcheck
 prospector
+click>=7.1.2

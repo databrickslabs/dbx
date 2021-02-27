@@ -39,8 +39,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
-    "sphinx_click.ext",
-    "rst2pdf.pdfbuilder",
+    "sphinx_click",
     'sphinx_tabs.tabs'
 ]
 
