@@ -10,6 +10,7 @@ from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+from databricks_cli.configure.config import debug_option
 
 from dbx.utils.common import (
     dbx_echo,
@@ -25,6 +26,15 @@ TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 @click.command(
     context_settings=CONTEXT_SETTINGS,
     short_help="Launch the job by it's name on the given environment.",
+    help="""
+    Finds the job deployment and launches it on a automated or interactive cluster.
+    
+    This command will launch the given job by it's name on a given environment. 
+    
+    .. note::
+        Job shall be deployed prior to be launched.
+     
+    """
 )
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
@@ -37,24 +47,34 @@ TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
     "--existing-runs",
     type=click.Choice(["wait", "cancel", "pass"]),
     default="pass",
-    help="Strategy to handle existing active job runs.",
+    help="""
+        Strategy to handle existing active job runs. 
+        
+        Options behaviour:
+        
+        * :code:`wait` will wait for all existing job runs to be finished
+        * :code:`cancel` will cancel all existing job runs
+        * :code:`pass` will simply pass the check and try to launch the job directly
+        """,
 )
 @click.option(
     "--tags",
     multiple=True,
     type=str,
     help="""Additional tags to search for the latest deployment.
-              Format: (--tags="tag_name=tag_value"). 
+              Format: (:code:`--tags="tag_name=tag_value"`). 
               Option might be repeated multiple times.""",
 )
 @click.option(
     "--parameters",
     multiple=True,
     type=str,
-    help="""Parameters of the job. If provided, default job arguments will be overridden.
-              Option might be repeated multiple times.""",
+    help="""Parameters of the job. \n
+            If provided, default job arguments will be overridden.
+            Option might be repeated multiple times.""",
 )
 @environment_option
+@debug_option
 def launch(
         environment: str,
         job: str,

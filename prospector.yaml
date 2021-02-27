@@ -25,6 +25,8 @@ pylint:
     - useless-object-inheritance
     - unnecessary-pass
 
+pep8:
+  disable: W293 # disabled because we have newlines in docstrings
 
 mccabe:
   disable:
