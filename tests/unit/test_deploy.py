@@ -97,15 +97,16 @@ class DeployTest(DbxTest):
             )
             self.assertEqual(configure_result.exit_code, 0)
 
-            deployment_content = {"test": {"dbfs": {}, "jobs": []}}
+            deployment_content = {"misconfigured-environment": {"dbfs": {}, "jobs": []}}
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
             deploy_result = invoke_cli_runner(
-                deploy, ["--environment", "non-existent"], expected_error=True
+                deploy, ["--environment", "test"], expected_error=True
             )
 
-            self.assertEqual(deploy_result.exit_code, 1)
+            self.assertIsInstance(deploy_result.exception, NameError)
+            self.assertIn("non-existent in the deployment file", str(deploy_result.exception))
 
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",

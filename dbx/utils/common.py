@@ -74,10 +74,8 @@ class DeploymentFile:
     def get_environment(self, environment: str) -> Any:
         return read_json(self._path).get(environment)
 
-    def update_environment(self, environment: str, content):
-        environment_data = self.get_environment(environment)
-        environment_data.update(content)
-        update_json({environment: environment_data}, self._path)
+    def get_all_environment_names(self) -> List[str]:
+        return list(read_json(self._path).keys())
 
 
 class InfoFile:

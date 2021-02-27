@@ -11,8 +11,13 @@ We encourage you to use :code:`dbx` both for local development and CI/CD pipelin
 
 .. note::
 
-    :code:`dbx` works with your PAT (Personal Access Token) is exactly the same way as `databricks-cli`_.
-    This means that if :code:`DATABRICKS_HOST` and :code:`DATABRICKS_TOKEN` are defined, :code:`dbx` will use them to perform actions.
+    :code:`dbx` works with your PAT (Personal Access Token) in exactly the same way as `databricks-cli`_.
+    This means that if the following environment variables:
+
+    * :code:`DATABRICKS_HOST`
+    * :code:`DATABRICKS_TOKEN`
+
+    are defined, :code:`dbx` will use them to perform actions.
     It allows you to securely store these variables in your CI/CD tool and access them from within the pipeline.
 
 .. click:: dbx.cli:cli
