@@ -7,7 +7,7 @@ Prerequisites
 -------------
 
 - Python >=3.6 environment on your local machine
-- `databricks-cli <https://github.com/databricks/databricks-cli>`_ with a `configured profile <https://docs.databricks.com/dev-tools/cli/index.html#set-up-authentication>`_
+- `databricks-cli`_ with a `configured profile <https://docs.databricks.com/dev-tools/cli/index.html#set-up-authentication>`_
 
 
 In this instruction we're based on `Databricks Runtime 7.3 LTS ML <https://docs.databricks.com/release-notes/runtime/7.3ml.html>`_.
@@ -37,10 +37,10 @@ Move the shell into the project directory and configure :code:`dbx`.
 
 .. note::
 
-    :code:`dbx` heavily relies on `databricks-cli <https://docs.databricks.com/dev-tools/cli/index.html>`_ and uses the same set of profiles.
+    :code:`dbx` heavily relies on `databricks-cli`_ and uses the same set of profiles.
     Please configure your profiles in advance using :code:`databricks configure` command as described `here <https://docs.databricks.com/dev-tools/cli/index.html#set-up-authentication>`_.
 
-Create a new environment via given command:
+Create a new environment configuration via given command:
 
 .. code-block:: python
 
@@ -67,15 +67,15 @@ Here are some samples of deployment files for different cloud providers:
 
 .. tabs::
 
-    .. tab:: AWS
+   .. tab:: AWS
 
-        .. literalinclude:: ../../tests/deployment-configs/aws-example.json
-            :language: JSON
+      .. literalinclude:: ../../tests/deployment-configs/aws-example.json
+         :language: JSON
 
    .. tab:: Azure
 
-        .. literalinclude:: ../../tests/deployment-configs/azure-example.json
-            :language: JSON
+      .. literalinclude:: ../../tests/deployment-configs/azure-example.json
+         :language: JSON
 
 Expected structure of the deployment file is the following:
 
@@ -145,3 +145,5 @@ Finally, after deploying all your job-related files, you can launch the job via 
     dbx launch --environment=test --job=sample
 
 Please refer to the full description of launch command in the CLI section for more options.
+
+.. _databricks-cli: https://docs.databricks.com/dev-tools/cli/index.html

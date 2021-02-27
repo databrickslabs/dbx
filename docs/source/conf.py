@@ -27,6 +27,7 @@ copyright = "Databricks Labs, %s" % dt.datetime.now().year
 author = "dbx project team"
 version = dbx_version
 release = dbx_version
+pygments_style = "sphinx"
 
 # -- General configuration ---------------------------------------------------
 
