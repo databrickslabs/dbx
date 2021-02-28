@@ -13,3 +13,11 @@ This version finalizes the CI setup for the project. No code changes were done, 
 # 0.0.10
 
 This version fixes issue with job spec adjustment.
+
+# 0.0.11
+
+This version introduces hotfix for job adjustment logic.
+
+# 0.0.12
+
+This version introduces small internal refactorings made after code coverage analysis. 
