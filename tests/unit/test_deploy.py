@@ -1,14 +1,16 @@
 import datetime as dt
 import pathlib
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
+from databricks_cli.sdk import JobsService
 from mlflow import ActiveRun
 from mlflow.entities import Experiment
 from mlflow.entities.run import Run, RunInfo, RunData
+from requests import HTTPError
 
 from dbx.commands.configure import configure
-from dbx.commands.deploy import deploy
+from dbx.commands.deploy import deploy, _update_job
 from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
@@ -207,6 +209,16 @@ class DeployTest(DbxTest):
             )
 
             self.assertEqual(deploy_result.exit_code, 0)
+
+    def test_update_job_positive(self):
+        js = Mock(JobsService)
+        _update_job(js, "aa-bbb-ccc-111", {"name": 1})
+        self.assertEqual(0, 0)  # dummy test to verify positive case
+
+    def test_update_job_negative(self):
+        js = Mock(JobsService)
+        js.reset_job.side_effect = Mock(side_effect=HTTPError())
+        self.assertRaises(HTTPError, _update_job, js, "aa-bbb-ccc-111", {"name": 1})
 
 
 if __name__ == "__main__":

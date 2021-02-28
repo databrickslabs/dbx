@@ -115,10 +115,7 @@ def deploy(
     else:
         requested_jobs = None
 
-    requirements_payload = []
-
-    if requirements_file:
-        requirements_payload = _preprocess_requirements(requirements_file)
+    requirements_payload = _preprocess_requirements(requirements_file)
 
     _preprocess_deployment(deployment, requested_jobs)
 

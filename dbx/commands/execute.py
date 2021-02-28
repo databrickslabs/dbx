@@ -1,5 +1,6 @@
 import pathlib
 import time
+from typing import Optional
 
 import click
 import mlflow
@@ -266,20 +267,20 @@ def awake_cluster(cluster_service: ClusterService, cluster_id):
         time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
     elif cluster_info["state"] == "ERROR":
-        raise Exception(
+        raise RuntimeError(
             "Cluster is mis-configured and cannot be started, please check cluster settings at first"
         )
     elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
         dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
-        time.sleep(10)
+        time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
 
 
-def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) -> str:
+def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str], cluster_id: Optional[str]) -> str:
     cluster_service = ClusterService(api_client)
 
     if not cluster_name and not cluster_id:
-        raise Exception(
+        raise RuntimeError(
             "Parameters --cluster-name and --cluster-id couldn't be empty at the same time."
         )
 
@@ -298,8 +299,7 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) ->
             )
 
         cluster_id = matching_clusters[0]["cluster_id"]
-
-    if cluster_id:
+    else:
         if not cluster_service.get_cluster(cluster_id):
             raise NameError(f"Cluster with id {cluster_id} not found")
 

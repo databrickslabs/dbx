@@ -50,7 +50,7 @@ def configure(
     dbx_echo("Configuring new environment with name %s" % environment)
 
     if not workspace_dir:
-        workspace_dir = "/Shared/dbx/projects/%s" % Path(".").absolute().name
+        workspace_dir = f'/Shared/dbx/projects/{Path(".").absolute().name}'
         dbx_echo(
             f"Workspace directory argument is not provided, using the following directory: {workspace_dir}"
         )

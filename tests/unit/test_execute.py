@@ -1,13 +1,14 @@
 import datetime as dt
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
+from databricks_cli.sdk import ApiClient, ClusterService
 from mlflow import ActiveRun
 from mlflow.entities import Experiment
 from mlflow.entities.run import Run, RunInfo, RunData
 
 from dbx.commands.configure import configure
-from dbx.commands.execute import execute
+from dbx.commands.execute import execute, _preprocess_cluster_args, awake_cluster  # noqa
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
 run_info = RunInfo(
@@ -55,7 +56,7 @@ class ExecuteTest(DbxTest):
         return_value=Experiment("id", None, "location", None, None),
     )
     @patch("mlflow.set_experiment", return_value=None)
-    def test_execute(self, *args):
+    def test_execute(self, *args):  # noqa
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -84,6 +85,64 @@ class ExecuteTest(DbxTest):
             )
 
             self.assertEqual(execute_result.exit_code, 0)
+
+    @patch(
+        "databricks_cli.clusters.api.ClusterService.list_clusters",
+        return_value={
+            "clusters": [
+                {
+                    "cluster_name": "some-cluster-name",
+                    "cluster_id": "aaa-111"
+                },
+                {
+                    "cluster_name": "other-cluster-name",
+                    "cluster_id": "aaa-bbb-ccc"
+                },
+                {
+                    "cluster_name": "duplicated-name",
+                    "cluster_id": "duplicated-1"
+                },
+                {
+                    "cluster_name": "duplicated-name",
+                    "cluster_id": "duplicated-2"
+                },
+            ]},
+    )
+    @patch(
+        "databricks_cli.clusters.api.ClusterService.get_cluster",
+        side_effect=lambda cid: "something" if cid in ("aaa-bbb-ccc", "aaa-111") else None
+    )
+    def test_preprocess_cluster_args(self, *args):  # noqa
+        api_client = Mock(ApiClient)
+
+        self.assertRaises(RuntimeError, _preprocess_cluster_args, api_client, None, None)
+
+        id_by_name = _preprocess_cluster_args(api_client, "some-cluster-name", None)
+        self.assertEqual(id_by_name, "aaa-111")
+
+        id_by_id = _preprocess_cluster_args(api_client, None, "aaa-bbb-ccc")
+        self.assertEqual(id_by_id, "aaa-bbb-ccc")
+
+        self.assertRaises(NameError, _preprocess_cluster_args, api_client, "non-existent-cluster-by-name", None)
+        self.assertRaises(NameError, _preprocess_cluster_args, api_client, "duplicated-name", None)
+        self.assertRaises(NameError, _preprocess_cluster_args, api_client, None, "non-existent-id")
+
+    def test_awake_cluster(self):
+        # normal behavior
+        cluster_service_mock = Mock(ClusterService)
+        cluster_service_mock.get_cluster.side_effect = [
+            {"state": "TERMINATED"},
+            {"state": "PENDING"},
+            {"state": "RUNNING"},
+            {"state": "RUNNING"},
+        ]
+        awake_cluster(cluster_service_mock, "aaa-bbb")
+        self.assertEqual(cluster_service_mock.get_cluster("aaa-bbb").get("state"), "RUNNING")
+
+        # error behavior
+        error_mock = Mock(ClusterService)
+        error_mock.get_cluster.return_value = {"state": "ERROR"}
+        self.assertRaises(RuntimeError, awake_cluster, error_mock, "aaa-bbb")
 
 
 if __name__ == "__main__":
