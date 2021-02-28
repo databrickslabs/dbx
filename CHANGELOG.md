@@ -16,8 +16,4 @@ This version fixes issue with job spec adjustment.
 
 # 0.0.11
 
-This version introduces hotfix for job adjustment logic.
-
-# 0.0.12
-
-This version introduces small internal refactorings made after code coverage analysis. 
+This version introduces small internal refactorings made after code coverage analysis.
