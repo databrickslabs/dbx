@@ -1,5 +1,6 @@
 import pathlib
 import time
+from typing import Optional
 
 import click
 import mlflow
@@ -83,24 +84,24 @@ def execute(
 
     handle_package(no_rebuild)
 
-    env_data = DeploymentFile(deployment_file).get_environment(environment)
+    deployment = DeploymentFile(deployment_file).get_environment(environment)
 
-    if not env_data:
-        raise Exception(
+    if not deployment:
+        raise NameError(
             f"Environment {environment} is not provided in deployment file {deployment_file}"
             + " please add this environment first"
         )
 
-    env_jobs = env_data.get("jobs")
+    env_jobs = deployment.get("jobs")
     if not env_jobs:
-        raise Exception(
+        raise RuntimeError(
             f"No jobs section found in environment {environment}, please check the deployment file"
         )
 
-    found_jobs = [j for j in env_data["jobs"] if j["name"] == job]
+    found_jobs = [j for j in deployment["jobs"] if j["name"] == job]
 
     if not found_jobs:
-        raise Exception(
+        raise RuntimeError(
             f"Job {job} was not found in environment jobs, please check the deployment file"
         )
 
@@ -109,7 +110,7 @@ def execute(
     entrypoint_file = job_payload.get("spark_python_task").get("python_file")
 
     if not entrypoint_file:
-        raise Exception(
+        raise FileNotFoundError(
             f"No entrypoint file provided in job {job}. "
             f"Please add one under spark_python_task.python_file section"
         )
@@ -266,41 +267,40 @@ def awake_cluster(cluster_service: ClusterService, cluster_id):
         time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
     elif cluster_info["state"] == "ERROR":
-        raise Exception(
+        raise RuntimeError(
             "Cluster is mis-configured and cannot be started, please check cluster settings at first"
         )
     elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
         dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
-        time.sleep(10)
+        time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
 
 
-def _preprocess_cluster_args(api_client: ApiClient, cluster_name, cluster_id) -> str:
+def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str], cluster_id: Optional[str]) -> str:
     cluster_service = ClusterService(api_client)
 
     if not cluster_name and not cluster_id:
-        raise Exception(
+        raise RuntimeError(
             "Parameters --cluster-name and --cluster-id couldn't be empty at the same time."
         )
 
     if cluster_name:
 
-        existing_clusters = cluster_service.list_clusters()["clusters"]
+        existing_clusters = cluster_service.list_clusters().get("clusters")
         matching_clusters = [
-            c for c in existing_clusters if c["cluster_name"] == cluster_name
+            c for c in existing_clusters if c.get("cluster_name") == cluster_name
         ]
 
         if not matching_clusters:
-            raise Exception(f"No clusters with name {cluster_name} found")
+            raise NameError(f"No clusters with name {cluster_name} found")
         if len(matching_clusters) > 1:
-            raise Exception(
+            raise NameError(
                 f"Found more then one cluster with name {cluster_name}: {matching_clusters}"
             )
 
         cluster_id = matching_clusters[0]["cluster_id"]
-
-    if cluster_id:
+    else:
         if not cluster_service.get_cluster(cluster_id):
-            raise Exception(f"Cluster with id {cluster_id} not found")
+            raise NameError(f"Cluster with id {cluster_id} not found")
 
     return cluster_id

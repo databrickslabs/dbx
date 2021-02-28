@@ -94,7 +94,7 @@ Expected structure of the deployment file is the following:
                     },
                     "parameters": [
                         "--conf-file",
-                        "conf/test/sample.json" // references entrypoint file relatively to the project root directory
+                        "conf/test/sample.json" // references configuration file relatively to the project root directory
                     ]
                 }
             ]

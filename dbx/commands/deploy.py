@@ -16,14 +16,13 @@ from requests.exceptions import HTTPError
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
-    read_json,
     DEFAULT_DEPLOYMENT_FILE_PATH,
     environment_option,
     parse_multiple,
     FileUploader,
     handle_package,
     get_package_file,
-    get_current_branch_name,
+    get_current_branch_name, DeploymentFile,
 )
 
 
@@ -100,15 +99,14 @@ def deploy(
 
     _verify_deployment_file(deployment_file)
 
-    all_deployments = read_json(deployment_file)
-
-    deployment = all_deployments.get(environment)
+    deployment_file_controller = DeploymentFile(deployment_file)
+    deployment = deployment_file_controller.get_environment(environment)
 
     if not deployment:
-        raise Exception(
+        raise NameError(
             f"""
         Requested environment {environment} is non-existent in the deployment file {deployment_file}.
-        Available environments are: {list(all_deployments.keys())}
+        Available environments are: {deployment_file_controller.get_all_environment_names()}
         """
         )
 
@@ -117,10 +115,7 @@ def deploy(
     else:
         requested_jobs = None
 
-    requirements_payload = []
-
-    if requirements_file:
-        requirements_payload = _preprocess_requirements(requirements_file)
+    requirements_payload = _preprocess_requirements(requirements_file)
 
     _preprocess_deployment(deployment, requested_jobs)
 

@@ -81,8 +81,13 @@ Limitations
 -----------
 
 * Python > 3.6
-* :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X
+* :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X and only for Python-based projects.
 
+Versioning
+----------
+
+For CLI interfaces, we support `SemVer <https://semver.org/>`_ approach. However, for API components we don't use SemVer as of now.
+This may lead to instability when using :code:`dbx` API methods directly.
 
 Legal Information
 -----------------
