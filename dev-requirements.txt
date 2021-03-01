@@ -1,4 +1,4 @@
-setuptools==53.1.0
+setuptools==54.0.0
 sphinx==3.5.1
 sphinx_rtd_theme
 sphinx-autobuild==2020.9.1
