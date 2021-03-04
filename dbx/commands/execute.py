@@ -154,11 +154,12 @@ def execute(
         localized_package_path = (
             f"{localized_base_path}/{str(project_package_path.as_posix())}"
         )
-        installation_command = f"%pip install -U -r {localized_package_path}"
+        dbx_echo("Installing package")
+        installation_command = f"%pip install -U {localized_package_path}"
         execute_command(
             v1_client, cluster_id, context_id, installation_command, verbose=False
         )
-        dbx_echo("Package installed")
+        dbx_echo("Package installation finished")
 
         tags = {"dbx_action_type": "execute", "dbx_environment": environment}
 

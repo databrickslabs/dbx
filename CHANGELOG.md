@@ -17,3 +17,7 @@ This version fixes issue with job spec adjustment.
 # 0.0.11
 
 This version introduces small internal refactorings made after code coverage analysis.
+
+# 0.0.12
+
+This version introduces hotfix for execute command.
