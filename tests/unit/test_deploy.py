@@ -1,4 +1,5 @@
 import datetime as dt
+import json
 import pathlib
 import unittest
 from unittest.mock import patch, Mock
@@ -10,7 +11,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from requests import HTTPError
 
 from dbx.commands.configure import configure
-from dbx.commands.deploy import deploy, _update_job
+from dbx.commands.deploy import deploy, _update_job  # noqa
 from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
@@ -22,6 +23,7 @@ run_info = RunInfo(
     start_time=dt.datetime.now(),
     end_time=dt.datetime.now(),
     lifecycle_stage="STAGE",
+    artifact_uri="dbfs:/Shared/dbx-testing"
 )
 run_data = RunData()
 run_mock = ActiveRun(Run(run_info, run_data))
@@ -43,7 +45,7 @@ class DeployTest(DbxTest):
         return_value=Experiment("id", None, "location", None, None),
     )
     @patch("mlflow.set_experiment", return_value=None)
-    def test_deploy_basic(self, *args):
+    def test_deploy_basic(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -83,7 +85,7 @@ class DeployTest(DbxTest):
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
-    def test_deploy_non_existent_env(self, *args):
+    def test_deploy_non_existent_env(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -128,7 +130,7 @@ class DeployTest(DbxTest):
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
-    def test_deploy_listed_jobs(self, *args):
+    def test_deploy_listed_jobs(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -174,7 +176,7 @@ class DeployTest(DbxTest):
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
-    def test_deploy_with_requirements(self, *args):
+    def test_deploy_with_requirements(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -194,9 +196,9 @@ class DeployTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            sample_reqs = "\n".join(["pyspark=3.0.0", "xgboost=0.6.0"])
+            sample_requirements = "\n".join(["pyspark=3.0.0", "xgboost=0.6.0"])
 
-            pathlib.Path("runtime_requirements.txt").write_text(sample_reqs)
+            pathlib.Path("runtime_requirements.txt").write_text(sample_requirements)
 
             deploy_result = invoke_cli_runner(
                 deploy,
@@ -219,6 +221,55 @@ class DeployTest(DbxTest):
         js = Mock(JobsService)
         js.reset_job.side_effect = Mock(side_effect=HTTPError())
         self.assertRaises(HTTPError, _update_job, js, "aa-bbb-ccc-111", {"name": 1})
+
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch(
+        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
+    )
+    @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
+    @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
+    @patch(
+        "mlflow.get_experiment_by_name",
+        return_value=Experiment("id", None, "location", "dbfs:/Shared/dbx/test", None),
+    )
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    def test_write_specs_to_file(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "default",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            spec_file = ".dbx/deployment-result.json"
+            deploy_result = invoke_cli_runner(
+                deploy,
+                [
+                    "--environment", "default",
+                    "--write-specs-to-file", spec_file
+                ]
+            )
+
+            self.assertEqual(deploy_result.exit_code, 0)
+
+            spec_result = json.loads(pathlib.Path(spec_file).read_text())
+
+            self.assertIsNotNone(spec_result)
 
 
 if __name__ == "__main__":

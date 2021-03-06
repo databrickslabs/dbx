@@ -2,7 +2,7 @@ import json
 import pathlib
 import shutil
 import tempfile
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Optional
 from typing import List
 
 import click
@@ -44,7 +44,7 @@ from dbx.utils.common import (
     5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
     6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
     7. If the job with given name exists, it will be updated, if not - created
-
+    8. If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
     """
 )
 @click.option(
@@ -78,6 +78,14 @@ from dbx.utils.common import (
     help="""Additional tags for deployment in format (tag_name=tag_value). 
               Option might be repeated multiple times.""",
 )
+@click.option(
+    "--write-specs-to-file",
+    type=str,
+    default=None,
+    help="""Writes final job definitions into a given local file. 
+              Helpful when final representation of a deployed job is needed for other integrations.
+              Please not that output file will be overwritten if it exists."""
+)
 @debug_option
 @environment_option
 def deploy(
@@ -88,6 +96,7 @@ def deploy(
         environment: str,
         no_rebuild: bool,
         no_package: bool,
+        write_specs_to_file: Optional[str]
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 
@@ -142,6 +151,7 @@ def deploy(
             package_requirement,
             _file_uploader,
         )
+
         deployment_data = _create_jobs(deployment["jobs"], api_client)
         _log_deployments(deployment_data)
 
@@ -157,6 +167,15 @@ def deploy(
 
         mlflow.set_tags(deployment_tags)
         dbx_echo(f"Deployment for environment {environment} finished successfully")
+
+        if write_specs_to_file:
+            dbx_echo("Writing final job specifications into file")
+            specs_file = pathlib.Path(write_specs_to_file)
+
+            if specs_file.exists():
+                specs_file.unlink()
+
+            specs_file.write_text(json.dumps(deployment))
 
 
 def _delete_managed_libraries(packages: List[str]) -> List[str]:

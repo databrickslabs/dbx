@@ -21,3 +21,7 @@ This version introduces small internal refactorings made after code coverage ana
 # 0.0.12
 
 This version introduces hotfix for execute command.
+
+# 0.0.13
+
+Introduced `--write-specs-to-file` option for `dbx deploy` command.
