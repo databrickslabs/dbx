@@ -1,5 +1,5 @@
 # This Makefile is for project development purposes only.
-.PHONY: build
+.PHONY: build docs
 ENV_NAME=dbx
 
 install-dev:
@@ -20,16 +20,8 @@ test-with-html-report:
 create-dev-env:
 	conda create -n $(ENV_NAME) python=3.7.5
 
-install-dev-reqs:
-	pip install -U -r dev-requirements.txt
-
-docs-html:
-	rm -rf docs/build/html
-	sphinx-build -a -b html docs/source docs/build/html
-
-docs-pdf:
-	rm -rf docs/build/pdf
-	sphinx-build -a -b pdf docs/source docs/build/pdf
+docs:
+	cd docs && make html
 
 build:
 	rm -rf dist/*
