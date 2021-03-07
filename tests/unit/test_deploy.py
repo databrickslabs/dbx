@@ -257,6 +257,7 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             spec_file = ".dbx/deployment-result.json"
+
             deploy_result = invoke_cli_runner(
                 deploy,
                 [
@@ -270,6 +271,16 @@ class DeployTest(DbxTest):
             spec_result = json.loads(pathlib.Path(spec_file).read_text())
 
             self.assertIsNotNone(spec_result)
+
+            deploy_overwrite = invoke_cli_runner(
+                deploy,
+                [
+                    "--environment", "default",
+                    "--write-specs-to-file", spec_file
+                ]
+            )
+
+            self.assertEqual(deploy_overwrite.exit_code, 0)
 
 
 if __name__ == "__main__":
