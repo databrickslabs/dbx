@@ -37,14 +37,15 @@ from dbx.utils.common import (
     During the deployment, following actions will be performed:
     
     1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
-    2. |Deployment configuration will be taken for environment
-       |from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf.deployment.json`).
+    2. | Deployment configuration will be taken for environment
+       | from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf.deployment.json`).
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
     5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
     6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
     7. If the job with given name exists, it will be updated, if not - created
-    8. If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
+    8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
+       | For example, this option can look like this: :code:`--write-specs-to-file=.dbx/deployment-result.json`.
     """
 )
 @click.option(
