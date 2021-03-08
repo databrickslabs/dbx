@@ -203,7 +203,7 @@ def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
     service.mkdirs(p)
 
 
-def prepare_environment(environment: str):
+def prepare_environment(environment: str) -> ApiClient:
     environment_data = InfoFile.get("environments").get(environment)
 
     if not environment_data:

@@ -293,6 +293,73 @@ class DeployTest(DbxTest):
 
             self.assertEqual(deploy_overwrite.exit_code, 0)
 
+    @patch("databricks_cli.sdk.api_client.ApiClient.perform_query", return_value=None)
+    @patch(
+        "databricks_cli.sdk.service.DbfsService.get_status", return_value=None
+    )
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch(
+        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
+    )
+    @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
+    @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
+    @patch(
+        "mlflow.get_experiment_by_name",
+        return_value=Experiment("id", None, "location", "dbfs:/Shared/dbx/test", None),
+    )
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    def test_with_permissions(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "default",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            deployment_file = pathlib.Path(DEFAULT_DEPLOYMENT_FILE_PATH)
+            deploy_content = json.loads(deployment_file.read_text())
+
+            sample_job = deploy_content.get("default").get("jobs")[0]
+
+            sample_job["permissions"] = {
+                "access_control_list": [
+                    {
+                        "user_name": "some_user@example.com",
+                        "permission_level": "IS_OWNER",
+                    },
+                    {
+                        "group_name": "some-user-group",
+                        "permission_level": "CAN_VIEW"
+                    }
+                ]
+            }
+
+            deployment_file.write_text(json.dumps(deploy_content, indent=4))
+
+            deploy_result = invoke_cli_runner(
+                deploy,
+                [
+                    "--environment", "default"
+                ]
+            )
+
+            self.assertEqual(deploy_result.exit_code, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
