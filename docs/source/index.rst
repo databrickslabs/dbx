@@ -19,3 +19,4 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     README
     quickstart
     cli
+    permissions
