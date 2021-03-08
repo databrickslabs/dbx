@@ -25,3 +25,7 @@ This version introduces hotfix for execute command.
 # 0.0.13
 
 Introduced `--write-specs-to-file` option for `dbx deploy` command.
+
+# 0.0.14
+
+Introduces integrated permission management, please refer to documentation for details. 
