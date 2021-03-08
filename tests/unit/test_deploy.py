@@ -30,6 +30,11 @@ run_mock = ActiveRun(Run(run_info, run_data))
 
 
 class DeployTest(DbxTest):
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
@@ -69,6 +74,7 @@ class DeployTest(DbxTest):
 
             self.assertEqual(deploy_result.exit_code, 0)
 
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
@@ -112,6 +118,7 @@ class DeployTest(DbxTest):
             self.assertIsInstance(deploy_result.exception, NameError)
             self.assertIn("non-existent in the deployment file", str(deploy_result.exception))
 
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
@@ -158,6 +165,7 @@ class DeployTest(DbxTest):
 
             self.assertEqual(deploy_result.exit_code, 0)
 
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
@@ -222,6 +230,9 @@ class DeployTest(DbxTest):
         js.reset_job.side_effect = Mock(side_effect=HTTPError())
         self.assertRaises(HTTPError, _update_job, js, "aa-bbb-ccc-111", {"name": 1})
 
+    @patch(
+        "databricks_cli.sdk.service.DbfsService.get_status", return_value=None
+    )
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
