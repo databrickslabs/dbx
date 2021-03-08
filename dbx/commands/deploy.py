@@ -159,12 +159,13 @@ def deploy(
         for job_spec in deployment.get("jobs"):
             permissions = job_spec.get("permissions")
             if permissions:
-                dbx_echo(f"Permission settings are provided for job {job_spec['name']}, setting it up")
+                job_name = job_spec.get("name")
+                dbx_echo(f"Permission settings are provided for job {job_name}, setting it up")
                 job_id = deployment_data.get(job_spec.get("name"))
                 api_client.perform_query(
                     "PUT", f"/permissions/jobs/{job_id}", data=permissions
                 )
-                dbx_echo("ACL properties were successfully set")
+                dbx_echo(f"Permission settings were successfully set for job {job_name}")
 
         deployment_tags = {
             "dbx_action_type": "deploy",
