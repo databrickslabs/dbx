@@ -45,7 +45,7 @@ logging.basicConfig(level=logging.ERROR, handlers=[handler])  # noqa
 @click.group(
     help="Azure Data Factory integration utilities."
 )
-def datafactory_group():
+def datafactory():
     pass
 
 
@@ -289,4 +289,4 @@ class DataFactoryDeployer:
         dbx_echo(f"Deployment to factory {self.factory_name} finished successfully")
 
 
-datafactory_group.add_command(deploy, name="deploy")
+datafactory.add_command(deploy, name="deploy")
