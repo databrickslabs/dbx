@@ -6,6 +6,7 @@ Integration with Azure Data Factory
 
 To perform integration with Azure Data Factory, please do the following steps:
 
+0. Please ensure that pipeline is created and published in Azure Data Factory.
 1. Inside your CI pipeline, deploy latest job versions and write deployment result into a file:
 
 .. code-block::
@@ -31,6 +32,7 @@ This command will create or update linked services and pipeline steps by given j
     Please note following limitations of this approach:
      * runs triggered from Azure Data Factory won't be mentioned in the job runs
      * changing job definition manually in Databricks UI won't change the properties of ADF-defined jobs
+     * only Python-based jobs are supported at this moment
 
 Integration with Apache Airflow
 -------------------------------

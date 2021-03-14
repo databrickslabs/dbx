@@ -7,8 +7,15 @@ import click
 from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.datafactory import DataFactoryManagementClient
-from azure.mgmt.datafactory.models import AzureDatabricksLinkedService, SecureString, LinkedServiceResource, \
-    PipelineResource, DatabricksSparkPythonActivity, LinkedServiceReference, Activity
+from azure.mgmt.datafactory.models import (
+    AzureDatabricksLinkedService,
+    SecureString,
+    LinkedServiceResource,
+    PipelineResource,
+    DatabricksSparkPythonActivity,
+    LinkedServiceReference,
+    Activity
+)
 from azure.mgmt.subscription import SubscriptionClient
 from databricks_cli.configure.config import debug_option
 from databricks_cli.configure.provider import DatabricksConfig
