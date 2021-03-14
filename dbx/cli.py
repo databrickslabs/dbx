@@ -5,6 +5,7 @@ from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy
 from dbx.commands.execute import execute
 from dbx.commands.launch import launch
+from dbx.commands.datafactory import datafactory_group
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -17,6 +18,7 @@ cli.add_command(configure, name="configure")
 cli.add_command(deploy, name="deploy")
 cli.add_command(launch, name="launch")
 cli.add_command(execute, name="execute")
+cli.add_command(datafactory_group, name="datafactory")
 
 if __name__ == "__main__":
     cli()

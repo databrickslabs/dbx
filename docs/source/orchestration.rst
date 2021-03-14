@@ -1,23 +1,72 @@
 Integration with orchestration tools
 ====================================
 
-Development of data pipelines might be a challenging task not only from the CI perspective, but from the orchestration side as well.
-In this section we describe two most common orchestration tools - `Azure Data Factory <https://azure.microsoft.com/en-us/services/data-factory/>`_ and `Airflow <https://airflow.apache.org/>`_.
+Integration with Azure Data Factory
+-----------------------------------
 
-Before describing details of integration with these tools, let's take a look on the logical approach and separate responsibility between CI pipeline and orchestration pipeline.
+To perform integration with Azure Data Factory, please do the following steps:
 
-CI pipelines and orchestration pipelines
-----------------------------------------
+1. Inside your CI pipeline, deploy latest job versions and write deployment result into a file:
 
-:code:`dbx` is responsible for helping end user with *CI pipelines* and *local development*. By this, we mean the following tasks:
+.. code-block::
 
-* deploying new jobs in a consistent, versioned fashion
-* deploying jobs across different environments
-* delivering dependent files, such as whl packages and .json configurations in a versioned fashion to DBFS
+    dbx deploy --write-specs-to-file=./dbx/deployment-result.json
 
-:code:`dbx` can launch jobs, but it's not the best tool for chaining jobs or launching them in a ordered fashion.
+2. Perform deployment to Azure Data Factory:
 
-In contrast, aforementioned solutions are oriented to *orchestrate* pipelines, for example:
+.. code-block::
 
-* Create a set of pipeline steps
-*
+    dbx datafactory deploy \
+        --specs-file=.dbx/deployment-result.json \
+        --subscription-name some-subscription \
+        --resource-group some-group \
+        --factory-name some-factory \
+        --name some-pipeline-name
+
+This command will create or update linked services and pipeline steps by given job name.
+
+
+.. warning::
+
+    Please note following limitations of this approach:
+     * runs triggered from Azure Data Factory won't be mentioned in the job runs
+     * changing job definition manually in Databricks UI won't change the properties of ADF-defined jobs
+
+Integration with Apache Airflow
+-------------------------------
+
+To trigger job execution from Apache Airflow, please do the following:
+
+* Add new function to get job id by the job name:
+
+.. code-block:: python
+
+    from airflow.contrib.hooks.databricks_hook import DatabricksHook
+
+    def get_job_id_by_name(job_name: str, databricks_conn_id: str) -> str:
+        list_endpoint = ('GET', 'api/2.0/jobs/list')
+        hook = DatabricksHook(databricks_conn_id=databricks_conn_id)
+        response_payload = hook._do_api_call(list_endpoint, {})
+        all_jobs = response_payload.get("jobs", [])
+        matching_jobs = [j for j in all_jobs if j["settings"]["name"] == job_name]
+
+        if not matching_jobs:
+            raise Exception(f"Job with name {job_name} not found")
+
+        if len(matching_jobs) > 1:
+            raise Exception(f"Job with name {job_name} is duplicated. Please make job name unique in Databricks UI.")
+
+        job_id = matching_jobs[0]["job_id"]
+        return job_id
+
+* Use this function from your DAG:
+
+.. code-block:: python
+
+    from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+
+    job_id = get_job_id_by_name("some-job-name", "some-databricks-conn-id")
+    operator = DatabricksRunNowOperator(
+        job_id=job_id,
+        # add your arguments
+    )

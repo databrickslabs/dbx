@@ -187,7 +187,8 @@ def deploy(
             if specs_file.exists():
                 specs_file.unlink()
 
-            specs_file.write_text(json.dumps(deployment))
+            deployment_spec = {environment: deployment}
+            specs_file.write_text(json.dumps(deployment_spec, indent=4))
 
 
 def _delete_managed_libraries(packages: List[str]) -> List[str]:
