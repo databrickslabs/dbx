@@ -24,22 +24,30 @@ To perform integration with Azure Data Factory, please do the following steps:
         --factory-name some-factory \
         --name some-pipeline-name
 
-This command will create or update linked services and pipeline steps by given job name.
+This command will create or update linked services and pipeline activities. Each job will be configured as a separate activity.
 
 
 .. warning::
 
     Please note following limitations of this approach:
      * runs triggered from Azure Data Factory won't be mentioned in the job runs
-     * changing job definition manually in Databricks UI won't change the properties of ADF-defined jobs
-     * only Python-based jobs are supported at this moment
+     * changing job definition manually in Databricks UI won't change the properties of ADF-defined activities
+     * only Python-based activities are supported at this moment
+     * MSI authentication is not yet supported
+     * :code:`policy_id` argument is not yet supported (it will be ignored during deployment to ADF)
 
 Integration with Apache Airflow
 -------------------------------
 
 To trigger job execution from Apache Airflow, please do the following:
 
-* Add new function to get job id by the job name:
+* Deploy jobs to Databricks:
+
+.. code-block::
+
+    dbx deploy
+
+* Add this function to get job id by the job name into your Airflow setup:
 
 .. code-block:: python
 
