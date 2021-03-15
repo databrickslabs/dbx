@@ -52,6 +52,7 @@ class DatafactoryDeployTest(DbxTest):
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
+    @patch("dbx.commands.datafactory.DatafactoryDeployer", autospec=True)
     def test_datafactory_deploy(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name

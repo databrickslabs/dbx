@@ -104,7 +104,7 @@ def deploy(
         environment: str
 ):
     dbx_echo("Deploying jobs specifications to Azure Data Factory")
-    deployer = DataFactoryDeployer(
+    deployer = DatafactoryDeployer(
         specs_file,
         subscription_name,
         resource_group,
@@ -115,7 +115,7 @@ def deploy(
     deployer.launch()
 
 
-class DataFactoryDeployer:
+class DatafactoryDeployer:
     def __init__(self,
                  specs_file: str,
                  subscription_name: str,
@@ -124,14 +124,16 @@ class DataFactoryDeployer:
                  name: str,
                  environment: str
                  ):
-        self._specs = self._read_specs(specs_file, environment)
+        self.adf_client = DataFactoryManagementClient(self.credential, subscription_id=self.subscription_id)
+        self.subscription_id = self._get_subscription_id(subscription_name)
         self.environment = environment
         self.credential = DefaultAzureCredential(exclude_visual_studio_code_credential=True)
-        self.subscription_id = self._get_subscription_id(subscription_name)
-        self.adf_client = DataFactoryManagementClient(self.credential, subscription_id=self.subscription_id)
+        self.sub_client = SubscriptionClient(self.credential)
         self.resource_group = resource_group
         self.factory_name = factory_name
         self.name = name
+
+        self._specs = self._read_specs(specs_file, environment)
         self._config = self._get_config()
 
         self._verify_adf_setup()
@@ -176,9 +178,7 @@ class DataFactoryDeployer:
             )
 
     def _get_subscription_id(self, subscription_name: str) -> str:
-        sub_client = SubscriptionClient(self.credential)
-
-        matched_subscriptions = [sub for sub in sub_client.subscriptions.list() if
+        matched_subscriptions = [sub for sub in self.sub_client.subscriptions.list() if
                                  sub.display_name == subscription_name]
         dbx_echo("Subscription list prepared")
         if not matched_subscriptions:
