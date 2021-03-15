@@ -29,3 +29,8 @@ Introduced `--write-specs-to-file` option for `dbx deploy` command.
 # 0.0.14
 
 Introduces integrated permission management, please refer to documentation for details. 
+
+# 0.1.0
+
+Introduces integration with Azure Data Factory, as well as some small internal behaviour fixes. 
+Also, the behaviour of `dbx deploy --write-specs-to-file` has been changed to make the structure of specs file compatible with environment structure.
