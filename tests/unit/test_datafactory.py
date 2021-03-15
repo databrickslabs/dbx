@@ -9,7 +9,7 @@ from mlflow.entities import Experiment
 from mlflow.entities.run import Run, RunInfo, RunData
 
 from dbx.commands.configure import configure
-from dbx.commands.datafactory import deploy as datafactory_deploy
+from dbx.commands.datafactory import reflect as datafactory_reflect
 from dbx.commands.deploy import deploy, _update_job  # noqa
 from dbx.utils.common import DEFAULT_DEPLOYMENT_FILE_PATH
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
@@ -52,7 +52,7 @@ class DatafactoryDeployTest(DbxTest):
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
-    @patch("dbx.commands.datafactory.DatafactoryDeployer", autospec=True)
+    @patch("dbx.commands.datafactory.DatafactoryReflector", autospec=True)
     def test_datafactory_deploy(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -99,8 +99,8 @@ class DatafactoryDeployTest(DbxTest):
 
             self.assertEqual(deploy_result.exit_code, 0)
 
-            datafactory_deploy_result = invoke_cli_runner(
-                datafactory_deploy,
+            reflection_result = invoke_cli_runner(
+                datafactory_reflect,
                 [
                     "--environment", "default",
                     "--specs-file", ".dbx/deployment-result.json",
@@ -111,7 +111,7 @@ class DatafactoryDeployTest(DbxTest):
                 ]
             )
 
-            self.assertEqual(datafactory_deploy_result.exit_code, 0)
+            self.assertEqual(reflection_result.exit_code, 0)
 
 
 if __name__ == "__main__":

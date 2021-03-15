@@ -13,11 +13,11 @@ To perform integration with Azure Data Factory, please do the following steps:
 
     dbx deploy --write-specs-to-file=./dbx/deployment-result.json
 
-2. Perform deployment to Azure Data Factory:
+2. Reflect job definitions to Azure Data Factory activities:
 
 .. code-block::
 
-    dbx datafactory deploy \
+    dbx datafactory reflect \
         --specs-file=.dbx/deployment-result.json \
         --subscription-name some-subscription \
         --resource-group some-group \

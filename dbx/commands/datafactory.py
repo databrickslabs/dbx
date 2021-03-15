@@ -51,14 +51,14 @@ def datafactory():
 
 @click.command(
     context_settings=CONTEXT_SETTINGS,
-    short_help="""Deploy job definitions to Azure Data Factory.""",
-    help="""Deploy job definitions to Azure Data Factory.
+    short_help="""Reflects job definitions to Azure Data Factory.""",
+    help="""Reflects job definitions to Azure Data Factory.
 
-    During the deployment, following actions will be performed:
+    During the reflection, following actions will be performed:
     
     1. Input specs file will be parsed
     2. Per each defined cluster, a new linked service will be created 
-    3. | Per each defined job, a job object in ADF pipeline will be created. 
+    3. | Per each defined job, a job object in ADF pipeline will be reflected. 
        | Please note that chaining jobs into pipeline shall be done on ADF side. 
        | No other steps in datafactory pipeline will be changed by execution of this command.
     """
@@ -67,7 +67,7 @@ def datafactory():
     "--specs-file",
     required=True,
     type=str,
-    help="Path to deployment specification file"
+    help="Path to deployment result specification file"
 )
 @click.option(
     "--subscription-name",
@@ -95,7 +95,7 @@ def datafactory():
 )
 @debug_option
 @environment_option
-def deploy(
+def reflect(
         specs_file: str,
         subscription_name: str,
         resource_group: str,
@@ -103,8 +103,8 @@ def deploy(
         name: str,
         environment: str
 ):
-    dbx_echo("Deploying jobs specifications to Azure Data Factory")
-    deployer = DatafactoryDeployer(
+    dbx_echo("Reflecting job specifications to Azure Data Factory")
+    reflector = DatafactoryReflector(
         specs_file,
         subscription_name,
         resource_group,
@@ -112,10 +112,10 @@ def deploy(
         name,
         environment
     )
-    deployer.launch()
+    reflector.launch()
 
 
-class DatafactoryDeployer:
+class DatafactoryReflector:
     def __init__(self,
                  specs_file: str,
                  subscription_name: str,
@@ -287,7 +287,7 @@ class DatafactoryDeployer:
             prepared_activities.append(job_activity)
             dbx_echo(f"Preparing job {job_name} - done")
         self._update_pipeline(prepared_activities)
-        dbx_echo(f"Deployment to factory {self.factory_name} finished successfully")
+        dbx_echo(f"Reflection to factory {self.factory_name} finished successfully")
 
 
-datafactory.add_command(deploy, name="deploy")
+datafactory.add_command(reflect, name="reflect")
