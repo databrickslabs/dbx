@@ -124,14 +124,15 @@ class DatafactoryDeployer:
                  name: str,
                  environment: str
                  ):
-        self.adf_client = DataFactoryManagementClient(self.credential, subscription_id=self.subscription_id)
-        self.subscription_id = self._get_subscription_id(subscription_name)
-        self.environment = environment
-        self.credential = DefaultAzureCredential(exclude_visual_studio_code_credential=True)
-        self.sub_client = SubscriptionClient(self.credential)
         self.resource_group = resource_group
         self.factory_name = factory_name
         self.name = name
+        self.environment = environment
+        self.credential = DefaultAzureCredential(exclude_visual_studio_code_credential=True)
+
+        self.sub_client = SubscriptionClient(self.credential)
+        self.subscription_id = self._get_subscription_id(subscription_name)
+        self.adf_client = DataFactoryManagementClient(self.credential, subscription_id=self.subscription_id)
 
         self._specs = self._read_specs(specs_file, environment)
         self._config = self._get_config()
