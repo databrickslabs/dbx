@@ -17,6 +17,9 @@ setup(
         "requests>=2.24.0",
         "mlflow>=1.11.0",
         "tqdm>=4.50.0",
+        "azure-identity>=1.5.0",
+        "azure-mgmt-datafactory>=1.0.0",
+        "azure-mgmt-subscription>=1.0.0"
     ],
     entry_points="""
         [console_scripts]

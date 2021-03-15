@@ -3,7 +3,7 @@ import datetime as dt
 import json
 import os
 import pathlib
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 import click
 import git
@@ -13,7 +13,7 @@ from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import (
     DEFAULT_SECTION,
     ProfileConfigProvider,
-    EnvironmentVariableConfigProvider,
+    EnvironmentVariableConfigProvider, DatabricksConfig,
 )
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
@@ -203,12 +203,15 @@ def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
     service.mkdirs(p)
 
 
-def prepare_environment(environment: str) -> ApiClient:
+def get_environment_data(environment: str) -> Dict[str, Any]:
     environment_data = InfoFile.get("environments").get(environment)
 
     if not environment_data:
         raise Exception(f"No environment {environment} provided in the project file")
+    return environment_data
 
+
+def pick_config(environment_data: Dict[str, Any]) -> Tuple[str, DatabricksConfig]:
     config = EnvironmentVariableConfigProvider().get_config()
     if config:
         config_type = "ENV"
@@ -221,6 +224,13 @@ def prepare_environment(environment: str) -> ApiClient:
             raise Exception(
                 f"""Couldn't get profile with name: {environment_data["profile"]}. Please check the config settings"""
             )
+    return config_type, config
+
+
+def prepare_environment(environment: str) -> ApiClient:
+    environment_data = get_environment_data(environment)
+
+    config_type, config = pick_config(environment_data)
 
     api_client = _get_api_client(config, command_name="cicdtemplates-")
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
