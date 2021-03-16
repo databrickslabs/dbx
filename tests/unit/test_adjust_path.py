@@ -1,5 +1,5 @@
 import unittest
-from dbx.commands.deploy import _adjust_job_definitions, FileUploader # noqa
+from dbx.commands.deploy import _adjust_job_definitions, FileUploader  # noqa
 import json
 from unittest.mock import MagicMock
 import glob

@@ -11,6 +11,8 @@ install-dev-dependencies:
 test:
 	pytest --cov dbx
 
+fmt:
+	black
 unit-test:
 	pytest tests/unit --cov dbx
 

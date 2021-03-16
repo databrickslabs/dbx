@@ -22,26 +22,21 @@ run_info = RunInfo(
     start_time=dt.datetime.now(),
     end_time=dt.datetime.now(),
     lifecycle_stage="STAGE",
-    artifact_uri="dbfs:/Shared/dbx-testing"
+    artifact_uri="dbfs:/Shared/dbx-testing",
 )
 run_data = RunData()
 run_mock = ActiveRun(Run(run_info, run_data))
 
 
 class DatafactoryDeployTest(DbxTest):
-
     @patch("databricks_cli.sdk.api_client.ApiClient.perform_query", return_value=None)
-    @patch(
-        "databricks_cli.sdk.service.DbfsService.get_status", return_value=None
-    )
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
-    @patch(
-        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
-    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch(
@@ -80,21 +75,14 @@ class DatafactoryDeployTest(DbxTest):
                         "user_name": "some_user@example.com",
                         "permission_level": "IS_OWNER",
                     },
-                    {
-                        "group_name": "some-user-group",
-                        "permission_level": "CAN_VIEW"
-                    }
+                    {"group_name": "some-user-group", "permission_level": "CAN_VIEW"},
                 ]
             }
 
             deployment_file.write_text(json.dumps(deploy_content, indent=4))
 
             deploy_result = invoke_cli_runner(
-                deploy,
-                [
-                    "--environment", "default",
-                    "--write-specs-to-file", ".dbx/deployment-result.json"
-                ]
+                deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
             )
 
             self.assertEqual(deploy_result.exit_code, 0)
@@ -102,13 +90,19 @@ class DatafactoryDeployTest(DbxTest):
             reflection_result = invoke_cli_runner(
                 datafactory_reflect,
                 [
-                    "--environment", "default",
-                    "--specs-file", ".dbx/deployment-result.json",
-                    "--subscription-name", "some-subscription",
-                    "--resource-group", "some-resource-group",
-                    "--factory-name", "some-factory",
-                    "--name", "some-pipeline"
-                ]
+                    "--environment",
+                    "default",
+                    "--specs-file",
+                    ".dbx/deployment-result.json",
+                    "--subscription-name",
+                    "some-subscription",
+                    "--resource-group",
+                    "some-resource-group",
+                    "--factory-name",
+                    "some-factory",
+                    "--name",
+                    "some-pipeline",
+                ],
             )
 
             self.assertEqual(reflection_result.exit_code, 0)

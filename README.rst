@@ -3,7 +3,7 @@ dbx by Databricks Labs
 
 DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databricks jobs management.
 
-|docs| |pypi| |build| |codecov| |lgtm-alerts| |downloads|
+|docs| |pypi| |build| |codecov| |lgtm-alerts| |downloads| |black|
 
 .. |docs| image:: https://readthedocs.org/projects/dbx/badge/?version=latest
     :target: https://dbx.readthedocs.io/en/latest/?badge=latest
@@ -25,6 +25,10 @@ DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databrick
 .. |downloads| image:: https://pepy.tech/badge/dbx
     :target: https://pepy.tech/project/dbx
     :alt: Total Downloads
+
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
+    :alt: We use black for formatting
 
 .. contents:: :local:
 

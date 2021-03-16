@@ -23,7 +23,7 @@ run_info = RunInfo(
     start_time=dt.datetime.now(),
     end_time=dt.datetime.now(),
     lifecycle_stage="STAGE",
-    artifact_uri="dbfs:/Shared/dbx-testing"
+    artifact_uri="dbfs:/Shared/dbx-testing",
 )
 run_data = RunData()
 run_mock = ActiveRun(Run(run_info, run_data))
@@ -80,9 +80,7 @@ class DeployTest(DbxTest):
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
-    @patch(
-        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
-    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch(
         "mlflow.get_experiment_by_name",
         return_value=Experiment("id", None, "location", None, None),
@@ -111,9 +109,7 @@ class DeployTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            deploy_result = invoke_cli_runner(
-                deploy, ["--environment", "test"], expected_error=True
-            )
+            deploy_result = invoke_cli_runner(deploy, ["--environment", "test"], expected_error=True)
 
             self.assertIsInstance(deploy_result.exception, NameError)
             self.assertIn("non-existent in the deployment file", str(deploy_result.exception))
@@ -124,9 +120,7 @@ class DeployTest(DbxTest):
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
-    @patch(
-        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
-    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch(
@@ -153,15 +147,11 @@ class DeployTest(DbxTest):
             )
             self.assertEqual(configure_result.exit_code, 0)
 
-            deployment_content = {
-                "test": {"jobs": [{"name": "job-1"}, {"name": "job-2"}]}
-            }
+            deployment_content = {"test": {"jobs": [{"name": "job-1"}, {"name": "job-2"}]}}
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            deploy_result = invoke_cli_runner(
-                deploy, ["--environment", "test", "--jobs", "job-1,job-2"]
-            )
+            deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--jobs", "job-1,job-2"])
 
             self.assertEqual(deploy_result.exit_code, 0)
 
@@ -171,9 +161,7 @@ class DeployTest(DbxTest):
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
-    @patch(
-        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
-    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch(
@@ -230,17 +218,13 @@ class DeployTest(DbxTest):
         js.reset_job.side_effect = Mock(side_effect=HTTPError())
         self.assertRaises(HTTPError, _update_job, js, "aa-bbb-ccc-111", {"name": 1})
 
-    @patch(
-        "databricks_cli.sdk.service.DbfsService.get_status", return_value=None
-    )
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
-    @patch(
-        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
-    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch(
@@ -269,13 +253,7 @@ class DeployTest(DbxTest):
 
             spec_file = ".dbx/deployment-result.json"
 
-            deploy_result = invoke_cli_runner(
-                deploy,
-                [
-                    "--environment", "default",
-                    "--write-specs-to-file", spec_file
-                ]
-            )
+            deploy_result = invoke_cli_runner(deploy, ["--environment", "default", "--write-specs-to-file", spec_file])
 
             self.assertEqual(deploy_result.exit_code, 0)
 
@@ -284,27 +262,19 @@ class DeployTest(DbxTest):
             self.assertIsNotNone(spec_result)
 
             deploy_overwrite = invoke_cli_runner(
-                deploy,
-                [
-                    "--environment", "default",
-                    "--write-specs-to-file", spec_file
-                ]
+                deploy, ["--environment", "default", "--write-specs-to-file", spec_file]
             )
 
             self.assertEqual(deploy_overwrite.exit_code, 0)
 
     @patch("databricks_cli.sdk.api_client.ApiClient.perform_query", return_value=None)
-    @patch(
-        "databricks_cli.sdk.service.DbfsService.get_status", return_value=None
-    )
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
-    @patch(
-        "databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True
-    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch(
@@ -342,21 +312,13 @@ class DeployTest(DbxTest):
                         "user_name": "some_user@example.com",
                         "permission_level": "IS_OWNER",
                     },
-                    {
-                        "group_name": "some-user-group",
-                        "permission_level": "CAN_VIEW"
-                    }
+                    {"group_name": "some-user-group", "permission_level": "CAN_VIEW"},
                 ]
             }
 
             deployment_file.write_text(json.dumps(deploy_content, indent=4))
 
-            deploy_result = invoke_cli_runner(
-                deploy,
-                [
-                    "--environment", "default"
-                ]
-            )
+            deploy_result = invoke_cli_runner(deploy, ["--environment", "default"])
 
             self.assertEqual(deploy_result.exit_code, 0)
 

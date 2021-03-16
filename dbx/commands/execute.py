@@ -47,7 +47,7 @@ from dbx.utils.common import (
        | on the same cluster without any limitations or overlapping.
     6. Execution results will be printed out in the shell. If result was an error, command will have error exit code.
 
-    """
+    """,
 )
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
@@ -59,28 +59,24 @@ from dbx.utils.common import (
     help="Path to deployment file in json format",
     default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
-@click.option(
-    "--requirements-file", required=False, type=str, default="requirements.txt"
-)
+@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
 @click.option("--no-rebuild", is_flag=True, help="Disable job rebuild")
 @environment_option
 @debug_option
 def execute(
-        environment: str,
-        cluster_id: str,
-        cluster_name: str,
-        job: str,
-        deployment_file: str,
-        requirements_file: str,
-        no_rebuild: bool,
+    environment: str,
+    cluster_id: str,
+    cluster_name: str,
+    job: str,
+    deployment_file: str,
+    requirements_file: str,
+    no_rebuild: bool,
 ):
     api_client = prepare_environment(environment)
 
     cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
 
-    dbx_echo(
-        f"Executing job: {job} with environment: {environment} on cluster: {cluster_id}"
-    )
+    dbx_echo(f"Executing job: {job} with environment: {environment} on cluster: {cluster_id}")
 
     handle_package(no_rebuild)
 
@@ -94,16 +90,12 @@ def execute(
 
     env_jobs = deployment.get("jobs")
     if not env_jobs:
-        raise RuntimeError(
-            f"No jobs section found in environment {environment}, please check the deployment file"
-        )
+        raise RuntimeError(f"No jobs section found in environment {environment}, please check the deployment file")
 
     found_jobs = [j for j in deployment["jobs"] if j["name"] == job]
 
     if not found_jobs:
-        raise RuntimeError(
-            f"Job {job} was not found in environment jobs, please check the deployment file"
-        )
+        raise RuntimeError(f"Job {job} was not found in environment jobs, please check the deployment file")
 
     job_payload = found_jobs[0]
 
@@ -111,8 +103,7 @@ def execute(
 
     if not entrypoint_file:
         raise FileNotFoundError(
-            f"No entrypoint file provided in job {job}. "
-            f"Please add one under spark_python_task.python_file section"
+            f"No entrypoint file provided in job {job}. " f"Please add one under spark_python_task.python_file section"
         )
 
     cluster_service = ClusterService(api_client)
@@ -132,16 +123,12 @@ def execute(
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
             file_uploader.upload_file(requirements_fp)
-            localized_requirements_path = (
-                f"{localized_base_path}/{str(requirements_fp)}"
-            )
+            localized_requirements_path = f"{localized_base_path}/{str(requirements_fp)}"
 
             installation_command = f"%pip install -U -r {localized_requirements_path}"
 
             dbx_echo("Installing provided requirements")
-            execute_command(
-                v1_client, cluster_id, context_id, installation_command, verbose=False
-            )
+            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
             dbx_echo("Provided requirements installed")
         else:
             dbx_echo(
@@ -151,14 +138,10 @@ def execute(
 
         project_package_path = list(pathlib.Path(".").rglob("dist/*.whl"))[0]
         file_uploader.upload_file(project_package_path)
-        localized_package_path = (
-            f"{localized_base_path}/{str(project_package_path.as_posix())}"
-        )
+        localized_package_path = f"{localized_base_path}/{str(project_package_path.as_posix())}"
         dbx_echo("Installing package")
         installation_command = f"%pip install -U {localized_package_path}"
-        execute_command(
-            v1_client, cluster_id, context_id, installation_command, verbose=False
-        )
+        execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
         dbx_echo("Package installation finished")
 
         tags = {"dbx_action_type": "execute", "dbx_environment": environment}
@@ -166,15 +149,11 @@ def execute(
         mlflow.set_tags(tags)
 
         dbx_echo("Starting entrypoint file execution")
-        execute_command(
-            v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text()
-        )
+        execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text())
         dbx_echo("Command execution finished")
 
 
-def wait_for_command_execution(
-        v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str
-):
+def wait_for_command_execution(v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str):
     finished = False
     payload = {
         "clusterId": cluster_id,
@@ -193,9 +172,7 @@ def wait_for_command_execution(
             v1_client.cancel_command(payload)
 
 
-def execute_command(
-        v1_client: ApiV1Client, cluster_id: str, context_id: str, command: str, verbose=True
-):
+def execute_command(v1_client: ApiV1Client, cluster_id: str, context_id: str, command: str, verbose=True):
     payload = {
         "language": "python",
         "clusterId": cluster_id,
@@ -204,9 +181,7 @@ def execute_command(
     }
     command_execution_data = v1_client.execute_command(payload)
     command_id = command_execution_data["id"]
-    execution_result = wait_for_command_execution(
-        v1_client, cluster_id, context_id, command_id
-    )
+    execution_result = wait_for_command_execution(v1_client, cluster_id, context_id, command_id)
     if execution_result["status"] == "Cancelled":
         dbx_echo("Command cancelled")
     else:
@@ -214,8 +189,7 @@ def execute_command(
         if final_result == "error":
             dbx_echo("Execution failed, please follow the given error")
             raise RuntimeError(
-                f'Command execution failed. '
-                f'Cluster error cause: {execution_result["results"]["cause"]}'
+                f"Command execution failed. " f'Cluster error cause: {execution_result["results"]["cause"]}'
             )
 
         if verbose:
@@ -268,9 +242,7 @@ def awake_cluster(cluster_service: ClusterService, cluster_id):
         time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
     elif cluster_info["state"] == "ERROR":
-        raise RuntimeError(
-            "Cluster is mis-configured and cannot be started, please check cluster settings at first"
-        )
+        raise RuntimeError("Cluster is mis-configured and cannot be started, please check cluster settings at first")
     elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
         dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
         time.sleep(5)
@@ -281,23 +253,17 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str],
     cluster_service = ClusterService(api_client)
 
     if not cluster_name and not cluster_id:
-        raise RuntimeError(
-            "Parameters --cluster-name and --cluster-id couldn't be empty at the same time."
-        )
+        raise RuntimeError("Parameters --cluster-name and --cluster-id couldn't be empty at the same time.")
 
     if cluster_name:
 
         existing_clusters = cluster_service.list_clusters().get("clusters")
-        matching_clusters = [
-            c for c in existing_clusters if c.get("cluster_name") == cluster_name
-        ]
+        matching_clusters = [c for c in existing_clusters if c.get("cluster_name") == cluster_name]
 
         if not matching_clusters:
             raise NameError(f"No clusters with name {cluster_name} found")
         if len(matching_clusters) > 1:
-            raise NameError(
-                f"Found more then one cluster with name {cluster_name}: {matching_clusters}"
-            )
+            raise NameError(f"Found more then one cluster with name {cluster_name}: {matching_clusters}")
 
         cluster_id = matching_clusters[0]["cluster_id"]
     else:

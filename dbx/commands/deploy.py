@@ -22,7 +22,8 @@ from dbx.utils.common import (
     FileUploader,
     handle_package,
     get_package_file,
-    get_current_branch_name, DeploymentFile,
+    get_current_branch_name,
+    DeploymentFile,
 )
 
 
@@ -46,7 +47,7 @@ from dbx.utils.common import (
     7. If the job with given name exists, it will be updated, if not - created
     8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
        | For example, this option can look like this: :code:`--write-specs-to-file=.dbx/deployment-result.json`.
-    """
+    """,
 )
 @click.option(
     "--deployment-file",
@@ -63,9 +64,7 @@ from dbx.utils.common import (
               If not provided, all jobs from the deployment file will be deployed.
               """,
 )
-@click.option(
-    "--requirements-file", required=False, type=str, default="requirements.txt"
-)
+@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
@@ -85,19 +84,19 @@ from dbx.utils.common import (
     default=None,
     help="""Writes final job definitions into a given local file. 
               Helpful when final representation of a deployed job is needed for other integrations.
-              Please not that output file will be overwritten if it exists."""
+              Please not that output file will be overwritten if it exists.""",
 )
 @debug_option
 @environment_option
 def deploy(
-        deployment_file: str,
-        jobs: str,
-        requirements_file: str,
-        tags: List[str],
-        environment: str,
-        no_rebuild: bool,
-        no_package: bool,
-        write_specs_to_file: Optional[str]
+    deployment_file: str,
+    jobs: str,
+    requirements_file: str,
+    tags: List[str],
+    environment: str,
+    no_rebuild: bool,
+    no_package: bool,
+    write_specs_to_file: Optional[str],
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 
@@ -162,9 +161,7 @@ def deploy(
                 job_name = job_spec.get("name")
                 dbx_echo(f"Permission settings are provided for job {job_name}, setting it up")
                 job_id = deployment_data.get(job_spec.get("name"))
-                api_client.perform_query(
-                    "PUT", f"/permissions/jobs/{job_id}", data=permissions
-                )
+                api_client.perform_query("PUT", f"/permissions/jobs/{job_id}", data=permissions)
                 dbx_echo(f"Permission settings were successfully set for job {job_name}")
 
         deployment_tags = {
@@ -197,9 +194,7 @@ def _delete_managed_libraries(packages: List[str]) -> List[str]:
     for package in packages:
 
         if package.startswith("pyspark"):
-            dbx_echo(
-                "pyspark dependency deleted from the list of libraries, because it's a managed library"
-            )
+            dbx_echo("pyspark dependency deleted from the list of libraries, because it's a managed library")
         else:
             output_packages.append(package)
 
@@ -216,9 +211,7 @@ def _preprocess_requirements(requirements):
         requirements_content = requirements_path.read_text().split("\n")
         filtered_libraries = _delete_managed_libraries(requirements_content)
 
-        requirements_payload = [
-            {"pypi": {"package": req}} for req in filtered_libraries if req
-        ]
+        requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries if req]
         return requirements_payload
 
 
@@ -239,9 +232,7 @@ def _verify_deployment_file(deployment_file: str):
         raise Exception(f"Deployment {deployment_file} file is non-existent")
 
 
-def _preprocess_deployment(
-        deployment: Dict[str, Any], requested_jobs: Union[List[str], None]
-):
+def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
     if "jobs" not in deployment:
         raise Exception("No jobs provided for deployment")
 
@@ -256,19 +247,13 @@ def _preprocess_files(files: Dict[str, Any]):
         files[key] = file_path
 
 
-def _preprocess_jobs(
-        jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]
-) -> List[Dict[str, Any]]:
+def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:
     job_names = [job["name"] for job in jobs]
     if requested_jobs:
-        dbx_echo(
-            f"Deployment will be performed only for the following jobs: {requested_jobs}"
-        )
+        dbx_echo(f"Deployment will be performed only for the following jobs: {requested_jobs}")
         for requested_job_name in requested_jobs:
             if requested_job_name not in job_names:
-                raise Exception(
-                    f"Job {requested_job_name} was requested, but not provided in deployment file"
-                )
+                raise Exception(f"Job {requested_job_name} was requested, but not provided in deployment file")
         preprocessed_jobs = [job for job in jobs if job["name"] in requested_jobs]
     else:
         preprocessed_jobs = jobs
@@ -276,11 +261,11 @@ def _preprocess_jobs(
 
 
 def _adjust_job_definitions(
-        jobs: List[Dict[str, Any]],
-        artifact_base_uri: str,
-        requirements_payload: List[Dict[str, str]],
-        package_payload: List[Dict[str, str]],
-        file_uploader: FileUploader,
+    jobs: List[Dict[str, Any]],
+    artifact_base_uri: str,
+    requirements_payload: List[Dict[str, str]],
+    package_payload: List[Dict[str, str]],
+    file_uploader: FileUploader,
 ):
     def adjustment_callback(p: Any):
         return _adjust_path(p, artifact_base_uri, file_uploader)
@@ -368,9 +353,7 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
             if local_file_exists:
                 adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
                 if file_uploader.file_exists(adjusted_path):
-                    dbx_echo(
-                        "File is already stored in the deployment, no action needed"
-                    )
+                    dbx_echo("File is already stored in the deployment, no action needed")
                 else:
                     file_uploader.upload_file(file_path)
                 return adjusted_path
