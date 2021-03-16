@@ -34,3 +34,7 @@ Introduces integrated permission management, please refer to documentation for d
 
 Introduces integration with Azure Data Factory, as well as some small internal behaviour fixes. 
 Also, the behaviour of `dbx deploy --write-specs-to-file` has been changed to make the structure of specs file compatible with environment structure.
+
+# 0.1.1
+
+Fixes the issue with pywin32 installation for Azure imports on win platforms.
