@@ -13,7 +13,8 @@ from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import (
     DEFAULT_SECTION,
     ProfileConfigProvider,
-    EnvironmentVariableConfigProvider, DatabricksConfig,
+    EnvironmentVariableConfigProvider,
+    DatabricksConfig,
 )
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
@@ -106,9 +107,7 @@ class InfoFile:
     @staticmethod
     def get(item: str) -> Any:
         if not pathlib.Path(INFO_FILE_PATH).exists():
-            raise Exception(
-                "Your project is not yet configured, please configure it via `dbx configure`"
-            )
+            raise Exception("Your project is not yet configured, please configure it via `dbx configure`")
         return read_json(INFO_FILE_PATH).get(item)
 
 
@@ -118,27 +117,19 @@ class ApiV1Client:
         self.v1_client.url = self.v1_client.url.replace("/api/2.0", "/api/1.2")
 
     def get_command_status(self, payload) -> Dict[Any, Any]:
-        result = self.v1_client.perform_query(
-            method="GET", path="/commands/status", data=payload
-        )
+        result = self.v1_client.perform_query(method="GET", path="/commands/status", data=payload)
         return result
 
     def cancel_command(self, payload) -> None:
-        self.v1_client.perform_query(
-            method="POST", path="/commands/cancel", data=payload
-        )
+        self.v1_client.perform_query(method="POST", path="/commands/cancel", data=payload)
 
     def execute_command(self, payload) -> Dict[Any, Any]:
-        result = self.v1_client.perform_query(
-            method="POST", path="/commands/execute", data=payload
-        )
+        result = self.v1_client.perform_query(method="POST", path="/commands/execute", data=payload)
         return result
 
     def get_context_status(self, payload):
         try:
-            result = self.v1_client.perform_query(
-                method="GET", path="/contexts/status", data=payload
-            )
+            result = self.v1_client.perform_query(method="GET", path="/contexts/status", data=payload)
             return result
         except requests.exceptions.HTTPError:
             return None
@@ -147,9 +138,7 @@ class ApiV1Client:
     # to make the execute command stable is such situations, we add retry handler.
     @retry(tries=10, delay=5, backoff=5)
     def create_context(self, payload):
-        result = self.v1_client.perform_query(
-            method="POST", path="/contexts/create", data=payload
-        )
+        result = self.v1_client.perform_query(method="POST", path="/contexts/create", data=payload)
         return result
 
 
@@ -238,18 +227,14 @@ def prepare_environment(environment: str) -> ApiClient:
     if config_type == "ENV":
         mlflow.set_tracking_uri(DATABRICKS_MLFLOW_URI)
     elif config_type == "PROFILE":
-        mlflow.set_tracking_uri(
-            f'{DATABRICKS_MLFLOW_URI}://{environment_data["profile"]}'
-        )
+        mlflow.set_tracking_uri(f'{DATABRICKS_MLFLOW_URI}://{environment_data["profile"]}')
     else:
         raise NotImplementedError(f"Config type: {config_type} is not implemented")
 
     experiment = mlflow.get_experiment_by_name(environment_data["workspace_dir"])
 
     if not experiment:
-        mlflow.create_experiment(
-            environment_data["workspace_dir"], environment_data["artifact_location"]
-        )
+        mlflow.create_experiment(environment_data["workspace_dir"], environment_data["artifact_location"])
 
     mlflow.set_experiment(environment_data["workspace_dir"])
 
@@ -270,9 +255,7 @@ def get_package_file() -> Optional[pathlib.Path]:
 
 def handle_package(rebuild_arg):
     if rebuild_arg:
-        dbx_echo(
-            "No rebuild will be done, please ensure that the package distribution is in dist folder"
-        )
+        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
     else:
         dbx_echo("Re-building package")
         if not pathlib.Path("setup.py").exists():

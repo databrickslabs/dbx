@@ -23,7 +23,7 @@ from dbx.utils.common import (
     If project file (located in :code:`.dbx/project.json`) is non-existent, it will be initialized.
     There is no strict requirement to configure project file via this command.
     You can also configure it directly via any file editor.
-    """
+    """,
 )
 @click.option(
     "--workspace-dir",
@@ -44,16 +44,12 @@ from dbx.utils.common import (
 @environment_option
 @debug_option
 @profile_option
-def configure(
-        environment: str, workspace_dir: str, artifact_location: str, profile: str
-):
+def configure(environment: str, workspace_dir: str, artifact_location: str, profile: str):
     dbx_echo("Configuring new environment with name %s" % environment)
 
     if not workspace_dir:
         workspace_dir = f'/Shared/dbx/projects/{Path(".").absolute().name}'
-        dbx_echo(
-            f"Workspace directory argument is not provided, using the following directory: {workspace_dir}"
-        )
+        dbx_echo(f"Workspace directory argument is not provided, using the following directory: {workspace_dir}")
 
     if not Path(INFO_FILE_PATH).exists():
         InfoFile.initialize()

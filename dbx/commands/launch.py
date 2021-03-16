@@ -34,7 +34,7 @@ TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
     .. note::
         Job shall be deployed prior to be launched.
      
-    """
+    """,
 )
 @click.option("--job", required=True, type=str, help="Job name.")
 @click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
@@ -76,13 +76,13 @@ TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 @environment_option
 @debug_option
 def launch(
-        environment: str,
-        job: str,
-        trace: bool,
-        kill_on_sigterm: bool,
-        existing_runs: str,
-        tags: List[str],
-        parameters: List[str],
+    environment: str,
+    job: str,
+    trace: bool,
+    kill_on_sigterm: bool,
+    existing_runs: str,
+    tags: List[str],
+    parameters: List[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -117,23 +117,17 @@ def launch(
             job_id = deployments.get(job)
 
             if not job_id:
-                raise Exception(
-                    f"Job with name {job} not found in the latest deployment" % job
-                )
+                raise Exception(f"Job with name {job} not found in the latest deployment" % job)
 
             jobs_service = JobsService(api_client)
-            active_runs = jobs_service.list_runs(job_id, active_only=True).get(
-                "runs", []
-            )
+            active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
 
             for run in active_runs:
                 if existing_runs == "pass":
                     dbx_echo("Passing the existing runs status check")
 
                 if existing_runs == "wait":
-                    dbx_echo(
-                        f'Waiting for job run with id {run["run_id"]} to be finished'
-                    )
+                    dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
                     _wait_run(api_client, run)
 
                 if existing_runs == "cancel":
@@ -141,15 +135,9 @@ def launch(
                     _cancel_run(api_client, run)
 
             if override_parameters:
-                _prepared_parameters = sum(
-                    [[k, v] for k, v in override_parameters.items()], []
-                )
-                dbx_echo(
-                    f"Default launch parameters are overridden with the following: {_prepared_parameters}"
-                )
-                run_data = jobs_service.run_now(
-                    job_id, python_params=_prepared_parameters
-                )
+                _prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
+                dbx_echo(f"Default launch parameters are overridden with the following: {_prepared_parameters}")
+                run_data = jobs_service.run_now(job_id, python_params=_prepared_parameters)
             else:
                 run_data = jobs_service.run_now(job_id)
 
@@ -168,17 +156,12 @@ def launch(
                     dbx_status = _trace_run(api_client, run_data)
 
                 if dbx_status == "ERROR":
-                    raise Exception(
-                        "Tracked job failed during execution. "
-                        "Please check Databricks UI for job logs"
-                    )
+                    raise Exception("Tracked job failed during execution. " "Please check Databricks UI for job logs")
                 dbx_echo("Launch command finished")
 
             else:
                 dbx_status = "NOT_TRACKED"
-                dbx_echo(
-                    "Job successfully launched in non-tracking mode. Please check Databricks UI for job status"
-                )
+                dbx_echo("Job successfully launched in non-tracking mode. Please check Databricks UI for job status")
 
             deployment_tags = {
                 "job_id": job_id,
@@ -209,9 +192,7 @@ def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
 def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
     dbx_echo(f"Tracing run with id {run_data['run_id']}")
     while True:
-        time.sleep(
-            5
-        )  # runs API is eventually consistent, it's better to have a short pause for status update
+        time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
         status = _get_run_status(api_client, run_data)
         run_state = status["state"]
         result_state = run_state.get("result_state", None)

@@ -19,18 +19,14 @@ test_dbx_config = DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN)
 
 @retry(tries=10, delay=5, backoff=5)
 def initialize_cookiecutter(project_name):
-    cookiecutter(
-        CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": project_name}
-    )
+    cookiecutter(CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": project_name})
 
 
 def invoke_cli_runner(*args, **kwargs):
     """
     Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
     """
-    expected_error = (
-        kwargs.pop("expected_error") if kwargs.get("expected_error") else None
-    )
+    expected_error = kwargs.pop("expected_error") if kwargs.get("expected_error") else None
 
     res = CliRunner().invoke(*args, **kwargs)
 
@@ -50,8 +46,7 @@ class DbxTest(unittest.TestCase):
         self.project_name = "dev_dbx_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-test"
         logging.info(
-            "Launching configure test in directory %s with project name %s"
-            % (self.test_dir, self.project_name)
+            "Launching configure test in directory %s with project name %s" % (self.test_dir, self.project_name)
         )
 
         with Path(self.test_dir):

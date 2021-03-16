@@ -14,20 +14,14 @@ from azure.mgmt.datafactory.models import (
     PipelineResource,
     DatabricksSparkPythonActivity,
     LinkedServiceReference,
-    Activity
+    Activity,
 )
 from azure.mgmt.subscription import SubscriptionClient
 from databricks_cli.configure.config import debug_option
 from databricks_cli.configure.provider import DatabricksConfig
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.utils.common import (
-    dbx_echo,
-    read_json,
-    environment_option,
-    get_environment_data,
-    pick_config
-)
+from dbx.utils.common import dbx_echo, read_json, environment_option, get_environment_data, pick_config
 
 
 def filter_environment_credential_warning(record):
@@ -42,9 +36,7 @@ handler.addFilter(filter_environment_credential_warning)
 logging.basicConfig(level=logging.ERROR, handlers=[handler])  # noqa
 
 
-@click.group(
-    help="Azure Data Factory integration utilities."
-)
+@click.group(help="Azure Data Factory integration utilities.")
 def datafactory():
     pass
 
@@ -61,69 +53,33 @@ def datafactory():
     3. | Per each defined job, a job object in ADF pipeline will be reflected. 
        | Please note that chaining jobs into pipeline shall be done on ADF side. 
        | No other steps in datafactory pipeline will be changed by execution of this command.
-    """
+    """,
 )
-@click.option(
-    "--specs-file",
-    required=True,
-    type=str,
-    help="Path to deployment result specification file"
-)
-@click.option(
-    "--subscription-name",
-    required=True,
-    type=str,
-    help="Name of Azure subscription"
-)
-@click.option(
-    "--resource-group", "-g",
-    required=True,
-    type=str,
-    help="Resource group name"
-)
-@click.option(
-    "--factory-name",
-    required=True,
-    type=str,
-    help="Factory name"
-)
-@click.option(
-    "--name", "-n",
-    required=True,
-    type=str,
-    help="Pipeline name"
-)
+@click.option("--specs-file", required=True, type=str, help="Path to deployment result specification file")
+@click.option("--subscription-name", required=True, type=str, help="Name of Azure subscription")
+@click.option("--resource-group", "-g", required=True, type=str, help="Resource group name")
+@click.option("--factory-name", required=True, type=str, help="Factory name")
+@click.option("--name", "-n", required=True, type=str, help="Pipeline name")
 @debug_option
 @environment_option
 def reflect(
+    specs_file: str, subscription_name: str, resource_group: str, factory_name: str, name: str, environment: str
+):
+    dbx_echo("Reflecting job specifications to Azure Data Factory")
+    reflector = DatafactoryReflector(specs_file, subscription_name, resource_group, factory_name, name, environment)
+    reflector.launch()
+
+
+class DatafactoryReflector:
+    def __init__(
+        self,
         specs_file: str,
         subscription_name: str,
         resource_group: str,
         factory_name: str,
         name: str,
-        environment: str
-):
-    dbx_echo("Reflecting job specifications to Azure Data Factory")
-    reflector = DatafactoryReflector(
-        specs_file,
-        subscription_name,
-        resource_group,
-        factory_name,
-        name,
-        environment
-    )
-    reflector.launch()
-
-
-class DatafactoryReflector:
-    def __init__(self,
-                 specs_file: str,
-                 subscription_name: str,
-                 resource_group: str,
-                 factory_name: str,
-                 name: str,
-                 environment: str
-                 ):
+        environment: str,
+    ):
         self.resource_group = resource_group
         self.factory_name = factory_name
         self.name = name
@@ -161,14 +117,13 @@ class DatafactoryReflector:
         try:
             self.adf_client.factories.get(resource_group_name=self.resource_group, factory_name=self.factory_name)
         except ResourceNotFoundError:
-            raise ResourceNotFoundError(f"Factory with name {self.factory_name} not found in "
-                                        f"resource group {self.resource_group}")
+            raise ResourceNotFoundError(
+                f"Factory with name {self.factory_name} not found in " f"resource group {self.resource_group}"
+            )
 
         try:
             self.adf_client.pipelines.get(
-                resource_group_name=self.resource_group,
-                factory_name=self.factory_name,
-                pipeline_name=self.name
+                resource_group_name=self.resource_group, factory_name=self.factory_name, pipeline_name=self.name
             )
         except ResourceNotFoundError:
             ex_pipelines = self.adf_client.pipelines.list_by_factory(self.resource_group, self.factory_name)
@@ -179,8 +134,9 @@ class DatafactoryReflector:
             )
 
     def _get_subscription_id(self, subscription_name: str) -> str:
-        matched_subscriptions = [sub for sub in self.sub_client.subscriptions.list() if
-                                 sub.display_name == subscription_name]
+        matched_subscriptions = [
+            sub for sub in self.sub_client.subscriptions.list() if sub.display_name == subscription_name
+        ]
         dbx_echo("Subscription list prepared")
         if not matched_subscriptions:
             raise Exception(f"Subscription with name {subscription_name} was not found")
@@ -207,21 +163,18 @@ class DatafactoryReflector:
                 new_cluster_num_of_worker=cluster_spec.get("num_workers"),
                 new_cluster_spark_conf=cluster_spec.get("spark_conf"),
                 new_cluster_spark_env_vars=cluster_spec.get("spark_env_vars"),
-                new_cluster_version=cluster_spec.get("spark_version")
+                new_cluster_version=cluster_spec.get("spark_version"),
             )
         else:
             service_spec = AzureDatabricksLinkedService(
                 domain=self._config.host,
                 access_token=SecureString(value=self._config.token),
-                existing_cluster_id=cluster_spec.get("existing_cluster_id")
+                existing_cluster_id=cluster_spec.get("existing_cluster_id"),
             )
 
         service_resource = LinkedServiceResource(properties=service_spec)
         self.adf_client.linked_services.create_or_update(
-            self.resource_group,
-            self.factory_name,
-            service_name,
-            service_resource
+            self.resource_group, self.factory_name, service_name, service_resource
         )
 
         dbx_echo(f"Preparing linked service {service_name} - done")
@@ -234,17 +187,13 @@ class DatafactoryReflector:
             linked_service_name=LinkedServiceReference(reference_name=service_name),
             python_file=job_spec.get("spark_python_task").get("python_file"),
             parameters=job_spec.get("spark_python_task").get("parameters"),
-            libraries=job_spec.get("libraries", [])
+            libraries=job_spec.get("libraries", []),
         )
         return activity
 
     def _update_pipeline(self, new_activities: List[DatabricksSparkPythonActivity]):
         dbx_echo(f"Updating pipeline {self.name}")
-        current_pipeline = self.adf_client.pipelines.get(
-            self.resource_group,
-            self.factory_name,
-            self.name
-        )
+        current_pipeline = self.adf_client.pipelines.get(self.resource_group, self.factory_name, self.name)
 
         new_activities_dict = {a.name: a for a in new_activities}
         existing_activities_dict = {a.name: a for a in current_pipeline.activities}
@@ -268,12 +217,7 @@ class DatafactoryReflector:
 
         resource = PipelineResource(activities=final_activity_list)
 
-        self.adf_client.pipelines.create_or_update(
-            self.resource_group,
-            self.factory_name,
-            self.name,
-            resource
-        )
+        self.adf_client.pipelines.create_or_update(self.resource_group, self.factory_name, self.name, resource)
         dbx_echo(f"Updating pipeline {self.name} - done")
 
     def launch(self):

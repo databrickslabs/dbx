@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 from dbx import __version__
 
-with open("README.rst", "r", encoding='utf-8') as fh:
+with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
@@ -19,7 +19,7 @@ setup(
         "tqdm>=4.50.0",
         "azure-identity>=1.5.0",
         "azure-mgmt-datafactory>=1.0.0",
-        "azure-mgmt-subscription>=1.0.0"
+        "azure-mgmt-subscription>=1.0.0",
     ],
     entry_points="""
         [console_scripts]
@@ -30,7 +30,7 @@ setup(
     version=__version__,
     description="DataBricks CLI eXtensions aka dbx",
     author="Thunder Shiviah, Michael Shtelma, Ivan Trusov",
-    license='Databricks License',
+    license="Databricks License",
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",

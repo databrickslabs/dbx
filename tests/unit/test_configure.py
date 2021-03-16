@@ -25,8 +25,8 @@ class ConfigureTest(DbxTest):
             env = InfoFile.get("environments").get("test")
             self.assertIsNotNone(env)
             self.assertEqual(env["profile"], self.profile_name)
-            self.assertEqual(env["artifact_location"], f'dbfs:/dbx/{self.project_name}')
-            self.assertEqual(env["workspace_dir"], f'/Shared/dbx/projects/{self.project_name}')
+            self.assertEqual(env["artifact_location"], f"dbfs:/dbx/{self.project_name}")
+            self.assertEqual(env["workspace_dir"], f"/Shared/dbx/projects/{self.project_name}")
 
     def test_configure(self, *args) -> None:
         with self.project_dir:
@@ -41,7 +41,7 @@ class ConfigureTest(DbxTest):
                     "--workspace-dir",
                     ws_dir,
                     "--artifact-location",
-                    f'dbfs:/dbx/custom-project-location/{self.project_name}'
+                    f"dbfs:/dbx/custom-project-location/{self.project_name}",
                 ],
             )
 

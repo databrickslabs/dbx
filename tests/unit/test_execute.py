@@ -90,27 +90,16 @@ class ExecuteTest(DbxTest):
         "databricks_cli.clusters.api.ClusterService.list_clusters",
         return_value={
             "clusters": [
-                {
-                    "cluster_name": "some-cluster-name",
-                    "cluster_id": "aaa-111"
-                },
-                {
-                    "cluster_name": "other-cluster-name",
-                    "cluster_id": "aaa-bbb-ccc"
-                },
-                {
-                    "cluster_name": "duplicated-name",
-                    "cluster_id": "duplicated-1"
-                },
-                {
-                    "cluster_name": "duplicated-name",
-                    "cluster_id": "duplicated-2"
-                },
-            ]},
+                {"cluster_name": "some-cluster-name", "cluster_id": "aaa-111"},
+                {"cluster_name": "other-cluster-name", "cluster_id": "aaa-bbb-ccc"},
+                {"cluster_name": "duplicated-name", "cluster_id": "duplicated-1"},
+                {"cluster_name": "duplicated-name", "cluster_id": "duplicated-2"},
+            ]
+        },
     )
     @patch(
         "databricks_cli.clusters.api.ClusterService.get_cluster",
-        side_effect=lambda cid: "something" if cid in ("aaa-bbb-ccc", "aaa-111") else None
+        side_effect=lambda cid: "something" if cid in ("aaa-bbb-ccc", "aaa-111") else None,
     )
     def test_preprocess_cluster_args(self, *args):  # noqa
         api_client = Mock(ApiClient)
