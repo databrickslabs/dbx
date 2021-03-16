@@ -16,3 +16,4 @@ tqdm
 rstcheck
 prospector
 click>=7.1.2
+black
