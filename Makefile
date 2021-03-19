@@ -12,7 +12,8 @@ test:
 	pytest --cov dbx
 
 fmt:
-	black
+	black .
+
 unit-test:
 	pytest tests/unit --cov dbx
 

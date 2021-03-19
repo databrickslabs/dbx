@@ -72,6 +72,11 @@ from dbx.utils.common import (
     help="Do not add package reference into the job description",
 )
 @click.option(
+    "--files-only",
+    is_flag=True,
+    help="Do not create jobs, only deploy files.",
+)
+@click.option(
     "--tags",
     multiple=True,
     type=str,
@@ -96,6 +101,7 @@ def deploy(
     environment: str,
     no_rebuild: bool,
     no_package: bool,
+    files_only: bool,
     write_specs_to_file: Optional[str],
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
@@ -152,17 +158,21 @@ def deploy(
             _file_uploader,
         )
 
-        deployment_data = _create_jobs(deployment["jobs"], api_client)
-        _log_deployments(deployment_data)
+        if not files_only:
+            dbx_echo("Updating job definitions")
+            deployment_data = _create_jobs(deployment["jobs"], api_client)
+            _log_dbx_file(deployment_data, "deployments.json")
 
-        for job_spec in deployment.get("jobs"):
-            permissions = job_spec.get("permissions")
-            if permissions:
-                job_name = job_spec.get("name")
-                dbx_echo(f"Permission settings are provided for job {job_name}, setting it up")
-                job_id = deployment_data.get(job_spec.get("name"))
-                api_client.perform_query("PUT", f"/permissions/jobs/{job_id}", data=permissions)
-                dbx_echo(f"Permission settings were successfully set for job {job_name}")
+            for job_spec in deployment.get("jobs"):
+                permissions = job_spec.get("permissions")
+                if permissions:
+                    job_name = job_spec.get("name")
+                    dbx_echo(f"Permission settings are provided for job {job_name}, setting it up")
+                    job_id = deployment_data.get(job_spec.get("name"))
+                    api_client.perform_query("PUT", f"/permissions/jobs/{job_id}", data=permissions)
+                    dbx_echo(f"Permission settings were successfully set for job {job_name}")
+
+            dbx_echo("Updating job definitions - done")
 
         deployment_tags = {
             "dbx_action_type": "deploy",
@@ -170,9 +180,17 @@ def deploy(
             "dbx_status": "SUCCESS",
         }
 
+        deployment_spec = {environment: deployment}
+
         deployment_tags.update(additional_tags)
+
         if branch_name:
             deployment_tags["dbx_branch_name"] = branch_name
+
+        if files_only:
+            deployment_tags["dbx_deploy_type"] = "files_only"
+
+        _log_dbx_file(deployment_spec, "deployment-result.json")
 
         mlflow.set_tags(deployment_tags)
         dbx_echo(f"Deployment for environment {environment} finished successfully")
@@ -184,7 +202,6 @@ def deploy(
             if specs_file.exists():
                 specs_file.unlink()
 
-            deployment_spec = {environment: deployment}
             specs_file.write_text(json.dumps(deployment_spec, indent=4))
 
 
@@ -215,10 +232,10 @@ def _preprocess_requirements(requirements):
         return requirements_payload
 
 
-def _log_deployments(deployment_data):
+def _log_dbx_file(content: Dict[Any, Any], name: str):
     temp_dir = tempfile.mkdtemp()
-    serialized_data = json.dumps(deployment_data, indent=4)
-    temp_path = pathlib.Path(temp_dir, "deployments.json")
+    serialized_data = json.dumps(content, indent=4)
+    temp_path = pathlib.Path(temp_dir, name)
     temp_path.write_text(serialized_data)
     mlflow.log_artifact(str(temp_path), ".dbx")
     shutil.rmtree(temp_dir)
