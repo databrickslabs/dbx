@@ -182,8 +182,8 @@ def _find_deployment_run(
                 Please re-deploy with --files-only flag and then re-run this launch command.
             """
             )
-        else:
-            _runs = _runs[_runs["tags.dbx_deploy_type"] == "files_only"]
+
+        _runs = _runs[_runs["tags.dbx_deploy_type"] == "files_only"]
 
     if _runs.empty:
         exception_string = """
