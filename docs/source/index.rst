@@ -21,3 +21,4 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     cli
     orchestration
     permissions
+    run_submit

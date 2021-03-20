@@ -1,16 +1,17 @@
 import base64
 import json
 import time
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Tuple
 from typing import List
 
 import click
 import mlflow
+import pandas as pd
+from databricks_cli.configure.config import debug_option
 from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-from databricks_cli.configure.config import debug_option
 
 from dbx.utils.common import (
     dbx_echo,
@@ -18,6 +19,7 @@ from dbx.utils.common import (
     prepare_environment,
     environment_option,
     parse_multiple,
+    InfoFile,
 )
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
@@ -57,6 +59,7 @@ TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
         * :code:`pass` will simply pass the check and try to launch the job directly
         """,
 )
+@click.option("--as-run-submit", is_flag=True, help="Run the job as run submit.")
 @click.option(
     "--tags",
     multiple=True,
@@ -81,6 +84,7 @@ def launch(
     trace: bool,
     kill_on_sigterm: bool,
     existing_runs: str,
+    as_run_submit: bool,
     tags: List[str],
     parameters: List[str],
 ):
@@ -90,61 +94,33 @@ def launch(
     additional_tags = parse_multiple(tags)
     override_parameters = parse_multiple(parameters)
 
-    filter_string = generate_filter_string(environment, additional_tags)
+    filter_string = generate_filter_string(environment)
 
-    runs = mlflow.search_runs(filter_string=filter_string, max_results=1)
-
-    if runs.empty:
-        raise EnvironmentError(
-            f"""
-        No runs provided per given set of filters:
-            {filter_string}
-        Please check experiment UI to verify current status of deployments.
-        """
-        )
-
-    run_info = runs.iloc[0].to_dict()
-
-    dbx_echo("Successfully found deployment per given job name")
+    run_info = _find_deployment_run(filter_string, additional_tags, as_run_submit, environment)
 
     deployment_run_id = run_info["run_id"]
 
     with mlflow.start_run(run_id=deployment_run_id) as deployment_run:
+
         with mlflow.start_run(nested=True):
-
             artifact_base_uri = deployment_run.info.artifact_uri
-            deployments = _load_deployments(api_client, artifact_base_uri)
-            job_id = deployments.get(job)
 
-            if not job_id:
-                raise Exception(f"Job with name {job} not found in the latest deployment" % job)
+            if not as_run_submit:
+                run_provider = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, override_parameters)
+            else:
+                run_provider = RunSubmitLauncher(
+                    job, api_client, artifact_base_uri, existing_runs, override_parameters, environment
+                )
+
+            run_data, job_id = run_provider.launch()
 
             jobs_service = JobsService(api_client)
-            active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
-
-            for run in active_runs:
-                if existing_runs == "pass":
-                    dbx_echo("Passing the existing runs status check")
-
-                if existing_runs == "wait":
-                    dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
-                    _wait_run(api_client, run)
-
-                if existing_runs == "cancel":
-                    dbx_echo(f'Cancelling run with id {run["run_id"]}')
-                    _cancel_run(api_client, run)
-
-            if override_parameters:
-                _prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
-                dbx_echo(f"Default launch parameters are overridden with the following: {_prepared_parameters}")
-                run_data = jobs_service.run_now(job_id, python_params=_prepared_parameters)
-            else:
-                run_data = jobs_service.run_now(job_id)
-
+            run_info = jobs_service.get_run(run_data["run_id"])
+            run_url = run_info.get("run_page_url")
+            dbx_echo(f"Run URL: {run_url}")
             if trace:
-                dbx_echo("Tracing job run")
                 if kill_on_sigterm:
-                    dbx_echo("Click Ctrl+C to stop the job run")
+                    dbx_echo("Click Ctrl+C to stop the run")
                     try:
                         dbx_status = _trace_run(api_client, run_data)
                     except KeyboardInterrupt:
@@ -156,16 +132,16 @@ def launch(
                     dbx_status = _trace_run(api_client, run_data)
 
                 if dbx_status == "ERROR":
-                    raise Exception("Tracked job failed during execution. " "Please check Databricks UI for job logs")
+                    raise Exception("Tracked run failed during execution. Please check Databricks UI for run logs")
                 dbx_echo("Launch command finished")
 
             else:
                 dbx_status = "NOT_TRACKED"
-                dbx_echo("Job successfully launched in non-tracking mode. Please check Databricks UI for job status")
+                dbx_echo("Run successfully launched in non-tracking mode. Please check Databricks UI for job status")
 
             deployment_tags = {
                 "job_id": job_id,
-                "run_id": run_data["run_id"],
+                "run_id": run_data.get("run_id"),
                 "dbx_action_type": "launch",
                 "dbx_status": dbx_status,
                 "dbx_environment": environment,
@@ -174,15 +150,183 @@ def launch(
             mlflow.set_tags(deployment_tags)
 
 
+def _find_deployment_run(
+    filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
+) -> Dict[str, Any]:
+    runs = mlflow.search_runs(filter_string=filter_string, order_by=["start_time DESC"])
+
+    filter_conditions = []
+
+    if tags:
+        dbx_echo("Filtering deployments with set of additional tags")
+        for tag_name, tag_value in tags.items():
+            tag_column_name = f"tags.{tag_name}"
+            if tag_column_name not in runs.columns:
+                raise Exception(
+                    f"Tag {tag_name} not found in underlying MLflow experiment, please verify tag existence in the UI"
+                )
+            tag_condition = runs[tag_column_name] == tag_value
+            filter_conditions.append(tag_condition)
+        full_filter = pd.DataFrame(filter_conditions).T.all(axis=1)  # noqa
+        _runs = runs[full_filter]
+    else:
+        dbx_echo("No additional tags provided")
+        _runs = runs
+
+    if as_run_submit:
+        if "tags.dbx_deploy_type" not in _runs.columns:
+            raise Exception(
+                """"
+                Run Submit API is available only when deployment was done with --files-only flag.
+                Currently there is no deployments with such flag under given filters. 
+                Please re-deploy with --files-only flag and then re-run this launch command.
+            """
+            )
+
+        _runs = _runs[_runs["tags.dbx_deploy_type"] == "files_only"]
+
+    if _runs.empty:
+        exception_string = """
+        No runs provided per given set of filters:
+            {filter_string}
+        """
+        if tags:
+            exception_string = (
+                exception_string
+                + f"""
+            With additional tags: {tags}
+            """
+            )
+        if as_run_submit:
+            exception_string = (
+                exception_string
+                + """
+            With file-based deployments (dbx_deployment_type='files_only').
+            """
+            )
+        experiment_location = InfoFile.get(environment).get("workspace_dir")
+        exception_string = (
+            exception_string
+            + f"""
+        To verify current status of deployments please check experiment UI in workspace dir: {experiment_location}
+        """
+        )
+
+        raise Exception(exception_string)
+
+    run_info = _runs.iloc[0].to_dict()
+
+    dbx_echo("Successfully found deployment per given job name")
+    return run_info
+
+
+class RunSubmitLauncher:
+    def __init__(
+        self,
+        job: str,
+        api_client: ApiClient,
+        artifact_base_uri: str,
+        existing_runs: str,
+        override_parameters: Dict[str, str],
+        environment: str,
+    ):
+        self.job = job
+        self.api_client = api_client
+        self.artifact_base_uri = artifact_base_uri
+        self.existing_runs = existing_runs
+        self.override_parameters = override_parameters
+        self.environment = environment
+
+    def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
+        dbx_echo("Launching job via run submit API")
+
+        env_spec = _load_dbx_file(self.api_client, self.artifact_base_uri, "deployment-result.json").get(
+            self.environment
+        )
+
+        if not env_spec:
+            raise Exception(f"No job definitions found for environment {self.environment}")
+
+        job_specs = env_spec.get("jobs")
+
+        found_jobs = [j for j in job_specs if j["name"] == self.job]
+
+        if not found_jobs:
+            raise Exception(f"Job definition {self.job} not found in deployment spec")
+
+        job_spec = found_jobs[0]
+
+        if self.override_parameters:
+            raise Exception("Overriding parameters for run submit API is not supported in dbx")
+
+        run_data = self.api_client.perform_query("POST", "/jobs/runs/submit", data=job_spec)
+        return run_data, None
+
+
+class RunNowLauncher:
+    def __init__(
+        self,
+        job: str,
+        api_client: ApiClient,
+        artifact_base_uri: str,
+        existing_runs: str,
+        override_parameters: Dict[str, str],
+    ):
+        self.job = job
+        self.api_client = api_client
+        self.artifact_base_uri = artifact_base_uri
+        self.existing_runs = existing_runs
+        self.override_parameters = override_parameters
+
+    def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
+        dbx_echo("Launching job via run now API")
+        jobs_service = JobsService(self.api_client)
+
+        all_jobs = jobs_service.list_jobs().get("jobs", [])
+
+        matching_jobs = [j for j in all_jobs if j["settings"]["name"] == self.job]
+
+        if not matching_jobs:
+            raise Exception(f"Job with name {self.job} not found")
+
+        if len(matching_jobs) > 1:
+            raise Exception(f"Job with name {self.job} is duplicated. Please make job name unique.")
+
+        job_id = matching_jobs[0]["job_id"]
+
+        active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
+
+        for run in active_runs:
+            if self.existing_runs == "pass":
+                dbx_echo("Passing the existing runs status check")
+
+            if self.existing_runs == "wait":
+                dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
+                _wait_run(self.api_client, run)
+
+            if self.existing_runs == "cancel":
+                dbx_echo(f'Cancelling run with id {run["run_id"]}')
+                _cancel_run(self.api_client, run)
+
+        if self.override_parameters:
+            _prepared_parameters = sum([[k, v] for k, v in self.override_parameters.items()], [])
+            dbx_echo(f"Default launch parameters are overridden with the following: {_prepared_parameters}")
+            run_data = jobs_service.run_now(job_id, python_params=_prepared_parameters)
+        else:
+            run_data = jobs_service.run_now(job_id)
+
+        return run_data, job_id
+
+
 def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
     jobs_service = JobsService(api_client)
     jobs_service.cancel_run(run_data["run_id"])
     _wait_run(api_client, run_data)
 
 
-def _load_deployments(api_client: ApiClient, artifact_base_uri: str):
+def _load_dbx_file(api_client: ApiClient, artifact_base_uri: str, name: str) -> Dict[Any, Any]:
     dbfs_service = DbfsService(api_client)
-    dbx_deployments = f"{artifact_base_uri}/.dbx/deployments.json"
+    dbx_deployments = f"{artifact_base_uri}/.dbx/{name}"
     raw_config_payload = dbfs_service.read(dbx_deployments)["data"]
     payload = base64.b64decode(raw_config_payload).decode("utf-8")
     deployments = json.loads(payload)

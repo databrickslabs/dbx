@@ -38,3 +38,7 @@ Also, the behaviour of `dbx deploy --write-specs-to-file` has been changed to ma
 # 0.1.1
 
 Fixes the issue with pywin32 installation for Azure imports on win platforms.
+
+# 0.1.2
+
+Adds Run Submit API support.

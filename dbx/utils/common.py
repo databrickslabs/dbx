@@ -148,19 +148,18 @@ def dbx_echo(message: str):
     click.echo(formatted_message)
 
 
-def generate_filter_string(env: str, tags: Dict[str, str]) -> str:
+def generate_filter_string(env: str) -> str:
     general_filters = [
-        f'tags.dbx_environment="{env}"',
-        'tags.dbx_status="SUCCESS"',
-        'tags.dbx_action_type="deploy"',
+        f"tags.dbx_environment = '{env}'",
+        "tags.dbx_status = 'SUCCESS'",
+        "tags.dbx_action_type = 'deploy'",
     ]
 
     branch_name = get_current_branch_name()
     if branch_name:
-        general_filters.append(f'tags.dbx_branch_name="{branch_name}"')
+        general_filters.append(f"tags.dbx_branch_name = '{branch_name}'")
 
-    tags_filters = [f'tags.{k}="{v}"' for k, v in tags.items()]
-    all_filters = general_filters + tags_filters
+    all_filters = general_filters
     filter_string = " and ".join(all_filters)
     return filter_string
 
