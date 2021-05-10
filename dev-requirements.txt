@@ -1,10 +1,10 @@
-setuptools==56.0.0
-sphinx==3.5.4
+setuptools
+sphinx
 sphinx_rtd_theme
 sphinx-autobuild==2021.3.14
 sphinx-click
 sphinx-tabs
-cookiecutter~=1.7.2
+cookiecutter
 rst2pdf==0.98
 wheel
 pytest
@@ -17,3 +17,4 @@ rstcheck
 prospector
 click>=7.1.2
 black
+MarkupSafe>=2.0.0rc2
