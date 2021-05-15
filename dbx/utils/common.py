@@ -8,6 +8,7 @@ from typing import Dict, Any, List, Optional, Tuple
 import click
 import git
 import mlflow
+import mlflow.entities
 import requests
 from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import (
@@ -230,10 +231,22 @@ def prepare_environment(environment: str) -> ApiClient:
     else:
         raise NotImplementedError(f"Config type: {config_type} is not implemented")
 
-    experiment = mlflow.get_experiment_by_name(environment_data["workspace_dir"])
+    experiment: Optional[mlflow.entities.Experiment] = mlflow.get_experiment_by_name(environment_data["workspace_dir"])
 
+    # if there is no experiment
     if not experiment:
         mlflow.create_experiment(environment_data["workspace_dir"], environment_data["artifact_location"])
+    else:
+        # verify experiment location
+        if experiment.artifact_location != environment_data["artifact_location"]:
+            raise Exception(
+                f"Required location of experiment {environment_data['workspace_dir']} "
+                f"doesn't match the project defined one: \n"
+                f"\t experiment artifact location: {experiment.artifact_location} \n"
+                f"\t project artifact location   : {environment_data['artifact_location']} \n"
+                f"Change of experiment location is currently not supported in MLflow. "
+                f"Please change the experiment name to create a new experiment."
+            )
 
     mlflow.set_experiment(environment_data["workspace_dir"])
 
