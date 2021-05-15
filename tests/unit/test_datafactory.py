@@ -39,10 +39,6 @@ class DatafactoryDeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", "dbfs:/Shared/dbx/test", None),
-    )
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
@@ -80,32 +76,35 @@ class DatafactoryDeployTest(DbxTest):
             }
 
             deployment_file.write_text(json.dumps(deploy_content, indent=4))
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(
+                    deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
+                )
 
-            deploy_result = invoke_cli_runner(
-                deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
-            )
+                self.assertEqual(deploy_result.exit_code, 0)
 
-            self.assertEqual(deploy_result.exit_code, 0)
+                reflection_result = invoke_cli_runner(
+                    datafactory_reflect,
+                    [
+                        "--environment",
+                        "default",
+                        "--specs-file",
+                        ".dbx/deployment-result.json",
+                        "--subscription-name",
+                        "some-subscription",
+                        "--resource-group",
+                        "some-resource-group",
+                        "--factory-name",
+                        "some-factory",
+                        "--name",
+                        "some-pipeline",
+                    ],
+                )
 
-            reflection_result = invoke_cli_runner(
-                datafactory_reflect,
-                [
-                    "--environment",
-                    "default",
-                    "--specs-file",
-                    ".dbx/deployment-result.json",
-                    "--subscription-name",
-                    "some-subscription",
-                    "--resource-group",
-                    "some-resource-group",
-                    "--factory-name",
-                    "some-factory",
-                    "--name",
-                    "some-pipeline",
-                ],
-            )
-
-            self.assertEqual(reflection_result.exit_code, 0)
+                self.assertEqual(reflection_result.exit_code, 0)
 
 
 if __name__ == "__main__":

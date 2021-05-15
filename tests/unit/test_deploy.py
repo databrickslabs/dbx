@@ -12,7 +12,7 @@ from requests import HTTPError
 
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy, _update_job  # noqa
-from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
+from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH, read_json, INFO_FILE_PATH
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
 run_info = RunInfo(
@@ -45,10 +45,6 @@ class DeployTest(DbxTest):
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", None, None),
-    )
     @patch("mlflow.set_experiment", return_value=None)
     def test_deploy_basic(self, *_):
         with self.project_dir:
@@ -70,9 +66,62 @@ class DeployTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            deploy_result = invoke_cli_runner(deploy, ["--environment", "test"])
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "test"])
+                self.assertEqual(deploy_result.exit_code, 0)
 
-            self.assertEqual(deploy_result.exit_code, 0)
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    @patch("databricks_cli.configure.config._get_api_client", return_value=None)
+    @patch("mlflow.set_experiment", return_value=None)
+    def test_deploy_incorrect_artifact_location(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "test",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, "dbfs:/some/correct-location", None, None),
+            ):
+                deployment_content = {"test": {"jobs": []}}
+                write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+
+                sample_config = read_json(INFO_FILE_PATH)
+                sample_config["environments"]["test"]["artifact_location"] = "dbfs:/some/another-location"
+                write_json(sample_config, INFO_FILE_PATH)
+
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "test"], expected_error=True)
+
+                self.assertIsInstance(deploy_result.exception, Exception)
+                self.assertIn(
+                    "Please change the experiment name to create a new experiment", str(deploy_result.exception)
+                )
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
@@ -81,10 +130,6 @@ class DeployTest(DbxTest):
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", None, None),
-    )
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
@@ -109,10 +154,14 @@ class DeployTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            deploy_result = invoke_cli_runner(deploy, ["--environment", "test"], expected_error=True)
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "test"], expected_error=True)
 
-            self.assertIsInstance(deploy_result.exception, NameError)
-            self.assertIn("non-existent in the deployment file", str(deploy_result.exception))
+                self.assertIsInstance(deploy_result.exception, NameError)
+                self.assertIn("non-existent in the deployment file", str(deploy_result.exception))
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
@@ -123,10 +172,6 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", None, None),
-    )
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
@@ -151,9 +196,12 @@ class DeployTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--jobs", "job-1,job-2"])
-
-            self.assertEqual(deploy_result.exit_code, 0)
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--jobs", "job-1,job-2"])
+                self.assertEqual(deploy_result.exit_code, 0)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
@@ -164,10 +212,6 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", None, None),
-    )
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
@@ -196,17 +240,21 @@ class DeployTest(DbxTest):
 
             pathlib.Path("runtime_requirements.txt").write_text(sample_requirements)
 
-            deploy_result = invoke_cli_runner(
-                deploy,
-                [
-                    "--environment",
-                    "test",
-                    "--requirements-file",
-                    "runtime_requirements.txt",
-                ],
-            )
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(
+                    deploy,
+                    [
+                        "--environment",
+                        "test",
+                        "--requirements-file",
+                        "runtime_requirements.txt",
+                    ],
+                )
 
-            self.assertEqual(deploy_result.exit_code, 0)
+                self.assertEqual(deploy_result.exit_code, 0)
 
     def test_update_job_positive(self):
         js = Mock(JobsService)
@@ -227,10 +275,6 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", "dbfs:/Shared/dbx/test", None),
-    )
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
@@ -252,20 +296,25 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             spec_file = ".dbx/deployment-result.json"
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(
+                    deploy, ["--environment", "default", "--write-specs-to-file", spec_file]
+                )
 
-            deploy_result = invoke_cli_runner(deploy, ["--environment", "default", "--write-specs-to-file", spec_file])
+                self.assertEqual(deploy_result.exit_code, 0)
 
-            self.assertEqual(deploy_result.exit_code, 0)
+                spec_result = json.loads(pathlib.Path(spec_file).read_text())
 
-            spec_result = json.loads(pathlib.Path(spec_file).read_text())
+                self.assertIsNotNone(spec_result)
 
-            self.assertIsNotNone(spec_result)
+                deploy_overwrite = invoke_cli_runner(
+                    deploy, ["--environment", "default", "--write-specs-to-file", spec_file]
+                )
 
-            deploy_overwrite = invoke_cli_runner(
-                deploy, ["--environment", "default", "--write-specs-to-file", spec_file]
-            )
-
-            self.assertEqual(deploy_overwrite.exit_code, 0)
+                self.assertEqual(deploy_overwrite.exit_code, 0)
 
     @patch("databricks_cli.sdk.api_client.ApiClient.perform_query", return_value=None)
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
@@ -277,10 +326,6 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", "dbfs:/Shared/dbx/test", None),
-    )
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
@@ -318,9 +363,13 @@ class DeployTest(DbxTest):
 
             deployment_file.write_text(json.dumps(deploy_content, indent=4))
 
-            deploy_result = invoke_cli_runner(deploy, ["--environment", "default"])
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "default"])
 
-            self.assertEqual(deploy_result.exit_code, 0)
+                self.assertEqual(deploy_result.exit_code, 0)
 
 
 if __name__ == "__main__":

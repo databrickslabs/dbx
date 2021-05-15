@@ -35,10 +35,6 @@ class ExecuteTest(DbxTest):
         "databricks_cli.clusters.api.ClusterService.get_cluster",
         return_value={"cluster_name": "some-name", "state": "RUNNING"},
     )
-    @patch(
-        "mlflow.get_experiment_by_name",
-        return_value=Experiment("id", None, "location", None, None),
-    )
     @patch("dbx.utils.common.ApiV1Client.create_context", return_value={"id": 1})
     @patch("dbx.utils.common.ApiV1Client.execute_command", return_value={"id": 1})
     @patch(
@@ -72,19 +68,23 @@ class ExecuteTest(DbxTest):
             )
             self.assertEqual(configure_result.exit_code, 0)
 
-            execute_result = invoke_cli_runner(
-                execute,
-                [
-                    "--environment",
-                    "default",
-                    "--cluster-id",
-                    "000-some-cluster-id",
-                    "--job",
-                    f"{self.project_name}-sample",
-                ],
-            )
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/Shared/dbx/projects/{self.project_name}", None, None),
+            ):
+                execute_result = invoke_cli_runner(
+                    execute,
+                    [
+                        "--environment",
+                        "default",
+                        "--cluster-id",
+                        "000-some-cluster-id",
+                        "--job",
+                        f"{self.project_name}-sample",
+                    ],
+                )
 
-            self.assertEqual(execute_result.exit_code, 0)
+                self.assertEqual(execute_result.exit_code, 0)
 
     @patch(
         "databricks_cli.clusters.api.ClusterService.list_clusters",
