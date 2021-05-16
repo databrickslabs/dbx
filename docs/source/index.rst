@@ -22,3 +22,4 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     orchestration
     permissions
     run_submit
+    properties_propagation

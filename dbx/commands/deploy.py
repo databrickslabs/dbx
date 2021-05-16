@@ -4,9 +4,10 @@ import shutil
 import tempfile
 from typing import Dict, Any, Union, Optional
 from typing import List
-
+import collections.abc
 import click
 import mlflow
+from databricks_cli.cluster_policies.api import PolicyService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
@@ -25,6 +26,7 @@ from dbx.utils.common import (
     get_current_branch_name,
     DeploymentFile,
 )
+from dbx.utils.policy_parser import PolicyParser
 
 
 @click.command(
@@ -94,15 +96,15 @@ from dbx.utils.common import (
 @debug_option
 @environment_option
 def deploy(
-    deployment_file: str,
-    jobs: str,
-    requirements_file: str,
-    tags: List[str],
-    environment: str,
-    no_rebuild: bool,
-    no_package: bool,
-    files_only: bool,
-    write_specs_to_file: Optional[str],
+        deployment_file: str,
+        jobs: str,
+        requirements_file: str,
+        tags: List[str],
+        environment: str,
+        no_rebuild: bool,
+        no_package: bool,
+        files_only: bool,
+        write_specs_to_file: Optional[str],
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 
@@ -151,11 +153,7 @@ def deploy(
                 package_requirement = []
 
         _adjust_job_definitions(
-            deployment["jobs"],
-            artifact_base_uri,
-            requirements_payload,
-            package_requirement,
-            _file_uploader,
+            deployment["jobs"], artifact_base_uri, requirements_payload, package_requirement, _file_uploader, api_client
         )
 
         if not files_only:
@@ -278,11 +276,12 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
 
 
 def _adjust_job_definitions(
-    jobs: List[Dict[str, Any]],
-    artifact_base_uri: str,
-    requirements_payload: List[Dict[str, str]],
-    package_payload: List[Dict[str, str]],
-    file_uploader: FileUploader,
+        jobs: List[Dict[str, Any]],
+        artifact_base_uri: str,
+        requirements_payload: List[Dict[str, str]],
+        package_payload: List[Dict[str, str]],
+        file_uploader: FileUploader,
+        api_client: ApiClient,
 ):
     def adjustment_callback(p: Any):
         return _adjust_path(p, artifact_base_uri, file_uploader)
@@ -291,6 +290,45 @@ def _adjust_job_definitions(
         job["libraries"] = job.get("libraries", []) + package_payload
         _walk_content(adjustment_callback, job)
         job["libraries"] = job.get("libraries", []) + requirements_payload
+        policy_name = job.get("new_cluster", {}).get("policy_name")
+        if policy_name:
+            dbx_echo(f"Processing policy name {policy_name} for job {job['name']}")
+            policy_spec = _preprocess_policy_name(api_client, policy_name)
+            policy = json.loads(policy_spec["definition"])
+            policy_props = PolicyParser(policy).parse()
+            _deep_update(job["new_cluster"], policy_props, policy_name)
+
+
+def _deep_update(d: Dict, u: collections.abc.Mapping, policy_name: str) -> Dict:
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = _deep_update(d.get(k, {}), v, policy_name)
+        else:
+            # if the key is already provided in deployment configuration, we need to verify the value
+            # if value exists, we verify that it's the same as in the policy
+            existing_value = d.get(k)
+            if existing_value:
+                if existing_value != v:
+                    raise Exception(
+                        f"For key {k} there is a value in the cluster definition: {existing_value} \n"
+                        f"However this value is fixed in the policy {policy_name} and shall be equal to: {v}"
+                    )
+            d[k] = v
+    return d
+
+
+def _preprocess_policy_name(api_client: ApiClient, policy_name: str):
+    policies = PolicyService(api_client).list_policies().get("policies", [])
+    found_policies = [p for p in policies if p["name"] == policy_name]
+
+    if not found_policies:
+        raise Exception(f"Policy {policy_name} not found")
+
+    if len(found_policies) > 1:
+        raise Exception(f"Policy with name {policy_name} is not unique. Please make unique names for policies.")
+
+    policy_spec = found_policies[0]
+    return policy_spec
 
 
 def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
