@@ -96,15 +96,15 @@ from dbx.utils.policy_parser import PolicyParser
 @debug_option
 @environment_option
 def deploy(
-        deployment_file: str,
-        jobs: str,
-        requirements_file: str,
-        tags: List[str],
-        environment: str,
-        no_rebuild: bool,
-        no_package: bool,
-        files_only: bool,
-        write_specs_to_file: Optional[str],
+    deployment_file: str,
+    jobs: str,
+    requirements_file: str,
+    tags: List[str],
+    environment: str,
+    no_rebuild: bool,
+    no_package: bool,
+    files_only: bool,
+    write_specs_to_file: Optional[str],
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 
@@ -276,12 +276,12 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
 
 
 def _adjust_job_definitions(
-        jobs: List[Dict[str, Any]],
-        artifact_base_uri: str,
-        requirements_payload: List[Dict[str, str]],
-        package_payload: List[Dict[str, str]],
-        file_uploader: FileUploader,
-        api_client: ApiClient,
+    jobs: List[Dict[str, Any]],
+    artifact_base_uri: str,
+    requirements_payload: List[Dict[str, str]],
+    package_payload: List[Dict[str, str]],
+    file_uploader: FileUploader,
+    api_client: ApiClient,
 ):
     def adjustment_callback(p: Any):
         return _adjust_path(p, artifact_base_uri, file_uploader)

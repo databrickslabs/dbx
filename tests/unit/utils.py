@@ -46,7 +46,7 @@ class DbxTest(unittest.TestCase):
         self.project_name = "dev_dbx_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-test"
         logging.info(
-            "Launching configure test in directory %s with project name %s" % (self.test_dir, self.project_name)
+            "Launching test in directory %s with project name %s" % (self.test_dir, self.project_name)
         )
 
         with Path(self.test_dir):
