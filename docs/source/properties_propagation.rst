@@ -11,6 +11,7 @@ How this works?
 * Specify :code:`policy_name` property in the :code:`new_cluster` section
 * :code:`dbx` will automatically fetch the policy definition using `Cluster Policies API <https://docs.databricks.com/dev-tools/api/latest/policies.html>`_
 * Job cluster definition will be updated accordingly with all fixed properties provided from the policy definition during the :code:`dbx deploy` step
+* There is no need to specify :code:`policy_id` manually, it will be automatically added to the cluster definition
 
 Caveats
 -------
