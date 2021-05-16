@@ -45,9 +45,7 @@ class DbxTest(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
         self.project_name = "dev_dbx_%s" % str(uuid4()).split("-")[0]
         self.profile_name = "dbx-test"
-        logging.info(
-            "Launching test in directory %s with project name %s" % (self.test_dir, self.project_name)
-        )
+        logging.info("Launching test in directory %s with project name %s" % (self.test_dir, self.project_name))
 
         with Path(self.test_dir):
             initialize_cookiecutter(self.project_name)
