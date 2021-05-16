@@ -23,12 +23,7 @@ from dbx.utils.common import (
 )
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
-POSSIBLE_TASK_KEYS = [
-    "notebook_task",
-    "spark_jar_task",
-    "spark_python_task",
-    "spark_submit_task"
-]
+POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
 
 
 @click.command(
@@ -97,15 +92,15 @@ POSSIBLE_TASK_KEYS = [
 @environment_option
 @debug_option
 def launch(
-        environment: str,
-        job: str,
-        trace: bool,
-        kill_on_sigterm: bool,
-        existing_runs: str,
-        as_run_submit: bool,
-        tags: List[str],
-        parameters: List[str],
-        parameters_raw: Optional[str],
+    environment: str,
+    job: str,
+    trace: bool,
+    kill_on_sigterm: bool,
+    existing_runs: str,
+    as_run_submit: bool,
+    tags: List[str],
+    parameters: List[str],
+    parameters_raw: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -175,7 +170,7 @@ def launch(
 
 
 def _find_deployment_run(
-        filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
+    filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
 ) -> Dict[str, Any]:
     runs = mlflow.search_runs(filter_string=filter_string, order_by=["start_time DESC"])
 
@@ -216,22 +211,22 @@ def _find_deployment_run(
         """
         if tags:
             exception_string = (
-                    exception_string
-                    + f"""
+                exception_string
+                + f"""
             With additional tags: {tags}
             """
             )
         if as_run_submit:
             exception_string = (
-                    exception_string
-                    + """
+                exception_string
+                + """
             With file-based deployments (dbx_deployment_type='files_only').
             """
             )
         experiment_location = InfoFile.get(environment).get("workspace_dir")
         exception_string = (
-                exception_string
-                + f"""
+            exception_string
+            + f"""
         To verify current status of deployments please check experiment UI in workspace dir: {experiment_location}
         """
         )
@@ -246,13 +241,13 @@ def _find_deployment_run(
 
 class RunSubmitLauncher:
     def __init__(
-            self,
-            job: str,
-            api_client: ApiClient,
-            artifact_base_uri: str,
-            existing_runs: str,
-            prepared_parameters: Any,
-            environment: str,
+        self,
+        job: str,
+        api_client: ApiClient,
+        artifact_base_uri: str,
+        existing_runs: str,
+        prepared_parameters: Any,
+        environment: str,
     ):
         self.job = job
         self.api_client = api_client
@@ -290,7 +285,7 @@ class RunSubmitLauncher:
 
 class RunNowLauncher:
     def __init__(
-            self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any
+        self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any
     ):
         self.job = job
         self.api_client = api_client
