@@ -23,6 +23,12 @@ from dbx.utils.common import (
 )
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
+POSSIBLE_TASK_KEYS = [
+    "notebook_task",
+    "spark_jar_task",
+    "spark_python_task",
+    "spark_submit_task"
+]
 
 
 @click.command(
@@ -74,25 +80,43 @@ TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
     type=str,
     help="""Parameters of the job. \n
             If provided, default job arguments will be overridden.
+            Format: (:code:`--parameters="parameter1=value1"`). 
             Option might be repeated multiple times.""",
+)
+@click.option(
+    "--parameters-raw",
+    type=str,
+    help="""Parameters of the job as a raw string. \n
+            If provided, default job arguments will be overridden.
+            If provided, :code:`--parameters` argument will be ignored.
+            Example command:
+            :code:`dbx launch --job="my-job-name" --parameters-raw='{"key1": "value1", "key2": 2}'`.
+            Please note that no parameters preprocessing will be done.
+            """,
 )
 @environment_option
 @debug_option
 def launch(
-    environment: str,
-    job: str,
-    trace: bool,
-    kill_on_sigterm: bool,
-    existing_runs: str,
-    as_run_submit: bool,
-    tags: List[str],
-    parameters: List[str],
+        environment: str,
+        job: str,
+        trace: bool,
+        kill_on_sigterm: bool,
+        existing_runs: str,
+        as_run_submit: bool,
+        tags: List[str],
+        parameters: List[str],
+        parameters_raw: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
-    override_parameters = parse_multiple(parameters)
+
+    if parameters_raw:
+        prepared_parameters = parameters_raw
+    else:
+        override_parameters = parse_multiple(parameters)
+        prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
 
     filter_string = generate_filter_string(environment)
 
@@ -106,13 +130,13 @@ def launch(
             artifact_base_uri = deployment_run.info.artifact_uri
 
             if not as_run_submit:
-                run_provider = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, override_parameters)
+                run_launcher = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, prepared_parameters)
             else:
-                run_provider = RunSubmitLauncher(
-                    job, api_client, artifact_base_uri, existing_runs, override_parameters, environment
+                run_launcher = RunSubmitLauncher(
+                    job, api_client, artifact_base_uri, existing_runs, prepared_parameters, environment
                 )
 
-            run_data, job_id = run_provider.launch()
+            run_data, job_id = run_launcher.launch()
 
             jobs_service = JobsService(api_client)
             run_info = jobs_service.get_run(run_data["run_id"])
@@ -151,7 +175,7 @@ def launch(
 
 
 def _find_deployment_run(
-    filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
+        filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
 ) -> Dict[str, Any]:
     runs = mlflow.search_runs(filter_string=filter_string, order_by=["start_time DESC"])
 
@@ -192,22 +216,22 @@ def _find_deployment_run(
         """
         if tags:
             exception_string = (
-                exception_string
-                + f"""
+                    exception_string
+                    + f"""
             With additional tags: {tags}
             """
             )
         if as_run_submit:
             exception_string = (
-                exception_string
-                + """
+                    exception_string
+                    + """
             With file-based deployments (dbx_deployment_type='files_only').
             """
             )
         experiment_location = InfoFile.get(environment).get("workspace_dir")
         exception_string = (
-            exception_string
-            + f"""
+                exception_string
+                + f"""
         To verify current status of deployments please check experiment UI in workspace dir: {experiment_location}
         """
         )
@@ -222,19 +246,19 @@ def _find_deployment_run(
 
 class RunSubmitLauncher:
     def __init__(
-        self,
-        job: str,
-        api_client: ApiClient,
-        artifact_base_uri: str,
-        existing_runs: str,
-        override_parameters: Dict[str, str],
-        environment: str,
+            self,
+            job: str,
+            api_client: ApiClient,
+            artifact_base_uri: str,
+            existing_runs: str,
+            prepared_parameters: Any,
+            environment: str,
     ):
         self.job = job
         self.api_client = api_client
         self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
-        self.override_parameters = override_parameters
+        self.prepared_parameters = prepared_parameters
         self.environment = environment
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
@@ -254,29 +278,25 @@ class RunSubmitLauncher:
         if not found_jobs:
             raise Exception(f"Job definition {self.job} not found in deployment spec")
 
-        job_spec = found_jobs[0]
+        job_spec: Dict[str, Any] = found_jobs[0]
 
-        if self.override_parameters:
-            raise Exception("Overriding parameters for run submit API is not supported in dbx")
+        if self.prepared_parameters:
+            task_key = [k for k in job_spec.keys() if k in POSSIBLE_TASK_KEYS][0]
+            job_spec[task_key]["parameters"] = self.prepared_parameters
 
-        run_data = self.api_client.perform_query("POST", "/jobs/runs/submit", data=job_spec)
+        run_data = _submit_run(self.api_client, job_spec)
         return run_data, None
 
 
 class RunNowLauncher:
     def __init__(
-        self,
-        job: str,
-        api_client: ApiClient,
-        artifact_base_uri: str,
-        existing_runs: str,
-        override_parameters: Dict[str, str],
+            self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any
     ):
         self.job = job
         self.api_client = api_client
         self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
-        self.override_parameters = override_parameters
+        self.prepared_parameters = prepared_parameters
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
@@ -292,7 +312,8 @@ class RunNowLauncher:
         if len(matching_jobs) > 1:
             raise Exception(f"Job with name {self.job} is duplicated. Please make job name unique.")
 
-        job_id = matching_jobs[0]["job_id"]
+        job_data = matching_jobs[0]
+        job_id = job_data["job_id"]
 
         active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
 
@@ -308,14 +329,41 @@ class RunNowLauncher:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 _cancel_run(self.api_client, run)
 
-        if self.override_parameters:
-            _prepared_parameters = sum([[k, v] for k, v in self.override_parameters.items()], [])
-            dbx_echo(f"Default launch parameters are overridden with the following: {_prepared_parameters}")
-            run_data = jobs_service.run_now(job_id, python_params=_prepared_parameters)
+        if self.prepared_parameters:
+            dbx_echo(f"Default launch parameters are overridden with the following: {self.prepared_parameters}")
+            # we don't do a null-check here since the job existence will be already done during listing above.
+            job_settings = job_data.get("settings")
+
+            # here we define the job type to correctly pass parameters
+            extra_payload_key = _define_payload_key(job_settings)
+
+            extra_payload = {extra_payload_key: self.prepared_parameters}
+
+            run_data = jobs_service.run_now(job_id, **extra_payload)
+
         else:
             run_data = jobs_service.run_now(job_id)
 
         return run_data, job_id
+
+
+def _define_payload_key(job_settings: Dict[str, Any]):
+    if job_settings.get("notebook_task"):
+        extra_payload_key = "notebook_params"
+    elif job_settings.get("spark_jar_task"):
+        extra_payload_key = "jar_params"
+    elif job_settings.get("spark_python_task"):
+        extra_payload_key = "python_params"
+    elif job_settings.get("spark_submit_task"):
+        extra_payload_key = "spark_submit_params"
+    else:
+        raise Exception(f"Unexpected type of the job with settings: {job_settings}")
+
+    return extra_payload_key
+
+
+def _submit_run(api_client: ApiClient, payload: Dict[str, Any]) -> Dict[str, Any]:
+    return api_client.perform_query("POST", "/jobs/runs/submit", data=payload)
 
 
 def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
