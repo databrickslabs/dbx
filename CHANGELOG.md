@@ -45,3 +45,4 @@ Adds Run Submit API support.
 
 # 0.1.3
 - Add explicit exception for artifact location change
+- Add experimental support for fixed properties' propagation from cluster policies
