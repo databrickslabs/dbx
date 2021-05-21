@@ -93,6 +93,14 @@ from dbx.utils.policy_parser import PolicyParser
               Helpful when final representation of a deployed job is needed for other integrations.
               Please not that output file will be overwritten if it exists.""",
 )
+@click.option(
+    "--branch-name",
+    type=str,
+    default=None,
+    required=False,
+    help="""The name of the current branch.
+              If not provided or empty, dbx will try to detect the branch name.""",
+)
 @debug_option
 @environment_option
 def deploy(
@@ -105,14 +113,17 @@ def deploy(
     no_package: bool,
     files_only: bool,
     write_specs_to_file: Optional[str],
+    branch_name: Optional[str],
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
-    branch_name = get_current_branch_name()
     handle_package(no_rebuild)
     package_file = get_package_file()
+
+    if not branch_name:
+        branch_name = get_current_branch_name()
 
     _verify_deployment_file(deployment_file)
 
