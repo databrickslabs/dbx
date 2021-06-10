@@ -411,11 +411,8 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
 
             if local_file_exists:
                 # convert to fuse mount /dbfs/ or dbfs path dbfs:/
-                if fuse_flag:
-                    fuse_adjustment = adjustment.replace("dbfs:/","/dbfs/")
-                    adjusted_path = "%s/%s" % (fuse_adjustment,file_path.as_posix())
-                else:
-                    adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
+                adjusted_path = "%s/%s" % (adjustment.replace("dbfs:/","/dbfs") if fuse_flag else adjustment,
+                                           file_path.as_posix())
 
                 if file_uploader.file_exists(adjusted_path):
                     dbx_echo("File is already stored in the deployment, no action needed")
