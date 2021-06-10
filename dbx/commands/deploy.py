@@ -412,7 +412,7 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
             if local_file_exists:
                 # convert to fuse mount /dbfs/ if fuse_flag.
                 adjusted_path = "%s/%s" % (
-                    adjustment.replace("dbfs:/", "/dbfs") if fuse_flag else adjustment,
+                    adjustment.replace("dbfs:/", "/dbfs/") if fuse_flag else adjustment,
                     file_path.as_posix(),
                 )
 
