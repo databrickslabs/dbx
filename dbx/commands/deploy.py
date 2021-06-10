@@ -400,7 +400,7 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
             # files meant to have fuse mount path will start with fuse://
             # fuse:// needs to be removed before the file_path.exists() happens
             fuse_flag = candidate.startswith("fuse://")
-            file_path = pathlib.Path(candidate.replace("fuse://","") if fuse_flag else candidate)
+            file_path = pathlib.Path(candidate.replace("fuse://", "") if fuse_flag else candidate)
 
             # this is a fix for pathlib behaviour related to WinError
             # in case if we pass incorrect or unsupported string, for example local[*] on Win we receive a OSError
@@ -410,9 +410,11 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
                 local_file_exists = False
 
             if local_file_exists:
-                # convert to fuse mount /dbfs/ or dbfs path dbfs:/
-                adjusted_path = "%s/%s" % (adjustment.replace("dbfs:/","/dbfs") if fuse_flag else adjustment,
-                                           file_path.as_posix())
+                # convert to fuse mount /dbfs/ if fuse_flag.
+                adjusted_path = "%s/%s" % (
+                    adjustment.replace("dbfs:/", "/dbfs") if fuse_flag else adjustment,
+                    file_path.as_posix(),
+                )
 
                 if file_uploader.file_exists(adjusted_path):
                     dbx_echo("File is already stored in the deployment, no action needed")
