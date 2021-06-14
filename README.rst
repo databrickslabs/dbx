@@ -1,7 +1,9 @@
 
 .. image:: images/logo.svg
-  :width: 400
+  :width: 250
+  :height: 250
   :alt: logo
+  :align: center
 
 dbx by Databricks Labs
 ======================
