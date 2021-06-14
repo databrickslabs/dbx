@@ -1,11 +1,14 @@
 
-.. raw:: html
-   <h1 align="center">
-   <a href="images/logo.svg"><img width="200" src="image link" alt="text"></a>
-   </h1>
+
 
 dbx by Databricks Labs
 ======================
+
+.. image:: images/logo.svg
+  :width: 200
+  :height: 200
+  :alt: logo
+  :align: center
 
 DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databricks jobs management.
 
