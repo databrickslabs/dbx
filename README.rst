@@ -1,9 +1,8 @@
 
-.. image:: images/logo.svg
-  :width: 250
-  :height: 250
-  :alt: logo
-  :align: center
+.. raw:: html
+   <h1 align="center">
+   <a href="images/logo.svg"><img width="200" src="image link" alt="text"></a>
+   </h1>
 
 dbx by Databricks Labs
 ======================
