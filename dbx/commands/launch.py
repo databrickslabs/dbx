@@ -20,6 +20,7 @@ from dbx.utils.common import (
     environment_option,
     parse_multiple,
     InfoFile,
+    get_current_branch_name,
 )
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
@@ -89,6 +90,14 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
             Please note that no parameters preprocessing will be done.
             """,
 )
+@click.option(
+    "--branch-name",
+    type=str,
+    default=None,
+    required=False,
+    help="""The name of the current branch.
+              If not provided or empty, dbx will try to detect the branch name.""",
+)
 @environment_option
 @debug_option
 def launch(
@@ -101,11 +110,15 @@ def launch(
     tags: List[str],
     parameters: List[str],
     parameters_raw: Optional[str],
+    branch_name: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
+
+    if not branch_name:
+        branch_name = get_current_branch_name()
 
     if parameters_raw:
         prepared_parameters = parameters_raw
@@ -165,6 +178,9 @@ def launch(
                 "dbx_status": dbx_status,
                 "dbx_environment": environment,
             }
+
+            if branch_name:
+                deployment_tags["dbx_branch_name"] = branch_name
 
             mlflow.set_tags(deployment_tags)
 
