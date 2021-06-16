@@ -77,6 +77,11 @@ Here are some samples of deployment files for different cloud providers:
       .. literalinclude:: ../../tests/deployment-configs/azure-example.json
          :language: JSON
 
+   .. tab:: GCP
+
+      .. literalinclude:: ../../tests/deployment-configs/gcp-example.json
+         :language: JSON
+
 Expected structure of the deployment file is the following:
 
 .. code-block:: javascript
