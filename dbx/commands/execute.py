@@ -1,14 +1,15 @@
 import pathlib
 import time
-from typing import Optional
+from typing import Optional, Any, List
 
 import click
 import mlflow
 from databricks_cli.clusters.api import ClusterService
+from databricks_cli.configure.config import debug_option
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
-from databricks_cli.configure.config import debug_option
 
+from dbx.commands.deploy import _adjust_path, _walk_content
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
@@ -19,6 +20,7 @@ from dbx.utils.common import (
     DeploymentFile,
     DEFAULT_DEPLOYMENT_FILE_PATH,
     handle_package,
+    get_package_file,
 )
 
 
@@ -60,7 +62,12 @@ from dbx.utils.common import (
     default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")
-@click.option("--no-rebuild", is_flag=True, help="Disable job rebuild")
+@click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
+@click.option(
+    "--no-package",
+    is_flag=True,
+    help="Do not add package reference into the job description",
+)
 @environment_option
 @debug_option
 def execute(
@@ -70,13 +77,14 @@ def execute(
     job: str,
     deployment_file: str,
     requirements_file: str,
+    no_package: bool,
     no_rebuild: bool,
 ):
     api_client = prepare_environment(environment)
 
     cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
 
-    dbx_echo(f"Executing job: {job} with environment: {environment} on cluster: {cluster_id}")
+    dbx_echo(f"Executing job: {job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
     handle_package(no_rebuild)
 
@@ -136,17 +144,46 @@ def execute(
                 + ", following the execution without any additional packages"
             )
 
-        project_package_path = list(pathlib.Path(".").rglob("dist/*.whl"))[0]
-        file_uploader.upload_file(project_package_path)
-        localized_package_path = f"{localized_base_path}/{str(project_package_path.as_posix())}"
-        dbx_echo("Installing package")
-        installation_command = f"%pip install -U {localized_package_path}"
-        execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
-        dbx_echo("Package installation finished")
+        if not no_package:
+            package_file = get_package_file()
+
+            if not package_file:
+                raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
+
+            file_uploader.upload_file(package_file)
+            localized_package_path = f"{localized_base_path}/{str(package_file.as_posix())}"
+
+            dbx_echo("Installing package")
+            installation_command = f"%pip install -U {localized_package_path}"
+            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+            dbx_echo("Package installation finished")
+        else:
+            dbx_echo("Package was disabled via --no-package, only the code from entrypoint will be used")
 
         tags = {"dbx_action_type": "execute", "dbx_environment": environment}
 
         mlflow.set_tags(tags)
+
+        dbx_echo("Processing parameters")
+        task_props: List[Any] = job_payload.get("spark_python_task").get("parameters", [])
+
+        if task_props:
+
+            def adjustment_callback(p: Any):
+                return _adjust_path(p, artifact_base_uri, file_uploader)
+
+            _walk_content(adjustment_callback, task_props)
+
+        task_props = ["python"] + task_props
+
+        parameters_command = f"""
+        import sys
+        sys.argv = {task_props}
+        """
+
+        execute_command(v1_client, cluster_id, context_id, parameters_command, verbose=False)
+
+        dbx_echo("Processing parameters - done")
 
         dbx_echo("Starting entrypoint file execution")
         execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text())
