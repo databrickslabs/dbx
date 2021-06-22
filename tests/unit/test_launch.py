@@ -96,6 +96,8 @@ class LaunchTest(DbxTest):
                         "sample",
                         "--tags",
                         "cake=cheesecake",
+                        "--branch-name",
+                        "test-branch",
                     ],
                 )
 

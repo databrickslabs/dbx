@@ -256,8 +256,9 @@ def prepare_environment(environment: str) -> ApiClient:
 def get_package_file() -> Optional[pathlib.Path]:
     dbx_echo("Locating package file")
     file_locator = list(pathlib.Path("dist").glob("*.whl"))
-    if file_locator:
-        file_path = file_locator[0]
+    sorted_locator = sorted(file_locator, key=os.path.getmtime)  # get latest modified file, aka latest package version
+    if sorted_locator:
+        file_path = sorted_locator[-1]
         dbx_echo(f"Package file located in: {file_path}")
         return file_path
     else:

@@ -11,6 +11,9 @@ install-dev-dependencies:
 test:
 	pytest --cov dbx
 
+lint:
+	./lint.sh
+
 fmt:
 	black .
 

@@ -216,7 +216,7 @@ class DeployTest(DbxTest):
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
-    def test_deploy_with_requirements(self, *_):
+    def test_deploy_with_requirements_and_branch(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -251,6 +251,8 @@ class DeployTest(DbxTest):
                         "test",
                         "--requirements-file",
                         "runtime_requirements.txt",
+                        "--branch-name",
+                        "test-branch",
                     ],
                 )
 
