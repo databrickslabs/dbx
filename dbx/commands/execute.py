@@ -90,15 +90,7 @@ def execute(
 
     deployment = DeploymentFile(deployment_file).get_environment(environment)
 
-    if not deployment:
-        raise NameError(
-            f"Environment {environment} is not provided in deployment file {deployment_file}"
-            + " please add this environment first"
-        )
-
-    env_jobs = deployment.get("jobs")
-    if not env_jobs:
-        raise RuntimeError(f"No jobs section found in environment {environment}, please check the deployment file")
+    _verify_deployment(deployment, environment, deployment_file)
 
     found_jobs = [j for j in deployment["jobs"] if j["name"] == job]
 
@@ -188,6 +180,17 @@ def execute(
         dbx_echo("Starting entrypoint file execution")
         execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text())
         dbx_echo("Command execution finished")
+
+
+def _verify_deployment(deployment, environment, deployment_file):
+    if not deployment:
+        raise NameError(
+            f"Environment {environment} is not provided in deployment file {deployment_file}"
+            + " please add this environment first"
+        )
+    env_jobs = deployment.get("jobs")
+    if not env_jobs:
+        raise RuntimeError(f"No jobs section found in environment {environment}, please check the deployment file")
 
 
 def wait_for_command_execution(v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str):
