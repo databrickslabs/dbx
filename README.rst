@@ -5,10 +5,10 @@ dbx by Databricks Labs
 ======================
 
 .. image:: https://raw.githubusercontent.com/databrickslabs/dbx/master/images/logo.svg
-  :width: 200
-  :height: 200
-  :alt: logo
-  :align: center
+    :width: 200
+    :height: 200
+    :alt: logo
+    :align: center
 
 DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databricks jobs management.
 
