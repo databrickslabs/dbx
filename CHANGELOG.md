@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add .editorconfig
 ### Changed
 - Altered the Changelog based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+- Now dbx finds the git branch name from any subdirectory in the repository.
 
 
 ## [0.1.4]
