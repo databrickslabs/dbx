@@ -310,6 +310,11 @@ def _adjust_job_definitions(
             _deep_update(job["new_cluster"], policy_props, policy_name)
             job["new_cluster"]["policy_id"] = policy_spec["policy_id"]
 
+        if "tasks" in job:
+            libraries = job.pop("libraries")
+            for task in job["tasks"]:
+                task["libraries"] = libraries
+
 
 def _deep_update(d: Dict, u: collections.abc.Mapping, policy_name: str) -> Dict:
     for k, v in u.items():
