@@ -4,7 +4,7 @@ import json
 import os
 import pathlib
 from typing import Dict, Any, List, Optional, Tuple
-
+from abc import ABC, abstractmethod
 import click
 import git
 import mlflow
@@ -22,6 +22,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
 from retry import retry
+from ruamel.yaml import YAML
 from setuptools import sandbox
 
 DBX_PATH = ".dbx"
@@ -29,6 +30,15 @@ INFO_FILE_PATH = f"{DBX_PATH}/project.json"
 LOCK_FILE_PATH = f"{DBX_PATH}/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
 DEFAULT_DEPLOYMENT_FILE_PATH = "conf/deployment.json"
+
+yaml = YAML()
+yaml.indent(mapping=2, sequence=4, offset=2)
+
+
+def dbx_echo(message: str):
+    formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    formatted_message = f"[dbx][{formatted_time}] {message}"
+    click.echo(formatted_message)
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -56,6 +66,16 @@ def update_json(new_content: Dict[str, Any], file_path: str):
     write_json(content, file_path)
 
 
+def read_yaml(file_path: str) -> Dict[str, Any]:
+    with open(file_path, "r") as f:
+        return yaml.load(f)
+
+
+def write_yaml(content: Dict[str, Any], file_path: str):
+    with open(file_path, "w") as out_file:
+        yaml.dump(content, out_file)
+
+
 class ContextLockFile:
     @staticmethod
     def set_context(context_id: str) -> None:
@@ -69,15 +89,46 @@ class ContextLockFile:
             return None
 
 
-class DeploymentFile:
+class AbstractDeploymentConfig(ABC):
     def __init__(self, path):
         self._path = path
 
+    @abstractmethod
     def get_environment(self, environment: str) -> Any:
-        return read_json(self._path).get(environment)
+        pass
+
+    @abstractmethod
+    def get_all_environment_names(self) -> Any:
+        pass
+
+    def _get_file_extension(self):
+        return self._path.split(".").pop()
+
+
+class YamlDeploymentConfig(AbstractDeploymentConfig):
+    def get_environment(self, environment: str) -> Any:
+        return read_yaml(self._path).get("environments").get(environment)
 
     def get_all_environment_names(self) -> List[str]:
-        return list(read_json(self._path).keys())
+        return list(read_yaml(self._path).get("environments").keys())
+
+
+class JsonDeploymentConfig(AbstractDeploymentConfig):
+    def get_environment(self, environment: str) -> Any:
+        return read_json(self.path).get(environment)
+
+    def get_all_environment_names(self) -> Any:
+        return list(read_json(self.path).keys())
+
+
+def get_deployment_config(path: str) -> AbstractDeploymentConfig:
+    ext = path.split(".").pop()
+    if ext == "json":
+        return JsonDeploymentConfig(path)
+    elif ext in ["yml", "yaml"]:
+        return YamlDeploymentConfig(path)
+    else:
+        raise Exception(f"Undefined config file handler for extension: {ext}")
 
 
 class InfoFile:
@@ -141,12 +192,6 @@ class ApiV1Client:
     def create_context(self, payload):
         result = self.v1_client.perform_query(method="POST", path="/contexts/create", data=payload)
         return result
-
-
-def dbx_echo(message: str):
-    formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    formatted_message = f"[dbx][{formatted_time}] {message}"
-    click.echo(formatted_message)
 
 
 def generate_filter_string(env: str) -> str:
