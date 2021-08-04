@@ -1,4 +1,18 @@
 SHELL=/bin/bash
+PYTHON_VERSION=3.7.5
+VENV=dbx-local-dev-env-${PYTHON_VERSION}
+VENV_DIR=$(shell pyenv root)/versions/${VENV}
+PYTHON=${VENV_DIR}/bin/python
+
+## Make sure you have `pyenv` and `pyenv-virtualenv` installed beforehand
+##
+## https://github.com/pyenv/pyenv
+## https://github.com/pyenv/pyenv-virtualenv
+##
+## On a Mac: $ brew install pyenv pyenv-virtualenv
+##
+## Configure your shell with $ eval "$(pyenv virtualenv-init -)"
+##
 
 # to see all colors, run
 # bash -c 'for c in {0..255}; do tput setaf $c; tput setaf $c | cat -v; echo =$c; done'
@@ -39,7 +53,7 @@ TARGET_COLOR := $(BLUE)
 POUND = \#
 
 # This Makefile is for project development purposes only.
-.PHONY: help build docs
+.PHONY: help clean venv install lint fix test build docs
 ENV_NAME=dbx
 
 .DEFAULT_GOAL := help
@@ -56,7 +70,8 @@ help:
 	@echo "    ${YELLOW}help${NORMAL}                         display the help text"
 	@echo ""
 	@echo "    ${YELLOW}create-dev-env-conda${NORMAL}                         "
-	@echo "    ${YELLOW}create-dev-env-pyenv${NORMAL}                         "
+	@echo "    ${YELLOW}pyenv-create-env${NORMAL}                         "
+	@echo "    ${YELLOW}pyenv-delete-env${NORMAL}                         "
 	@echo ""
 	@echo "    ${YELLOW}install${NORMAL}                      Install self as editable and its dev dependencies."
 	@echo "    ${YELLOW}install-editable${NORMAL}             Install self as editable package."
@@ -73,14 +88,39 @@ help:
 	@echo "    ${YELLOW}build${NORMAL}                         "
 
 
+clean: ## >> remove all environment and build files
+	@echo ""
+	@echo "${YELLOW}Removing virtual environment ${NORMAL}"
+	@make helper-line
+	-pyenv virtualenv-delete --force ${VENV}
+	-rm .python-version
 
-install: install-editable install-dev-dependencies
+	@make helper-line
+	@echo "${YELLOW}Current python:${NORMAL}"
+	@python --version
+
+# Will need to source this after `make create-dev-env-pyenv`
+# source ~/.pyenv/versions/dbx-local-dev-env.3.7.5/bin/activate
+venv: $(VENV_DIR)
+
+$(VENV_DIR):
+	@echo "${YELLOW}Init virtual env${NORMAL}"
+	@make helper-line
+	# python3 -m pip install --upgrade pip
+	pyenv virtualenv ${PYTHON_VERSION} ${VENV}
+	echo ${VENV} > .python-version
+	$(PYTHON) -m pip install --upgrade pip
+
+
+install: venv install-editable install-dev-dependencies
 
 install-editable:
-	pip install -e .
+	$(PYTHON) -m pip install -e .
 
 install-dev-dependencies:
-	pip install -r dev-requirements.txt
+	$(PYTHON) -m pip install -r dev-requirements.txt
+
+
 
 lint:
 	./lint.sh
@@ -101,14 +141,6 @@ unit-test:
 test-with-html-report:
 	pytest --cov dbx --cov-report html -s
 
-create-dev-env-conda:
-	conda create -n $(ENV_NAME) python=3.7.5
-
-
-# Will need to source this after `make create-dev-env-pyenv`
-# source ~/.pyenv/versions/dbx-local-dev-env.3.7.5/bin/activate
-create-dev-env-pyenv:
-	pyenv virtualenv 3.7.5 dbx-local-dev-env.3.7.5
 
 
 docs:
