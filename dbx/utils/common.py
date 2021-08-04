@@ -115,10 +115,10 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
 
 class JsonDeploymentConfig(AbstractDeploymentConfig):
     def get_environment(self, environment: str) -> Any:
-        return read_json(self.path).get(environment)
+        return read_json(self._path).get(environment)
 
     def get_all_environment_names(self) -> Any:
-        return list(read_json(self.path).keys())
+        return list(read_json(self._path).keys())
 
 
 def get_deployment_config(path: str) -> AbstractDeploymentConfig:
