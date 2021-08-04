@@ -124,20 +124,17 @@ install-dev-dependencies:
 
 lint:
 	$(PYTHON) -m prospector --profile prospector.yaml
+	$(PYTHON) -m rstcheck README.rst
+	@make check
 
+check:
 	$(PYTHON) -m black --check ./dbx
 	$(PYTHON) -m black --check ./tests
 
-	$(PYTHON) -m isort -c ./dbx/**/*.py
-	$(PYTHON) -m isort -c ./tests/**/*.py
-
-	$(PYTHON) -m rstcheck README.rst
 
 fix:
 	$(PYTHON) -m black ./dbx
 	$(PYTHON) -m black ./tests
-	$(PYTHON) -m isort ./dbx/**/*.py
-	$(PYTHON) -m isort ./tests/**/*.py
 
 
 test:
