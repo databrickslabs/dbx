@@ -15,7 +15,7 @@
                 "libraries": [],
                 "max_retries": 0,
                 "spark_python_task": {
-                    "python_file": "path/to/entrypoint.py"
+                    "python_file": "tests/deployment-configs/placeholder.py"
                 }
             }
         ]
