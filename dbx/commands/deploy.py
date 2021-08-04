@@ -252,7 +252,7 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
 
 def _verify_deployment_file(deployment_file: str):
     file_extension = deployment_file.split(".").pop()
-    if not file_extension in ["json", "yaml", "yml"]:
+    if file_extension not in ["json", "yaml", "yml"]:
         raise Exception('Deployment file should have one of these extensions: [".json", ".yaml", ".yml"]')
 
     if not pathlib.Path(deployment_file).exists():
