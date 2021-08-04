@@ -123,23 +123,31 @@ install-dev-dependencies:
 
 
 lint:
-	./lint.sh
+	$(PYTHON) -m prospector --profile prospector.yaml
+
+	$(PYTHON) -m black --check ./dbx
+	$(PYTHON) -m black --check ./tests
+
+	$(PYTHON) -m isort -c ./dbx
+	$(PYTHON) -m isort -c ./tests
+
+	$(PYTHON) -m rstcheck README.rst
 
 fix:
-	black ./dbx
-	black ./tests
-	isort ./dbx
-	isort ./tests
+	$(PYTHON) -m black ./dbx
+	$(PYTHON) -m black ./tests
+	$(PYTHON) -m isort ./dbx
+	$(PYTHON) -m isort ./tests
 
 
 test:
-	pytest --cov dbx
+	$(PYTHON) -m pytest --cov dbx
 
 unit-test:
-	pytest tests/unit --cov dbx
+	$(PYTHON) -m pytest tests/unit --cov dbx
 
 test-with-html-report:
-	pytest --cov dbx --cov-report html -s
+	$(PYTHON) -m pytest --cov dbx --cov-report html -s
 
 
 
@@ -149,4 +157,4 @@ docs:
 build:
 	rm -rf dist/*
 	rm -rf build/*
-	python setup.py clean bdist_wheel
+	$(PYTHON) setup.py clean bdist_wheel
