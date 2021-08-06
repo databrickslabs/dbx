@@ -10,10 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add .editorconfig
+- Added .editorconfig
+- Added ability to define deployment config in yaml, yml file.
 ### Changed
 - Altered the Changelog based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Now dbx finds the git branch name from any subdirectory in the repository.
+- Changed(for contributors): Makefile now requires pyenv and pyenv-virtualenv
+- Changed(for contributors): Makefile is more self describing and self-sufficient.
+  - `make clean install` will set you up with all that is needed.
+  - `make help` to see all available commands.
 
 
 ## [0.1.4]

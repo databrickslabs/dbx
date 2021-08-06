@@ -42,7 +42,10 @@ jobs:
         run: python setup.py install
 
       - name: Lint
-        run: ./lint.sh
+        run: |
+          prospector --profile prospector.yaml
+          black --check .
+          rstcheck README.rst
 
       - name: Run unit tests
         run: pytest tests/unit --cov dbx

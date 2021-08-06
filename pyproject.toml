@@ -10,13 +10,3 @@ log_cli_level = "INFO"
 log_cli_format = "[pytest][%(asctime)s][%(levelname)s][%(module)s][%(funcName)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 log_level = "INFO"
-
-[tool.isort]
-profile="black"
-src_paths=["dbx", "tests"]
-sections="FUTURE,STDLIB,THIRDPARTY,FIRSTPARTY,LOCALFOLDER"
-import_heading_future="Futures"
-import_heading_stdlib="Python Standard Lib"
-import_heading_thirdparty="Third Party"
-import_heading_firstparty="From this repo"
-import_heading_localfolder="Relative Imports"
