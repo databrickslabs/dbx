@@ -31,9 +31,6 @@ LOCK_FILE_PATH = f"{DBX_PATH}/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
 DEFAULT_DEPLOYMENT_FILE_PATH = "conf/deployment.json"
 
-yaml = YAML()
-yaml.indent(mapping=2, sequence=4, offset=2)
-
 
 def dbx_echo(message: str):
     formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -66,16 +63,6 @@ def update_json(new_content: Dict[str, Any], file_path: str):
     write_json(content, file_path)
 
 
-def read_yaml(file_path: str) -> Dict[str, Any]:
-    with open(file_path, "r") as f:
-        return yaml.load(f)
-
-
-def write_yaml(content: Dict[str, Any], file_path: str):
-    with open(file_path, "w") as out_file:
-        yaml.dump(content, out_file)
-
-
 class ContextLockFile:
     @staticmethod
     def set_context(context_id: str) -> None:
@@ -106,11 +93,19 @@ class AbstractDeploymentConfig(ABC):
 
 
 class YamlDeploymentConfig(AbstractDeploymentConfig):
+    # only for reading pusposes.
+    # if you need to round-trip see this: https://yaml.readthedocs.io/en/latest/overview.html
+    yaml = YAML(typ="safe")
+
+    def _read_yaml(self, file_path: str) -> Dict[str, Any]:
+        with open(file_path, "r") as f:
+            return self.yaml.load(f)
+
     def get_environment(self, environment: str) -> Any:
-        return read_yaml(self._path).get("environments").get(environment)
+        return self._read_yaml(self._path).get("environments").get(environment)
 
     def get_all_environment_names(self) -> List[str]:
-        return list(read_yaml(self._path).get("environments").keys())
+        return list(self._read_yaml(self._path).get("environments").keys())
 
 
 class JsonDeploymentConfig(AbstractDeploymentConfig):

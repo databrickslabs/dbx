@@ -10,6 +10,7 @@ wheel
 pytest
 pytest-cov
 pytest-timeout
+pytest-clarity
 pandas
 gitpython
 tqdm

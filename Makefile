@@ -1,3 +1,4 @@
+# Make file tutorials: https://makefiletutorial.com/#getting-started
 SHELL=/bin/bash
 PYTHON_VERSION=3.7.5
 VENV=dbx-local-dev-env-${PYTHON_VERSION}
@@ -139,7 +140,7 @@ fix:
 
 
 test:
-	$(PYTHON) -m pytest --cov dbx
+	$(PYTHON) -m pytest -vv --cov dbx $(file)
 
 unit-test:
 	$(PYTHON) -m pytest tests/unit --cov dbx

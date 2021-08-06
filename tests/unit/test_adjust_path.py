@@ -40,8 +40,6 @@ class AdjustPathTest(unittest.TestCase):
                 for key, value in job_spec.items():
                     self.assertIsNotNone(value)
 
-
-class AwsAdjustPathTest(unittest.TestCase):
     def test_that_upstream_files_are_checked_and_paths_are_properly_re_written(self):
         # setup
         file_path = format_path("../deployment-configs/aws-example.json")
@@ -69,12 +67,12 @@ class AwsAdjustPathTest(unittest.TestCase):
         api_client.perform_query.assert_called_once_with(
             "GET",
             "/dbfs/get-status",
-            data={"path": "dbfs:/fake/test/tests/deployment-configs/placeholder.py"},
+            data={"path": "dbfs:/fake/test/tests/deployment-configs/placeholder_1.py"},
             headers=None,
         )
         assert (
             py_.get(deployment, "jobs.[0].spark_python_task.python_file")
-            == "dbfs:/fake/test/tests/deployment-configs/placeholder.py"
+            == "dbfs:/fake/test/tests/deployment-configs/placeholder_1.py"
         )
 
 
