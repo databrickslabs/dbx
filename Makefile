@@ -107,6 +107,7 @@ $(VENV_DIR):
 	@echo "${YELLOW}Init virtual env${NORMAL}"
 	@make helper-line
 	# python3 -m pip install --upgrade pip
+	pyenv install -s ${PYTHON_VERSION}
 	pyenv virtualenv ${PYTHON_VERSION} ${VENV}
 	echo ${VENV} > .python-version
 	$(PYTHON) -m pip install --upgrade pip
