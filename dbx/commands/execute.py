@@ -58,7 +58,7 @@ from dbx.utils.common import (
     "--deployment-file",
     required=False,
     type=str,
-    help="Path to deployment file in json format",
+    help="Path to deployment file in one of these formats: [json, yaml]",
     default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")

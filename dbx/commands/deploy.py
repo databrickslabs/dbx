@@ -41,7 +41,9 @@ from dbx.utils.policy_parser import PolicyParser
 
     1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
     2. | Deployment configuration will be taken for environment
-       | from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf.deployment.json`).
+       | from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf/deployment.json`).
+       | You can specify the deployment file in either json or yaml.
+       | :code:`[.json, .yaml, .yml]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
     5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
@@ -55,7 +57,7 @@ from dbx.utils.policy_parser import PolicyParser
     "--deployment-file",
     required=False,
     type=str,
-    help="Path to deployment file in json format",
+    help="Path to deployment file in one of these formats: [json, yaml]",
     default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option(
