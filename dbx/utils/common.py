@@ -304,7 +304,7 @@ def get_current_branch_name() -> Optional[str]:
         return ref[-1]
     else:
         try:
-            repo = git.Repo(".")
+            repo = git.Repo(".", search_parent_directories=True)
             if repo.head.is_detached:
                 return None
             else:
