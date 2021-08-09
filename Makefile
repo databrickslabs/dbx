@@ -1,13 +1,9 @@
 ##############################################################################
-# NOTE: Make sure you have `pyenv` and `pyenv-virtualenv` installed beforehand
-#
+# NOTE: Make sure you have `pyenv` installed beforehand
 # https://github.com/pyenv/pyenv
-# https://github.com/pyenv/pyenv-virtualenv
 #
-# On a Mac: $ brew install pyenv pyenv-virtualenv
-#
-# Configure your shell with $ eval "$(pyenv virtualenv-init -)"
-#
+# On a Mac: $ brew install pyenv
+
 ##############################################################################
 # Make file tutorials: https://makefiletutorial.com/#getting-started
 ##############################################################################
@@ -17,8 +13,8 @@ SHELL=/bin/bash
 
 ##############################################################################
 PYTHON_VERSION=3.7.5
-VENV=dbx-local-dev-env-${PYTHON_VERSION}
-VENV_DIR=$(shell pyenv root)/versions/${VENV}
+VENV_NAME=.venv
+VENV_DIR=${VENV_NAME}
 PYTHON=${VENV_DIR}/bin/python
 ##############################################################################
 
@@ -57,9 +53,10 @@ else
 	NORMAL       := ""
 endif
 
-
-# This Makefile is for project development purposes only.
-.PHONY: help helper-line clean venv install install-editable install-dev-dependencies lint check fix test build docs
+##############################################################################
+# Makefile TARGETS:
+##############################################################################
+.PHONY: help helper-line clean venv install install-e install-dev post-install-info lint check fix test test-with-html-report docs build
 .DEFAULT_GOAL := help
 
 ##############################################################################
@@ -74,85 +71,146 @@ help: ## Show help documentation.
 	@echo "${BOLD}${BLUE}Here are all the targets available with make command.${NORMAL}"
 	@make helper-line
 	@echo ""
+	@echo "Start by running ${YELLOW}'make clean install'${NORMAL}"
+	@echo ""
 	@grep -E '^[a-zA-Z_0-9%-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "    ${YELLOW}%-30s${NORMAL} %s\n", $$1, $$2}'
 
 ##############################################################################
 
-clean: ## Clean virtualenvs, dist, build
+clean: ## Clean .venv, dist, build
 	@echo ""
 	@echo "${YELLOW}Removing virtual environment ${NORMAL}"
 	@make helper-line
-	-pyenv virtualenv-delete --force ${VENV}
 	-rm .python-version
 
 	@echo ""
 	@echo "${YELLOW}Remove build and dist${NORMAL}"
 	@make helper-line
+	-rm -rf $(VENV_DIR)
 	-rm -rf dist/*
 	-rm -rf build/*
 
-	@make helper-line
+	@echo ""
 	@echo "${YELLOW}Current python:${NORMAL}"
+	@make helper-line
 	@python --version
 
 ##############################################################################
+# This chaining exists so that the virtual env target will not be invoked multiple times.
+# This config works because there is a file at this path "$(VENV_NAME)/bin/activate"
+# Once that file is created, it will not be change unless you run "make clean".
+# If the file did not change, then the target below with same name will be skipped.
+venv: $(VENV_NAME)/bin/activate
 
-# not sure why this separation is needed, but it is.
-venv: $(VENV_DIR)
-
-# not sure why this separation is needed, but it is.
-$(VENV_DIR):
+$(VENV_NAME)/bin/activate:
 	@echo ""
-	@echo "${YELLOW}Init virtual env${NORMAL}"
+	@echo "${YELLOW}Init pyenv${NORMAL}"
 	@make helper-line
-	# python3 -m pip install --upgrade pip
 	pyenv install -s ${PYTHON_VERSION}
-	pyenv virtualenv ${PYTHON_VERSION} ${VENV}
-	@echo ${VENV} > .python-version
+	pyenv local ${PYTHON_VERSION}
+
+	@echo ""
+	@echo "${YELLOW}Current python:${NORMAL}"
+	@make helper-line
+	@python --version
+
+	@echo ""
+	@echo "${YELLOW}Init venv in ${VENV_DIR}${NORMAL}"
+	@make helper-line
+	test -d $(VENV_NAME) || python -m venv $(VENV_NAME)
+
+	@echo ""
+	@echo "${YELLOW}Using ${PYTHON}${NORMAL}"
+	@make helper-line
+	$(PYTHON) --version
 	$(PYTHON) -m pip install --upgrade pip
+
 
 ##############################################################################
 
-install: venv install-editable install-dev-dependencies ## Install everything [editable, dev-dependencies]
+install: venv install-e install-dev post-install-info ## >>> MAIN TARGET. Run this to start. <<<
 
-install-editable: ## Install project as editable.
+install-e: ## Install project as editable.
+	@echo ""
+	@echo "${YELLOW}Install project as editable${NORMAL}"
+	@make helper-line
 	$(PYTHON) -m pip install -e .
 
-install-dev-dependencies: ## Install dev dependencies.
+install-dev: ## Install dev dependencies.
+	@echo ""
+	@echo "${YELLOW}Install Dev dependencies.${NORMAL}"
+	@make helper-line
 	$(PYTHON) -m pip install -r dev-requirements.txt
+
+post-install-info: ## Just some post installation info.
+	@echo ""
+	@echo "${YELLOW}Post-Install Info:${NORMAL}"
+	@make helper-line
+	@echo "See what other make targets are available by running:"
+	@echo "    ${YELLOW}'make'${NORMAL}"
+	@echo "    ${YELLOW}'make help'${NORMAL}"
+	@echo ""
+	@echo "${YELLOW}NOTE${NORMAL}: Most of the time, you should be using the predefined make targets."
+	@echo ""
+	@echo "${YELLOW}Optionally${NORMAL}: If you really need to, you can activate the venv in your"
+	@echo "terminal shell by running: "
+	@echo "    ${YELLOW}'source .venv/bin/activate'${NORMAL}"
+	@echo ""
+	@echo "This will put any executable python tools installed above in the PATH, allowing you"
+	@echo "to run the tools from the shell if you really need to."
+	@echo "    ex: ${YELLOW}'pytest'${NORMAL}"
+
 
 ##############################################################################
 
 lint: ## Run the lint and checks
+	@echo ""
+	@echo "${YELLOW}Linting code:${NORMAL}"
+	@make helper-line
 	$(PYTHON) -m prospector --profile prospector.yaml
 	$(PYTHON) -m rstcheck README.rst
 	@make check
 
 check: ## Run black checks
+	@echo ""
+	@echo "${YELLOW}Check code with black:${NORMAL}"
+	@make helper-line
 	$(PYTHON) -m black --check ./dbx
 	$(PYTHON) -m black --check ./tests
 
 fix: ## fix the code with black formatter.
+	@echo ""
+	@echo "${YELLOW}Fixing code with black:${NORMAL}"
+	@make helper-line
 	$(PYTHON) -m black ./dbx
 	$(PYTHON) -m black ./tests
 
 ##############################################################################
 
 test: ## Run the tests. (option): file=tests/path/to/file.py
+	@echo ""
+	@echo "${YELLOW}Running tests:${NORMAL}"
+	@make helper-line
 	$(PYTHON) -m pytest -vv --cov dbx $(file)
 
-unit-test: ## Run all unit tests.
-	$(PYTHON) -m pytest tests/unit --cov dbx
-
 test-with-html-report: ## Run all tests with html reporter.
+	@echo ""
+	@echo "${YELLOW}Testing with html report:${NORMAL}"
+	@make helper-line
 	$(PYTHON) -m pytest --cov dbx --cov-report html -s
 
 ##############################################################################
 
-docs:## Build the docs.
+docs: ## Build the docs.
+	@echo ""
+	@echo "${YELLOW}Building the docs:${NORMAL}"
+	@make helper-line
 	cd docs && make html
 
 build: ## Build the package.
+	@echo ""
+	@echo "${YELLOW}Building the project:${NORMAL}"
+	@make helper-line
 	rm -rf dist/*
 	rm -rf build/*
 	$(PYTHON) setup.py clean bdist_wheel
