@@ -17,7 +17,7 @@ To make e2e runs you'll need a Databricks account, and a configured profile.
 4. Please describe the PR is 4-5 meaningful sentences. These sentences shall answer 3W questions (What is the problem, What is the impact, What is the solution)
 5. Please add tests to your PR. PRs which decrease the coverage metric won't be resolved, unless it's a special case of a big refactoring.
 6. If you add new functionality, please add some meaningful descriptions to the docs folder.
-
+7. All commits shall have a GPG signature verification as per [this documentation](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification/about-commit-signature-verification).
 
 Please let us know if you've met a problem in the development setup via raising an issue. Happy coding! 
 
