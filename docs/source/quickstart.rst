@@ -97,7 +97,8 @@ Expected structure of the deployment file is the following:
 
     {
         // you may have multiple environments defined per one deployment.json file
-        "<environment-name>": [
+        "<environment-name>": {
+            "jobs": [
                 // here goes a list of jobs, every job is one dictionary
                 {
                     "name": "this-parameter-is-required!",
@@ -112,6 +113,7 @@ Expected structure of the deployment file is the following:
                     ]
                 }
             ]
+        }
     }
 
 As you can see, we simply follow the `Databricks Jobs API <https://docs.databricks.com/dev-tools/api/latest/jobs.html>`_ with one enhancement -
