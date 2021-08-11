@@ -17,7 +17,7 @@ from dbx.utils.common import (
     ContextLockFile,
     ApiV1Client,
     environment_option,
-    DeploymentFile,
+    get_deployment_config,
     DEFAULT_DEPLOYMENT_FILE_PATH,
     handle_package,
     get_package_file,
@@ -29,23 +29,23 @@ from dbx.utils.common import (
     short_help="Executes given job on the interactive cluster.",
     help="""
     Executes given job on the interactive cluster.
-    
+
     This command is very suitable to interactively execute your code on the interactive clusters.
-    
+
     .. warning::
-        
+
         There are some limitations for :code:`dbx execute`:
 
         * Only clusters which support :code:`%pip` magic can work with execute.
         * Currently, only Python-based execution is supported.
-    
+
     The following set of actions will be done during execution:
-    
-    1. If interactive cluster is stooped, it will be automatically started 
+
+    1. If interactive cluster is stooped, it will be automatically started
     2. Package will be rebuilt from the source (can be disabled via :option:`--no-rebuild`)
     3. Job configuration will be taken from deployment file for given environment
     4. All referenced will be uploaded to the MLflow experiment
-    5. | Code will be executed in a separate context. Other users can work with the same package 
+    5. | Code will be executed in a separate context. Other users can work with the same package
        | on the same cluster without any limitations or overlapping.
     6. Execution results will be printed out in the shell. If result was an error, command will have error exit code.
 
@@ -58,7 +58,7 @@ from dbx.utils.common import (
     "--deployment-file",
     required=False,
     type=str,
-    help="Path to deployment file in json format",
+    help="Path to deployment file in one of these formats: [json, yaml]",
     default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")
@@ -88,7 +88,7 @@ def execute(
 
     handle_package(no_rebuild)
 
-    deployment = DeploymentFile(deployment_file).get_environment(environment)
+    deployment = get_deployment_config(deployment_file).get_environment(environment)
 
     _verify_deployment(deployment, environment, deployment_file)
 
