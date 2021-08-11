@@ -49,20 +49,29 @@ Create a new environment configuration via given command:
 
 This command will configure a project file in :code:`.dbx/project.json` file. Feel free to repeat this command multiple times to reconfigure the environment.
 
-Preparing deployment file
+Preparing Deployment Config
 -------------------------
 
-Next step would be to configure your deployment objects. To make this process easy and flexible, we're using JSON for configuration.
+Next step would be to configure your deployment objects. To make this process easy and flexible, we support two options to define the configuration.
+
+#. JSON: :code:`conf/deployment.json`: This is the default file which will be picked up automatically.
+#. YAML: :code:`conf/deployment.yaml`: To use [ yaml | yml ] you will need to explicitly specify the file using the option :code:`--deployment-file=./conf/deployment.yaml`
+
 
 .. note::
 
-    As you can notice, a lot of elements in the deployment file are referencing other paths.
-    For big deployments, we recommend to generate the deployment file programmatically, for example via `Jsonnet <https://jsonnet.org>`_.
+    Within the deployment config, if you find that you have duplicated parts like cluster definitions or retry config or permissions or anything else,
+    and you are finding it hard to manage the duplications, we recommend you either use `YAML <http://yaml.org/spec/1.2/spec.html>`_ or `Jsonnet <https://jsonnet.org>`_.
 
+    Yaml is supported by dbx where as with Jsonnet, you are responsible for generating the json file through Jsonnet compilation process.
+
+
+JSON
+****
 
 By default, deployment configuration is stored in :code:`conf/deployment.json`.
 The main idea of the deployment file is to provide a flexible way to configure job with it's dependencies.
-You can use multiple different deployment files, providing the filename as an argument to :code:`dbx deploy` via :code:`--deployment-file=/path/to/file` option.
+You can use multiple different deployment files, providing the filename as an argument to :code:`dbx deploy` via :code:`--deployment-file=/path/to/file.json` option.
 Here are some samples of deployment files for different cloud providers:
 
 .. tabs::
@@ -88,7 +97,8 @@ Expected structure of the deployment file is the following:
 
     {
         // you may have multiple environments defined per one deployment.json file
-        "<environment-name>": [
+        "<environment-name>": {
+            "jobs": [
                 // here goes a list of jobs, every job is one dictionary
                 {
                     "name": "this-parameter-is-required!",
@@ -103,10 +113,40 @@ Expected structure of the deployment file is the following:
                     ]
                 }
             ]
+        }
     }
 
 As you can see, we simply follow the `Databricks Jobs API <https://docs.databricks.com/dev-tools/api/latest/jobs.html>`_ with one enhancement -
 any local files can be referenced and will be uploaded to dbfs in a versioned way during the :code:`dbx deploy` command.
+
+
+YAML
+****
+
+If you want to use yaml, you will have to specify the file using :code:`--deployment-file=/path/to/file.yaml` option
+available on the :code:`dbx deploy` or :code:`dbx execute` commands.
+
+You can define re-usable definitions in yaml. Here is an example yaml and its json equivalent:
+
+.. note::
+    The YAML file needs to have a top level :code:`environments` key under which all environments will be listed.
+    The rest of the definition is the same as it is for config using json. It follows the
+    `Databricks Jobs API <https://docs.databricks.com/dev-tools/api/latest/jobs.html>`_ with the same auto
+    versioning and upload of local files referenced with in the config.
+
+.. tabs::
+
+    .. tab:: YAML
+
+        .. literalinclude:: ../../tests/deployment-configs/02-yaml-with-vars-test.yaml
+            :language: YAML
+
+    .. tab:: JSON Equivalent
+
+        .. literalinclude:: ../../tests/deployment-configs/02-yaml-with-vars-test.json
+            :language: JSON
+
+
 
 Interactive execution
 ---------------------

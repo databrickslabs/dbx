@@ -24,7 +24,7 @@ from dbx.utils.common import (
     handle_package,
     get_package_file,
     get_current_branch_name,
-    DeploymentFile,
+    get_deployment_config,
 )
 from dbx.utils.policy_parser import PolicyParser
 
@@ -38,10 +38,12 @@ from dbx.utils.policy_parser import PolicyParser
     and performs deployment to the given environment.
 
     During the deployment, following actions will be performed:
-    
+
     1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
-    2. | Deployment configuration will be taken for environment
-       | from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf.deployment.json`).
+    2. | Deployment configuration will be taken for a given environment (see :option:`-e` for details)
+       | from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf/deployment.json`).
+       | You can specify the deployment file in either json or yaml.
+       | :code:`[.json, .yaml, .yml]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
     5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
@@ -55,14 +57,14 @@ from dbx.utils.policy_parser import PolicyParser
     "--deployment-file",
     required=False,
     type=str,
-    help="Path to deployment file in json format",
+    help="Path to deployment file in one of these formats: [json, yaml]",
     default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option(
     "--jobs",
     required=False,
     type=str,
-    help="""Comma-separated list of job names to be deployed. 
+    help="""Comma-separated list of job names to be deployed.
               If not provided, all jobs from the deployment file will be deployed.
               """,
 )
@@ -82,14 +84,14 @@ from dbx.utils.policy_parser import PolicyParser
     "--tags",
     multiple=True,
     type=str,
-    help="""Additional tags for deployment in format (tag_name=tag_value). 
+    help="""Additional tags for deployment in format (tag_name=tag_value).
               Option might be repeated multiple times.""",
 )
 @click.option(
     "--write-specs-to-file",
     type=str,
     default=None,
-    help="""Writes final job definitions into a given local file. 
+    help="""Writes final job definitions into a given local file.
               Helpful when final representation of a deployed job is needed for other integrations.
               Please not that output file will be overwritten if it exists.""",
 )
@@ -127,14 +129,14 @@ def deploy(
 
     _verify_deployment_file(deployment_file)
 
-    deployment_file_controller = DeploymentFile(deployment_file)
-    deployment = deployment_file_controller.get_environment(environment)
+    deployment_file_config = get_deployment_config(deployment_file)
+    deployment = deployment_file_config.get_environment(environment)
 
     if not deployment:
         raise NameError(
             f"""
         Requested environment {environment} is non-existent in the deployment file {deployment_file}.
-        Available environments are: {deployment_file_controller.get_all_environment_names()}
+        Available environments are: {deployment_file_config.get_all_environment_names()}
         """
         )
 
@@ -251,11 +253,12 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
 
 
 def _verify_deployment_file(deployment_file: str):
-    if not deployment_file.endswith(".json"):
-        raise Exception("Deployment file should have .json extension")
+    file_extension = deployment_file.split(".").pop()
+    if file_extension not in ["json", "yaml", "yml"]:
+        raise Exception('Deployment file should have one of these extensions: [".json", ".yaml", ".yml"]')
 
     if not pathlib.Path(deployment_file).exists():
-        raise Exception(f"Deployment {deployment_file} file is non-existent")
+        raise Exception(f"Deployment file ({deployment_file}) does not exist")
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
@@ -269,7 +272,7 @@ def _preprocess_files(files: Dict[str, Any]):
     for key, file_path_str in files.items():
         file_path = pathlib.Path(file_path_str)
         if not file_path.exists():
-            raise FileNotFoundError(f"File path {file_path} is non-existent")
+            raise FileNotFoundError(f"File path ({file_path}) does not exist")
         files[key] = file_path
 
 
@@ -357,7 +360,7 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
 
             if len(matching_jobs) > 1:
                 raise Exception(
-                    f"""There are more than one job with name {job["name"]}. 
+                    f"""There are more than one jobs with name {job["name"]}.
                 Please delete duplicated jobs first"""
                 )
 

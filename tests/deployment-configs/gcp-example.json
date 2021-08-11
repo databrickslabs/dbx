@@ -4,9 +4,9 @@
             {
                 "name": "your-job-name",
                 "new_cluster": {
-                  "spark_version": "7.3.x-cpu-ml-scala2.12",
-                  "node_type_id": "n1-highmem-4",
-                  "num_workers": 2
+                    "spark_version": "7.3.x-cpu-ml-scala2.12",
+                    "node_type_id": "n1-highmem-4",
+                    "num_workers": 2
                 },
                 "libraries": [],
                 "max_retries": 0,
