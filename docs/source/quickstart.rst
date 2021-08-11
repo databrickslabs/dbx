@@ -54,13 +54,15 @@ Preparing Deployment Config
 
 Next step would be to configure your deployment objects. To make this process easy and flexible, we support two options to define the configuration.
 
-#. JSON: :code:`conf/deployment.json`: This is the default file.
-#. YAML: To specify a [yaml|yml] file you need to use the option :code:`--deployment-file=./conf/deployment.yaml`
+#. JSON: :code:`conf/deployment.json`: This is the default file which will be picked up automatically.
+#. YAML: :code:`conf/deployment.yaml`: To use [ yaml | yml ] you will need to explicitly specify the file using the option :code:`--deployment-file=./conf/deployment.yaml`
+
 
 .. note::
 
     Within the deployment config, if you find that you have duplicated parts like cluster definitions or retry config or permissions or anything else,
     and you are finding it hard to manage the duplications, we recommend you either use `YAML <http://yaml.org/spec/1.2/spec.html>`_ or `Jsonnet <https://jsonnet.org>`_.
+
     Yaml is supported by dbx where as with Jsonnet, you are responsible for generating the json file through Jsonnet compilation process.
 
 
