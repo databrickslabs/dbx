@@ -1,3 +1,5 @@
+# This file is obsolete, see the Makefile in the root of the project for docs-* targets
+
 # Makefile for Sphinx documentation
 #
 

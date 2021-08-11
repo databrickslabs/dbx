@@ -1,4 +1,5 @@
 # http://yaml.org/spec/1.2/spec.html
+# https://learnxinyminutes.com/docs/yaml/
 
 custom:
   basic-cluster-props: &basic-cluster-props

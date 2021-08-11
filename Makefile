@@ -16,6 +16,8 @@ PYTHON_VERSION=3.7.5
 VENV_NAME=.venv
 VENV_DIR=${VENV_NAME}
 PYTHON=${VENV_DIR}/bin/python
+SPHINX_AUTOBUILD=${VENV_DIR}/bin/sphinx-autobuild
+SPHINX_BUILD=${VENV_DIR}/bin/sphinx-build
 ##############################################################################
 
 ##############################################################################
@@ -56,7 +58,7 @@ endif
 ##############################################################################
 # Makefile TARGETS:
 ##############################################################################
-.PHONY: help helper-line clean venv install install-e install-dev post-install-info lint check fix test test-with-html-report docs build
+.PHONY: help helper-line clean venv install install-e install-dev post-install-info lint check fix test test-with-html-report docs docs-serve build
 .DEFAULT_GOAL := help
 
 ##############################################################################
@@ -84,16 +86,21 @@ clean: ## Clean .venv, dist, build
 	-rm .python-version
 
 	@echo ""
-	@echo "${YELLOW}Remove build and dist${NORMAL}"
+	@echo "${YELLOW}Remove temp files${NORMAL}"
 	@make helper-line
 	-rm -rf $(VENV_DIR)
 	-rm -rf dist/*
 	-rm -rf build/*
+	-rm -rf dbx.egg-info/*
+
+
 
 	@echo ""
 	@echo "${YELLOW}Current python:${NORMAL}"
 	@make helper-line
 	@python --version
+
+	@make docs-clean
 
 ##############################################################################
 # This chaining exists so that the virtual env target will not be invoked multiple times.
@@ -201,11 +208,28 @@ test-with-html-report: ## Run all tests with html reporter.
 
 ##############################################################################
 
-docs: ## Build the docs.
+DOCS_SOURCE=./docs/source
+DOCS_BUILD=./docs/build
+
+docs-clean: ## Clean the docs build folder
+	@echo ""
+	@echo "${YELLOW}Clean ${DOCS_BUILD} folder:${NORMAL}"
+	@make helper-line
+	-rm -rf ${DOCS_BUILD}/*
+
+docs-serve: ## sphinx autobuild & serve docs on localhost
+	@echo ""
+	@echo "${YELLOW}Build and serve docs:${NORMAL}"
+	@make helper-line
+	$(SPHINX_AUTOBUILD) ${DOCS_SOURCE} ${DOCS_BUILD}
+
+docs-rebuild: docs-clean ## Re-build the docs.
 	@echo ""
 	@echo "${YELLOW}Building the docs:${NORMAL}"
 	@make helper-line
-	cd docs && make html
+	$(SPHINX_BUILD) ${DOCS_SOURCE} ${DOCS_BUILD}
+
+##############################################################################
 
 build: ## Build the package.
 	@echo ""
