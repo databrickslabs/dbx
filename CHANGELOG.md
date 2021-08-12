@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **NOTE:** For CLI interfaces, we support SemVer approach. However, for API components we don't use SemVer as of now. This may lead to instability when using dbx API methods directly.
 
 
+## [0.1.5]
+### Added
+- Support for [yaml-based deployment files](https://github.com/databrickslabs/dbx/issues/39).
+### Changed
+- Minor alterations in the documentation.
+
 
 ## [Unreleased]
 ### Added

@@ -18,6 +18,7 @@ INSTALL_REQUIRES = [
     "azure-mgmt-datafactory>=1.0.0",
     "azure-mgmt-subscription>=1.0.0",
     "ruamel.yaml>=0.17.10",
+    "pydash>=5.0.2",
 ]
 
 if sys.platform.startswith("win32"):
