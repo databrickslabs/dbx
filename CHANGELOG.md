@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] - y-m-d
-
+### Fixed
+- Fix issue which stripped non-pyspark libraries from a requirements file during deploys.
 
 ----
 
