@@ -6,13 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **NOTE:** For CLI interfaces, we support SemVer approach. However, for API components we don't use SemVer as of now. This may lead to instability when using dbx API methods directly.
 
+[Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
+
+## [Unreleased] - y-m-d
+### Fixed
+- Fix issue which stripped non-pyspark libraries from a requirements file during deploys.
+
+----
 
 
-## [Unreleased]
+## [0.1.5] - 2021-08-12
 ### Added
-- Add .editorconfig
+- Support for [yaml-based deployment files](https://github.com/databrickslabs/dbx/issues/39).
 ### Changed
+- Now dbx finds the git branch name from any subdirectory in the repository.
+- Minor alterations in the documentation.
 - Altered the Changelog based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+- Changed(for contributors): Makefile now requires pyenv.
+- Changed(for contributors): Makefile is more self describing and self-sufficient.
+  - `make clean install` will set you up with all that is needed.
+  - `make help` to see all available commands.
 
 
 ## [0.1.4]

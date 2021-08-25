@@ -10,6 +10,7 @@ wheel
 pytest
 pytest-cov
 pytest-timeout
+pytest-clarity
 pandas
 gitpython
 tqdm
@@ -18,3 +19,4 @@ prospector
 click>=7.1.2
 black
 MarkupSafe>=2.0.0rc2
+pydash>=5.0.2
