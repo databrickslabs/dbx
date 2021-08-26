@@ -236,7 +236,7 @@ class DeployTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            sample_requirements = "\n".join(["pyspark=3.0.0", "xgboost=0.6.0"])
+            sample_requirements = "\n".join(["pyspark=3.0.0", "xgboost=0.6.0", "pyspark3d"])
 
             pathlib.Path("runtime_requirements.txt").write_text(sample_requirements)
 
@@ -255,6 +255,11 @@ class DeployTest(DbxTest):
                         "test-branch",
                     ],
                 )
+
+                deleted_dependency_lines = [
+                    line for line in deploy_result.stdout.splitlines() if "pyspark dependency deleted" in line
+                ]
+                self.assertEqual(len(deleted_dependency_lines), 1)
 
                 self.assertEqual(deploy_result.exit_code, 0)
 

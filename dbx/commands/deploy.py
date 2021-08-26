@@ -221,7 +221,7 @@ def _delete_managed_libraries(packages: List[str]) -> List[str]:
 
     for package in packages:
 
-        if package.startswith("pyspark"):
+        if package == "pyspark" or package.startswith("pyspark="):
             dbx_echo("pyspark dependency deleted from the list of libraries, because it's a managed library")
         else:
             output_packages.append(package)
