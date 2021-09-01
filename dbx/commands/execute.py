@@ -146,7 +146,7 @@ def execute(
             localized_package_path = f"{localized_base_path}/{str(package_file.as_posix())}"
 
             dbx_echo("Installing package")
-            installation_command = f"%pip install -U {localized_package_path}"
+            installation_command = f"%pip install --force-reinstall {localized_package_path}"
             execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
             dbx_echo("Package installation finished")
         else:
