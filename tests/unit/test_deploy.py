@@ -1,7 +1,6 @@
 import datetime as dt
 import json
 import pathlib
-import pprint
 import shutil
 import unittest
 from unittest.mock import patch, Mock
@@ -101,7 +100,7 @@ class DeployTest(DbxTest):
                 configure,
                 [
                     "--environment",
-                    "test",
+                    "default",
                     "--profile",
                     self.profile_name,
                     "--workspace-dir",
@@ -123,10 +122,8 @@ class DeployTest(DbxTest):
                 return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
             ):
                 deploy_result = invoke_cli_runner(
-                    deploy, ["--environment", "test", "--write-specs-to-file", ".dbx/deployment-result.json"]
+                    deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
                 )
-                _result = pathlib.Path(".dbx/deployment-result.json").read_text()
-                print(_result)
                 self.assertEqual(deploy_result.exit_code, 0)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
@@ -154,7 +151,7 @@ class DeployTest(DbxTest):
                 configure,
                 [
                     "--environment",
-                    "test",
+                    "default",
                     "--profile",
                     self.profile_name,
                     "--workspace-dir",
@@ -176,15 +173,13 @@ class DeployTest(DbxTest):
                     deploy,
                     [
                         "--environment",
-                        "test",
+                        "default",
                         "--deployment-file",
                         "deployment.yaml",
                         "--write-specs-to-file",
                         ".dbx/deployment-result.json",
                     ],
                 )
-                _result = pathlib.Path(".dbx/deployment-result.json").read_text()
-                print(_result)
                 self.assertEqual(deploy_result.exit_code, 0)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)

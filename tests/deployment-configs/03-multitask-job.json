@@ -1,5 +1,5 @@
 {
-    "test": {
+    "default": {
         "jobs": [
             {
                 "name": "multitask-job-name",

@@ -15,7 +15,7 @@ custom:
       num_workers: 2
 
 environments:
-  test:
+  default:
     jobs:
       - name: "your-job-name"
         tasks:
