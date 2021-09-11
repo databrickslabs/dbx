@@ -124,6 +124,11 @@ class DeployTest(DbxTest):
                 deploy_result = invoke_cli_runner(
                     deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
                 )
+                _content = json.loads(
+                    pathlib.Path(".dbx/deployment-result.json").read_text()
+                )
+                self.assertNotIn("libraries", _content["default"]["jobs"][0])
+                self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
                 self.assertEqual(deploy_result.exit_code, 0)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
@@ -180,6 +185,11 @@ class DeployTest(DbxTest):
                         ".dbx/deployment-result.json",
                     ],
                 )
+                _content = json.loads(
+                    pathlib.Path(".dbx/deployment-result.json").read_text()
+                )
+                self.assertNotIn("libraries", _content["default"]["jobs"][0])
+                self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
                 self.assertEqual(deploy_result.exit_code, 0)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
