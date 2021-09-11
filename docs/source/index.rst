@@ -23,3 +23,4 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     permissions
     run_submit
     properties_propagation
+    multitask_jobs
