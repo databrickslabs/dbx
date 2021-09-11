@@ -5,6 +5,7 @@ import os
 import pathlib
 from typing import Dict, Any, List, Optional, Tuple
 from abc import ABC, abstractmethod
+import re
 import click
 import git
 import mlflow
@@ -107,11 +108,35 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
 
 
 class JsonDeploymentConfig(AbstractDeploymentConfig):
+    def _resolve_env_vars(self, json_obj: Dict[str, Any]) -> Dict[str, Any]:
+        pattern = re.compile(r"\$(\w+:\w+|\{[^}]*\})")
+        json_str = json.dumps(json_obj)
+
+        def env_resolver(match):
+            env_var = match.group(1)
+            if env_var.startswith("{") and env_var.endswith("}"):
+                env_var = "".join(env_var[1:-1])
+
+            env_var = env_var.split(":")
+            env_var_name = env_var[0]
+            env_value = os.environ.get(env_var_name, "")
+
+            if env_value != "":
+                return json.dumps(env_value)[1:-1]
+            else:
+                try:
+                    default_value = env_var[1]
+                    return json.dumps(default_value)[1:-1]
+                except IndexError:
+                    return json.dumps(env_value)[1:-1]
+
+        return json.loads(pattern.sub(env_resolver, json_str))
+
     def get_environment(self, environment: str) -> Any:
-        return read_json(self._path).get(environment)
+        return self._resolve_env_vars(read_json(self._path)).get(environment)
 
     def get_all_environment_names(self) -> Any:
-        return list(read_json(self._path).keys())
+        return list(self._resolve_env_vars(read_json(self._path)).keys())
 
 
 def get_deployment_config(path: str) -> AbstractDeploymentConfig:
