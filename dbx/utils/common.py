@@ -21,8 +21,8 @@ from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
+from pyaml_env import parse_config
 from retry import retry
-from ruamel.yaml import YAML
 from setuptools import sandbox
 
 DBX_PATH = ".dbx"
@@ -95,11 +95,9 @@ class AbstractDeploymentConfig(ABC):
 class YamlDeploymentConfig(AbstractDeploymentConfig):
     # only for reading pusposes.
     # if you need to round-trip see this: https://yaml.readthedocs.io/en/latest/overview.html
-    yaml = YAML(typ="safe")
 
     def _read_yaml(self, file_path: str) -> Dict[str, Any]:
-        with open(file_path, "r") as f:
-            return self.yaml.load(f)
+        return parse_config(file_path)
 
     def get_environment(self, environment: str) -> Any:
         return self._read_yaml(self._path).get("environments").get(environment)
