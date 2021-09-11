@@ -31,6 +31,7 @@ class ExecuteTest(DbxTest):
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=True)
     @patch(
         "databricks_cli.clusters.api.ClusterService.get_cluster",
         return_value={"cluster_name": "some-name", "state": "RUNNING"},
