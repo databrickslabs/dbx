@@ -264,12 +264,14 @@ def prepare_environment(environment: str) -> ApiClient:
     try:
         api_client = _get_api_client(config, command_name="cicdtemplates-")
     except IndexError as e:
-        dbx_echo("""
+        dbx_echo(
+            """
         Error during initializing the API client.
         Probably, env variable DATABRICKS_HOST is set, but cannot be properly parsed.
         Please verify that DATABRICKS_HOST is in format https://<your-workspace-host>
         Original exception is below:
-        """)
+        """
+        )
         raise e
 
     _prepare_workspace_dir(api_client, environment_data["workspace_dir"])
