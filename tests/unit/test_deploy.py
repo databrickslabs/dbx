@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import os
 import pathlib
 import shutil
 import unittest
@@ -492,6 +493,58 @@ class DeployTest(DbxTest):
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "default"])
 
                 self.assertEqual(deploy_result.exit_code, 0)
+
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
+    @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    @patch("databricks_cli.configure.config._get_api_client", return_value=None)
+    @patch("mlflow.set_experiment", return_value=None)
+    def test_deployment_with_bad_env_variable(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "default",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            samples_path = pathlib.Path(format_path("../deployment-configs/"))
+            deployment_content = json.loads((samples_path / "03-multitask-job.json").read_text())
+
+            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+
+            shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
+            shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
+
+            os.environ["DATABRICKS_HOST"] = ""
+            os.environ["DATABRICKS_TOKEN"] = "some-fake-token"
+
+            deploy_result = invoke_cli_runner(
+                deploy,
+                ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"],
+                expected_error=True,
+            )
+            self.assertIsInstance(deploy_result.exception, IndexError)
 
 
 if __name__ == "__main__":
