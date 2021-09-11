@@ -512,6 +512,7 @@ class DeployTest(DbxTest):
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
     @patch("mlflow.set_experiment", return_value=None)
+    @patch.dict(os.environ, {"DATABRICKS_HOST": "", "DATABRICKS_TOKEN": "some-fake-token"})
     def test_deployment_with_bad_env_variable(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -535,9 +536,6 @@ class DeployTest(DbxTest):
 
             shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
             shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
-
-            os.environ["DATABRICKS_HOST"] = ""
-            os.environ["DATABRICKS_TOKEN"] = "some-fake-token"
 
             deploy_result = invoke_cli_runner(
                 deploy,
