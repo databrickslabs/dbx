@@ -101,7 +101,7 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
     PATTERN = re.compile(r".*?\$\{([^}{:]+)(:[^}^{]+)?\}.*?")
     YAML_TAG = "!ENV"
 
-    def resolve_env_vars(self, loader, node):
+    def resolve_env_vars(self, loader: ruamel.yaml.SafeLoader, node: ruamel.yaml.Node):
         value = loader.construct_scalar(node)
         match = self.PATTERN.findall(value)
 
