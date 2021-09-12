@@ -332,8 +332,13 @@ def handle_package(rebuild_arg):
 
 
 class FileUploader:
-    def __init__(self, api_client: ApiClient):
+    def __init__(self, api_client: ApiClient, is_strict: Optional[bool] = False):
+        """
+        api_client - Databricks API Client
+        is_strict - require strict path adjustment policy
+        """
         self._dbfs_service = DbfsService(api_client)
+        self.is_strict = is_strict
 
     def file_exists(self, file_path: str):
         try:

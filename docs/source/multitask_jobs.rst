@@ -19,4 +19,4 @@ Here are some examples for multitask job definitions:
    .. tab:: YAML
 
       .. literalinclude:: ../../tests/deployment-configs/03-multitask-job.yaml
-         :language: JSON
+         :language: yaml
