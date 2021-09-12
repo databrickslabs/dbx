@@ -11,17 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ----
 
 ## [Unreleased] - y-m-d
-### Changed
-- Removed pydash from package dependencies, as it is not used. Still need it as a dev-requirement.
-- Added support for [multitask jobs](https://docs.databricks.com/data-engineering/jobs/index.html).
-- Added more explanations around DATABRICKS_HOST exception during API client initialization
-- Add strict path adjustment policy and FUSE-based path adjustment
--
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
 > And empty the **[Unreleased]** section above.
 ----
+
+## [0.2.0] - 2021-09-12
+### Changed
+- Removed pydash from package dependencies, as it is not used. Still need it as a dev-requirement.
+
+### Added
+- Added support for [multitask jobs](https://docs.databricks.com/data-engineering/jobs/index.html).
+- Added more explanations around DATABRICKS_HOST exception during API client initialization
+- Add strict path adjustment policy and FUSE-based path adjustment
+
+
 
 
 
