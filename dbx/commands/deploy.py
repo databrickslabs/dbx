@@ -301,9 +301,17 @@ def _adjust_job_definitions(
         return _adjust_path(p, artifact_base_uri, file_uploader)
 
     for job in jobs:
+
         job["libraries"] = job.get("libraries", []) + package_payload
-        _walk_content(adjustment_callback, job)
         job["libraries"] = job.get("libraries", []) + requirements_payload
+        _walk_content(adjustment_callback, job)
+
+        if "tasks" in job:
+            dbx_echo("Tasks section found in the job definition, job will be deployed as a multitask job")
+            job_level_libraries = job.pop("libraries")
+            for task in job["tasks"]:
+                task["libraries"] = task.get("libraries", []) + job_level_libraries
+
         policy_name = job.get("new_cluster", {}).get("policy_name")
         if policy_name:
             dbx_echo(f"Processing policy name {policy_name} for job {job['name']}")

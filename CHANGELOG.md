@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - y-m-d
 ### Changed
 - Removed pydash from package dependencies, as it is not used. Still need it as a dev-requirement.
-
+- Added support for [multitask jobs](https://docs.databricks.com/data-engineering/jobs/index.html).
+- Added more explanations around DATABRICKS_HOST exception during API client initialization
 
 ----
 > Unreleased changes must be tracked above this line.
