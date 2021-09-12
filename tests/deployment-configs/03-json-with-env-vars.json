@@ -15,7 +15,7 @@
             "node_type_id": "i3.xlarge",
             "aws_attributes": {
             "first_on_demand": 0,
-            "availability": "$AVAILABILITY:SPOT"
+            "availability": "${AVAILABILITY:SPOT}"
             },
             "num_workers": 2
         },

@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 from dbx.utils.common import update_json, ContextLockFile, get_deployment_config
 from .utils import DbxTest
 import os
@@ -32,29 +33,24 @@ class CommonUnitTest(unittest.TestCase):
         yaml_default_env = get_deployment_config(yaml_file).get_environment("default")
         assert yaml_default_env == json_default_env
 
+    @mock.patch.dict(os.environ, {"TIMEOUT": "100"}, clear=True)
     def test_json_file_with_env_variables_scalar_type(self):
         """
         JSON: Simple Scalar (key-value) type for timeout_seconds parameter
         """
-        # Set TIMEOUT env var
-        os.environ["TIMEOUT"] = "100"
-
         json_file = format_path("../deployment-configs/03-json-with-env-vars.json")
         json_default_envs = get_deployment_config(json_file).get_environment("default")
         timeout_seconds = json_default_envs.get("jobs")[0].get("timeout_seconds")
 
         assert int(timeout_seconds) == 100
-        del os.environ["TIMEOUT"]
 
+    @mock.patch.dict(os.environ, {"ALERT_EMAIL": "test@test.com"}, clear=True)
     def test_json_file_with_env_variables_array_type(self):
         """
         JSON:
         In email_notification.on_failure, one email has been set via env variables
         The other email has been pre-set in deployment.yaml
         """
-        # Set ALERT_EMAIL env var
-        os.environ["ALERT_EMAIL"] = "test@test.com"
-
         json_file = format_path("../deployment-configs/03-json-with-env-vars.json")
         json_default_envs = get_deployment_config(json_file).get_environment("default")
         emails = json_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
@@ -64,7 +60,6 @@ class CommonUnitTest(unittest.TestCase):
 
         assert env_email_value == "test@test.com"
         assert preset_email == "presetEmail@test.com"
-        del os.environ["ALERT_EMAIL"]
 
     def test_json_file_with_env_variables_default_values_with_braces(self):
         """
@@ -98,29 +93,24 @@ class CommonUnitTest(unittest.TestCase):
 
         assert availability == "SPOT"
 
+    @mock.patch.dict(os.environ, {"TIMEOUT": "100"}, clear=True)
     def test_yaml_file_with_env_variables_scalar_type(self):
         """
         YAML: Simple Scalar (key-value) type for timeout_seconds parameter
         """
-        # Set TIMEOUT env var
-        os.environ["TIMEOUT"] = "100"
-
         yaml_file = format_path("../deployment-configs/03-yaml-with-env-vars.yaml")
         yaml_default_envs = get_deployment_config(yaml_file).get_environment("default")
         timeout_seconds = yaml_default_envs.get("jobs")[0].get("timeout_seconds")
 
         assert int(timeout_seconds) == 100
-        del os.environ["TIMEOUT"]
 
+    @mock.patch.dict(os.environ, {"ALERT_EMAIL": "test@test.com"}, clear=True)
     def test_yaml_file_with_env_variables_array_type(self):
         """
         YAML:
         In email_notification.on_failure, one email has been set via env variables
         The other email has been pre-set in deployment.yaml
         """
-        # Set ALERT_EMAIL env var
-        os.environ["ALERT_EMAIL"] = "test@test.com"
-
         yaml_file = format_path("../deployment-configs/03-yaml-with-env-vars.yaml")
         yaml_default_envs = get_deployment_config(yaml_file).get_environment("default")
         emails = yaml_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
@@ -130,7 +120,6 @@ class CommonUnitTest(unittest.TestCase):
 
         assert env_email_value == "test@test.com"
         assert preset_email == "presetEmail@test.com"
-        del os.environ["ALERT_EMAIL"]
 
     def test_yaml_file_with_env_variables_default_values(self):
         """

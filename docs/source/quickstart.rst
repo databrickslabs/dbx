@@ -121,8 +121,7 @@ You can also parametrize the deployment file via Environment Variables:
 .. literalinclude:: ../../tests/deployment-configs/03-json-with-env-vars.json
     :language: JSON
 
-We also support specifying default values with environment variables. They should either be specified like :code:`${ENV_VAR:<default_value>}`
-or :code:`$ENV_VAR:<default_value>`
+We also support specifying default values with environment variables. They should be specified like :code:`${ENV_VAR:<default_value>}`.
 
 
 As you can see, we simply follow the `Databricks Jobs API <https://docs.databricks.com/dev-tools/api/latest/jobs.html>`_ with one enhancement -

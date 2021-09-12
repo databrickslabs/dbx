@@ -22,8 +22,8 @@ from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
-from pyaml_env import parse_config
 from retry import retry
+import ruamel.yaml
 from setuptools import sandbox
 
 DBX_PATH = ".dbx"
@@ -94,11 +94,43 @@ class AbstractDeploymentConfig(ABC):
 
 
 class YamlDeploymentConfig(AbstractDeploymentConfig):
-    # only for reading pusposes.
+    # only for reading purposes.
     # if you need to round-trip see this: https://yaml.readthedocs.io/en/latest/overview.html
 
+    # ENV variable pattern and tag
+    PATTERN = re.compile(r".*?\$\{([^}{:]+)(:[^}^{]+)?\}.*?")
+    YAML_TAG = "!ENV"
+
+    def resolve_env_vars(self, loader, node):
+        value = loader.construct_scalar(node)
+        match = self.PATTERN.findall(value)
+
+        full_value = value
+        if match:
+            for var in match:
+                env_var_name, default_val = var
+                env_val = os.environ.get(env_var_name, "")
+
+                if env_val == "" and default_val:
+                    env_val = default_val[1:]  # Remove the leading colon
+
+                val_to_replace = "".join(var)
+                full_value = full_value.replace(f"${{{val_to_replace}}}", env_val)
+
+        return full_value
+
     def _read_yaml(self, file_path: str) -> Dict[str, Any]:
-        return parse_config(file_path)
+        loader = ruamel.yaml.SafeLoader
+
+        # Tags indicate where to search for the pattern
+        # In this case, it is !ENV
+        loader.add_implicit_resolver(self.YAML_TAG, self.PATTERN, None)
+
+        # Env variable resolver
+        loader.add_constructor(self.YAML_TAG, self.resolve_env_vars)
+
+        with open(file_path, "r") as f:
+            return ruamel.yaml.load(f, Loader=loader)
 
     def get_environment(self, environment: str) -> Any:
         return self._read_yaml(self._path).get("environments").get(environment)
@@ -108,35 +140,28 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
 
 
 class JsonDeploymentConfig(AbstractDeploymentConfig):
-    def _resolve_env_vars(self, json_obj: Dict[str, Any]) -> Dict[str, Any]:
-        pattern = re.compile(r"\$(\w+:\w+|\{[^}]*\})")
+    # ENV variable pattern
+    PATTERN = re.compile(r"\$\{([^}{:]+)(:[^}^{]+)?\}")
+
+    def resolve_env_vars(self, json_obj: Dict[str, Any]) -> Dict[str, Any]:
         json_str = json.dumps(json_obj)
 
-        def env_resolver(match):
-            env_var = match.group(1)
-            if env_var.startswith("{") and env_var.endswith("}"):
-                env_var = "".join(env_var[1:-1])
+        def _env_resolver(match):
+            env_var_name, default_val = match.group(1, 2)
+            env_val = os.environ.get(env_var_name, "")
 
-            env_var = env_var.split(":")
-            env_var_name = env_var[0]
-            env_value = os.environ.get(env_var_name, "")
+            if env_val == "" and default_val:
+                env_val = default_val[1:]  # Remove the leading colon
 
-            if env_value != "":
-                return json.dumps(env_value)[1:-1]
-            else:
-                try:
-                    default_value = env_var[1]
-                    return json.dumps(default_value)[1:-1]
-                except IndexError:
-                    return json.dumps(env_value)[1:-1]
+            return json.dumps(env_val)[1:-1]
 
-        return json.loads(pattern.sub(env_resolver, json_str))
+        return json.loads(self.PATTERN.sub(_env_resolver, json_str))
 
     def get_environment(self, environment: str) -> Any:
-        return self._resolve_env_vars(read_json(self._path)).get(environment)
+        return self.resolve_env_vars(read_json(self._path)).get(environment)
 
     def get_all_environment_names(self) -> Any:
-        return list(self._resolve_env_vars(read_json(self._path)).keys())
+        return list(self.resolve_env_vars(read_json(self._path)).keys())
 
 
 def get_deployment_config(path: str) -> AbstractDeploymentConfig:
