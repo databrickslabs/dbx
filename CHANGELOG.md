@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ----
 
 ## [Unreleased] - y-m-d
+### Added
+- Added support for environment variables in deployment files
 
 ----
 > Unreleased changes must be tracked above this line.
