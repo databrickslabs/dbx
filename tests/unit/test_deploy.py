@@ -38,17 +38,12 @@ class DeployTest(DbxTest):
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
-    @patch(
-        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
-        return_value=test_dbx_config,
-    )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
-    @patch("mlflow.set_experiment", return_value=None)
     def test_deploy_basic(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -81,10 +76,6 @@ class DeployTest(DbxTest):
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
-    @patch(
-        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
-        return_value=test_dbx_config,
-    )
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
@@ -93,7 +84,6 @@ class DeployTest(DbxTest):
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
-    @patch("mlflow.set_experiment", return_value=None)
     def test_deploy_multitask_json(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -135,10 +125,6 @@ class DeployTest(DbxTest):
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
-    @patch(
-        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
-        return_value=test_dbx_config,
-    )
     @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
@@ -147,7 +133,6 @@ class DeployTest(DbxTest):
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
-    @patch("mlflow.set_experiment", return_value=None)
     def test_deploy_multitask_yaml(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
@@ -187,6 +172,131 @@ class DeployTest(DbxTest):
                 _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
                 self.assertNotIn("libraries", _content["default"]["jobs"][0])
                 self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
+                self.assertEqual(deploy_result.exit_code, 0)
+
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
+    @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    @patch("databricks_cli.configure.config._get_api_client", return_value=None)
+    def test_deploy_path_adjustment_json(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "default",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            samples_path = pathlib.Path(format_path("../deployment-configs/"))
+
+            shutil.copy(samples_path / "04-path-adjustment-policy.json", pathlib.Path("./conf/deployment.json"))
+            shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
+            shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
+
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(
+                    deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
+                )
+                _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
+                self.assertTrue(
+                    _content["default"]["jobs"][0]["libraries"][0]["whl"].startswith("dbfs:/Shared/dbx-testing")
+                )
+                self.assertTrue(
+                    _content["default"]["jobs"][0]["spark_python_task"]["python_file"].startswith(
+                        "dbfs:/Shared/dbx-testing"
+                    )
+                )
+                self.assertTrue(
+                    _content["default"]["jobs"][0]["spark_python_task"]["parameters"][0].startswith(
+                        "/dbfs/Shared/dbx-testing"
+                    )
+                )
+                self.assertEqual(deploy_result.exit_code, 0)
+
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
+    @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    @patch("databricks_cli.configure.config._get_api_client", return_value=None)
+    def test_deploy_path_adjustment_yaml(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "default",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            samples_path = pathlib.Path(format_path("../deployment-configs/"))
+
+            shutil.copy(samples_path / "04-path-adjustment-policy.yaml", pathlib.Path("./conf/deployment.yaml"))
+            pathlib.Path("./conf/deployment.json").unlink()
+            shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
+            shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
+
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(
+                    deploy,
+                    [
+                        "--environment",
+                        "default",
+                        "--deployment-file",
+                        "conf/deployment.yaml",
+                        "--write-specs-to-file",
+                        ".dbx/deployment-result.json",
+                    ],
+                )
+                _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
+                self.assertTrue(
+                    _content["default"]["jobs"][0]["libraries"][0]["whl"].startswith("dbfs:/Shared/dbx-testing")
+                )
+                self.assertTrue(
+                    _content["default"]["jobs"][0]["spark_python_task"]["python_file"].startswith(
+                        "dbfs:/Shared/dbx-testing"
+                    )
+                )
+                self.assertTrue(
+                    _content["default"]["jobs"][0]["spark_python_task"]["parameters"][0].startswith(
+                        "/dbfs/Shared/dbx-testing"
+                    )
+                )
                 self.assertEqual(deploy_result.exit_code, 0)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)

@@ -140,6 +140,8 @@ def deploy(
         """
         )
 
+    is_strict = deployment.get("strict_path_adjustment_policy", False)
+
     if jobs:
         requested_jobs = jobs.split(",")
     else:
@@ -149,7 +151,7 @@ def deploy(
 
     _preprocess_deployment(deployment, requested_jobs)
 
-    _file_uploader = FileUploader(api_client)
+    _file_uploader = FileUploader(api_client, is_strict)
 
     with mlflow.start_run() as deployment_run:
 
@@ -160,7 +162,8 @@ def deploy(
             package_requirement = []
         else:
             if package_file:
-                package_requirement = [{"whl": str(package_file)}]
+                file_reference = str(package_file) if not is_strict else f"file://{package_file}"
+                package_requirement = [{"whl": file_reference}]
             else:
                 dbx_echo("Package file was not found! Please check your /dist/ folder")
                 package_requirement = []
@@ -413,29 +416,71 @@ def _walk_content(func, content, parent=None, index=None):
         parent[index] = func(content)
 
 
+def _upload_file(local_path: pathlib.Path, adjusted_path: str, file_uploader: FileUploader):
+    if file_uploader.file_exists(adjusted_path):
+        dbx_echo("File is already stored in the deployment, no action needed")
+    else:
+        file_uploader.upload_file(local_path)
+
+
+def _strict_path_adjustment(candidate: str, adjustment: str, file_uploader: FileUploader) -> str:
+    if candidate.startswith("file:"):
+        fuse_flag = candidate.startswith("file:fuse:")
+        replace_string = "file:fuse://" if fuse_flag else "file://"
+        local_path = pathlib.Path(candidate.replace(replace_string, ""))
+
+        if not local_path.exists():
+            raise FileNotFoundError(
+                f"""
+            Path {candidate} is referenced in the deployment configuration, but is non-existent.
+            """
+            )
+
+        adjusted_path = "%s/%s" % (
+            adjustment.replace("dbfs:/", "/dbfs/") if fuse_flag else adjustment,
+            local_path.as_posix(),
+        )
+
+        _upload_file(local_path, adjusted_path, file_uploader)
+
+        return adjusted_path
+
+    else:
+        return candidate
+
+
+def _non_strict_path_adjustment(candidate: str, adjustment: str, file_uploader: FileUploader) -> str:
+    file_path = pathlib.Path(candidate)
+
+    # this is a fix for pathlib behaviour related to WinError
+    # in case if we pass incorrect or unsupported string, for example local[*] on Win we receive a OSError
+    try:
+        local_file_exists = file_path.exists()
+    except OSError:
+        local_file_exists = False
+
+    if local_file_exists:
+        adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
+        if file_uploader.file_exists(adjusted_path):
+            dbx_echo("File is already stored in the deployment, no action needed")
+        else:
+            file_uploader.upload_file(file_path)
+        return adjusted_path
+    else:
+        return candidate
+
+
 def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
     if isinstance(candidate, str):
         # path already adjusted or points to another dbfs object - pass it
-        if candidate.startswith("dbfs"):
+        if candidate.startswith("dbfs") or candidate.startswith("/dbfs"):
             return candidate
         else:
-            file_path = pathlib.Path(candidate)
 
-            # this is a fix for pathlib behaviour related to WinError
-            # in case if we pass incorrect or unsupported string, for example local[*] on Win we receive a OSError
-            try:
-                local_file_exists = file_path.exists()
-            except OSError:
-                local_file_exists = False
-
-            if local_file_exists:
-                adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
-                if file_uploader.file_exists(adjusted_path):
-                    dbx_echo("File is already stored in the deployment, no action needed")
-                else:
-                    file_uploader.upload_file(file_path)
-                return adjusted_path
+            if file_uploader.is_strict:
+                adjusted_path = _strict_path_adjustment(candidate, adjustment, file_uploader)
             else:
-                return candidate
+                adjusted_path = _non_strict_path_adjustment(candidate, adjustment, file_uploader)
+            return adjusted_path
     else:
         return candidate

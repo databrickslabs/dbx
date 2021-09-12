@@ -10,6 +10,7 @@ max-line-length: 120
 
 pylint:
   disable:
+    - too-many-statements
     - too-many-instance-attributes
     - cyclic-import
     - len-as-condition
