@@ -70,9 +70,9 @@ class AdjustPathTest(unittest.TestCase):
             data={"path": "dbfs:/fake/test/tests/deployment-configs/placeholder_1.py"},
             headers=None,
         )
-        assert (
-            py_.get(deployment, "jobs.[0].spark_python_task.python_file")
-            == "dbfs:/fake/test/tests/deployment-configs/placeholder_1.py"
+        self.assertEqual(
+            py_.get(deployment, "jobs.[0].spark_python_task.python_file"),
+            "dbfs:/fake/test/tests/deployment-configs/placeholder_1.py",
         )
 
 

@@ -19,7 +19,7 @@ pylint:
     - no-self-use
     - protected-access
     - too-many-arguments
-    - too-many-locals # TBD: this rule is actually a good one, we need to disable it and refactor code
+    - too-many-locals # TBD: this rule is actually a good one, we need to enable it and refactor code
     - inconsistent-return-statements
     - import-outside-toplevel
     - consider-using-set-comprehension
