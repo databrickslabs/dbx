@@ -32,12 +32,12 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     short_help="Launch the job by it's name on the given environment.",
     help="""
     Finds the job deployment and launches it on a automated or interactive cluster.
-    
-    This command will launch the given job by it's name on a given environment. 
-    
+
+    This command will launch the given job by it's name on a given environment.
+
     .. note::
         Job shall be deployed prior to be launched.
-     
+
     """,
 )
 @click.option("--job", required=True, type=str, help="Job name.")
@@ -52,10 +52,10 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     type=click.Choice(["wait", "cancel", "pass"]),
     default="pass",
     help="""
-        Strategy to handle existing active job runs. 
-        
+        Strategy to handle existing active job runs.
+
         Options behaviour:
-        
+
         * :code:`wait` will wait for all existing job runs to be finished
         * :code:`cancel` will cancel all existing job runs
         * :code:`pass` will simply pass the check and try to launch the job directly
@@ -67,7 +67,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     multiple=True,
     type=str,
     help="""Additional tags to search for the latest deployment.
-              Format: (:code:`--tags="tag_name=tag_value"`). 
+              Format: (:code:`--tags="tag_name=tag_value"`).
               Option might be repeated multiple times.""",
 )
 @click.option(
@@ -76,7 +76,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     type=str,
     help="""Parameters of the job. \n
             If provided, default job arguments will be overridden.
-            Format: (:code:`--parameters="parameter1=value1"`). 
+            Format: (:code:`--parameters="parameter1=value1"`).
             Option might be repeated multiple times.""",
 )
 @click.option(
@@ -213,7 +213,7 @@ def _find_deployment_run(
             raise Exception(
                 """"
                 Run Submit API is available only when deployment was done with --files-only flag.
-                Currently there is no deployments with such flag under given filters. 
+                Currently there is no deployments with such flag under given filters.
                 Please re-deploy with --files-only flag and then re-run this launch command.
             """
             )
@@ -221,25 +221,23 @@ def _find_deployment_run(
         _runs = _runs[_runs["tags.dbx_deploy_type"] == "files_only"]
 
     if _runs.empty:
-        exception_string = """
-        No runs provided per given set of filters:
-            {filter_string}
-        """
+        exception_string = f"""
+        No deployments provided per given set of filters:
+            {filter_string}"""
         if tags:
             exception_string = (
                 exception_string
                 + f"""
-            With additional tags: {tags}
-            """
+            With additional tags: {tags}"""
             )
         if as_run_submit:
             exception_string = (
                 exception_string
                 + """
-            With file-based deployments (dbx_deployment_type='files_only').
-            """
+            With file-based deployments (dbx_deployment_type='files_only')."""
             )
-        experiment_location = InfoFile.get(environment).get("workspace_dir")
+
+        experiment_location = InfoFile.get("environments").get(environment).get("workspace_dir")
         exception_string = (
             exception_string
             + f"""
