@@ -18,7 +18,7 @@ INSTALL_REQUIRES = [
     "azure-mgmt-datafactory>=1.0.0",
     "azure-mgmt-subscription>=1.0.0",
     "ruamel.yaml>=0.17.10",
-    "cryptography<4.0.0,>=3.3.1",
+    "cryptography>=3.3.1,<36.0.0",
 ]
 
 if sys.platform.startswith("win32"):
