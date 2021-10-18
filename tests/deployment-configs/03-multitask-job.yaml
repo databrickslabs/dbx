@@ -24,4 +24,5 @@ environments:
             <<: *basic-static-cluster
             spark_python_task:
               python_file: "./placeholder_2.py"
-            depends_on: [ "first-task" ]
+            depends_on:
+              - task_key: "second-task"
