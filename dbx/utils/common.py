@@ -209,7 +209,7 @@ class InfoFile:
 class ApiV1Client:
     def __init__(self, api_client: ApiClient):
         self.v1_client = copy.deepcopy(api_client)
-        self.v1_client.url = self.v1_client.url.replace("/api/2.0", "/api/1.2")
+        self.v1_client.api_version = "1.2"
 
     def get_command_status(self, payload) -> Dict[Any, Any]:
         result = self.v1_client.perform_query(method="GET", path="/commands/status", data=payload)

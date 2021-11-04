@@ -11,16 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ----
 
 ## [Unreleased] - y-m-d
-### Added
-- Added support for environment variables in deployment files
-- Fixed minor bug in exception text
-- Improved code coverage
 
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
 > And empty the **[Unreleased]** section above.
 ----
+
+## [0.2.1] - 2021-11-04
+### Changed
+- Update `databricks-cli` dependency to 0.16.2
+- Improved code coverage
+
+### Added
+- Added support for environment variables in deployment files
+
+### Fixed
+- Fixed minor bug in exception text
+- Provide a bugfix for execute issue
 
 ## [0.2.0] - 2021-09-12
 ### Changed

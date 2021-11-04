@@ -8,7 +8,7 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 INSTALL_REQUIRES = [
     "path>=15.0.0",
-    "databricks-cli>=0.12.2",
+    "databricks-cli>=0.16.2",
     "click>=7.1.2",
     "retry>=0.9.2",
     "requests>=2.24.0",
