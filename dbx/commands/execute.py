@@ -182,8 +182,6 @@ def execute(
 
         dbx_echo("Starting entrypoint file execution")
 
-
-
         execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text())
         dbx_echo("Command execution finished")
 
