@@ -89,6 +89,7 @@ def execute(
     handle_package(no_rebuild)
 
     deployment = get_deployment_config(deployment_file).get_environment(environment)
+    is_strict = deployment.get("strict_path_adjustment_policy", False)
 
     _verify_deployment(deployment, environment, deployment_file)
 
@@ -105,6 +106,7 @@ def execute(
         raise FileNotFoundError(
             f"No entrypoint file provided in job {job}. " f"Please add one under spark_python_task.python_file section"
         )
+    entrypoint_file = entrypoint_file if not is_strict else entrypoint_file.replace("file://", "")
 
     cluster_service = ClusterService(api_client)
 
@@ -113,7 +115,8 @@ def execute(
 
     v1_client = ApiV1Client(api_client)
     context_id = get_context_id(v1_client, cluster_id, "python")
-    file_uploader = FileUploader(api_client)
+
+    file_uploader = FileUploader(api_client, is_strict)
 
     with mlflow.start_run() as execution_run:
 
@@ -178,6 +181,9 @@ def execute(
         dbx_echo("Processing parameters - done")
 
         dbx_echo("Starting entrypoint file execution")
+
+
+
         execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text())
         dbx_echo("Command execution finished")
 
