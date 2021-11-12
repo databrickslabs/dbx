@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - y-m-d
 ### Changed
 - Update the contribution docs with CLA
+- Provide bugfix for strict path resolving in the execute command
 
 ----
 > Unreleased changes must be tracked above this line.
