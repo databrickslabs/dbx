@@ -50,7 +50,7 @@ Create a new environment configuration via given command:
 This command will configure a project file in :code:`.dbx/project.json` file. Feel free to repeat this command multiple times to reconfigure the environment.
 
 Preparing Deployment Config
--------------------------
+---------------------------
 
 Next step would be to configure your deployment objects. To make this process easy and flexible, we support two options to define the configuration.
 
@@ -64,6 +64,10 @@ Next step would be to configure your deployment objects. To make this process ea
     and you are finding it hard to manage the duplications, we recommend you either use `YAML <http://yaml.org/spec/1.2/spec.html>`_ or `Jsonnet <https://jsonnet.org>`_.
 
     Yaml is supported by dbx where as with Jsonnet, you are responsible for generating the json file through Jsonnet compilation process.
+
+.. note::
+
+    :code:`dbx` supports passing environment variables into both JSON and YAML based deployment files. Please read more about this functionality :doc:`here <environment_variables>`.
 
 
 JSON
@@ -116,13 +120,6 @@ Expected structure of the deployment file is the following:
         }
     }
 
-You can also parametrize the deployment file via Environment Variables:
-
-.. literalinclude:: ../../tests/deployment-configs/03-json-with-env-vars.json
-    :language: JSON
-
-We also support specifying default values with environment variables. They should be specified like :code:`${ENV_VAR:<default_value>}`.
-
 
 As you can see, we simply follow the `Databricks Jobs API <https://docs.databricks.com/dev-tools/api/latest/jobs.html>`_ with one enhancement -
 any local files can be referenced and will be uploaded to dbfs in a versioned way during the :code:`dbx deploy` command.
@@ -154,15 +151,6 @@ You can define re-usable definitions in yaml. Here is an example yaml and its js
         .. literalinclude:: ../../tests/deployment-configs/02-yaml-with-vars-test.json
             :language: JSON
 
-Similar to json deployment files, you can also parametrize yaml deployment files via Environment Variables:
-
-.. literalinclude:: ../../tests/deployment-configs/03-yaml-with-env-vars.yaml
-    :language: YAML
-
-.. note::
-
-    Unlike JSON, in YAML you have to specify the :code:`!ENV` tag before your environment variables for it to be resolved in
-    a valid manner.
 
 Interactive execution
 ---------------------

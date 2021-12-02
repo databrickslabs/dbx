@@ -25,3 +25,4 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     properties_propagation
     multitask_jobs
     path_adjustment
+    environment_variables
