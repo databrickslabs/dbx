@@ -1,15 +1,17 @@
+import collections.abc
 import json
 import pathlib
 import shutil
 import tempfile
 from typing import Dict, Any, Union, Optional
 from typing import List
-import collections.abc
+
 import click
 import mlflow
 from databricks_cli.cluster_policies.api import PolicyService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.jobs.api import JobsService, JobsApi
+from databricks_cli.sdk import InstancePoolService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
@@ -25,6 +27,7 @@ from dbx.utils.common import (
     get_package_file,
     get_current_branch_name,
     get_deployment_config,
+    _preprocess_cluster_args, # noqa
 )
 from dbx.utils.policy_parser import PolicyParser
 
@@ -316,6 +319,7 @@ def _adjust_job_definitions(
                 task["libraries"] = task.get("libraries", []) + job_level_libraries
 
         policy_name = job.get("new_cluster", {}).get("policy_name")
+
         if policy_name:
             dbx_echo(f"Processing policy name {policy_name} for job {job['name']}")
             policy_spec = _preprocess_policy_name(api_client, policy_name)
@@ -323,6 +327,80 @@ def _adjust_job_definitions(
             policy_props = PolicyParser(policy).parse()
             _deep_update(job["new_cluster"], policy_props, policy_name)
             job["new_cluster"]["policy_id"] = policy_spec["policy_id"]
+
+        NamedParametersProcessor(job, api_client).preprocess()
+
+
+class NamedParametersProcessor:
+    def __init__(self, job: Dict[str, Any], api_client: ApiClient):
+        self._job = job
+        self._api_client = api_client
+
+    def preprocess(self):
+        self._preprocess_instance_profile_name()
+        self._preprocess_existing_cluster_name()
+        self._preprocess_instance_pool_name()
+
+    @staticmethod
+    def _name_from_profile(profile_def) -> str:
+        return profile_def.get("instance_profile_arn").split("/")[-1]
+
+    def _preprocess_instance_profile_name(self):
+        instance_profile_name = self._job.get("new_cluster", {}).get("aws_attributes", {}).get("instance_profile_name")
+
+        if instance_profile_name:
+            dbx_echo("Named parameter instance_profile_name is provided, looking for it's id")
+            all_instance_profiles = self._api_client.perform_query("get", "/instance-profiles/list").get(
+                "instance_profiles", []
+            )
+            instance_profile_names = [self._name_from_profile(p) for p in all_instance_profiles]
+            matching_profiles = [
+                p for p in all_instance_profiles if self._name_from_profile(p) == instance_profile_name
+            ]
+
+            if not matching_profiles:
+                raise EnvironmentError(
+                    f"No instance profile with name {instance_profile_name} found."
+                    f"Available instance profiles are: {instance_profile_names}"
+                )
+
+            if len(matching_profiles) > 1:
+                raise EnvironmentError(
+                    f"Found instance profiles with name {instance_profile_name}"
+                    f"Please provide unique names for the instance profiles."
+                )
+            self._job["new_cluster"]["aws_attributes"]["instance_profile_arn"] = matching_profiles[0][
+                "instance_profile_arn"
+            ]
+
+    def _preprocess_existing_cluster_name(self):
+        existing_cluster_name = self._job.get("existing_cluster_name")
+
+        if existing_cluster_name:
+            dbx_echo("Named parameter existing_cluster_name is provided, looking for it's id")
+            existing_cluster_id = _preprocess_cluster_args(self._api_client, existing_cluster_name, None)
+            self._job["existing_cluster_id"] = existing_cluster_id
+
+    def _preprocess_instance_pool_name(self):
+        instance_pool_name = self._job.get("new_cluster").get("instance_pool_name")
+
+        if instance_pool_name:
+            dbx_echo("Named parameter instance_pool_name is provided, looking for it's id")
+            all_pools = InstancePoolService(self._api_client).list_instance_pools().get("instance_pools", [])
+            instance_pool_names = [p.get("instance_pool_name") for p in all_pools]
+            matching_pools = [p for p in all_pools if p["instance_pool_name"] == instance_pool_name]
+
+            if not matching_pools:
+                raise EnvironmentError(
+                    f"No instance pool with name {instance_pool_name} found, available pools: {instance_pool_names}"
+                )
+
+            if len(matching_pools) > 1:
+                raise EnvironmentError(
+                    f"Found multiple pools with name {instance_pool_name}, please provide unique names for the pools"
+                )
+
+            self._job["new_cluster"]["instance_pool_id"] = matching_pools[0]["instance_pool_id"]
 
 
 def _deep_update(d: Dict, u: collections.abc.Mapping, policy_name: str) -> Dict:
