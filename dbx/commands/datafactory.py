@@ -1,7 +1,7 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 
 import click
 from azure.core.exceptions import ResourceNotFoundError
@@ -13,6 +13,7 @@ from azure.mgmt.datafactory.models import (
     LinkedServiceResource,
     PipelineResource,
     DatabricksSparkPythonActivity,
+    DatabricksSparkJarActivity,
     LinkedServiceReference,
     Activity,
 )
@@ -181,17 +182,28 @@ class DatafactoryReflector:
         return service_name
 
     @staticmethod
-    def _generate_activity(job_spec: Dict[str, Any], service_name) -> DatabricksSparkPythonActivity:
+    def _generate_python_activity(job_spec: Dict[str, Any], service_name) -> DatabricksSparkPythonActivity:
         activity = DatabricksSparkPythonActivity(
             name=job_spec.get("name"),
             linked_service_name=LinkedServiceReference(reference_name=service_name),
             python_file=job_spec.get("spark_python_task").get("python_file"),
-            parameters=job_spec.get("spark_python_task").get("parameters"),
+            parameters=job_spec.get("spark_python_task").get("parameters", []),
             libraries=job_spec.get("libraries", []),
         )
         return activity
 
-    def _update_pipeline(self, new_activities: List[DatabricksSparkPythonActivity]):
+    @staticmethod
+    def _generate_spark_jar_task_activity(job_spec: Dict[str, Any], service_name) -> DatabricksSparkJarActivity:
+        activity = DatabricksSparkJarActivity(
+            name=job_spec.get("name"),
+            linked_service_name=LinkedServiceReference(reference_name=service_name),
+            main_class_name=job_spec.get("spark_jar_task").get("main_class_name"),
+            parameters=job_spec.get("spark_jar_task").get("parameters", []),
+            libraries=job_spec.get("libraries", []),
+        )
+        return activity
+
+    def _update_pipeline(self, new_activities: List[Union[DatabricksSparkPythonActivity, DatabricksSparkJarActivity]]):
         dbx_echo(f"Updating pipeline {self.name}")
         current_pipeline = self.adf_client.pipelines.get(self.resource_group, self.factory_name, self.name)
 
@@ -227,7 +239,17 @@ class DatafactoryReflector:
             job_name = job_spec.get("name")
             dbx_echo(f"Preparing job {job_name}")
             service_name = self._create_linked_service(job_spec)
-            job_activity = self._generate_activity(job_spec, service_name)
+
+            if job_spec.get("spark_python_task"):
+                job_activity = self._generate_python_activity(job_spec, service_name)
+            elif job_spec.get("spark_jar_task"):
+                job_activity = self._generate_spark_jar_task_activity(job_spec, service_name)
+            else:
+                raise Exception(
+                    "Neither spark_python_task nor spark_jar_task were provided in the job definition."
+                    "Please add one of them, or create an issue to support another type"
+                )
+
             prepared_activities.append(job_activity)
             dbx_echo(f"Preparing job {job_name} - done")
         self._update_pipeline(prepared_activities)
