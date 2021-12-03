@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Update the contribution docs with CLA
 - Provide bugfix for strict path resolving in the execute command
-
+- Update documentation about environment variables
+- Add support for named job properties
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.

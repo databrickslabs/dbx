@@ -1,12 +1,11 @@
 import pathlib
 import time
-from typing import Optional, Any, List
+from typing import Any, List
 
 import click
 import mlflow
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
-from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.commands.deploy import _adjust_path, _walk_content
@@ -21,6 +20,7 @@ from dbx.utils.common import (
     DEFAULT_DEPLOYMENT_FILE_PATH,
     handle_package,
     get_package_file,
+    _preprocess_cluster_args,
 )
 
 
@@ -291,27 +291,3 @@ def awake_cluster(cluster_service: ClusterService, cluster_id):
         dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
         time.sleep(5)
         awake_cluster(cluster_service, cluster_id)
-
-
-def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str], cluster_id: Optional[str]) -> str:
-    cluster_service = ClusterService(api_client)
-
-    if not cluster_name and not cluster_id:
-        raise RuntimeError("Parameters --cluster-name and --cluster-id couldn't be empty at the same time.")
-
-    if cluster_name:
-
-        existing_clusters = cluster_service.list_clusters().get("clusters")
-        matching_clusters = [c for c in existing_clusters if c.get("cluster_name") == cluster_name]
-
-        if not matching_clusters:
-            raise NameError(f"No clusters with name {cluster_name} found")
-        if len(matching_clusters) > 1:
-            raise NameError(f"Found more then one cluster with name {cluster_name}: {matching_clusters}")
-
-        cluster_id = matching_clusters[0]["cluster_id"]
-    else:
-        if not cluster_service.get_cluster(cluster_id):
-            raise NameError(f"Cluster with id {cluster_id} not found")
-
-    return cluster_id
