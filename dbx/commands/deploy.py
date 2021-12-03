@@ -27,7 +27,7 @@ from dbx.utils.common import (
     get_package_file,
     get_current_branch_name,
     get_deployment_config,
-    _preprocess_cluster_args, # noqa
+    _preprocess_cluster_args,  # noqa
 )
 from dbx.utils.policy_parser import PolicyParser
 
@@ -328,10 +328,10 @@ def _adjust_job_definitions(
             _deep_update(job["new_cluster"], policy_props, policy_name)
             job["new_cluster"]["policy_id"] = policy_spec["policy_id"]
 
-        NamedParametersProcessor(job, api_client).preprocess()
+        NamedPropertiesProcessor(job, api_client).preprocess()
 
 
-class NamedParametersProcessor:
+class NamedPropertiesProcessor:
     def __init__(self, job: Dict[str, Any], api_client: ApiClient):
         self._job = job
         self._api_client = api_client
@@ -359,13 +359,13 @@ class NamedParametersProcessor:
             ]
 
             if not matching_profiles:
-                raise EnvironmentError(
+                raise Exception(
                     f"No instance profile with name {instance_profile_name} found."
                     f"Available instance profiles are: {instance_profile_names}"
                 )
 
             if len(matching_profiles) > 1:
-                raise EnvironmentError(
+                raise Exception(
                     f"Found instance profiles with name {instance_profile_name}"
                     f"Please provide unique names for the instance profiles."
                 )
@@ -382,7 +382,7 @@ class NamedParametersProcessor:
             self._job["existing_cluster_id"] = existing_cluster_id
 
     def _preprocess_instance_pool_name(self):
-        instance_pool_name = self._job.get("new_cluster").get("instance_pool_name")
+        instance_pool_name = self._job.get("new_cluster", {}).get("instance_pool_name")
 
         if instance_pool_name:
             dbx_echo("Named parameter instance_pool_name is provided, looking for it's id")
@@ -391,12 +391,12 @@ class NamedParametersProcessor:
             matching_pools = [p for p in all_pools if p["instance_pool_name"] == instance_pool_name]
 
             if not matching_pools:
-                raise EnvironmentError(
+                raise Exception(
                     f"No instance pool with name {instance_pool_name} found, available pools: {instance_pool_names}"
                 )
 
             if len(matching_pools) > 1:
-                raise EnvironmentError(
+                raise Exception(
                     f"Found multiple pools with name {instance_pool_name}, please provide unique names for the pools"
                 )
 
