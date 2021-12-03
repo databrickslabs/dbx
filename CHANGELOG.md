@@ -13,9 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - y-m-d
 ### Changed
 - Update the contribution docs with CLA
-- Provide bugfix for strict path resolving in the execute command
 - Update documentation about environment variables
+
+### Added
 - Add support for named job properties
+
+### Fixed
+- Provide bugfix for strict path resolving in the execute command
+- Provide bugfix for Azure Datafactory when using `existing_cluster_id`
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.

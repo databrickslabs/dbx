@@ -47,11 +47,11 @@ def datafactory():
     help="""Reflects job definitions to Azure Data Factory.
 
     During the reflection, following actions will be performed:
-    
+
     1. Input specs file will be parsed
-    2. Per each defined cluster, a new linked service will be created 
-    3. | Per each defined job, a job object in ADF pipeline will be reflected. 
-       | Please note that chaining jobs into pipeline shall be done on ADF side. 
+    2. Per each defined cluster, a new linked service will be created
+    3. | Per each defined job, a job object in ADF pipeline will be reflected.
+       | Please note that chaining jobs into pipeline shall be done on ADF side.
        | No other steps in datafactory pipeline will be changed by execution of this command.
     """,
 )
@@ -169,7 +169,7 @@ class DatafactoryReflector:
             service_spec = AzureDatabricksLinkedService(
                 domain=self._config.host,
                 access_token=SecureString(value=self._config.token),
-                existing_cluster_id=cluster_spec.get("existing_cluster_id"),
+                existing_cluster_id=job_spec.get("existing_cluster_id"),
             )
 
         service_resource = LinkedServiceResource(properties=service_spec)
