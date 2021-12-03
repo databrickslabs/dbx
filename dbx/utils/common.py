@@ -19,7 +19,7 @@ from databricks_cli.configure.provider import (
     DatabricksConfig,
 )
 from databricks_cli.dbfs.api import DbfsService
-from databricks_cli.sdk import ApiClient, ClusterService
+from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
