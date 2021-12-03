@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add support for named job properties
+- Add support for `spark_jar_task` in Azure Data Factory reflector
 
 ### Fixed
 - Provide bugfix for strict path resolving in the execute command
