@@ -339,6 +339,7 @@ class NamedPropertiesProcessor:
     def preprocess(self):
         self._preprocess_instance_profile_name()
         self._preprocess_existing_cluster_name()
+        self._preprocess_driver_instance_pool_name()
         self._preprocess_instance_pool_name()
 
     @staticmethod
@@ -381,11 +382,19 @@ class NamedPropertiesProcessor:
             existing_cluster_id = _preprocess_cluster_args(self._api_client, existing_cluster_name, None)
             self._job["existing_cluster_id"] = existing_cluster_id
 
+    def _preprocess_driver_instance_pool_name(self):
+        self._generic_instance_pool_name_preprocessor(
+            "driver_instance_pool_name", "instance_pool_id", "driver_instance_pool_id"
+        )
+
     def _preprocess_instance_pool_name(self):
-        instance_pool_name = self._job.get("new_cluster", {}).get("instance_pool_name")
+        self._generic_instance_pool_name_preprocessor("instance_pool_name", "instance_pool_id", "instance_pool_id")
+
+    def _generic_instance_pool_name_preprocessor(self, named_parameter, search_id, property_name):
+        instance_pool_name = self._job.get("new_cluster", {}).get(named_parameter)
 
         if instance_pool_name:
-            dbx_echo("Named parameter instance_pool_name is provided, looking for it's id")
+            dbx_echo(f"Named parameter {named_parameter} is provided, looking for its id")
             all_pools = InstancePoolService(self._api_client).list_instance_pools().get("instance_pools", [])
             instance_pool_names = [p.get("instance_pool_name") for p in all_pools]
             matching_pools = [p for p in all_pools if p["instance_pool_name"] == instance_pool_name]
@@ -400,7 +409,7 @@ class NamedPropertiesProcessor:
                     f"Found multiple pools with name {instance_pool_name}, please provide unique names for the pools"
                 )
 
-            self._job["new_cluster"]["instance_pool_id"] = matching_pools[0]["instance_pool_id"]
+            self._job["new_cluster"][property_name] = matching_pools[0][search_id]
 
 
 def _deep_update(d: Dict, u: collections.abc.Mapping, policy_name: str) -> Dict:

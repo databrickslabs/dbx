@@ -4,7 +4,8 @@
             {
                 "name": "named-props-instance-pool-name",
                 "new_cluster": {
-                    "instance_pool_name": "some-instance-pool-name"
+                    "instance_pool_name": "some-instance-pool-name",
+                    "driver_instance_pool_name": "some-instance-pool-name"
                 },
                 "libraries": [],
                 "max_retries": 0,
