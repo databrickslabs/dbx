@@ -10,7 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ----
 
-## [Unreleased] - y-m-d
+## [Unreleased] - YYYY-MM-DD
+### Added
+- Add support for named property of the driver instance pool name
+
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [0.2.2] - 2021-12-03
 ### Changed
 - Update the contribution docs with CLA
 - Update documentation about environment variables
@@ -22,12 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Provide bugfix for strict path resolving in the execute command
 - Provide bugfix for Azure Datafactory when using `existing_cluster_id`
-
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 ## [0.2.1] - 2021-11-04
 ### Changed

@@ -8,6 +8,7 @@ The following properties are supported:
 
 * :code:`existing_cluster_name` will be automatically replaced with :code:`existing_cluster_id`
 * :code:`new_cluster.instance_pool_name` will be automatically replaced with :code:`new_cluster.instance_pool_id`
+* :code:`new_cluster.driver_instance_pool_name` will be automatically replaced with :code:`new_cluster.driver_instance_pool_id`
 * :code:`new_cluster.aws_attributes.instance_profile_name` will be automatically replaced with :code:`new_cluster.aws_attributes.instance_profile_arn`
 
 By this simplification, you don't need to look-up for these id-based properties, you can simply provide the names.
