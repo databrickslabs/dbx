@@ -10,7 +10,6 @@ import sys
 
 # abstract class for jobs
 class Job(ABC):
-
     def __init__(self, spark=None, init_conf=None):
         self.spark = self._prepare_spark(spark)
         self.logger = self._prepare_logger()
@@ -31,7 +30,8 @@ class Job(ABC):
     @staticmethod
     def _get_dbutils(spark: SparkSession):
         try:
-            from pyspark.dbutils import DBUtils # noqa
+            from pyspark.dbutils import DBUtils  # noqa
+
             if "dbutils" not in locals():
                 utils = DBUtils(spark)
                 return utils
@@ -60,9 +60,7 @@ class Job(ABC):
             )
             return {}
         else:
-            self.logger.info(
-                f"Conf file was provided, reading configuration from {conf_file}"
-            )
+            self.logger.info(f"Conf file was provided, reading configuration from {conf_file}")
             return self._read_config(conf_file)
 
     @staticmethod
@@ -73,14 +71,12 @@ class Job(ABC):
         return namespace.conf_file
 
     def _read_config(self, conf_file) -> Dict[str, Any]:
-        raw_content = "".join(
-            self.spark.read.format("text").load(conf_file).toPandas()["value"].tolist()
-        )
+        raw_content = "".join(self.spark.read.format("text").load(conf_file).toPandas()["value"].tolist())
         config = json.loads(raw_content)
         return config
 
     def _prepare_logger(self) -> Logger:
-        log4j_logger = self.spark._jvm.org.apache.log4j # noqa
+        log4j_logger = self.spark._jvm.org.apache.log4j  # noqa
         return log4j_logger.LogManager.getLogger(self.__class__.__name__)
 
     def _log_conf(self):

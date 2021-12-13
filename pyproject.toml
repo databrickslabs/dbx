@@ -1,7 +1,12 @@
 [tool.black]
 line-length = 120
 target-version = ['py37']
+exclude = '''
+/(
+  | dbx/templates
+)/
 
+'''
 
 [tool.pytest.ini_options]
 addopts = "-s -p no:warnings --timeout=3600"

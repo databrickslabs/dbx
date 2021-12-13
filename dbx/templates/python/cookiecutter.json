@@ -1,7 +1,7 @@
 {
   "project_name": "cicd-sample-project",
   "version": "0.0.1",
-  "description": "Databricks Labs CICD Templates Sample Project",
+  "description": "Sample project created via dbx",
   "author": "",
   "cloud": [
     "AWS",

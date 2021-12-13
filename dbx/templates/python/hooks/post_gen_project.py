@@ -68,9 +68,7 @@ DEPLOYMENT = {
                         "on_failure": [],
                     },
                     "max_retries": 0,
-                    "spark_python_task": {
-                        "python_file": "tests/integration/sample_test.py"
-                    },
+                    "spark_python_task": {"python_file": "tests/integration/sample_test.py"},
                 },
             ]
         }
@@ -111,9 +109,7 @@ DEPLOYMENT = {
                         "on_failure": [],
                     },
                     "max_retries": 0,
-                    "spark_python_task": {
-                        "python_file": "tests/integration/sample_test.py"
-                    },
+                    "spark_python_task": {"python_file": "tests/integration/sample_test.py"},
                 },
             ]
         }
@@ -160,9 +156,7 @@ DEPLOYMENT = {
                         "on_failure": [],
                     },
                     "max_retries": 0,
-                    "spark_python_task": {
-                        "python_file": "tests/integration/sample_test.py"
-                    },
+                    "spark_python_task": {"python_file": "tests/integration/sample_test.py"},
                 },
             ]
         }
@@ -172,9 +166,7 @@ DEPLOYMENT = {
 
 def replace_vars(file_path: str):
     _path = Path(file_path)
-    content = _path.read_text().format(
-        project_name=project_name, environment=environment, profile=profile
-    )
+    content = _path.read_text().format(project_name=project_name, environment=environment, profile=profile)
     _path.write_text(content)
 
 
