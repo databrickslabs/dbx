@@ -1,10 +1,9 @@
 from typing import List, Optional
 
 import click
-import emoji
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
-
+import emoji
 from dbx.utils.common import (
     dbx_echo,
 )
@@ -16,7 +15,8 @@ from dbx.utils.common import (
     help="""
     Creates new project in the current folder.
 
-    Launching this command without --template-parameters argument will open cookiecutter dialogue to enter the required parameters.
+    Launching this command without :code:`--template-parameters` argument
+    will open cookiecutter dialogue to enter the required parameters.
     """,
 )
 @click.option(
