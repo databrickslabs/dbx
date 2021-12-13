@@ -26,7 +26,8 @@ custom:
 
   basic-cluster-libraries: &basic-cluster-libraries
     libraries:
-      - "pydash"
+      - pypi:
+          package: "pydash"
 
 
 environments:
