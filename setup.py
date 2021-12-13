@@ -20,6 +20,7 @@ INSTALL_REQUIRES = [
     "ruamel.yaml>=0.17.10",
     "cryptography>=3.3.1,<37.0.0",
     "emoji>=1.6.1",
+    "cookiecutter>=1.7.2",
 ]
 
 if sys.platform.startswith("win32"):

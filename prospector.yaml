@@ -5,6 +5,7 @@ doc-warnings: false
 ignore-paths:
   - build
   - tests
+  - dbx/templates
 
 max-line-length: 120
 

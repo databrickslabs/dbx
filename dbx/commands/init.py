@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import List, Optional
 
 import click
@@ -7,11 +6,7 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.utils.common import (
-    InfoFile,
     dbx_echo,
-    INFO_FILE_PATH,
-    environment_option,
-    profile_option,
 )
 
 
@@ -46,4 +41,9 @@ from dbx.utils.common import (
 @debug_option
 def init(template: str, template_parameters: Optional[List[str]]):
     dbx_echo(f"Configuring new project from template {template}")
+    if not template_parameters:
+        dbx_echo(
+            "No template parameters were provided. "
+            "Please follow the cookiecutter init dialogue to pass template parameters..."
+        )
     dbx_echo(emoji.emojize("Project configuration finished. You're all set to use dbx :fire:"))
