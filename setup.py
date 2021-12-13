@@ -38,6 +38,7 @@ setup(
     """,
     long_description=long_description,
     long_description_content_type="text/x-rst",
+    include_package_data=True,
     version=__version__,
     description="DataBricks CLI eXtensions aka dbx",
     author="Thunder Shiviah, Michael Shtelma, Ivan Trusov",

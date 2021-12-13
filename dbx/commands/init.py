@@ -20,11 +20,7 @@ from dbx.utils.common import (
     """,
 )
 @click.option(
-    "--template",
-    required=False,
-    type=str,
-    help="""Template used to kickoff the project.""",
-    default="python",
+    "--template", required=False, type=str, help="""Template used to kickoff the project.""", default="python_basic"
 )
 @click.option(
     "--template-parameters",
@@ -35,6 +31,7 @@ from dbx.utils.common import (
     .. code-block:
 
         dbx init --template-parameters project_name=some-name cloud=some_cloud
+
     """,
     default=None,
 )
