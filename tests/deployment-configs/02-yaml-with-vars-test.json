@@ -5,7 +5,7 @@
                 "name": "your-job-name",
                 "new_cluster": {
                     "spark_version": "7.3.x-cpu-ml-scala2.12",
-                    "node_type_id": "i3.xlarge",
+                    "node_type_id": "some-node-type",
                     "aws_attributes": {
                         "first_on_demand": 0,
                         "availability": "SPOT"
@@ -22,7 +22,7 @@
                 "name": "your-job-name-2",
                 "new_cluster": {
                     "spark_version": "7.3.x-cpu-ml-scala2.12",
-                    "node_type_id": "i3.xlarge",
+                    "node_type_id": "some-node-type",
                     "aws_attributes": {
                         "first_on_demand": 0,
                         "availability": "SPOT"
@@ -39,7 +39,7 @@
                 "name": "your-job-name-3",
                 "new_cluster": {
                     "spark_version": "7.3.x-cpu-ml-scala2.12",
-                    "node_type_id": "i3.xlarge",
+                    "node_type_id": "some-node-type",
                     "aws_attributes": {
                         "first_on_demand": 0,
                         "availability": "SPOT"
@@ -47,7 +47,9 @@
                     "num_workers": 2
                 },
                 "libraries": [
-                    "pydash"
+                    {
+                        "pypi": {"package":  "pydash"}
+                    }
                 ],
                 "max_retries": 5,
                 "spark_python_task": {
@@ -58,7 +60,7 @@
                 "name": "your-job-name-4",
                 "new_cluster": {
                     "spark_version": "7.3.x-cpu-ml-scala2.12",
-                    "node_type_id": "i3.xlarge",
+                    "node_type_id": "some-node-type",
                     "aws_attributes": {
                         "first_on_demand": 0,
                         "availability": "SPOT"
@@ -69,7 +71,9 @@
                     }
                 },
                 "libraries": [
-                    "pydash"
+                    {
+                        "pypi": {"package":  "pydash"}
+                    }
                 ],
                 "max_retries": 5,
                 "spark_python_task": {
