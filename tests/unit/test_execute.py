@@ -77,6 +77,8 @@ class ExecuteTest(DbxTest):
                 execute_result = invoke_cli_runner(
                     execute,
                     [
+                        "--deployment-file",
+                        "conf/deployment.yml",
                         "--environment",
                         "default",
                         "--cluster-id",

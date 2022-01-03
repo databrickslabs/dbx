@@ -10,6 +10,7 @@ import click
 import git
 import mlflow
 import mlflow.entities
+import pkg_resources
 import requests
 from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import (
@@ -26,6 +27,7 @@ from path import Path
 from retry import retry
 import ruamel.yaml
 from setuptools import sandbox
+import emoji
 
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = f"{DBX_PATH}/project.json"
@@ -33,11 +35,15 @@ LOCK_FILE_PATH = f"{DBX_PATH}/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
 DEFAULT_DEPLOYMENT_FILE_PATH = "conf/deployment.json"
 
+PROJECTS_RELATIVE_PATH = "templates/projects"
+TEMPLATE_CHOICES = pkg_resources.resource_listdir("dbx", PROJECTS_RELATIVE_PATH)
+TEMPLATE_ROOT_PATH = pathlib.Path(pkg_resources.resource_filename("dbx", PROJECTS_RELATIVE_PATH))
+
 
 def dbx_echo(message: str):
     formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     formatted_message = f"[dbx][{formatted_time}] {message}"
-    click.echo(formatted_message)
+    click.echo(emoji.emojize(formatted_message))
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:

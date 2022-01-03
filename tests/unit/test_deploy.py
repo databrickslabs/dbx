@@ -6,6 +6,7 @@ import shutil
 import unittest
 from unittest.mock import patch, Mock
 
+import yaml
 from databricks_cli.sdk import JobsService
 from mlflow import ActiveRun
 from mlflow.entities import Experiment
@@ -150,7 +151,7 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
-            shutil.copy(samples_path / "03-multitask-job.yaml", pathlib.Path("./deployment.yaml"))
+            shutil.copy(samples_path / "03-multitask-job.yaml", pathlib.Path("./deployment.yml"))
             shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
             shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
 
@@ -164,7 +165,7 @@ class DeployTest(DbxTest):
                         "--environment",
                         "default",
                         "--deployment-file",
-                        "deployment.yaml",
+                        "deployment.yml",
                         "--write-specs-to-file",
                         ".dbx/deployment-result.json",
                     ],
@@ -263,8 +264,7 @@ class DeployTest(DbxTest):
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
 
-            shutil.copy(samples_path / "04-path-adjustment-policy.yaml", pathlib.Path("./conf/deployment.yaml"))
-            pathlib.Path("./conf/deployment.json").unlink()
+            shutil.copy(samples_path / "04-path-adjustment-policy.yaml", pathlib.Path("./conf/deployment.yml"))
             shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
             shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
 
@@ -278,7 +278,7 @@ class DeployTest(DbxTest):
                         "--environment",
                         "default",
                         "--deployment-file",
-                        "conf/deployment.yaml",
+                        "conf/deployment.yml",
                         "--write-specs-to-file",
                         ".dbx/deployment-result.json",
                     ],
@@ -534,7 +534,15 @@ class DeployTest(DbxTest):
                 return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
             ):
                 deploy_result = invoke_cli_runner(
-                    deploy, ["--environment", "default", "--write-specs-to-file", spec_file]
+                    deploy,
+                    [
+                        "--deployment-file",
+                        "conf/deployment.yml",
+                        "--environment",
+                        "default",
+                        "--write-specs-to-file",
+                        spec_file,
+                    ],
                 )
 
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -544,7 +552,15 @@ class DeployTest(DbxTest):
                 self.assertIsNotNone(spec_result)
 
                 deploy_overwrite = invoke_cli_runner(
-                    deploy, ["--environment", "default", "--write-specs-to-file", spec_file]
+                    deploy,
+                    [
+                        "--deployment-file",
+                        "conf/deployment.yml",
+                        "--environment",
+                        "default",
+                        "--write-specs-to-file",
+                        spec_file,
+                    ],
                 )
 
                 self.assertEqual(deploy_overwrite.exit_code, 0)
@@ -579,10 +595,10 @@ class DeployTest(DbxTest):
             )
             self.assertEqual(configure_result.exit_code, 0)
 
-            deployment_file = pathlib.Path(DEFAULT_DEPLOYMENT_FILE_PATH)
-            deploy_content = json.loads(deployment_file.read_text())
+            deployment_file = pathlib.Path("conf/deployment.yml")
+            deploy_content = yaml.safe_load(deployment_file.read_text())
 
-            sample_job = deploy_content.get("default").get("jobs")[0]
+            sample_job = deploy_content.get("environments").get("default").get("jobs")[0]
 
             sample_job["permissions"] = {
                 "access_control_list": [
@@ -594,13 +610,15 @@ class DeployTest(DbxTest):
                 ]
             }
 
-            deployment_file.write_text(json.dumps(deploy_content, indent=4))
+            deployment_file.write_text(yaml.safe_dump(deploy_content))
 
             with patch(
                 "mlflow.get_experiment_by_name",
                 return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
             ):
-                deploy_result = invoke_cli_runner(deploy, ["--environment", "default"])
+                deploy_result = invoke_cli_runner(
+                    deploy, ["--deployment-file", "conf/deployment.yml", "--environment", "default"]
+                )
 
                 self.assertEqual(deploy_result.exit_code, 0)
 

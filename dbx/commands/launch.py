@@ -169,7 +169,10 @@ def launch(
 
             else:
                 dbx_status = "NOT_TRACKED"
-                dbx_echo("Run successfully launched in non-tracking mode. Please check Databricks UI for job status")
+                dbx_echo(
+                    "Run successfully launched in non-tracking mode :rocket:. "
+                    "Please check Databricks UI for job status :eyes:"
+                )
 
             deployment_tags = {
                 "job_id": job_id,
