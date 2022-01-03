@@ -49,7 +49,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-        git config --global init.defaultBranch main # to avoid verbose messages in CI pipeline
+        git config --global init.defaultBranch main # to avoid verbose deprecation messages in CI pipeline
         pytest tests/unit --cov dbx
 
       - name: Publish test coverage
