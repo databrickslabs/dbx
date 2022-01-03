@@ -20,7 +20,7 @@ test_dbx_config = DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN)
 def initialize_cookiecutter(project_name):
     invoke_cli_runner(
         init,
-        ["--template-parameters", f"project_name={project_name}", "--no-input"],
+        ["-p", f"project_name={project_name}", "--no-input"],
     )
 
 
