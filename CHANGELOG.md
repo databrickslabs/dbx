@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - YYYY-MM-DD
 ### Added
 - Add support for named property of the driver instance pool name
+- Add support for built-in templates and project initialization via :code:`dbx init`
 
 ### Fixed
 - Provided bugfix for named property resolution in multitask-based jobs
