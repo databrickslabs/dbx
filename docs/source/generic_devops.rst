@@ -1,5 +1,5 @@
-Just enough theory for data pipelines automation
-================================================
+Just enough theory for data pipelines CI/CD automation
+======================================================
 
 .. contents::
    :depth: 1
