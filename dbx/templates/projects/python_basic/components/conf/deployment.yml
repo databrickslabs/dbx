@@ -1,6 +1,6 @@
 custom:
   basic-cluster-props: &basic-cluster-props
-    spark_version: "9.1.x-scala2.12"
+    spark_version: "9.1.x-cpu-ml-scala2.12"
 
   basic-static-cluster: &basic-static-cluster
     new_cluster:

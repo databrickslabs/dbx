@@ -37,7 +37,7 @@ dbx launch --job={{cookiecutter.project_name}}-sample-integration-test --as-run-
 ## Interactive execution and development
 
 1. `dbx` expects that cluster for interactive execution supports `%pip` and `%conda` magic [commands](https://docs.databricks.com/libraries/notebooks-python-libraries.html).
-2. Please configure your job in `conf/deployment.json` file. 
+2. Please configure your job in `conf/deployment.yml` file.
 2. To execute the code interactively, provide either `--cluster-id` or `--cluster-name`.
 ```bash
 dbx execute \
@@ -49,9 +49,9 @@ Multiple users also can use the same cluster for development. Libraries will be 
 
 ## Preparing deployment file
 
-Next step would be to configure your deployment objects. To make this process easy and flexible, we're using JSON for configuration.
+Next step would be to configure your deployment objects. To make this process easy and flexible, we're using YAML for configuration.
 
-By default, deployment configuration is stored in `conf/deployment.json`.
+By default, deployment configuration is stored in `conf/deployment.yml`.
 
 ## Deployment for Run Submit API
 
