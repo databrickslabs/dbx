@@ -253,10 +253,11 @@ Depending on your CI tool, please choose the instruction accordingly:
             * Open the GitLab CI/CD UI to check the deployment status
 
 
-Please note that to create a release and deploy the job in a normal mode, tag the latest version in main branch and push the tags:
+Please note that to create a release and deploy the job in a normal mode, tag the latest commit in the main branch and push the tags:
 
 .. code-block::
 
+    git fetch
     git checkout main
     git pull
     git tag -a v0.0.1 -m "Release for version 0.0.1"
