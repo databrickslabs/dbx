@@ -72,7 +72,7 @@ class Job(ABC):
 
     @staticmethod
     def _read_config(conf_file) -> Dict[str, Any]:
-        config = yaml.load(pathlib.Path(conf_file).read_text())
+        config = yaml.safe_load(pathlib.Path(conf_file).read_text())
         return config
 
     def _prepare_logger(self) -> Logger:

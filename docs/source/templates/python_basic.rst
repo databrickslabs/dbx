@@ -114,7 +114,7 @@ Local development environment
     conda create -n <your-environment-name> python=3.7.5
     conda activate <your-environment-name>
 
-* If you would like to be able to run local unit tests, you'll need JDK. If you don't have one, It can be installed via:
+* If you would like to be able to run local unit tests, you'll need JDK. If you don't have one, it can be installed via:
 
 .. code-block::
 
@@ -157,7 +157,7 @@ To launch local test, simply use the :code:`pytest` framework from the root dire
 
 .. code-block::
 
-    pytest --cov tests/unit <project_name>
+    pytest tests/unit --cov <project_name>
 
 At this stage, you have the following:
 
@@ -200,7 +200,7 @@ Instead of this, we're going to perform something called jobless deployment, by 
 
 .. code-block::
 
-    dbx deploy --deployment-file=conf/deployment.yml --job=<job-name> --files-only
+    dbx deploy --deployment-file=conf/deployment.yml --jobs=<job-name> --files-only
 
 Now the job can be launched in a run submit mode:
 

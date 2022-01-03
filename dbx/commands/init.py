@@ -26,32 +26,33 @@ from dbx.utils.common import dbx_echo, TEMPLATE_CHOICES, TEMPLATE_ROOT_PATH
     default="python_basic",
 )
 @click.option(
-    "--template-parameters",
+    "--parameters",
+    "-p",
     multiple=True,
     type=str,
     help="""Additional parameters for project creation in the format of parameter=value, for example:
 
     .. code-block:
 
-        dbx init --template-parameters project_name=some-name cloud=some_cloud
+        dbx init --p project_name=some-name -p cloud=some_cloud
 
     """,
     default=None,
 )
 @click.option("--no-input", type=bool, required=False, is_flag=True)
 @debug_option
-def init(template: str, template_parameters: Optional[List[str]], no_input: bool = False):
+def init(template: str, parameters: Optional[List[str]], no_input: bool = False):
     dbx_echo(f"Configuring new project from template {template} :gear:")
-    if not template_parameters:
+    if not parameters:
         dbx_echo(
             "No template parameters were provided. "
             "Please follow the cookiecutter init dialogue to pass template parameters..."
         )
-        template_parameters = {}
+        parameters = {}
     else:
-        splits = [item.split("=") for item in template_parameters]
-        template_parameters = {item[0]: item[1] for item in splits}
+        splits = [item.split("=") for item in parameters]
+        parameters = {item[0]: item[1] for item in splits}
 
     renderable_template_path = TEMPLATE_ROOT_PATH / template / "render"
-    cookiecutter(str(renderable_template_path), extra_context=template_parameters, no_input=no_input)
+    cookiecutter(str(renderable_template_path), extra_context=parameters, no_input=no_input)
     dbx_echo("Project configuration finished. You're all set to use dbx :fire:")
