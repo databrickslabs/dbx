@@ -16,4 +16,4 @@ omit =
     setup.py
     dbx/cli.py
     dbx/commands/datafactory.py
-    dbx/templates
+    dbx/templates/*

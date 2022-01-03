@@ -37,7 +37,7 @@ jobs:
 
       - name: Deploy the job
         run: |
-          dbx deploy --jobs={project_name}-sample
+          dbx deploy --deployment-file conf/deployment.yaml --jobs={{project_name}}-sample
 
       - name: Create Release
         id: create_release

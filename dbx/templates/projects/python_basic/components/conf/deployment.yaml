@@ -8,7 +8,7 @@ custom:
       num_workers: 1
       node_type_id: "{{cloud_node_type_id}}"
 
-
+# please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
 environments:
   default:
     strict_path_adjustment_policy: true
@@ -18,10 +18,10 @@ environments:
           - *basic-static-cluster
         spark_python_task:
           python_file: "file://{{project_slug}}/jobs/sample/entrypoint.py"
-          parameters: ["--conf-file", "file://conf/test/sample.json"]
+          parameters: ["--conf-file", "file:fuse://conf/test/sample.yaml"]
       - name: "{{project_name}}-sample-integration-test"
         <<:
           - *basic-static-cluster
         spark_python_task:
           python_file: "file://tests/integration/sample_test.py"
-          parameters: ["--conf-file", "file://conf/test/sample.json"]
+          parameters: ["--conf-file", "file:fuse://conf/test/sample.yaml"]

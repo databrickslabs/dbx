@@ -1,9 +1,9 @@
-import json
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from logging import Logger
 from typing import Dict, Any
-
+import yaml
+import pathlib
 from pyspark.sql import SparkSession
 import sys
 
@@ -70,9 +70,9 @@ class Job(ABC):
         namespace = p.parse_known_args(sys.argv[1:])[0]
         return namespace.conf_file
 
-    def _read_config(self, conf_file) -> Dict[str, Any]:
-        raw_content = "".join(self.spark.read.format("text").load(conf_file).toPandas()["value"].tolist())
-        config = json.loads(raw_content)
+    @staticmethod
+    def _read_config(conf_file) -> Dict[str, Any]:
+        config = yaml.load(pathlib.Path(conf_file).read_text())
         return config
 
     def _prepare_logger(self) -> Logger:
