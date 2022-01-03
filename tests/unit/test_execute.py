@@ -78,7 +78,7 @@ class ExecuteTest(DbxTest):
                     execute,
                     [
                         "--deployment-file",
-                        "conf/deployment.yaml",
+                        "conf/deployment.yml",
                         "--environment",
                         "default",
                         "--cluster-id",

@@ -18,10 +18,10 @@ environments:
           - *basic-static-cluster
         spark_python_task:
           python_file: "file://{{project_slug}}/jobs/sample/entrypoint.py"
-          parameters: ["--conf-file", "file:fuse://conf/test/sample.yaml"]
+          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
       - name: "{{project_name}}-sample-integration-test"
         <<:
           - *basic-static-cluster
         spark_python_task:
           python_file: "file://tests/integration/sample_test.py"
-          parameters: ["--conf-file", "file:fuse://conf/test/sample.yaml"]
+          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]

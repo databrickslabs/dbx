@@ -151,7 +151,7 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
-            shutil.copy(samples_path / "03-multitask-job.yaml", pathlib.Path("./deployment.yaml"))
+            shutil.copy(samples_path / "03-multitask-job.yaml", pathlib.Path("./deployment.yml"))
             shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
             shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
 
@@ -165,7 +165,7 @@ class DeployTest(DbxTest):
                         "--environment",
                         "default",
                         "--deployment-file",
-                        "deployment.yaml",
+                        "deployment.yml",
                         "--write-specs-to-file",
                         ".dbx/deployment-result.json",
                     ],
@@ -264,7 +264,7 @@ class DeployTest(DbxTest):
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
 
-            shutil.copy(samples_path / "04-path-adjustment-policy.yaml", pathlib.Path("./conf/deployment.yaml"))
+            shutil.copy(samples_path / "04-path-adjustment-policy.yaml", pathlib.Path("./conf/deployment.yml"))
             shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
             shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
 
@@ -278,7 +278,7 @@ class DeployTest(DbxTest):
                         "--environment",
                         "default",
                         "--deployment-file",
-                        "conf/deployment.yaml",
+                        "conf/deployment.yml",
                         "--write-specs-to-file",
                         ".dbx/deployment-result.json",
                     ],
@@ -537,7 +537,7 @@ class DeployTest(DbxTest):
                     deploy,
                     [
                         "--deployment-file",
-                        "conf/deployment.yaml",
+                        "conf/deployment.yml",
                         "--environment",
                         "default",
                         "--write-specs-to-file",
@@ -555,7 +555,7 @@ class DeployTest(DbxTest):
                     deploy,
                     [
                         "--deployment-file",
-                        "conf/deployment.yaml",
+                        "conf/deployment.yml",
                         "--environment",
                         "default",
                         "--write-specs-to-file",
@@ -595,7 +595,7 @@ class DeployTest(DbxTest):
             )
             self.assertEqual(configure_result.exit_code, 0)
 
-            deployment_file = pathlib.Path("conf/deployment.yaml")
+            deployment_file = pathlib.Path("conf/deployment.yml")
             deploy_content = yaml.safe_load(deployment_file.read_text())
 
             sample_job = deploy_content.get("environments").get("default").get("jobs")[0]
@@ -617,7 +617,7 @@ class DeployTest(DbxTest):
                 return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
             ):
                 deploy_result = invoke_cli_runner(
-                    deploy, ["--deployment-file", "conf/deployment.yaml", "--environment", "default"]
+                    deploy, ["--deployment-file", "conf/deployment.yml", "--environment", "default"]
                 )
 
                 self.assertEqual(deploy_result.exit_code, 0)

@@ -83,7 +83,7 @@ class PostProcessor:
         elif CLOUD == "Google Cloud":
             PostProcessor.TEMPLATE_PARAMETERS["cloud_node_type_id"] = "n1-standard-4"
 
-        NamedTemplate(env, "conf/deployment.yaml").render_and_write(parameters=PostProcessor.TEMPLATE_PARAMETERS)
+        NamedTemplate(env, "conf/deployment.yml").render_and_write(parameters=PostProcessor.TEMPLATE_PARAMETERS)
 
     @staticmethod
     def process():

@@ -61,7 +61,7 @@ class DatafactoryDeployTest(DbxTest):
             )
             self.assertEqual(configure_result.exit_code, 0)
 
-            deployment_file = pathlib.Path("conf/deployment.yaml")
+            deployment_file = pathlib.Path("conf/deployment.yml")
             deploy_content = yaml.safe_load(deployment_file.read_text())
 
             sample_job = deploy_content.get("environments").get("default").get("jobs")[0]
@@ -85,7 +85,7 @@ class DatafactoryDeployTest(DbxTest):
                     deploy,
                     [
                         "--deployment-file",
-                        "conf/deployment.yaml",
+                        "conf/deployment.yml",
                         "--environment",
                         "default",
                         "--write-specs-to-file",
