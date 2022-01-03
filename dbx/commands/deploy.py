@@ -317,6 +317,7 @@ def _adjust_job_definitions(
             job_level_libraries = job.pop("libraries")
             for task in job["tasks"]:
                 task["libraries"] = task.get("libraries", []) + job_level_libraries
+                NamedPropertiesProcessor(task, api_client).preprocess()
 
         policy_name = job.get("new_cluster", {}).get("policy_name")
 
