@@ -11,12 +11,13 @@ To create a project from this template, please run the following command:
 
     dbx init --template=python_basic
 
-The new project will be located in a folder under the name :code:`project-name`.
+The new project will be located in a folder with the chosen project name.
 
 Project file structure
 ----------------------
 
-Your generated template will gave some generic parts, and some of them will be CI tool specific.
+Your generated template will have some generic parts, and some will be CI tool specific.
+
 The clean project structure, without any CI-related files will look like this:
 
 .. code-block:: bash
