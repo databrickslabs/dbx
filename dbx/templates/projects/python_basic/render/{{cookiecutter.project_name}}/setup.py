@@ -6,6 +6,6 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
     version=__version__,
-    description="{{cookiecutter.description}}",
-    author="{{cookiecutter.author}}",
+    description="",
+    author=""
 )

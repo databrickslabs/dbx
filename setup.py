@@ -21,6 +21,7 @@ INSTALL_REQUIRES = [
     "cryptography>=3.3.1,<37.0.0",
     "emoji>=1.6.1",
     "cookiecutter>=1.7.2",
+    "Jinja2>=2.11.2",
 ]
 
 if sys.platform.startswith("win32"):

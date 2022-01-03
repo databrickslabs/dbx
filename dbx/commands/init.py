@@ -1,18 +1,11 @@
 from typing import List, Optional
 
 import click
-import pathlib
+from cookiecutter.main import cookiecutter
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
-import emoji
-from dbx.utils.common import (
-    dbx_echo,
-)
-from cookiecutter.main import cookiecutter
-import pkg_resources
 
-TEMPLATE_CHOICES = pkg_resources.resource_listdir("dbx", "templates")
-TEMPLATE_ROOT_PATH = pathlib.Path(pkg_resources.resource_filename("dbx", "templates"))
+from dbx.utils.common import dbx_echo, TEMPLATE_CHOICES, TEMPLATE_ROOT_PATH
 
 
 @click.command(
@@ -30,7 +23,7 @@ TEMPLATE_ROOT_PATH = pathlib.Path(pkg_resources.resource_filename("dbx", "templa
     required=False,
     type=click.Choice(TEMPLATE_CHOICES, case_sensitive=True),
     help="""Template used to kickoff the project.""",
-    default="python_basic"
+    default="python_basic",
 )
 @click.option(
     "--template-parameters",
@@ -45,9 +38,10 @@ TEMPLATE_ROOT_PATH = pathlib.Path(pkg_resources.resource_filename("dbx", "templa
     """,
     default=None,
 )
+@click.option("--no-input", type=bool, required=False, is_flag=True)
 @debug_option
-def init(template: str, template_parameters: Optional[List[str]]):
-    dbx_echo(f"Configuring new project from template {template}")
+def init(template: str, template_parameters: Optional[List[str]], no_input: bool = False):
+    dbx_echo(f"Configuring new project from template {template} :gear:")
     if not template_parameters:
         dbx_echo(
             "No template parameters were provided. "
@@ -55,8 +49,9 @@ def init(template: str, template_parameters: Optional[List[str]]):
         )
         template_parameters = {}
     else:
-        template_parameters = {item.split("=")[0]: item.split("=")[1] for item in template_parameters}
+        splits = [item.split("=") for item in template_parameters]
+        template_parameters = {item[0]: item[1] for item in splits}
 
-    full_template_path = TEMPLATE_ROOT_PATH / template
-    cookiecutter(str(full_template_path), extra_context=template_parameters)
-    dbx_echo(emoji.emojize("Project configuration finished. You're all set to use dbx :fire:"))
+    renderable_template_path = TEMPLATE_ROOT_PATH / template / "render"
+    cookiecutter(str(renderable_template_path), extra_context=template_parameters, no_input=no_input)
+    dbx_echo("Project configuration finished. You're all set to use dbx :fire:")

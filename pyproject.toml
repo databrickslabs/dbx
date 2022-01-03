@@ -3,7 +3,7 @@ line-length = 120
 target-version = ['py37']
 exclude = '''
 /(
-  | dbx/templates
+  | dbx/templates/projects
 )/
 
 '''

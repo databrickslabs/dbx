@@ -1,0 +1,27 @@
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "9.1.x-scala2.12"
+
+  basic-static-cluster: &basic-static-cluster
+    new_cluster:
+      <<: *basic-cluster-props
+      num_workers: 1
+      node_type_id: "{{cloud_node_type_id}}"
+
+
+environments:
+  default:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: "{{project_name}}-sample"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://{{project_slug}}/jobs/sample/entrypoint.py"
+          parameters: ["--conf-file", "file://conf/test/sample.json"]
+      - name: "{{project_name}}-sample-integration-test"
+        <<:
+          - *basic-static-cluster
+        spark_python_task:
+          python_file: "file://tests/integration/sample_test.py"
+          parameters: ["--conf-file", "file://conf/test/sample.json"]

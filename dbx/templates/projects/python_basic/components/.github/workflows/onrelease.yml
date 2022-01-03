@@ -16,8 +16,8 @@ jobs:
         python-version: [ 3.7 ]
 
     env:
-      DATABRICKS_HOST: ${{{{ secrets.DATABRICKS_HOST }}}}
-      DATABRICKS_TOKEN:  ${{{{ secrets.DATABRICKS_TOKEN }}}}
+      DATABRICKS_HOST: {{ '${{ secrets.DATABRICKS_HOST }}' }}
+      DATABRICKS_TOKEN:  {{ '${{ secrets.DATABRICKS_TOKEN }}' }}
 
     steps:
       - uses: actions/checkout@v1
@@ -43,12 +43,12 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{{{ secrets.GITHUB_TOKEN }}}} # This token is provided by Actions
+          GITHUB_TOKEN: {{ '${{ secrets.GITHUB_TOKEN }}' }} # This token is provided by Actions
         with:
-          tag_name: ${{{{ github.ref }}}}
-          release_name: Release ${{{{ github.ref }}}}
+          tag_name: {{ '${{ github.ref }}' }}
+          release_name: Release {{ '${{ github.ref }}' }}
           body: |
-            Release for version ${{{{ github.ref }}}}.
+            Release for version {{ '${{ github.ref }}' }}.
           draft: false
           prerelease: false
 

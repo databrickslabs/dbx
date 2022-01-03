@@ -44,18 +44,18 @@ stages:
       displayName: 'Run Unit tests'
 
     - script: |
-        dbx deploy --jobs={{cookiecutter.project_name}}-sample-integration-test --files-only
+        dbx deploy --jobs={{project_name}}-sample-integration-test --files-only
       displayName: 'Deploy integration test'
 
     - script: |
-        dbx launch --job={{cookiecutter.project_name}}-sample-integration-test --as-run-submit --trace
+        dbx launch --job={{project_name}}-sample-integration-test --as-run-submit --trace
       displayName: 'Launch integration on test'
 
     - task: PublishTestResults@2
       condition: succeededOrFailed()
       inputs:
         testResultsFormat: 'JUnit'
-        testResultsFiles: '**/test-*.xml' 
+        testResultsFiles: '**/test-*.xml'
         failTaskOnFailedTests: true
 
 - stage: onRelease
@@ -94,12 +94,12 @@ stages:
         displayName: 'Run Unit tests'
 
       - script: |
-          dbx deploy --jobs={{cookiecutter.project_name}}-sample
+          dbx deploy --jobs={{project_name}}-sample
         displayName: 'Deploy the job'
 
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: 'JUnit'
-          testResultsFiles: '**/test-*.xml' 
+          testResultsFiles: '**/test-*.xml'
           failTaskOnFailedTests: true
