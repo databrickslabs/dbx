@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ----
 
 ## [Unreleased] - YYYY-MM-DD
+
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [0.3.0] - 2022-01-04
 ### Added
 - Add support for named property of the driver instance pool name
 - Add support for built-in templates and project initialization via :code:`dbx init`
@@ -18,11 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Provided bugfix for named property resolution in multitask-based jobs
 
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
+
 
 ## [0.2.2] - 2021-12-03
 ### Changed
