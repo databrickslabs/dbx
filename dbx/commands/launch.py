@@ -293,8 +293,13 @@ class RunSubmitLauncher:
         job_spec: Dict[str, Any] = found_jobs[0]
 
         if self.prepared_parameters:
-            task_key = [k for k in job_spec.keys() if k in POSSIBLE_TASK_KEYS][0]
-            job_spec[task_key]["parameters"] = self.prepared_parameters
+            if "tasks" in job_spec:
+                for task in job_spec["tasks"]:
+                    task_key = [k for k in task.keys() if k in POSSIBLE_TASK_KEYS][0]
+                    task[task_key]["parameters"] = self.prepared_parameters
+            else:
+                task_key = [k for k in job_spec.keys() if k in POSSIBLE_TASK_KEYS][0]
+                job_spec[task_key]["parameters"] = self.prepared_parameters
 
         run_data = _submit_run(self.api_client, job_spec)
         return run_data, None
