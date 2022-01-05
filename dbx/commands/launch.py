@@ -332,6 +332,16 @@ class RunNowLauncher:
         job_data = matching_jobs[0]
         job_id = job_data["job_id"]
 
+        is_multi_task = False
+        try:
+            is_multi_task = job_data["settings"]["format"] == "MULTI_TASK"
+        except KeyError:
+            pass
+
+        if is_multi_task:
+            # fetch full job with task definition
+            job_data = jobs_service.get_job(job_id)
+
         active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
 
         for run in active_runs:
@@ -373,6 +383,8 @@ def _define_payload_key(job_settings: Dict[str, Any]):
         extra_payload_key = "python_params"
     elif job_settings.get("spark_submit_task"):
         extra_payload_key = "spark_submit_params"
+    elif job_settings.get("format") == "MULTI_TASK":
+        extra_payload_key = _define_payload_key(job_settings["tasks"][0])
     else:
         raise Exception(f"Unexpected type of the job with settings: {job_settings}")
 
