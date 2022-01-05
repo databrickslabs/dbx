@@ -4,6 +4,7 @@ import pathlib
 import unittest
 from unittest.mock import patch
 
+import yaml
 from mlflow import ActiveRun
 from mlflow.entities import Experiment
 from mlflow.entities.run import Run, RunInfo, RunData
@@ -60,10 +61,10 @@ class DatafactoryDeployTest(DbxTest):
             )
             self.assertEqual(configure_result.exit_code, 0)
 
-            deployment_file = pathlib.Path(DEFAULT_DEPLOYMENT_FILE_PATH)
-            deploy_content = json.loads(deployment_file.read_text())
+            deployment_file = pathlib.Path("conf/deployment.yml")
+            deploy_content = yaml.safe_load(deployment_file.read_text())
 
-            sample_job = deploy_content.get("default").get("jobs")[0]
+            sample_job = deploy_content.get("environments").get("default").get("jobs")[0]
 
             sample_job["permissions"] = {
                 "access_control_list": [
@@ -81,7 +82,15 @@ class DatafactoryDeployTest(DbxTest):
                 return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
             ):
                 deploy_result = invoke_cli_runner(
-                    deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
+                    deploy,
+                    [
+                        "--deployment-file",
+                        "conf/deployment.yml",
+                        "--environment",
+                        "default",
+                        "--write-specs-to-file",
+                        ".dbx/deployment-result.json",
+                    ],
                 )
 
                 self.assertEqual(deploy_result.exit_code, 0)

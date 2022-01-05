@@ -5,21 +5,23 @@ import unittest
 from uuid import uuid4
 
 from click.testing import CliRunner
-from cookiecutter.main import cookiecutter
+
 from databricks_cli.configure.provider import DatabricksConfig
 from path import Path
-from retry import retry
 
-CICD_TEMPLATES_URI = "https://github.com/databrickslabs/cicd-templates.git"
+from dbx.commands.init import init
+
 TEST_HOST = "https:/dbx.cloud.databricks.com"
 TEST_TOKEN = "dapiDBXTEST"
 
 test_dbx_config = DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN)
 
 
-@retry(tries=10, delay=5, backoff=5)
 def initialize_cookiecutter(project_name):
-    cookiecutter(CICD_TEMPLATES_URI, no_input=True, extra_context={"project_name": project_name})
+    invoke_cli_runner(
+        init,
+        ["-p", f"project_name={project_name}", "--no-input"],
+    )
 
 
 def invoke_cli_runner(*args, **kwargs):

@@ -210,7 +210,7 @@ def deploy(
         _log_dbx_file(deployment_spec, "deployment-result.json")
 
         mlflow.set_tags(deployment_tags)
-        dbx_echo(f"Deployment for environment {environment} finished successfully")
+        dbx_echo(f"Deployment for environment {environment} finished successfully :sparkles:")
 
         if write_specs_to_file:
             dbx_echo("Writing final job specifications into file")
@@ -317,6 +317,7 @@ def _adjust_job_definitions(
             job_level_libraries = job.pop("libraries")
             for task in job["tasks"]:
                 task["libraries"] = task.get("libraries", []) + job_level_libraries
+                NamedPropertiesProcessor(task, api_client).preprocess()
 
         policy_name = job.get("new_cluster", {}).get("policy_name")
 

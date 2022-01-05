@@ -26,8 +26,8 @@ Starting from a template (Python)
 ---------------------------------
 If you already have an existing project, you can skip this step and move directly to the next one.
 
-For Python-based deployments, we recommend to use `cicd-templates <https://github.com/databrickslabs/cicd-templates>`_ for quickstart.
-However, if you don't like the project structure defined in cicd-templates, feel free to use the instruction below for full customization.
+:code:`dbx` comes with a set of pre-defined `templates <templates_pointer.html>`_ and a command to use them straight away.
+However, if you don't like the project structure defined in the provided templates, feel free to use the instruction below for full customization.
 
 
 Configuring environments
