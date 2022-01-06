@@ -29,6 +29,19 @@ run_mock = ActiveRun(Run(run_info, run_data))
 
 DEFAULT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"sample": "1"}).encode("utf-8"))}
 RUN_SUBMIT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"test": {"jobs": [{"name": "sample"}]}}).encode("utf-8"))}
+RUN_SUBMIT_MULTI_TASK_DATA_MOCK = {
+    "data": base64.b64encode(
+        json.dumps(
+            {
+                "test": {
+                    "jobs": [
+                        {"name": "sample", "tasks": [{"spark_python_task": {"python_file": "some.entrypoint.py"}}]}
+                    ]
+                }
+            }
+        ).encode("utf-8")
+    )
+}
 
 
 class LaunchTest(DbxTest):
@@ -164,6 +177,67 @@ class LaunchTest(DbxTest):
     @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
+    @patch(
+        "mlflow.search_runs",
+        return_value=pd.DataFrame([{"run_id": 1, "tags.cake": "cheesecake", "tags.dbx_deploy_type": "files_only"}]),
+    )
+    @patch("databricks_cli.dbfs.api.DbfsService.read", return_value=RUN_SUBMIT_MULTI_TASK_DATA_MOCK)
+    @patch("databricks_cli.jobs.api.JobsService.list_runs", return_value={"runs": []})
+    @patch("dbx.commands.launch._submit_run", return_value={"run_id": 1})
+    @patch("databricks_cli.jobs.api.JobsService.get_run", return_value={"run_id": "1", "run_page_url": "http://some"})
+    def test_launch_run_submit_multi_task_job_with_parameters(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "test",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            deployment_content = {"test": {"dbfs": {}, "jobs": []}}
+
+            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
+
+                self.assertEqual(deploy_result.exit_code, 0)
+
+                launch_result = invoke_cli_runner(
+                    launch,
+                    [
+                        "--environment",
+                        "test",
+                        "--job",
+                        "sample",
+                        "--tags",
+                        "cake=cheesecake",
+                        "--as-run-submit",
+                        """--parameters-raw='{"key1": "value1", "key2": 2}'""",
+                    ],
+                )
+
+                self.assertEqual(launch_result.exit_code, 0)
+
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
     @patch("mlflow.search_runs", return_value=pd.DataFrame([{"run_id": 1, "tags.cake": "cheesecake"}]))
     @patch("databricks_cli.dbfs.api.DbfsService.read", return_value=DEFAULT_DATA_MOCK)
     @patch("databricks_cli.jobs.api.JobsService.list_runs", return_value={"runs": []})
@@ -186,6 +260,114 @@ class LaunchTest(DbxTest):
     @patch("databricks_cli.jobs.api.JobsService.run_now", return_value={"run_id": "1"})
     @patch("databricks_cli.jobs.api.JobsService.get_run", return_value={"run_id": "1", "run_page_url": "http://some"})
     def test_launch_with_parameters(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "test",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            deployment_content = {"test": {"dbfs": {}, "jobs": []}}
+
+            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
+
+                self.assertEqual(deploy_result.exit_code, 0)
+
+                launch_raw = invoke_cli_runner(
+                    launch,
+                    [
+                        "--environment",
+                        "test",
+                        "--job",
+                        "sample",
+                        "--tags",
+                        "cake=cheesecake",
+                        """--parameters-raw='{"key1": "value1", "key2": 2}'""",
+                    ],
+                )
+
+                self.assertEqual(launch_raw.exit_code, 0)
+
+                launch_with_params = invoke_cli_runner(
+                    launch,
+                    [
+                        "--environment",
+                        "test",
+                        "--job",
+                        "sample",
+                        "--tags",
+                        "cake=cheesecake",
+                        "--parameters='cake=cheesecake'",
+                    ],
+                )
+
+                self.assertEqual(launch_with_params.exit_code, 0)
+
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    @patch("mlflow.search_runs", return_value=pd.DataFrame([{"run_id": 1, "tags.cake": "cheesecake"}]))
+    @patch("databricks_cli.dbfs.api.DbfsService.read", return_value=DEFAULT_DATA_MOCK)
+    @patch("databricks_cli.jobs.api.JobsService.list_runs", return_value={"runs": []})
+    @patch(
+        "databricks_cli.jobs.api.JobsService.list_jobs",
+        return_value={
+            "jobs": [
+                {
+                    "job_id": 1,
+                    "settings": {
+                        "name": "sample",
+                        "format": "MULTI_TASK",
+                    },
+                }
+            ]
+        },
+    )
+    @patch(
+        "databricks_cli.jobs.api.JobsService.get_job",
+        return_value={
+            "job_id": 1,
+            "settings": {
+                "name": "sample",
+                "format": "MULTI_TASK",
+                "tasks": [
+                    {
+                        "spark_python_task": {
+                            "python_file": "some.entrypoint.py",
+                        },
+                    },
+                    {
+                        "spark_python_task": {
+                            "python_file": "some.entrypoint.py",
+                        },
+                    },
+                ],
+            },
+        },
+    )
+    @patch("databricks_cli.jobs.api.JobsService.run_now", return_value={"run_id": "1"})
+    @patch("databricks_cli.jobs.api.JobsService.get_run", return_value={"run_id": "1", "run_page_url": "http://some"})
+    def test_launch_multi_task_job_with_parameters(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -430,14 +612,24 @@ class LaunchTest(DbxTest):
         # here w check conversions towards API-based props
         nb_task = {"notebook_task": "something"}
         self.assertEqual(_define_payload_key(nb_task), "notebook_params")
+        nb_multi_task = {"format": "MULTI_TASK", "tasks": [nb_task]}
+        self.assertEqual(_define_payload_key(nb_multi_task), "notebook_params")
 
         sj_task = {"spark_jar_task": "something"}
         self.assertEqual(_define_payload_key(sj_task), "jar_params")
+        sj_multi_task = {"format": "MULTI_TASK", "tasks": [sj_task]}
+        self.assertEqual(_define_payload_key(sj_multi_task), "jar_params")
 
         sp_task = {"spark_python_task": "something"}
         self.assertEqual(_define_payload_key(sp_task), "python_params")
+        sp_multi_task = {"format": "MULTI_TASK", "tasks": [sp_task]}
+        self.assertEqual(_define_payload_key(sp_multi_task), "python_params")
+
         ssb_task = {"spark_submit_task": "something"}
         self.assertEqual(_define_payload_key(ssb_task), "spark_submit_params")
+        ssb_multi_task = {"format": "MULTI_TASK", "tasks": [ssb_task]}
+        self.assertEqual(_define_payload_key(ssb_multi_task), "spark_submit_params")
+
         self.assertRaises(Exception, _define_payload_key, {})
 
 
