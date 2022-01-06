@@ -76,6 +76,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     type=str,
     help="""Parameters of the job. \n
             If provided, default job arguments will be overridden.
+            In case of multi-task job, arguments on each task will be overridden.
             Format: (:code:`--parameters="parameter1=value1"`).
             Option might be repeated multiple times.""",
 )
@@ -84,6 +85,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     type=str,
     help="""Parameters of the job as a raw string. \n
             If provided, default job arguments will be overridden.
+            In case of multi-task job, arguments on each task will be overridden.
             If provided, :code:`--parameters` argument will be ignored.
             Example command:
             :code:`dbx launch --job="my-job-name" --parameters-raw='{"key1": "value1", "key2": 2}'`.
