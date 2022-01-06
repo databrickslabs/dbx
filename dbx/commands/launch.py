@@ -334,11 +334,7 @@ class RunNowLauncher:
         job_data = matching_jobs[0]
         job_id = job_data["job_id"]
 
-        is_multi_task = False
-        try:
-            is_multi_task = job_data["settings"]["format"] == "MULTI_TASK"
-        except KeyError:
-            pass
+        is_multi_task = job_data.get("settings", {}).get("format") == "MULTI_TASK"
 
         if is_multi_task:
             # fetch full job with task definition
