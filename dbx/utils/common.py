@@ -43,7 +43,11 @@ TEMPLATE_ROOT_PATH = pathlib.Path(pkg_resources.resource_filename("dbx", PROJECT
 def dbx_echo(message: str):
     formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     formatted_message = f"[dbx][{formatted_time}] {message}"
-    click.echo(emoji.emojize(formatted_message))
+    try:
+        click.echo(emoji.emojize(formatted_message))
+    # this is a fix for unicode error on some platforms as per https://github.com/databrickslabs/dbx/issues/121
+    except UnicodeEncodeError:
+        click.echo(formatted_message)
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
