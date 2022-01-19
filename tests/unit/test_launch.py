@@ -222,7 +222,7 @@ class LaunchTest(DbxTest):
                         "sample",
                         "--tags",
                         "cake=cheesecake",
-                        """--parameters-raw='{"key1": "value1", "key2": 2}'""",
+                        """--parameters-raw={"key1": "value1", "key2": 2}""",
                     ],
                 )
 

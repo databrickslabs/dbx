@@ -121,7 +121,7 @@ def launch(
         branch_name = get_current_branch_name()
 
     if parameters_raw:
-        prepared_parameters = parameters_raw
+        prepared_parameters = json.loads(parameters_raw)
     else:
         override_parameters = parse_multiple(parameters)
         prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
