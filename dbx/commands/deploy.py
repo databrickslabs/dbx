@@ -219,7 +219,7 @@ def deploy(
             if specs_file.exists():
                 specs_file.unlink()
 
-            specs_file.write_text(json.dumps(deployment_spec, indent=4))
+            specs_file.write_text(json.dumps(deployment_spec, indent=4), encoding="utf-8")
 
 
 def _delete_managed_libraries(packages: List[str]) -> List[str]:
@@ -242,7 +242,7 @@ def _preprocess_requirements(requirements):
         dbx_echo("Requirements file is not provided")
         return []
     else:
-        requirements_content = requirements_path.read_text().split("\n")
+        requirements_content = requirements_path.read_text(encoding="utf-8").split("\n")
         filtered_libraries = _delete_managed_libraries(requirements_content)
 
         requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries if req]
@@ -253,7 +253,7 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
     temp_dir = tempfile.mkdtemp()
     serialized_data = json.dumps(content, indent=4)
     temp_path = pathlib.Path(temp_dir, name)
-    temp_path.write_text(serialized_data)
+    temp_path.write_text(serialized_data, encoding="utf-8")
     mlflow.log_artifact(str(temp_path), ".dbx")
     shutil.rmtree(temp_dir)
 
@@ -524,9 +524,8 @@ def _strict_path_adjustment(candidate: str, adjustment: str, file_uploader: File
             """
             )
 
-        adjusted_path = "%s/%s" % (
-            adjustment.replace("dbfs:/", "/dbfs/") if fuse_flag else adjustment,
-            local_path.as_posix(),
+        adjusted_path = "/".join(
+            [adjustment.replace("dbfs:/", "/dbfs/") if fuse_flag else adjustment, local_path.as_posix()]
         )
 
         _upload_file(local_path, adjusted_path, file_uploader)
@@ -548,7 +547,7 @@ def _non_strict_path_adjustment(candidate: str, adjustment: str, file_uploader: 
         local_file_exists = False
 
     if local_file_exists:
-        adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
+        adjusted_path = "/".join([adjustment, file_path.as_posix()])
         if file_uploader.file_exists(adjusted_path):
             dbx_echo("File is already stored in the deployment, no action needed")
         else:

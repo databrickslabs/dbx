@@ -57,12 +57,12 @@ def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
 
 
 def read_json(file_path: str) -> Dict[str, Any]:
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def write_json(content: Dict[str, Any], file_path: str):
-    with open(file_path, "w") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         json.dump(content, f, indent=4)
 
 
@@ -140,7 +140,7 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
         # Env variable resolver
         loader.add_constructor(self.YAML_TAG, self.resolve_env_vars)
 
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return ruamel.yaml.load(f, Loader=loader)
 
     def get_environment(self, environment: str) -> Any:
@@ -195,7 +195,7 @@ class InfoFile:
     @staticmethod
     def _create_lock_file() -> None:
         if not Path(LOCK_FILE_PATH).exists():
-            pathlib.Path(LOCK_FILE_PATH).write_text("{}")
+            pathlib.Path(LOCK_FILE_PATH).write_text("{}", encoding="utf-8")
 
     @staticmethod
     def initialize():
