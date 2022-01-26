@@ -524,10 +524,9 @@ def _strict_path_adjustment(candidate: str, adjustment: str, file_uploader: File
             """
             )
 
-        adjusted_path = "/".join([
-            adjustment.replace("dbfs:/", "/dbfs/") if fuse_flag else adjustment,
-            local_path.as_posix()
-        ])
+        adjusted_path = "/".join(
+            [adjustment.replace("dbfs:/", "/dbfs/") if fuse_flag else adjustment, local_path.as_posix()]
+        )
 
         _upload_file(local_path, adjusted_path, file_uploader)
 
