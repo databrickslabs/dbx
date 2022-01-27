@@ -131,7 +131,7 @@ def deploy(
     if not branch_name:
         branch_name = get_current_branch_name()
 
-    _verify_deployment_file(deployment_file)
+    deployment_file = _finalize_deployment_file_path(deployment_file)
 
     deployment_file_config = get_deployment_config(deployment_file)
     deployment = deployment_file_config.get_environment(environment)
@@ -258,13 +258,22 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
     shutil.rmtree(temp_dir)
 
 
-def _verify_deployment_file(deployment_file: str):
+def _finalize_deployment_file_path(deployment_file: str) -> str:
     file_extension = deployment_file.split(".").pop()
+
     if file_extension not in ["json", "yaml", "yml"]:
         raise Exception('Deployment file should have one of these extensions: [".json", ".yaml", ".yml"]')
 
+    if deployment_file == DEFAULT_DEPLOYMENT_FILE_PATH and not pathlib.Path(deployment_file).exists():
+        fallback_file_path = "conf/deployment.yml"
+        if pathlib.Path(fallback_file_path).exists():
+            dbx_echo("Found conf/deployment.yml file, using it as a deployment file")
+            return fallback_file_path
+
     if not pathlib.Path(deployment_file).exists():
         raise Exception(f"Deployment file ({deployment_file}) does not exist")
+
+    return deployment_file
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):

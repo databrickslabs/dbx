@@ -282,8 +282,6 @@ class DeployTest(DbxTest):
                     [
                         "--environment",
                         "default",
-                        "--deployment-file",
-                        "conf/deployment.yml",
                         "--write-specs-to-file",
                         ".dbx/deployment-result.json",
                     ],
@@ -304,7 +302,7 @@ class DeployTest(DbxTest):
                         "/dbfs/Shared/dbx-testing"
                     )
                 )
-                # self.assertEqual(deploy_result.exit_code, 0)
+                self.assertEqual(deploy_result.exit_code, 0)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(

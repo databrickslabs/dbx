@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ----
 
 ## [Unreleased] - YYYY-MM-DD
+
+### Added
+- Recognition of deployment.yml file from conf directory as a default parameter
+
 ### Changed
 
 - Upgraded minimal `mlflow` version to 1.23
