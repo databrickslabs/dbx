@@ -116,17 +116,15 @@ def execute(
     v1_client = ApiV1Client(api_client)
     context_id = get_context_id(v1_client, cluster_id, "python")
 
-    file_uploader = FileUploader(api_client, is_strict)
-
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
-        localized_base_path = artifact_base_uri.replace("dbfs:/", "/dbfs/")
+        file_uploader = FileUploader(api_client, artifact_base_uri, is_strict)
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
-            file_uploader.upload_file(requirements_fp)
-            localized_requirements_path = f"{localized_base_path}/{str(requirements_fp)}"
+
+            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_fp, as_fuse=True)
 
             installation_command = f"%pip install -U -r {localized_requirements_path}"
 

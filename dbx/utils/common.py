@@ -391,13 +391,21 @@ def handle_package(rebuild_arg):
 
 
 class FileUploader:
-    def __init__(self, api_client: ApiClient, is_strict: Optional[bool] = False):
+    """
+    FileUploader represents a class that is used for uploading local files into mlflow storage
+    """
+
+    def __init__(self, api_client: ApiClient, artifact_uri: str, is_strict: Optional[bool] = False):
         """
         api_client - Databricks API Client
         is_strict - require strict path adjustment policy
         """
         self._dbfs_service = DbfsService(api_client)
         self.is_strict = is_strict
+        self._artifact_uri = pathlib.Path(artifact_uri)
+        self._uploaded_files: Dict[
+            pathlib.Path, str
+        ] = {}  # contains mapping from local to remote paths for all uploaded files
 
     def file_exists(self, file_path: str):
         try:
@@ -407,11 +415,21 @@ class FileUploader:
             return False
 
     @retry(tries=3, delay=1, backoff=0.3)
-    def upload_file(self, file_path: pathlib.Path):
+    def _upload_file(self, file_path: pathlib.Path):
         posix_path_str = file_path.as_posix()
         posix_path = pathlib.PurePosixPath(posix_path_str)
         dbx_echo(f"Deploying file: {file_path}")
         mlflow.log_artifact(str(file_path), str(posix_path.parent))
+
+    def upload_and_provide_path(self, local_path: pathlib.Path, as_fuse: Optional[bool] = False) -> str:
+        if local_path in self._uploaded_files:
+            dbx_echo("File is already uploaded, returning it's path to the definition")
+            return self._uploaded_files[local_path]
+        else:
+            self._upload_file(local_path)
+            remote_path = self._artifact_uri / local_path.as_posix()
+            remote_path = str(remote_path).replace("dbfs:/", "/dbfs/") if as_fuse else str(remote_path)
+            return remote_path
 
 
 def get_current_branch_name() -> Optional[str]:
