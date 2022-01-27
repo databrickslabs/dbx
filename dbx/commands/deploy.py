@@ -317,18 +317,27 @@ def _adjust_job_definitions(
             for task in job["tasks"]:
                 task["libraries"] = task.get("libraries", []) + job_level_libraries
                 NamedPropertiesProcessor(task, api_client).preprocess()
-
-        policy_name = job.get("new_cluster", {}).get("policy_name")
-
-        if policy_name:
-            dbx_echo(f"Processing policy name {policy_name} for job {job['name']}")
-            policy_spec = _preprocess_policy_name(api_client, policy_name)
-            policy = json.loads(policy_spec["definition"])
-            policy_props = PolicyParser(policy).parse()
-            _deep_update(job["new_cluster"], policy_props, policy_name)
-            job["new_cluster"]["policy_id"] = policy_spec["policy_id"]
+                PolicyNameProcessor(task, api_client).preprocess()
 
         NamedPropertiesProcessor(job, api_client).preprocess()
+        PolicyNameProcessor(job, api_client).preprocess()
+
+
+class PolicyNameProcessor:
+    def __init__(self, job: Dict[str, Any], api_client: ApiClient):
+        self._job = job
+        self._api_client = api_client
+
+    def preprocess(self):
+        policy_name = self._job.get("new_cluster", {}).get("policy_name")
+
+        if policy_name:
+            dbx_echo(f"Processing policy name {policy_name} for job {self._job['name']}")
+            policy_spec = _preprocess_policy_name(self._api_client, policy_name)
+            policy = json.loads(policy_spec["definition"])
+            policy_props = PolicyParser(policy).parse()
+            _deep_update(self._job["new_cluster"], policy_props, policy_name)
+            self._job["new_cluster"]["policy_id"] = policy_spec["policy_id"]
 
 
 class NamedPropertiesProcessor:
