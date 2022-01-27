@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Provided bugfix for emoji-based messages in certain shell environments
+- Provided bugfix for cases when not all jobs are listed due to usage of Jobs API 2.1
 
 ----
 > Unreleased changes must be tracked above this line.

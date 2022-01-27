@@ -29,6 +29,7 @@ from dbx.utils.common import (
     get_deployment_config,
     _preprocess_cluster_args,  # noqa
 )
+from dbx.utils.job_listing import find_job_by_name
 from dbx.utils.policy_parser import PolicyParser
 
 
@@ -448,20 +449,12 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
     for job in jobs:
         dbx_echo(f'Processing deployment for job: {job["name"]}')
         jobs_service = JobsService(api_client)
-        all_jobs = jobs_service.list_jobs().get("jobs", [])
-        matching_jobs = [j for j in all_jobs if j["settings"]["name"] == job["name"]]
+        matching_job = find_job_by_name(jobs_service, job["name"])
 
-        if not matching_jobs:
+        if not matching_job:
             job_id = _create_job(api_client, job)
         else:
-
-            if len(matching_jobs) > 1:
-                raise Exception(
-                    f"""There are more than one jobs with name {job["name"]}.
-                Please delete duplicated jobs first"""
-                )
-
-            job_id = matching_jobs[0]["job_id"]
+            job_id = matching_job["job_id"]
             _update_job(jobs_service, job_id, job)
 
         deployment_data[job["name"]] = job_id
