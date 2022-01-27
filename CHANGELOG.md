@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Recognition of deployment.yml file from conf directory as a default parameter
+- Remove unnecessary references of conf/deployment.yml in CI pipelines
 
 ### Changed
 
