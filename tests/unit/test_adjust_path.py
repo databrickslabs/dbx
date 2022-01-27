@@ -1,11 +1,11 @@
-from pydash import py_
-import unittest
-from dbx.commands.deploy import _adjust_job_definitions, FileUploader  # noqa
-import json
-from unittest.mock import MagicMock
 import glob
-from pathlib import Path
+import json
 import os
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock
+
+from dbx.commands.deploy import _adjust_job_definitions, FileUploader  # noqa
 
 
 def format_path(rel_path: str):
