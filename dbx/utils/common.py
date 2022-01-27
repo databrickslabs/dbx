@@ -3,15 +3,18 @@ import datetime as dt
 import json
 import os
 import pathlib
-from typing import Dict, Any, List, Optional, Tuple
-from abc import ABC, abstractmethod
 import re
+from abc import ABC, abstractmethod
+from typing import Dict, Any, List, Optional, Tuple
+
 import click
+import emoji
 import git
 import mlflow
 import mlflow.entities
 import pkg_resources
 import requests
+import ruamel.yaml
 from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import (
     DEFAULT_SECTION,
@@ -19,15 +22,12 @@ from databricks_cli.configure.provider import (
     EnvironmentVariableConfigProvider,
     DatabricksConfig,
 )
-from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
 from retry import retry
-import ruamel.yaml
 from setuptools import sandbox
-import emoji
 
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = f"{DBX_PATH}/project.json"
@@ -109,7 +109,7 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
     # if you need to round-trip see this: https://yaml.readthedocs.io/en/latest/overview.html
 
     # ENV variable pattern and tag
-    PATTERN = re.compile(r".*?\$\{([^}{:]+)(:[^}^{]+)?\}.*?")
+    PATTERN = re.compile(r".*?\$\{([^}{:]+)(:[^}^{]+)?\}.*?")  # noqa
     YAML_TAG = "!ENV"
 
     def resolve_env_vars(self, loader: ruamel.yaml.SafeLoader, node: ruamel.yaml.Node):
@@ -152,7 +152,7 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
 
 class JsonDeploymentConfig(AbstractDeploymentConfig):
     # ENV variable pattern
-    PATTERN = re.compile(r"\$\{([^}{:]+)(:[^}^{]+)?\}")
+    PATTERN = re.compile(r"\$\{([^}{:]+)(:[^}^{]+)?\}")  # noqa
 
     def resolve_env_vars(self, json_obj: Dict[str, Any]) -> Dict[str, Any]:
         json_str = json.dumps(json_obj)
@@ -395,41 +395,35 @@ class FileUploader:
     FileUploader represents a class that is used for uploading local files into mlflow storage
     """
 
-    def __init__(self, api_client: ApiClient, artifact_uri: str, is_strict: Optional[bool] = False):
+    def __init__(self, artifact_uri: str, is_strict: Optional[bool] = False):
         """
-        api_client - Databricks API Client
-        is_strict - require strict path adjustment policy
+        artifact_uri - base location of files for mlflow
+        is_strict - if true, apply strict path adjustment logic
         """
-        self._dbfs_service = DbfsService(api_client)
         self.is_strict = is_strict
         self._artifact_uri = pathlib.Path(artifact_uri)
         self._uploaded_files: Dict[
-            pathlib.Path, str
+            pathlib.Path, pathlib.Path
         ] = {}  # contains mapping from local to remote paths for all uploaded files
-
-    def file_exists(self, file_path: str):
-        try:
-            self._dbfs_service.get_status(file_path)
-            return True
-        except:  # noqa
-            return False
 
     @retry(tries=3, delay=1, backoff=0.3)
     def _upload_file(self, file_path: pathlib.Path):
         posix_path_str = file_path.as_posix()
         posix_path = pathlib.PurePosixPath(posix_path_str)
-        dbx_echo(f"Deploying file: {file_path}")
+        dbx_echo(f"Uploading file: {file_path}")
         mlflow.log_artifact(str(file_path), str(posix_path.parent))
 
     def upload_and_provide_path(self, local_path: pathlib.Path, as_fuse: Optional[bool] = False) -> str:
         if local_path in self._uploaded_files:
             dbx_echo("File is already uploaded, returning it's path to the definition")
-            return self._uploaded_files[local_path]
+            remote_path = self._uploaded_files[local_path]
         else:
             self._upload_file(local_path)
             remote_path = self._artifact_uri / local_path.as_posix()
-            remote_path = str(remote_path).replace("dbfs:/", "/dbfs/") if as_fuse else str(remote_path)
-            return remote_path
+            self._uploaded_files[local_path] = remote_path
+
+        remote_path = str(remote_path).replace("dbfs:/", "/dbfs/") if as_fuse else str(remote_path)
+        return remote_path
 
 
 def get_current_branch_name() -> Optional[str]:

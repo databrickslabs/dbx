@@ -119,7 +119,7 @@ def execute(
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
-        file_uploader = FileUploader(api_client, artifact_base_uri, is_strict)
+        file_uploader = FileUploader(artifact_base_uri, is_strict)
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
@@ -143,8 +143,7 @@ def execute(
             if not package_file:
                 raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
 
-            file_uploader.upload_file(package_file)
-            localized_package_path = f"{localized_base_path}/{str(package_file.as_posix())}"
+            localized_package_path = file_uploader.upload_and_provide_path(package_file, as_fuse=True)
 
             dbx_echo("Installing package")
             installation_command = f"%pip install --force-reinstall {localized_package_path}"
@@ -163,7 +162,7 @@ def execute(
         if task_props:
 
             def adjustment_callback(p: Any):
-                return _adjust_path(p, artifact_base_uri, file_uploader)
+                return _adjust_path(p, file_uploader)
 
             _walk_content(adjustment_callback, task_props)
 

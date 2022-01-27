@@ -27,10 +27,9 @@ class AdjustPathTest(unittest.TestCase):
                 requirements_payload = []
                 package_requirement = []
                 api_client = MagicMock()
-                _file_uploader = FileUploader(api_client)
+                _file_uploader = FileUploader(artifact_base_uri)
                 _adjust_job_definitions(
                     deployment["jobs"],
-                    artifact_base_uri,
                     requirements_payload,
                     package_requirement,
                     _file_uploader,
@@ -40,41 +39,6 @@ class AdjustPathTest(unittest.TestCase):
                 for job_spec in deployment.get("jobs"):
                     for key, value in job_spec.items():
                         self.assertIsNotNone(value)
-
-    def test_that_upstream_files_are_checked_and_paths_are_properly_re_written(self):
-        # setup
-        file_path = format_path("../deployment-configs/aws-example.json")
-        raw_conf = Path(file_path).read_text()
-        deployment_config = json.loads(raw_conf)
-        deployment = deployment_config["default"]
-        artifact_base_uri = "dbfs:/fake/test"
-        requirements_payload = []
-        package_requirement = []
-        api_client = MagicMock()
-        _file_uploader = FileUploader(api_client)
-
-        # function call
-        _adjust_job_definitions(
-            deployment["jobs"],
-            artifact_base_uri,
-            requirements_payload,
-            package_requirement,
-            _file_uploader,
-            api_client,
-        )
-
-        # tests
-        api_client.perform_query.assert_called_once()
-        api_client.perform_query.assert_called_once_with(
-            "GET",
-            "/dbfs/get-status",
-            data={"path": "dbfs:/fake/test/tests/deployment-configs/placeholder_1.py"},
-            headers=None,
-        )
-        self.assertEqual(
-            py_.get(deployment, "jobs.[0].spark_python_task.python_file"),
-            "dbfs:/fake/test/tests/deployment-configs/placeholder_1.py",
-        )
 
 
 if __name__ == "__main__":

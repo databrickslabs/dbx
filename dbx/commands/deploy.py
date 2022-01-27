@@ -158,7 +158,7 @@ def deploy(
     with mlflow.start_run() as deployment_run:
 
         artifact_base_uri = deployment_run.info.artifact_uri
-        _file_uploader = FileUploader(api_client, artifact_base_uri, is_strict)
+        _file_uploader = FileUploader(artifact_base_uri, is_strict)
 
         if no_package:
             dbx_echo("No package definition will be added into job description")
@@ -544,6 +544,7 @@ def _adjust_path(candidate, file_uploader: FileUploader):
                 adjusted_path = _strict_path_adjustment(candidate, file_uploader)
             else:
                 adjusted_path = _non_strict_path_adjustment(candidate, file_uploader)
+
             return adjusted_path
     else:
         return candidate
