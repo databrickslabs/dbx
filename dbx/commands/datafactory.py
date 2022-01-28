@@ -85,7 +85,11 @@ class DatafactoryReflector:
         self.factory_name = factory_name
         self.name = name
         self.environment = environment
-        self.credential = DefaultAzureCredential(exclude_visual_studio_code_credential=True)
+
+        self.credential = DefaultAzureCredential(
+            exclude_shared_token_cache_credential=True,
+            exclude_visual_studio_code_credential=True
+        )
 
         self.sub_client = SubscriptionClient(self.credential)
         self.subscription_id = self._get_subscription_id(subscription_name)
@@ -227,7 +231,17 @@ class DatafactoryReflector:
             if name not in intersected:
                 final_activity_list.append(activity)
 
-        resource = PipelineResource(activities=final_activity_list)
+        resource = PipelineResource(
+            activities=final_activity_list,
+            description=current_pipeline.description,
+            parameters=current_pipeline.parameters,
+            variables=current_pipeline.variables,
+            concurrency=current_pipeline.concurrency,
+            annotations=current_pipeline.annotations,
+            run_dimensions=current_pipeline.run_dimensions,
+            folder=current_pipeline.folder,
+            policy=current_pipeline.policy
+        )
 
         self.adf_client.pipelines.create_or_update(self.resource_group, self.factory_name, self.name, resource)
         dbx_echo(f"Updating pipeline {self.name} - done")
