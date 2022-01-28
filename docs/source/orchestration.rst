@@ -11,7 +11,7 @@ To perform integration with Azure Data Factory, please do the following steps:
 
 .. code-block::
 
-    dbx deploy --write-specs-to-file=./dbx/deployment-result.json
+    dbx deploy --write-specs-to-file=./dbx/deployment-result.json --files-only
 
 2. Reflect job definitions to Azure Data Factory activities:
 
@@ -35,6 +35,10 @@ This command will create or update linked services and pipeline activities. Each
      * only Python-based activities are supported at this moment
      * MSI authentication is not yet supported
      * :code:`policy_id` argument is not yet supported (it will be ignored during deployment to ADF)
+     * | Manual changes to the parameters of Databricks tasks will be nullified during next reflect.
+       | All parameters for Databricks tasks shall be provided in the deployment file
+     * Multi-task jobs are not supported by ADF
+
 
 Integration with Apache Airflow
 -------------------------------
