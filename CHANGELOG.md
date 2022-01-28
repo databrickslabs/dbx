@@ -20,12 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upgraded minimal `mlflow` version to 1.23
 - Upgraded minimal `databricks-cli` version to 0.16.2
+- Upgraded minimal requirements for Azure Data Factory dependent libraries
 
 ### Fixed
 - Provided bugfix for emoji-based messages in certain shell environments
 - Provided bugfix for cases when not all jobs are listed due to usage of Jobs API 2.1
 - Provided bugfix for cases when file names are reused multiple times
 - Provided bugfix for cases when `policy_name` argument needs to be applied on the tasks level
+- Provided bugfix for ADF integration that deleted pipeline-level properties
 
 ----
 > Unreleased changes must be tracked above this line.
