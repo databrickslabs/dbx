@@ -87,8 +87,7 @@ class DatafactoryReflector:
         self.environment = environment
 
         self.credential = DefaultAzureCredential(
-            exclude_shared_token_cache_credential=True,
-            exclude_visual_studio_code_credential=True
+            exclude_shared_token_cache_credential=True, exclude_visual_studio_code_credential=True
         )
 
         self.sub_client = SubscriptionClient(self.credential)
@@ -240,7 +239,7 @@ class DatafactoryReflector:
             annotations=current_pipeline.annotations,
             run_dimensions=current_pipeline.run_dimensions,
             folder=current_pipeline.folder,
-            policy=current_pipeline.policy
+            policy=current_pipeline.policy,
         )
 
         self.adf_client.pipelines.create_or_update(self.resource_group, self.factory_name, self.name, resource)
