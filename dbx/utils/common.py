@@ -33,7 +33,6 @@ DBX_PATH = ".dbx"
 INFO_FILE_PATH = f"{DBX_PATH}/project.json"
 LOCK_FILE_PATH = f"{DBX_PATH}/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
-DEFAULT_DEPLOYMENT_FILE_PATH = "conf/deployment.json"
 
 PROJECTS_RELATIVE_PATH = "templates/projects"
 TEMPLATE_CHOICES = pkg_resources.resource_listdir("dbx", PROJECTS_RELATIVE_PATH)

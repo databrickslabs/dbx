@@ -1,6 +1,6 @@
 import pathlib
 import time
-from typing import Any, List
+from typing import Any, List, Optional
 
 import click
 import mlflow
@@ -8,7 +8,7 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.commands.deploy import _adjust_path, _walk_content
+from dbx.commands.deploy import _adjust_path, _walk_content, finalize_deployment_file_path
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
@@ -17,7 +17,6 @@ from dbx.utils.common import (
     ApiV1Client,
     environment_option,
     get_deployment_config,
-    DEFAULT_DEPLOYMENT_FILE_PATH,
     handle_package,
     get_package_file,
     _preprocess_cluster_args,
@@ -59,7 +58,6 @@ from dbx.utils.common import (
     required=False,
     type=str,
     help="Path to deployment file in one of these formats: [json, yaml]",
-    default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
@@ -75,7 +73,7 @@ def execute(
     cluster_id: str,
     cluster_name: str,
     job: str,
-    deployment_file: str,
+    deployment_file: Optional[str],
     requirements_file: str,
     no_package: bool,
     no_rebuild: bool,
@@ -87,6 +85,8 @@ def execute(
     dbx_echo(f"Executing job: {job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
     handle_package(no_rebuild)
+
+    deployment_file = finalize_deployment_file_path(deployment_file)
 
     deployment = get_deployment_config(deployment_file).get_environment(environment)
     is_strict = deployment.get("strict_path_adjustment_policy", False)
