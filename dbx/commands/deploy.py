@@ -44,7 +44,7 @@ from dbx.utils.policy_parser import PolicyParser
 
     1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
     2. | Deployment configuration will be taken for a given environment (see :option:`-e` for details)
-       | from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf/deployment.json`).
+       | from the deployment file, defined in  :option:`--deployment-file`.
        | You can specify the deployment file in either json or yaml.
        | :code:`[.json, .yaml, .yml]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
