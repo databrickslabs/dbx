@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-DD
 
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [0.3.1] - 2022-01-30
+
 ### Added
 - Recognition of `conf/deployment.yml` file from conf directory as a default parameter
 - Remove unnecessary references of `conf/deployment.yml` in CI pipelines
@@ -28,12 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provided bugfix for cases when file names are reused multiple times
 - Provided bugfix for cases when `policy_name` argument needs to be applied on the tasks level
 - Provided bugfix for ADF integration that deleted pipeline-level properties
-
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 ## [0.3.0] - 2022-01-04
 ### Added
