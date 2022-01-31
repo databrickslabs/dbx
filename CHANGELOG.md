@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+
+## [0.3.2] - 2022-01-31
+
+### Fixed
+
+- Provided bugfix for job/task name references in the deployment configuration
+
 ## [0.3.1] - 2022-01-30
 
 ### Added
