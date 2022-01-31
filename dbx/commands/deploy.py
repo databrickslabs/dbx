@@ -335,22 +335,24 @@ def _adjust_job_definitions(
             for task in job["tasks"]:
                 task["libraries"] = task.get("libraries", []) + job_level_libraries
                 NamedPropertiesProcessor(task, api_client).preprocess()
-                PolicyNameProcessor(task, api_client).preprocess()
+                PolicyNameProcessor(task, api_client, task_mode=True).preprocess()
 
         NamedPropertiesProcessor(job, api_client).preprocess()
         PolicyNameProcessor(job, api_client).preprocess()
 
 
 class PolicyNameProcessor:
-    def __init__(self, job: Dict[str, Any], api_client: ApiClient):
+    def __init__(self, job: Dict[str, Any], api_client: ApiClient, task_mode: bool = False):
         self._job = job
         self._api_client = api_client
+        self._task_mode = task_mode
 
     def preprocess(self):
         policy_name = self._job.get("new_cluster", {}).get("policy_name")
 
         if policy_name:
-            dbx_echo(f"Processing policy name {policy_name} for job {self._job['name']}")
+            fmt_msg = f"task {self._job['task_key']}" if self._task_mode else f"job {self._job['name']}"
+            dbx_echo(f"Processing policy name {policy_name} for {fmt_msg}")
             policy_spec = _preprocess_policy_name(self._api_client, policy_name)
             policy = json.loads(policy_spec["definition"])
             policy_props = PolicyParser(policy).parse()
