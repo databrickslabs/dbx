@@ -26,7 +26,7 @@ class NamedTemplate:
         self._rendered: Optional[str] = None
 
     def render(self, parameters: Dict[str, Any]):
-        template = self._env.get_template(str(self._path))
+        template = self._env.get_template(str(self._path.as_posix()))
         self._rendered = template.render(**parameters)
 
     def write(self):
