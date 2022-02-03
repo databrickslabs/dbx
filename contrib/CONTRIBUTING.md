@@ -3,7 +3,7 @@
 ## CLA signing
 
 To make a contribution to the Databricks Labs projects such as dbx, please fill in and sign the CLA (you can find the template in `contrib/databricks_cla.pdf`) and send it to the email mentioned in this document.
-Please add ivan-trusov@databricks.com to the cc, so I can internally track the status of the CLA.
+Please add ivan.trusov@databricks.com to the cc, so I can internally track the status of the CLA.
 
 ## Nota bene about PR requirements
 
