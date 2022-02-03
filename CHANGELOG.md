@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.3.3] - 2022-02-03
+
+### Fixed
+
+- Provided bugfix for path resolution on Win systems
+
 
 ## [0.3.2] - 2022-01-31
 
