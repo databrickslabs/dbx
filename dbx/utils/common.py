@@ -421,7 +421,8 @@ class FileUploader:
             remote_path = self._artifact_uri / local_path.as_posix()
             self._uploaded_files[local_path] = remote_path
 
-        remote_path = str(remote_path).replace("dbfs:/", "/dbfs/") if as_fuse else str(remote_path)
+        remote_path = remote_path.as_posix()
+        remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
 
 
