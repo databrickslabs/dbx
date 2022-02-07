@@ -11,7 +11,7 @@ class FileUploaderTest(unittest.TestCase):
     @patch("mlflow.log_artifact", return_value=None)
     def test_uploader(self, _):
 
-        local_paths = [pathlib.PosixPath("/some/local/file"), pathlib.PureWindowsPath("C:\\some\\file")]
+        local_paths = [pathlib.PurePosixPath("/some/local/file"), pathlib.PureWindowsPath("C:\\some\\file")]
 
         for artifact_uri in self.TEST_ARTIFACT_PATHS:
             for local_path in local_paths:
@@ -23,7 +23,7 @@ class FileUploaderTest(unittest.TestCase):
     @patch("mlflow.log_artifact", return_value=None)
     def test_fuse_support(self, _):
 
-        local_path = pathlib.PosixPath("/some/local/file")
+        local_path = pathlib.Path("/some/local/file")
 
         for artifact_uri in self.TEST_ARTIFACT_PATHS:
             uploader = FileUploader(artifact_uri=artifact_uri)

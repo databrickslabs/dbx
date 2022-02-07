@@ -26,7 +26,7 @@ INSTALL_REQUIRES = [
 ]
 
 if sys.platform.startswith("win32"):
-    INSTALL_REQUIRES.append("pywin32")
+    INSTALL_REQUIRES.append("pywin32==227")
 
 setup(
     name="dbx",

@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Provided bugfix for non-dbfs mlflow artifact locations
+- Issue with resolving path on win platforms
+- CI pipeline on win platform
 
 ----
 > Unreleased changes must be tracked above this line.

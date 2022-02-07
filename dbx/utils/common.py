@@ -427,7 +427,7 @@ class FileUploader:
                 "If fuse-like paths are required, consider using DBFS mount as artifact location."
             )
 
-        remote_path = str(remote_path).replace("dbfs:/", "/dbfs/") if as_fuse else str(remote_path)
+        remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
 
 
