@@ -15,10 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Issue with resolving path on win platforms
-
-
-### Added
-
 - CI pipeline on win platform
 
 ----

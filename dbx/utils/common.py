@@ -400,9 +400,9 @@ class FileUploader:
         is_strict - if true, apply strict path adjustment logic
         """
         self.is_strict = is_strict
-        self._artifact_uri = pathlib.Path(artifact_uri)
+        self._artifact_uri = artifact_uri
         self._uploaded_files: Dict[
-            pathlib.Path, pathlib.Path
+            pathlib.Path, str
         ] = {}  # contains mapping from local to remote paths for all uploaded files
 
     @retry(tries=3, delay=1, backoff=0.3)
@@ -418,9 +418,15 @@ class FileUploader:
             remote_path = self._uploaded_files[local_path]
         else:
             self._upload_file(local_path)
-            remote_path = self._artifact_uri / local_path.as_posix()
+            remote_path = "/".join([self._artifact_uri, str(local_path.as_posix())])
             self._uploaded_files[local_path] = remote_path
 
+        if not self._artifact_uri.startswith("dbfs:/") and as_fuse:
+            raise Exception(
+                "Fuse-based paths are not supported for non-dbfs artifact locations."
+                "If fuse-like paths are required, consider using DBFS mount as artifact location."
+            )
+        
         remote_path = str(remote_path.as_posix())
         remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
