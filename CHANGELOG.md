@@ -12,11 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-DD
 
-### Fixed
-
-- Issue with resolving path on win platforms
-- CI pipeline on win platform
-
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
@@ -27,8 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Provided bugfix for path resolution on Win systems
+- path resolution on win platforms
+- Provided bugfix for non-DBFS based mlflow artifact locations
 
+### Added
+
+- CI pipeline on win platform
 
 ## [0.3.2] - 2022-01-31
 
