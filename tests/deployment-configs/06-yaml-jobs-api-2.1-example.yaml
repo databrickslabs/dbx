@@ -33,6 +33,6 @@ environments:
               - task_key: "first-task"
               - task_key: "second-task"
             spark_python_task:
-              python_file: "file://dbx_jobs_v21/jobs/sample/entrypoint.py"
+              python_file: "file://some/entrypoint.py"
               parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
 
