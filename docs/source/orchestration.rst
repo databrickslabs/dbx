@@ -6,14 +6,14 @@ Integration with Azure Data Factory
 
 To perform integration with Azure Data Factory, please do the following steps:
 
-0. Please ensure that pipeline is created and published in Azure Data Factory.
-1. Inside your CI pipeline, deploy latest job versions and write deployment result into a file:
+* Please ensure that pipeline is created and published in Azure Data Factory.
+* Inside your CI pipeline, deploy latest job versions and write deployment result into a file:
 
 .. code-block::
 
     dbx deploy --write-specs-to-file=./dbx/deployment-result.json --files-only
 
-2. Reflect job definitions to Azure Data Factory activities:
+* Reflect job definitions to Azure Data Factory activities:
 
 .. code-block::
 
