@@ -40,7 +40,7 @@ from dbx.utils.common import (
 
     The following set of actions will be done during execution:
 
-    1. If interactive cluster is stooped, it will be automatically started
+    1. If interactive cluster is stopped, it will be automatically started
     2. Package will be rebuilt from the source (can be disabled via :option:`--no-rebuild`)
     3. Job configuration will be taken from deployment file for given environment
     4. All referenced will be uploaded to the MLflow experiment
