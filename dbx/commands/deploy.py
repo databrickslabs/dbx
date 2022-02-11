@@ -555,7 +555,9 @@ def _non_strict_path_adjustment(candidate: str, file_uploader: FileUploader) -> 
     except OSError:
         local_file_exists = False
 
-    if local_file_exists:
+    if candidate == "":
+        return candidate
+    elif local_file_exists:
         adjusted_path = file_uploader.upload_and_provide_path(file_path)
         return adjusted_path
     else:
