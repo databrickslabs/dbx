@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 import re
 import click
 import git
+import jinja2
 import mlflow
 import mlflow.entities
 import pkg_resources
@@ -171,12 +172,43 @@ class JsonDeploymentConfig(AbstractDeploymentConfig):
         return list(self.resolve_env_vars(read_json(self._path)).keys())
 
 
+class Jinja2DeploymentConfig(AbstractDeploymentConfig):
+    def __init__(self, path, ext):
+        super().__init__(path)
+        self._ext = ext
+
+    def _render_jinja_template(self) -> str:
+        path_list = self._path.split("/")
+        file_name = path_list.pop()
+        file_path = "/".join(path_list)
+
+        j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(file_path))
+        return j2_env.get_template(file_name).render(os.environ)
+
+    def _get_deployment_config(self) -> Dict[str, Any]:
+        template = self._render_jinja_template()
+        if self._ext == "json":
+            return json.loads(template)
+        elif self._ext in ["yml", "yaml"]:
+            yaml = ruamel.yaml.YAML(typ="safe")
+            return yaml.load(template).get("environments")
+
+    def get_environment(self, environment: str) -> Any:
+        return self._get_deployment_config().get(environment)
+
+    def get_all_environment_names(self) -> Any:
+        return list(self._get_deployment_config().keys())
+
+
 def get_deployment_config(path: str) -> AbstractDeploymentConfig:
     ext = path.split(".").pop()
     if ext == "json":
         return JsonDeploymentConfig(path)
     elif ext in ["yml", "yaml"]:
         return YamlDeploymentConfig(path)
+    elif ext == "j2":
+        second_ext = path.split(".")[-2]
+        return Jinja2DeploymentConfig(path, second_ext)
     else:
         raise Exception(f"Undefined config file handler for extension: {ext}")
 
