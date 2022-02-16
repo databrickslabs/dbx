@@ -3,16 +3,19 @@ import datetime as dt
 import json
 import os
 import pathlib
-from typing import Dict, Any, List, Optional, Tuple
-from abc import ABC, abstractmethod
 import re
+from abc import ABC, abstractmethod
+from typing import Dict, Any, List, Optional, Tuple
+
 import click
+import emoji
 import git
 import jinja2
 import mlflow
 import mlflow.entities
 import pkg_resources
 import requests
+import ruamel.yaml
 from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import (
     DEFAULT_SECTION,
@@ -20,21 +23,17 @@ from databricks_cli.configure.provider import (
     EnvironmentVariableConfigProvider,
     DatabricksConfig,
 )
-from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from path import Path
 from retry import retry
-import ruamel.yaml
 from setuptools import sandbox
-import emoji
 
 DBX_PATH = ".dbx"
 INFO_FILE_PATH = f"{DBX_PATH}/project.json"
 LOCK_FILE_PATH = f"{DBX_PATH}/lock.json"
 DATABRICKS_MLFLOW_URI = "databricks"
-DEFAULT_DEPLOYMENT_FILE_PATH = "conf/deployment.json"
 
 PROJECTS_RELATIVE_PATH = "templates/projects"
 TEMPLATE_CHOICES = pkg_resources.resource_listdir("dbx", PROJECTS_RELATIVE_PATH)
@@ -44,7 +43,11 @@ TEMPLATE_ROOT_PATH = pathlib.Path(pkg_resources.resource_filename("dbx", PROJECT
 def dbx_echo(message: str):
     formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     formatted_message = f"[dbx][{formatted_time}] {message}"
-    click.echo(emoji.emojize(formatted_message))
+    try:
+        click.echo(emoji.emojize(formatted_message))
+    # this is a fix for unicode error on some platforms as per https://github.com/databrickslabs/dbx/issues/121
+    except UnicodeEncodeError:
+        click.echo(formatted_message)
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -54,12 +57,12 @@ def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
 
 
 def read_json(file_path: str) -> Dict[str, Any]:
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def write_json(content: Dict[str, Any], file_path: str):
-    with open(file_path, "w") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         json.dump(content, f, indent=4)
 
 
@@ -106,7 +109,7 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
     # if you need to round-trip see this: https://yaml.readthedocs.io/en/latest/overview.html
 
     # ENV variable pattern and tag
-    PATTERN = re.compile(r".*?\$\{([^}{:]+)(:[^}^{]+)?\}.*?")
+    PATTERN = re.compile(r".*?\$\{([^}{:]+)(:[^}^{]+)?\}.*?")  # noqa
     YAML_TAG = "!ENV"
 
     def resolve_env_vars(self, loader: ruamel.yaml.SafeLoader, node: ruamel.yaml.Node):
@@ -137,7 +140,7 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
         # Env variable resolver
         loader.add_constructor(self.YAML_TAG, self.resolve_env_vars)
 
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return ruamel.yaml.load(f, Loader=loader)
 
     def get_environment(self, environment: str) -> Any:
@@ -149,7 +152,7 @@ class YamlDeploymentConfig(AbstractDeploymentConfig):
 
 class JsonDeploymentConfig(AbstractDeploymentConfig):
     # ENV variable pattern
-    PATTERN = re.compile(r"\$\{([^}{:]+)(:[^}^{]+)?\}")
+    PATTERN = re.compile(r"\$\{([^}{:]+)(:[^}^{]+)?\}")  # noqa
 
     def resolve_env_vars(self, json_obj: Dict[str, Any]) -> Dict[str, Any]:
         json_str = json.dumps(json_obj)
@@ -223,7 +226,7 @@ class InfoFile:
     @staticmethod
     def _create_lock_file() -> None:
         if not Path(LOCK_FILE_PATH).exists():
-            pathlib.Path(LOCK_FILE_PATH).write_text("{}")
+            pathlib.Path(LOCK_FILE_PATH).write_text("{}", encoding="utf-8")
 
     @staticmethod
     def initialize():
@@ -419,27 +422,45 @@ def handle_package(rebuild_arg):
 
 
 class FileUploader:
-    def __init__(self, api_client: ApiClient, is_strict: Optional[bool] = False):
-        """
-        api_client - Databricks API Client
-        is_strict - require strict path adjustment policy
-        """
-        self._dbfs_service = DbfsService(api_client)
-        self.is_strict = is_strict
+    """
+    FileUploader represents a class that is used for uploading local files into mlflow storage
+    """
 
-    def file_exists(self, file_path: str):
-        try:
-            self._dbfs_service.get_status(file_path)
-            return True
-        except:  # noqa
-            return False
+    def __init__(self, artifact_uri: str, is_strict: Optional[bool] = False):
+        """
+        artifact_uri - base location of files for mlflow
+        is_strict - if true, apply strict path adjustment logic
+        """
+        self.is_strict = is_strict
+        self._artifact_uri = artifact_uri
+        self._uploaded_files: Dict[
+            pathlib.Path, str
+        ] = {}  # contains mapping from local to remote paths for all uploaded files
 
     @retry(tries=3, delay=1, backoff=0.3)
-    def upload_file(self, file_path: pathlib.Path):
+    def _upload_file(self, file_path: pathlib.Path):
         posix_path_str = file_path.as_posix()
         posix_path = pathlib.PurePosixPath(posix_path_str)
-        dbx_echo(f"Deploying file: {file_path}")
+        dbx_echo(f"Uploading file: {file_path}")
         mlflow.log_artifact(str(file_path), str(posix_path.parent))
+
+    def upload_and_provide_path(self, local_path: pathlib.Path, as_fuse: Optional[bool] = False) -> str:
+        if local_path in self._uploaded_files:
+            dbx_echo("File is already uploaded, returning it's path to the definition")
+            remote_path = self._uploaded_files[local_path]
+        else:
+            self._upload_file(local_path)
+            remote_path = "/".join([self._artifact_uri, str(local_path.as_posix())])
+            self._uploaded_files[local_path] = remote_path
+
+        if not self._artifact_uri.startswith("dbfs:/") and as_fuse:
+            raise Exception(
+                "Fuse-based paths are not supported for non-dbfs artifact locations."
+                "If fuse-like paths are required, consider using DBFS mount as artifact location."
+            )
+
+        remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
+        return remote_path
 
 
 def get_current_branch_name() -> Optional[str]:

@@ -15,7 +15,8 @@ from requests import HTTPError
 
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy, _update_job  # noqa
-from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH, read_json, INFO_FILE_PATH
+from dbx.utils.common import write_json, read_json, INFO_FILE_PATH
+from tests.utils import DEFAULT_DEPLOYMENT_FILE_PATH
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 from .test_common import format_path
 
@@ -42,6 +43,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
@@ -82,6 +84,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
@@ -131,6 +134,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
@@ -185,6 +189,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
@@ -243,6 +248,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
@@ -277,13 +283,13 @@ class DeployTest(DbxTest):
                     [
                         "--environment",
                         "default",
-                        "--deployment-file",
-                        "conf/deployment.yml",
                         "--write-specs-to-file",
                         ".dbx/deployment-result.json",
                     ],
                 )
+
                 _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
+
                 self.assertTrue(
                     _content["default"]["jobs"][0]["libraries"][0]["whl"].startswith("dbfs:/Shared/dbx-testing")
                 )
@@ -311,6 +317,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
@@ -358,6 +365,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     def test_deploy_non_existent_env(self, *_):
@@ -400,6 +408,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     def test_deploy_listed_jobs(self, *_):
@@ -440,6 +449,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     def test_deploy_with_requirements_and_branch(self, *_):
@@ -510,6 +520,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     def test_write_specs_to_file(self, *_):
@@ -577,6 +588,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     def test_with_permissions(self, *_):
@@ -636,6 +648,7 @@ class DeployTest(DbxTest):
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)

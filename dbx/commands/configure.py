@@ -18,7 +18,7 @@ from dbx.utils.common import (
     short_help="Configures project environment in the current folder.",
     help="""
     Configures project environment in the current folder.
-    
+
     This command might be used multiple times to change configuration of a given environment.
     If project file (located in :code:`.dbx/project.json`) is non-existent, it will be initialized.
     There is no strict requirement to configure project file via this command.
@@ -45,7 +45,7 @@ from dbx.utils.common import (
 @debug_option
 @profile_option
 def configure(environment: str, workspace_dir: str, artifact_location: str, profile: str):
-    dbx_echo("Configuring new environment with name %s" % environment)
+    dbx_echo(f"Configuring new environment with name {environment}")
 
     if not workspace_dir:
         workspace_dir = f'/Shared/dbx/projects/{Path(".").absolute().name}'

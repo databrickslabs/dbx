@@ -88,3 +88,4 @@ venv.bak/
 .mypy_cache/
 
 
+temp/

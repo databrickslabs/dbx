@@ -23,7 +23,7 @@ integration-testing:
     - pip install -r unit-requirements.txt
     - pip install -e .
     - echo "Deploying tests"
-    - dbx deploy --deployment-file conf/deployment.yml --jobs={{project_name}}-integration-test --files-only
+    - dbx deploy --jobs={{project_name}}-integration-test --files-only
     - echo "Running tests"
     - dbx launch --job={{project_name}}-integration-test --as-run-submit --trace
 
@@ -38,4 +38,4 @@ release:
     - pip install -r unit-requirements.txt
     - pip install -e .
     - echo "Deploying Job"
-    - dbx deploy --deployment-file conf/deployment.yml --jobs={{project_name}}-sample
+    - dbx deploy --jobs={{project_name}}-sample

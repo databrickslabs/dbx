@@ -42,11 +42,11 @@ jobs:
 
       - name: Deploy integration test
         run: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs={{project_name}}-sample-integration-test --files-only
+          dbx deploy --jobs={{project_name}}-sample-integration-test --files-only
 
       - name: Run integration test
         run: |
-          dbx launch --deployment-file conf/deployment.yml --job={{project_name}}-sample-integration-test --as-run-submit --trace
+          dbx launch --job={{project_name}}-sample-integration-test --as-run-submit --trace
 
 
 

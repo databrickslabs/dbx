@@ -19,7 +19,6 @@ from requests.exceptions import HTTPError
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
-    DEFAULT_DEPLOYMENT_FILE_PATH,
     environment_option,
     parse_multiple,
     FileUploader,
@@ -29,6 +28,7 @@ from dbx.utils.common import (
     get_deployment_config,
     _preprocess_cluster_args,  # noqa
 )
+from dbx.utils.job_listing import find_job_by_name
 from dbx.utils.policy_parser import PolicyParser
 
 
@@ -44,7 +44,7 @@ from dbx.utils.policy_parser import PolicyParser
 
     1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
     2. | Deployment configuration will be taken for a given environment (see :option:`-e` for details)
-       | from the deployment file, defined in  :option:`--deployment-file` (default: :code:`conf/deployment.json`).
+       | from the deployment file, defined in  :option:`--deployment-file`.
        | You can specify the deployment file in either json or yaml.
        | :code:`[.json, .yaml, .yml]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
@@ -61,7 +61,6 @@ from dbx.utils.policy_parser import PolicyParser
     required=False,
     type=str,
     help="Path to deployment file in one of these formats: [json, yaml]",
-    default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option(
     "--jobs",
@@ -109,7 +108,7 @@ from dbx.utils.policy_parser import PolicyParser
 @debug_option
 @environment_option
 def deploy(
-    deployment_file: str,
+    deployment_file: Optional[str],
     jobs: str,
     requirements_file: str,
     tags: List[str],
@@ -130,7 +129,7 @@ def deploy(
     if not branch_name:
         branch_name = get_current_branch_name()
 
-    _verify_deployment_file(deployment_file)
+    deployment_file = finalize_deployment_file_path(deployment_file)
 
     deployment_file_config = get_deployment_config(deployment_file)
     deployment = deployment_file_config.get_environment(environment)
@@ -154,11 +153,10 @@ def deploy(
 
     _preprocess_deployment(deployment, requested_jobs)
 
-    _file_uploader = FileUploader(api_client, is_strict)
-
     with mlflow.start_run() as deployment_run:
 
         artifact_base_uri = deployment_run.info.artifact_uri
+        _file_uploader = FileUploader(artifact_base_uri, is_strict)
 
         if no_package:
             dbx_echo("No package definition will be added into job description")
@@ -172,7 +170,7 @@ def deploy(
                 package_requirement = []
 
         _adjust_job_definitions(
-            deployment["jobs"], artifact_base_uri, requirements_payload, package_requirement, _file_uploader, api_client
+            deployment["jobs"], requirements_payload, package_requirement, _file_uploader, api_client
         )
 
         if not files_only:
@@ -219,7 +217,7 @@ def deploy(
             if specs_file.exists():
                 specs_file.unlink()
 
-            specs_file.write_text(json.dumps(deployment_spec, indent=4))
+            specs_file.write_text(json.dumps(deployment_spec, indent=4), encoding="utf-8")
 
 
 def _delete_managed_libraries(packages: List[str]) -> List[str]:
@@ -242,7 +240,7 @@ def _preprocess_requirements(requirements):
         dbx_echo("Requirements file is not provided")
         return []
     else:
-        requirements_content = requirements_path.read_text().split("\n")
+        requirements_content = requirements_path.read_text(encoding="utf-8").split("\n")
         filtered_libraries = _delete_managed_libraries(requirements_content)
 
         requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries if req]
@@ -253,18 +251,38 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
     temp_dir = tempfile.mkdtemp()
     serialized_data = json.dumps(content, indent=4)
     temp_path = pathlib.Path(temp_dir, name)
-    temp_path.write_text(serialized_data)
+    temp_path.write_text(serialized_data, encoding="utf-8")
     mlflow.log_artifact(str(temp_path), ".dbx")
     shutil.rmtree(temp_dir)
 
 
-def _verify_deployment_file(deployment_file: str):
-    file_extension = deployment_file.split(".").pop()
-    if file_extension not in ["json", "yaml", "yml"]:
-        raise Exception('Deployment file should have one of these extensions: [".json", ".yaml", ".yml"]')
+def finalize_deployment_file_path(deployment_file: Optional[str]) -> str:
+    if deployment_file:
+        file_extension = deployment_file.split(".").pop()
 
-    if not pathlib.Path(deployment_file).exists():
-        raise Exception(f"Deployment file ({deployment_file}) does not exist")
+        if file_extension not in ["json", "yaml", "yml"]:
+            raise Exception('Deployment file should have one of these extensions: [".json", ".yaml", ".yml"]')
+
+        if not pathlib.Path(deployment_file).exists():
+            raise Exception(f"Deployment file ({deployment_file}) does not exist")
+
+        dbx_echo(f"Using the provided deployment file {deployment_file}")
+
+        return deployment_file
+
+    else:
+        potential_extensions = ["json", "yml", "yaml"]
+
+        for ext in potential_extensions:
+            candidate = pathlib.Path(f"conf/deployment.{ext}")
+            if candidate.exists():
+                dbx_echo(f"Auto-discovery found deployment file {candidate}")
+                return str(candidate)
+
+        raise Exception(
+            "Auto-discovery was unable to find any deployment file in the conf directory. "
+            "Please provide file name via --deployment-file option"
+        )
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
@@ -297,14 +315,13 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
 
 def _adjust_job_definitions(
     jobs: List[Dict[str, Any]],
-    artifact_base_uri: str,
     requirements_payload: List[Dict[str, str]],
     package_payload: List[Dict[str, str]],
     file_uploader: FileUploader,
     api_client: ApiClient,
 ):
     def adjustment_callback(p: Any):
-        return _adjust_path(p, artifact_base_uri, file_uploader)
+        return _adjust_path(p, file_uploader)
 
     for job in jobs:
 
@@ -318,18 +335,29 @@ def _adjust_job_definitions(
             for task in job["tasks"]:
                 task["libraries"] = task.get("libraries", []) + job_level_libraries
                 NamedPropertiesProcessor(task, api_client).preprocess()
-
-        policy_name = job.get("new_cluster", {}).get("policy_name")
-
-        if policy_name:
-            dbx_echo(f"Processing policy name {policy_name} for job {job['name']}")
-            policy_spec = _preprocess_policy_name(api_client, policy_name)
-            policy = json.loads(policy_spec["definition"])
-            policy_props = PolicyParser(policy).parse()
-            _deep_update(job["new_cluster"], policy_props, policy_name)
-            job["new_cluster"]["policy_id"] = policy_spec["policy_id"]
+                PolicyNameProcessor(task, api_client, task_mode=True).preprocess()
 
         NamedPropertiesProcessor(job, api_client).preprocess()
+        PolicyNameProcessor(job, api_client).preprocess()
+
+
+class PolicyNameProcessor:
+    def __init__(self, job: Dict[str, Any], api_client: ApiClient, task_mode: bool = False):
+        self._job = job
+        self._api_client = api_client
+        self._task_mode = task_mode
+
+    def preprocess(self):
+        policy_name = self._job.get("new_cluster", {}).get("policy_name")
+
+        if policy_name:
+            fmt_msg = f"task {self._job['task_key']}" if self._task_mode else f"job {self._job['name']}"
+            dbx_echo(f"Processing policy name {policy_name} for {fmt_msg}")
+            policy_spec = _preprocess_policy_name(self._api_client, policy_name)
+            policy = json.loads(policy_spec["definition"])
+            policy_props = PolicyParser(policy).parse()
+            _deep_update(self._job["new_cluster"], policy_props, policy_name)
+            self._job["new_cluster"]["policy_id"] = policy_spec["policy_id"]
 
 
 class NamedPropertiesProcessor:
@@ -450,20 +478,12 @@ def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str,
     for job in jobs:
         dbx_echo(f'Processing deployment for job: {job["name"]}')
         jobs_service = JobsService(api_client)
-        all_jobs = jobs_service.list_jobs().get("jobs", [])
-        matching_jobs = [j for j in all_jobs if j["settings"]["name"] == job["name"]]
+        matching_job = find_job_by_name(jobs_service, job["name"])
 
-        if not matching_jobs:
+        if not matching_job:
             job_id = _create_job(api_client, job)
         else:
-
-            if len(matching_jobs) > 1:
-                raise Exception(
-                    f"""There are more than one jobs with name {job["name"]}.
-                Please delete duplicated jobs first"""
-                )
-
-            job_id = matching_jobs[0]["job_id"]
+            job_id = matching_job["job_id"]
             _update_job(jobs_service, job_id, job)
 
         deployment_data[job["name"]] = job_id
@@ -504,14 +524,7 @@ def _walk_content(func, content, parent=None, index=None):
         parent[index] = func(content)
 
 
-def _upload_file(local_path: pathlib.Path, adjusted_path: str, file_uploader: FileUploader):
-    if file_uploader.file_exists(adjusted_path):
-        dbx_echo("File is already stored in the deployment, no action needed")
-    else:
-        file_uploader.upload_file(local_path)
-
-
-def _strict_path_adjustment(candidate: str, adjustment: str, file_uploader: FileUploader) -> str:
+def _strict_path_adjustment(candidate: str, file_uploader: FileUploader) -> str:
     if candidate.startswith("file:"):
         fuse_flag = candidate.startswith("file:fuse:")
         replace_string = "file:fuse://" if fuse_flag else "file://"
@@ -524,12 +537,7 @@ def _strict_path_adjustment(candidate: str, adjustment: str, file_uploader: File
             """
             )
 
-        adjusted_path = "%s/%s" % (
-            adjustment.replace("dbfs:/", "/dbfs/") if fuse_flag else adjustment,
-            local_path.as_posix(),
-        )
-
-        _upload_file(local_path, adjusted_path, file_uploader)
+        adjusted_path = file_uploader.upload_and_provide_path(local_path, as_fuse=fuse_flag)
 
         return adjusted_path
 
@@ -537,7 +545,7 @@ def _strict_path_adjustment(candidate: str, adjustment: str, file_uploader: File
         return candidate
 
 
-def _non_strict_path_adjustment(candidate: str, adjustment: str, file_uploader: FileUploader) -> str:
+def _non_strict_path_adjustment(candidate: str, file_uploader: FileUploader) -> str:
     file_path = pathlib.Path(candidate)
 
     # this is a fix for pathlib behaviour related to WinError
@@ -548,17 +556,13 @@ def _non_strict_path_adjustment(candidate: str, adjustment: str, file_uploader: 
         local_file_exists = False
 
     if local_file_exists:
-        adjusted_path = "%s/%s" % (adjustment, file_path.as_posix())
-        if file_uploader.file_exists(adjusted_path):
-            dbx_echo("File is already stored in the deployment, no action needed")
-        else:
-            file_uploader.upload_file(file_path)
+        adjusted_path = file_uploader.upload_and_provide_path(file_path)
         return adjusted_path
     else:
         return candidate
 
 
-def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
+def _adjust_path(candidate, file_uploader: FileUploader):
     if isinstance(candidate, str):
         # path already adjusted or points to another dbfs object - pass it
         if candidate.startswith("dbfs") or candidate.startswith("/dbfs"):
@@ -566,9 +570,10 @@ def _adjust_path(candidate, adjustment, file_uploader: FileUploader):
         else:
 
             if file_uploader.is_strict:
-                adjusted_path = _strict_path_adjustment(candidate, adjustment, file_uploader)
+                adjusted_path = _strict_path_adjustment(candidate, file_uploader)
             else:
-                adjusted_path = _non_strict_path_adjustment(candidate, adjustment, file_uploader)
+                adjusted_path = _non_strict_path_adjustment(candidate, file_uploader)
+
             return adjusted_path
     else:
         return candidate
