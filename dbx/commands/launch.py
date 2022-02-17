@@ -22,6 +22,7 @@ from dbx.utils.common import (
     InfoFile,
     get_current_branch_name,
 )
+from dbx.utils.job_listing import find_job_by_name
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
@@ -320,18 +321,11 @@ class RunNowLauncher:
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
         jobs_service = JobsService(self.api_client)
+        job_data = find_job_by_name(jobs_service, self.job)
 
-        all_jobs = jobs_service.list_jobs().get("jobs", [])
-
-        matching_jobs = [j for j in all_jobs if j["settings"]["name"] == self.job]
-
-        if not matching_jobs:
+        if not job_data:
             raise Exception(f"Job with name {self.job} not found")
 
-        if len(matching_jobs) > 1:
-            raise Exception(f"Job with name {self.job} is duplicated. Please make job name unique.")
-
-        job_data = matching_jobs[0]
         job_id = job_data["job_id"]
 
         is_multi_task = job_data.get("settings", {}).get("format") == "MULTI_TASK"

@@ -1,6 +1,6 @@
 import pathlib
 import time
-from typing import Any, List
+from typing import Any, List, Optional
 
 import click
 import mlflow
@@ -8,7 +8,7 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.commands.deploy import _adjust_path, _walk_content
+from dbx.commands.deploy import _adjust_path, _walk_content, finalize_deployment_file_path
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
@@ -17,7 +17,6 @@ from dbx.utils.common import (
     ApiV1Client,
     environment_option,
     get_deployment_config,
-    DEFAULT_DEPLOYMENT_FILE_PATH,
     handle_package,
     get_package_file,
     _preprocess_cluster_args,
@@ -41,7 +40,7 @@ from dbx.utils.common import (
 
     The following set of actions will be done during execution:
 
-    1. If interactive cluster is stooped, it will be automatically started
+    1. If interactive cluster is stopped, it will be automatically started
     2. Package will be rebuilt from the source (can be disabled via :option:`--no-rebuild`)
     3. Job configuration will be taken from deployment file for given environment
     4. All referenced will be uploaded to the MLflow experiment
@@ -59,7 +58,6 @@ from dbx.utils.common import (
     required=False,
     type=str,
     help="Path to deployment file in one of these formats: [json, yaml]",
-    default=DEFAULT_DEPLOYMENT_FILE_PATH,
 )
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
@@ -75,7 +73,7 @@ def execute(
     cluster_id: str,
     cluster_name: str,
     job: str,
-    deployment_file: str,
+    deployment_file: Optional[str],
     requirements_file: str,
     no_package: bool,
     no_rebuild: bool,
@@ -87,6 +85,8 @@ def execute(
     dbx_echo(f"Executing job: {job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
     handle_package(no_rebuild)
+
+    deployment_file = finalize_deployment_file_path(deployment_file)
 
     deployment = get_deployment_config(deployment_file).get_environment(environment)
     is_strict = deployment.get("strict_path_adjustment_policy", False)
@@ -116,17 +116,15 @@ def execute(
     v1_client = ApiV1Client(api_client)
     context_id = get_context_id(v1_client, cluster_id, "python")
 
-    file_uploader = FileUploader(api_client, is_strict)
-
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
-        localized_base_path = artifact_base_uri.replace("dbfs:/", "/dbfs/")
+        file_uploader = FileUploader(artifact_base_uri, is_strict)
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
-            file_uploader.upload_file(requirements_fp)
-            localized_requirements_path = f"{localized_base_path}/{str(requirements_fp)}"
+
+            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_fp, as_fuse=True)
 
             installation_command = f"%pip install -U -r {localized_requirements_path}"
 
@@ -145,8 +143,7 @@ def execute(
             if not package_file:
                 raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
 
-            file_uploader.upload_file(package_file)
-            localized_package_path = f"{localized_base_path}/{str(package_file.as_posix())}"
+            localized_package_path = file_uploader.upload_and_provide_path(package_file, as_fuse=True)
 
             dbx_echo("Installing package")
             installation_command = f"%pip install --force-reinstall {localized_package_path}"
@@ -165,7 +162,7 @@ def execute(
         if task_props:
 
             def adjustment_callback(p: Any):
-                return _adjust_path(p, artifact_base_uri, file_uploader)
+                return _adjust_path(p, file_uploader)
 
             _walk_content(adjustment_callback, task_props)
 
@@ -182,7 +179,7 @@ def execute(
 
         dbx_echo("Starting entrypoint file execution")
 
-        execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text())
+        execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text(encoding="utf-8"))
         dbx_echo("Command execution finished")
 
 

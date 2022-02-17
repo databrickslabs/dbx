@@ -8,15 +8,16 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 INSTALL_REQUIRES = [
     "path>=15.0.0",
-    "databricks-cli>=0.16.2",
+    "databricks-cli>=0.16.4",
     "click>=7.1.2",
     "retry>=0.9.2",
     "requests>=2.24.0",
-    "mlflow>=1.11.0",
+    "mlflow>=1.23.0",
+    "scipy<=1.7.3",  # 1.8.0 and higher require Python 3.8, we don't have such a limitation
     "tqdm>=4.50.0",
-    "azure-identity>=1.5.0",
-    "azure-mgmt-datafactory>=1.0.0",
-    "azure-mgmt-subscription>=1.0.0",
+    "azure-identity>=1.7.1",
+    "azure-mgmt-datafactory>=2.2.0",
+    "azure-mgmt-subscription>=3.0.0",
     "ruamel.yaml>=0.17.10",
     "cryptography>=3.3.1,<37.0.0",
     "emoji>=1.6.1",
@@ -25,7 +26,7 @@ INSTALL_REQUIRES = [
 ]
 
 if sys.platform.startswith("win32"):
-    INSTALL_REQUIRES.append("pywin32")
+    INSTALL_REQUIRES.append("pywin32==227")
 
 setup(
     name="dbx",

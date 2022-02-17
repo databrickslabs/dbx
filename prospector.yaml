@@ -26,6 +26,7 @@ pylint:
     - consider-using-set-comprehension
     - useless-object-inheritance
     - unnecessary-pass
+    - raise-missing-from # pretty strange requirement with acquaint logic
 
 pep8:
   disable: W293 # disabled because we have newlines in docstrings

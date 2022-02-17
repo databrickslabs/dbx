@@ -6,7 +6,7 @@ Please note that :code:`dbx` uses `Permissions API <https://docs.databricks.com/
 
 We're using the :code:`PUT` method of `this API method <https://docs.databricks.com/dev-tools/api/latest/permissions.html#operation/update-all-job-permissions>`_ to make the deployment process consistent.
 
-To enable permission settings during deploy, simply add :code:`"permissions"` section into your job definition. Please note that payload under this section shll be compliant with Permissions API.
+To enable permission settings during deploy, simply add :code:`"permissions"` section into your job definition. Please note that payload under this section shall be compliant with Permissions API.
 
 .. code-block:: javascript
 

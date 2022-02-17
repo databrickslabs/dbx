@@ -47,6 +47,7 @@ class ExecuteTest(DbxTest):
         },
     )
     @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch(
