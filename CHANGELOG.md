@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Documentation, examples and support for Jobs API 2.1
+- Support for Jinja2-based templates inside deployment configuration
 
 ### Fixed
 

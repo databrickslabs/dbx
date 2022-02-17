@@ -148,7 +148,7 @@ You can define re-usable definitions in yaml. Here is an example yaml and its js
 
     .. tab:: JSON Equivalent
 
-        .. literalinclude:: ../../tests/deployment-configs/02-yaml-with-vars-test.json
+        .. literalinclude:: ../../tests/deployment-configs/02-json-with-vars-test.json
             :language: JSON
 
 
