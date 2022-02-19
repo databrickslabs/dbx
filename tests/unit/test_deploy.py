@@ -439,8 +439,7 @@ class DeployTest(DbxTest):
                 deploy_result_job = invoke_cli_runner(deploy, ["--environment", "test", "--job", "job-1"])
 
                 deploy_result_both = invoke_cli_runner(
-                    deploy, ["--environment", "test", "--job", "job-1", "--jobs", "job-1,job-2"],
-                    expected_error=True
+                    deploy, ["--environment", "test", "--job", "job-1", "--jobs", "job-1,job-2"], expected_error=True
                 )
 
                 self.assertEqual(deploy_result_jobs.exit_code, 0)

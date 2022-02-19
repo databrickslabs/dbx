@@ -37,7 +37,7 @@ from dbx.utils.policy_parser import PolicyParser
     short_help="""Deploy project to artifact storage.""",
     help="""Deploy project to artifact storage.
 
-    This command takes the project in current folder (the :code:`.dbx/project.json` shall exist)
+    This command takes the project in current folder (file :code:`.dbx/project.json` shall exist)
     and performs deployment to the given environment.
 
     During the deployment, following actions will be performed:
@@ -45,8 +45,8 @@ from dbx.utils.policy_parser import PolicyParser
     1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
     2. | Deployment configuration will be taken for a given environment (see :option:`-e` for details)
        | from the deployment file, defined in  :option:`--deployment-file`.
-       | You can specify the deployment file in either json or yaml.
-       | :code:`[.json, .yaml, .yml]` are all valid file types.
+       | You can specify the deployment file in either JSON or YAML or Jinja-based JSON or YAML.
+       | :code:`[.json, .yaml, .yml, .j2]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
     5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
@@ -154,14 +154,7 @@ def deploy(
 
     is_strict = deployment.get("strict_path_adjustment_policy", False)
 
-    if jobs and job:
-        raise Exception("Both --job and --jobs cannot be provided together")
-    elif job:
-        requested_jobs = [job]
-    elif jobs:
-        requested_jobs = jobs.split(",")
-    else:
-        requested_jobs = None
+    requested_jobs = _define_deployable_jobs(job, jobs)
 
     requirements_payload = _preprocess_requirements(requirements_file)
 
@@ -268,6 +261,20 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
     temp_path.write_text(serialized_data, encoding="utf-8")
     mlflow.log_artifact(str(temp_path), ".dbx")
     shutil.rmtree(temp_dir)
+
+
+def _define_deployable_jobs(job: str, jobs: str) -> Optional[List[str]]:
+    if jobs and job:
+        raise Exception("Both --job and --jobs cannot be provided together")
+
+    if job:
+        requested_jobs = [job]
+    elif jobs:
+        requested_jobs = jobs.split(",")
+    else:
+        requested_jobs = None
+
+    return requested_jobs
 
 
 def finalize_deployment_file_path(deployment_file: Optional[str]) -> str:
