@@ -63,11 +63,20 @@ from dbx.utils.policy_parser import PolicyParser
     help="Path to deployment file in one of these formats: [json, yaml]",
 )
 @click.option(
+    "--job",
+    required=False,
+    type=str,
+    help="""Deploy a single job by it's name.
+              Both :code:`--jobs` and :code:`--job` cannot be provided.
+              """,
+)
+@click.option(
     "--jobs",
     required=False,
     type=str,
     help="""Comma-separated list of job names to be deployed.
               If not provided, all jobs from the deployment file will be deployed.
+              Both :code:`--jobs` and :code:`--job` cannot be provided.
               """,
 )
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")
@@ -109,7 +118,8 @@ from dbx.utils.policy_parser import PolicyParser
 @environment_option
 def deploy(
     deployment_file: Optional[str],
-    jobs: str,
+    job: Optional[str],
+    jobs: Optional[str],
     requirements_file: str,
     tags: List[str],
     environment: str,
@@ -144,7 +154,11 @@ def deploy(
 
     is_strict = deployment.get("strict_path_adjustment_policy", False)
 
-    if jobs:
+    if jobs and job:
+        raise Exception("Both --job and --jobs cannot be provided together")
+    elif job:
+        requested_jobs = [job]
+    elif jobs:
         requested_jobs = jobs.split(",")
     else:
         requested_jobs = None

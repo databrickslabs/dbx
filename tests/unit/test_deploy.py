@@ -47,7 +47,7 @@ class DeployTest(DbxTest):
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("databricks_cli.configure.config._get_api_client", return_value=None)
-    def test_deploy_basic(self, *_):
+    def test_deploy_with_jobs(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -435,8 +435,17 @@ class DeployTest(DbxTest):
                 "mlflow.get_experiment_by_name",
                 return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
             ):
-                deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--jobs", "job-1,job-2"])
-                self.assertEqual(deploy_result.exit_code, 0)
+                deploy_result_jobs = invoke_cli_runner(deploy, ["--environment", "test", "--jobs", "job-1,job-2"])
+                deploy_result_job = invoke_cli_runner(deploy, ["--environment", "test", "--job", "job-1"])
+
+                deploy_result_both = invoke_cli_runner(
+                    deploy, ["--environment", "test", "--job", "job-1", "--jobs", "job-1,job-2"],
+                    expected_error=True
+                )
+
+                self.assertEqual(deploy_result_jobs.exit_code, 0)
+                self.assertEqual(deploy_result_job.exit_code, 0)
+                self.assertRaises(Exception, deploy_result_both)
 
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
