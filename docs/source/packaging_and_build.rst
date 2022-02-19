@@ -1,5 +1,5 @@
-Build and core dependency management options
-=======================================
+Core dependency management and build options
+============================================
 
 Building the project package
 ----------------------------
@@ -27,16 +27,17 @@ Core dependency management
 
     By **core dependency package** we mean the .whl file located in the :code:`dist/` folder.
 
-The core dependency package is very important to be deployed in case if you develop your job with Python packaging mechanisms.
+The core dependency package is very important part of the dependencies that needs to b deployed in case if you develop your job with Python packaging mechanisms.
 
 By default, :code:`dbx` uploads the package file and adds it into the job definition (if it's a single task job), or into every task (if it's a multitask-job).
-in the resulting definition you'll be able to see the package file referenced as:
 
-.. code-block:: json
+In the resulting definition you'll be able to see the package file referenced as:
+
+.. code-block::
 
     "libraries": [
             {
-                "whl": "dbfs:/Shared/dbx/projects/some_project/<some-hash>/artifacts/dist/<some-package>-<version>-py3-none-any.whl"
+                "whl": "dbfs:/Shared/dbx/projects/<some_project>/<some-hash>/artifacts/dist/<some-package>-<version>-py3-none-any.whl"
             }
     ]
 
@@ -67,7 +68,7 @@ In such cases, you can do one of the following:
 
    .. tab:: YAML
 
-      .. literalinclude:: ../../tests/deployment-configs/07-yaml-packaging-example.json
+      .. literalinclude:: ../../tests/deployment-configs/07-yaml-packaging-example.yaml
          :language: YAML
 
 As per examples above - it's possible to provide a per-job or per-task deployment properties in the :code:`deployment_config` section.
