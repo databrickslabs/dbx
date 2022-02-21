@@ -8,7 +8,8 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.commands.deploy import _adjust_path, _walk_content, finalize_deployment_file_path
+from dbx.commands.deploy import finalize_deployment_file_path
+from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
     dbx_echo,
     prepare_environment,
@@ -162,9 +163,9 @@ def execute(
         if task_props:
 
             def adjustment_callback(p: Any):
-                return _adjust_path(p, file_uploader)
+                return adjust_path(p, file_uploader)
 
-            _walk_content(adjustment_callback, task_props)
+            walk_content(adjustment_callback, task_props)
 
         task_props = ["python"] + task_props
 

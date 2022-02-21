@@ -1,0 +1,30 @@
+environments:
+  default:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: single-task-job
+        deployment_config:
+          no_package: true
+        notebook_task:
+          notebook_path: "/Repos/some/notebook"
+      - name: multitask-job
+        job_clusters:
+          - new_cluster:
+              spark_version: 9.1.x-cpu-ml-scala2.12
+              num_workers: 1
+              node_type_id: "{some-node-type-id}"
+            job_cluster_key: basic-cluster
+        tasks:
+          - task_key: first-task
+            deployment_config:
+              no_package: true
+            job_cluster_key: basic-cluster
+            notebook_task:
+              notebook_path: "/Repos/some/notebook"
+          - task_key: second-task
+            job_cluster_key: basic-cluster
+            spark_python_task:
+              python_file: file://some/entrypoint.py
+              parameters:
+                - "--conf-file"
+                - file:fuse://some/conf/file.yml

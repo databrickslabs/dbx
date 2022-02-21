@@ -1,0 +1,31 @@
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "9.1.x-cpu-ml-scala2.12"
+
+  basic-static-cluster: &basic-static-cluster
+    new_cluster:
+      <<: *basic-cluster-props
+      num_workers: 1
+      node_type_id: "some-node-type-id"
+      aws_attributes:
+        instance_profile_name: "some-instance-profile-name"
+
+
+environments:
+  default:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: "dbx-mtj-sample"
+        job_clusters:
+          - job_cluster_key: basic-cluster
+            <<: *basic-static-cluster
+        tasks:
+          - task_key: first-task
+            deployment_config:
+              no_package: true
+            job_cluster_key: basic-cluster
+            notebook_task:
+              notebook_path: "/Repos/some/notebook"
+          - task_key: second-task
+            job_cluster_key: basic-cluster
+

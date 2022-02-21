@@ -16,10 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Documentation, examples and support for Jobs API 2.1
 - Support for Jinja2-based templates inside deployment configuration
+- Added new `--job` argument to deploy command for a single-job deploy and convenience
 
 ### Fixed
 
 - Issue with empty paths in non-strict path adjustment logic
+- Issues with `--no-package` argument for multi-task jobs
+- Issues with named properties propagation for Jobs API 2.1
 
 ----
 > Unreleased changes must be tracked above this line.
