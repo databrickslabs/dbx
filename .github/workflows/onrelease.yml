@@ -46,9 +46,6 @@ jobs:
           user: __token__
           password: ${{ secrets.LABS_PYPI_TOKEN }}
 
-      - name: Publish test coverage
-        uses: codecov/codecov-action@v1
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
