@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Issue with empty paths in non-strict path adjustment logic
+- Issues with `--no-package` argument for multi-task jobs
+- Issues with named properties propagation for Jobs API 2.1
 
 ----
 > Unreleased changes must be tracked above this line.
