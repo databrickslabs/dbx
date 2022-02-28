@@ -235,8 +235,11 @@ def finalize_deployment_file_path(deployment_file: Optional[str]) -> str:
     if deployment_file:
         file_extension = deployment_file.split(".").pop()
 
+        if file_extension == "j2":
+            file_extension = deployment_file.split(".")[-2]
         if file_extension not in ["json", "yaml", "yml"]:
-            raise Exception('Deployment file should have one of these extensions: [".json", ".yaml", ".yml"]')
+            raise Exception('Deployment file should have one of these extensions:'
+                            '[".json", ".yaml", ".yml", "json.j2", "yaml.j2", "yml.j2"]')
 
         if not pathlib.Path(deployment_file).exists():
             raise Exception(f"Deployment file ({deployment_file}) does not exist")
