@@ -1,0 +1,42 @@
+{
+    "default": {
+        "jobs": [
+            {
+                "name": "multitask-job-name",
+                "tasks": [
+                    {
+                        "task_key": "first-task",
+                        "description": "some description",
+                        "new_cluster": {
+                            "spark_version": "7.3.x-cpu-ml-scala2.12",
+                            "node_type_id": "some-node-type",
+                            "num_workers": 2
+                        },
+                        "max_retries": 0,
+                        "spark_python_task": {
+                            "python_file": "placeholder_1.py"
+                        }
+                    },
+                    {
+                        "task_key": "second",
+                        "description": "some description",
+                        "new_cluster": {
+                            "spark_version": "7.3.x-cpu-ml-scala2.12",
+                            "node_type_id": "some-node-type",
+                            "num_workers": 2
+                        },
+                        "max_retries": 0,
+                        "spark_python_task": {
+                            "python_file": "placeholder_1.py"
+                        },
+                        "depends_on": [
+                            {
+                                "task_key": "first-task"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

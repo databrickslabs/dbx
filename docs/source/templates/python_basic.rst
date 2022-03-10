@@ -235,6 +235,11 @@ Depending on your CI tool, please choose the instruction accordingly:
             * Push the code
             * Open the GitHub Actions for your project to verify the state of the deployment pipeline
 
+        .. warning::
+
+            There is no need to manually create the releases via UI in case of the release.
+            Release pipeline will create the release automatically.
+
     .. tab:: Azure DevOps
 
         Please do the following:
@@ -252,7 +257,6 @@ Depending on your CI tool, please choose the instruction accordingly:
             * Add a remote origin to the local repo
             * Push the code
             * Open the GitLab CI/CD UI to check the deployment status
-
 
 Please note that to create a release and deploy the job in a normal mode, tag the latest commit in the main branch and push the tags:
 

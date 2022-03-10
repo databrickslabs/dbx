@@ -118,7 +118,7 @@ Issues with :code:`dbx`? Found a bug? Have a great idea for an addition? Feel fr
 Contributing
 ------------
 
-Please find more details about contributing to :code:`dbx` in the contributing `doc <https://github.com/databrickslabs/dbx/blob/master/CONTRIBUTING.md>`_.
+Please find more details about contributing to :code:`dbx` in the contributing `doc <https://github.com/databrickslabs/dbx/blob/master/contrib/CONTRIBUTING.md>`_.
 
 
 

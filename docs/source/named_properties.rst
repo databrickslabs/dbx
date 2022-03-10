@@ -26,3 +26,9 @@ Here are some examples in JSON and YAML:
 
       .. literalinclude:: ../../tests/deployment-configs/05-yaml-with-named-properties.yaml
          :language: YAML
+
+
+.. note::
+
+    Named properties are also supported for Jobs API 2.1 - simply provide them on the :code:`new_cluster` level.
+

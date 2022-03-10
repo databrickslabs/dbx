@@ -8,18 +8,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
-----
-
 ## [Unreleased] - YYYY-MM-DD
-
-### Fixed
-- Provided bugfix for emoji-based messages in certain shell environments
-
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
 > And empty the **[Unreleased]** section above.
 ----
+
+## [0.4.1] - 2022-03-01
+
+## Fixed
+
+- Jinja2-based file recognition behaviour
+
+## [0.4.0] - 2022-02-28
+
+### Added
+
+- Documentation, examples and support for Jobs API 2.1
+- Support for Jinja2-based templates inside deployment configuration
+- Added new `--job` argument to deploy command for a single-job deploy and convenience
+
+### Fixed
+
+- Issue with empty paths in non-strict path adjustment logic
+- Issues with `--no-package` argument for multi-task jobs
+- Issues with named properties propagation for Jobs API 2.1
+
+
+## [0.3.3] - 2022-02-08
+
+### Fixed
+
+- path resolution on win platforms
+- Provided bugfix for non-DBFS based mlflow artifact locations
+
+### Added
+
+- CI pipeline on win platform
+
+## [0.3.2] - 2022-01-31
+
+### Fixed
+
+- Provided bugfix for job/task name references in the deployment configuration
+
+## [0.3.1] - 2022-01-30
+
+### Added
+- Recognition of `conf/deployment.yml` file from conf directory as a default parameter
+- Remove unnecessary references of `conf/deployment.yml` in CI pipelines
+
+### Changed
+
+- Upgraded minimal `mlflow` version to 1.23
+- Upgraded minimal `databricks-cli` version to 0.16.2
+- Upgraded minimal requirements for Azure Data Factory dependent libraries
+
+### Fixed
+- Provided bugfix for emoji-based messages in certain shell environments
+- Provided bugfix for cases when not all jobs are listed due to usage of Jobs API 2.1
+- Provided bugfix for cases when file names are reused multiple times
+- Provided bugfix for cases when `policy_name` argument needs to be applied on the tasks level
+- Provided bugfix for ADF integration that deleted pipeline-level properties
 
 ## [0.3.0] - 2022-01-04
 ### Added

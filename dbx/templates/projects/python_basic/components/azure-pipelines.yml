@@ -44,7 +44,7 @@ stages:
       displayName: 'Run Unit tests'
 
     - script: |
-        dbx deploy --deployment-file conf/deployment.yml --jobs={{project_name}}-sample-integration-test --files-only
+        dbx deploy --jobs={{project_name}}-sample-integration-test --files-only
       displayName: 'Deploy integration test'
 
     - script: |
@@ -94,7 +94,7 @@ stages:
         displayName: 'Run Unit tests'
 
       - script: |
-          dbx deploy --deployment-file conf/deployment.yml --jobs={{project_name}}-sample
+          dbx deploy --jobs={{project_name}}-sample
         displayName: 'Deploy the job'
 
       - task: PublishTestResults@2

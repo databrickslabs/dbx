@@ -24,6 +24,8 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     run_submit
     properties_propagation
     multitask_jobs
+    jinja2_support
+    packaging_and_build
     path_adjustment
     environment_variables
     named_properties

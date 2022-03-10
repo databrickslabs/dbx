@@ -12,8 +12,8 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [ 3.7 ]
-        os: [ ubuntu-latest ]
+        python-version: [ 3.8 ]
+        os: [ ubuntu-latest, windows-latest ]
 
     steps:
       - uses: actions/checkout@v1
@@ -27,9 +27,9 @@ jobs:
         id: cache
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/dev-requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+            ${{ runner.os }}-pip-${{ hashFiles('**/dev-requirements.txt') }}
             ${{ runner.os }}-pip-
 
       - name: Install pip
@@ -52,5 +52,7 @@ jobs:
           git config --global init.defaultBranch main # to avoid verbose deprecation messages in CI pipeline
           pytest tests/unit --cov dbx
 
+
       - name: Publish test coverage
+        if: startsWith(matrix.os,'ubuntu')
         uses: codecov/codecov-action@v1

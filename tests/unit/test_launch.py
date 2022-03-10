@@ -1,7 +1,9 @@
 import base64
+import contextlib
 import datetime as dt
 import json
 import unittest
+from typing import Callable
 from unittest.mock import patch
 
 import pandas as pd
@@ -12,33 +14,43 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy
 from dbx.commands.launch import launch, _define_payload_key
-from dbx.utils.common import write_json, DEFAULT_DEPLOYMENT_FILE_PATH
+from dbx.utils.common import write_json
+from tests.utils import DEFAULT_DEPLOYMENT_FILE_PATH
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
-
-run_info = RunInfo(
-    run_uuid="1",
-    experiment_id="1",
-    user_id="dbx",
-    status="STATUS",
-    start_time=dt.datetime.now(),
-    end_time=dt.datetime.now(),
-    lifecycle_stage="STAGE",
-)
-run_data = RunData()
-run_mock = ActiveRun(Run(run_info, run_data))
 
 DEFAULT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"sample": "1"}).encode("utf-8"))}
 RUN_SUBMIT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"test": {"jobs": [{"name": "sample"}]}}).encode("utf-8"))}
 
 
 class LaunchTest(DbxTest):
+    @contextlib.contextmanager
+    def _launch_in_provided_context(self, test_func: Callable):
+        artifact_base_uri = f"dbfs:/dbx/{self.project_name}"
+        experiment = Experiment("id", None, artifact_base_uri, None, None)
+
+        run_info = RunInfo(
+            run_uuid="1",
+            experiment_id="1",
+            user_id="dbx",
+            status="STATUS",
+            start_time=dt.datetime.now(),
+            end_time=dt.datetime.now(),
+            lifecycle_stage="STAGE",
+            artifact_uri=artifact_base_uri,
+        )
+
+        run_mock = ActiveRun(Run(run_info, RunData()))
+        with patch("mlflow.tracking.fluent.end_run", return_value=None):
+            with patch("mlflow.get_experiment_by_name", return_value=experiment):
+                with patch("mlflow.start_run", return_value=run_mock):
+                    test_func()
+
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
-    @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("mlflow.search_runs", return_value=pd.DataFrame([{"run_id": 1, "tags.cake": "cheesecake"}]))
@@ -79,10 +91,7 @@ class LaunchTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            with patch(
-                "mlflow.get_experiment_by_name",
-                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-            ):
+            def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
 
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -103,13 +112,14 @@ class LaunchTest(DbxTest):
 
                 self.assertEqual(launch_result.exit_code, 0)
 
+            self._launch_in_provided_context(_test)
+
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
-    @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch(
@@ -140,20 +150,17 @@ class LaunchTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            with patch(
-                "mlflow.get_experiment_by_name",
-                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-            ):
+            def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
-
                 self.assertEqual(deploy_result.exit_code, 0)
 
                 launch_result = invoke_cli_runner(
                     launch,
                     ["--environment", "test", "--job", "sample", "--tags", "cake=cheesecake", "--as-run-submit"],
                 )
-
                 self.assertEqual(launch_result.exit_code, 0)
+
+            self._launch_in_provided_context(_test)
 
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
@@ -161,7 +168,6 @@ class LaunchTest(DbxTest):
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
-    @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("mlflow.search_runs", return_value=pd.DataFrame([{"run_id": 1, "tags.cake": "cheesecake"}]))
@@ -205,10 +211,7 @@ class LaunchTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            with patch(
-                "mlflow.get_experiment_by_name",
-                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-            ):
+            def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
 
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -243,13 +246,14 @@ class LaunchTest(DbxTest):
 
                 self.assertEqual(launch_with_params.exit_code, 0)
 
+            self._launch_in_provided_context(_test)
+
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
-    @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch(
@@ -280,10 +284,7 @@ class LaunchTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            with patch(
-                "mlflow.get_experiment_by_name",
-                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-            ):
+            def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
 
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -297,13 +298,14 @@ class LaunchTest(DbxTest):
                 self.assertIsNotNone(launch_result.exception)
                 self.assertTrue("No deployments provided per given set of filters:" in str(launch_result.exception))
 
+            self._launch_in_provided_context(_test)
+
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
-    @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("mlflow.search_runs", return_value=pd.DataFrame([]))
@@ -330,10 +332,7 @@ class LaunchTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            with patch(
-                "mlflow.get_experiment_by_name",
-                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-            ):
+            def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
 
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -354,13 +353,14 @@ class LaunchTest(DbxTest):
                 self.assertIsNotNone(launch_result.exception)
                 self.assertTrue("not found in underlying MLflow experiment" in str(launch_result.exception))
 
+            self._launch_in_provided_context(_test)
+
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
         return_value=test_dbx_config,
     )
     @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
     @patch("mlflow.set_experiment", return_value=None)
-    @patch("mlflow.start_run", return_value=run_mock)
     @patch("mlflow.log_artifact", return_value=None)
     @patch("mlflow.set_tags", return_value=None)
     @patch("mlflow.search_runs", return_value=pd.DataFrame([{"run_id": 1, "tags.cake": "cheesecake"}]))
@@ -412,10 +412,7 @@ class LaunchTest(DbxTest):
 
             write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            with patch(
-                "mlflow.get_experiment_by_name",
-                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-            ):
+            def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
 
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -425,6 +422,8 @@ class LaunchTest(DbxTest):
                 )
 
                 self.assertEqual(launch_result.exit_code, 0)
+
+            self._launch_in_provided_context(_test)
 
     def test_payload_keys(self, *_):
         # here w check conversions towards API-based props
