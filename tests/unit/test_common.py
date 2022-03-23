@@ -264,6 +264,26 @@ class CommonUnitTest(unittest.TestCase):
         self.assertEqual(json_emails, None)
         self.assertEqual(yaml_emails, None)
 
+    def test_jinja_file_with_custom_variables_file(self):
+
+        variables_file = format_path("../deployment-configs/jinja-template-variables-file.yaml")
+        json_j2_file = format_path("../deployment-configs/09-jinja-with-custom-vars.json.j2")
+        yaml_j2_file = format_path("../deployment-configs/09-jinja-with-custom-vars.yaml.j2")
+        json_default_envs = get_deployment_config(json_j2_file, variables_file).get_environment("default")
+        yaml_default_envs = get_deployment_config(yaml_j2_file, variables_file).get_environment("default")
+
+        json_timeout = json_default_envs.get("jobs")[0].get("timeout_seconds")
+        yaml_timeout = yaml_default_envs.get("jobs")[0].get("timeout_seconds")
+        json_emails = json_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
+        yaml_emails = yaml_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
+
+        self.assertEqual(int(json_timeout), 12000)
+        self.assertEqual(int(json_timeout), int(yaml_timeout))
+
+        self.assertEqual(json_emails, yaml_emails)
+        self.assertEqual(json_emails[0], "example@dbx.com")
+        self.assertEqual(json_emails[1], "presetemail@test.com")
+
 
 class CommonTest(DbxTest):
     def test_update_json(self):

@@ -176,9 +176,10 @@ class JsonDeploymentConfig(AbstractDeploymentConfig):
 
 
 class Jinja2DeploymentConfig(AbstractDeploymentConfig):
-    def __init__(self, path, ext):
+    def __init__(self, path, ext, _template_variables_file=None):
         super().__init__(path)
         self._ext = ext
+        self._template_variables_file = _template_variables_file
 
     def _render_jinja_template(self) -> str:
         path_list = self._path.split("/")
@@ -186,7 +187,20 @@ class Jinja2DeploymentConfig(AbstractDeploymentConfig):
         file_path = "/".join(path_list)
 
         j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(file_path))
-        return j2_env.get_template(file_name).render(os.environ)
+
+        if self._template_variables_file:
+            with open(self._template_variables_file, "r") as file:
+                template_vars = ruamel.yaml.safe_load(file)
+            template_vars = {**os.environ, **template_vars}
+        else:
+            dbx_echo(
+                "No custom template variables file provided."
+                "Using only environment variables to render Jinja template."
+            )
+            template_vars = dict(os.environ)
+
+        rendered_template = j2_env.get_template(file_name).render(template_vars)
+        return rendered_template
 
     def _get_deployment_config(self) -> Dict[str, Any]:
         template = self._render_jinja_template()
@@ -203,7 +217,7 @@ class Jinja2DeploymentConfig(AbstractDeploymentConfig):
         return list(self._get_deployment_config().keys())
 
 
-def get_deployment_config(path: str) -> AbstractDeploymentConfig:
+def get_deployment_config(path: str, template_variables_file: Optional[str] = None) -> AbstractDeploymentConfig:
     ext = path.split(".").pop()
     if ext == "json":
         return JsonDeploymentConfig(path)
@@ -211,7 +225,10 @@ def get_deployment_config(path: str) -> AbstractDeploymentConfig:
         return YamlDeploymentConfig(path)
     elif ext == "j2":
         second_ext = path.split(".")[-2]
-        return Jinja2DeploymentConfig(path, second_ext)
+        if template_variables_file:
+            return Jinja2DeploymentConfig(path, second_ext, template_variables_file)
+        else:
+            return Jinja2DeploymentConfig(path, second_ext)
     else:
         raise Exception(f"Undefined config file handler for extension: {ext}")
 

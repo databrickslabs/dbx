@@ -46,9 +46,12 @@ from dbx.utils.job_listing import find_job_by_name
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
     5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
-    6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
-    7. If the job with given name exists, it will be updated, if not - created
-    8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
+    6. If :option:`--template-variables-file` is provided, then an additional YAML file will be used to define
+       | custom variables to render Jinja2 deployment templates (default is just using environment variables).
+       | :code:`[.yaml, .yml]` are valid file types for :option:`--template-variables-file`.
+    7. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
+    8. If the job with given name exists, it will be updated, if not - created
+    9. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
        | For example, this option can look like this: :code:`--write-specs-to-file=.dbx/deployment-result.json`.
     """,
 )
@@ -76,6 +79,16 @@ from dbx.utils.job_listing import find_job_by_name
               """,
 )
 @click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+@click.option(
+    "--template-variables-file",
+    required=False,
+    type=str,
+    default=None,
+    help="""File path to an additional YAML file that will be used to define extra custom variables to render
+              Jinja2 deployment templates.
+              If not provided, system environment variables will be used.
+              """,
+)
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
@@ -117,6 +130,7 @@ def deploy(
     job: Optional[str],
     jobs: Optional[str],
     requirements_file: str,
+    template_variables_file: Optional[str],
     tags: List[str],
     environment: str,
     no_rebuild: bool,
@@ -135,7 +149,10 @@ def deploy(
 
     deployment_file = finalize_deployment_file_path(deployment_file)
 
-    deployment_file_config = get_deployment_config(deployment_file)
+    if template_variables_file:
+        template_variables_file = finalize_template_variables_file_path(template_variables_file)
+
+    deployment_file_config = get_deployment_config(deployment_file, template_variables_file)
     deployment = deployment_file_config.get_environment(environment)
 
     if not deployment:
@@ -251,7 +268,7 @@ def finalize_deployment_file_path(deployment_file: Optional[str]) -> str:
         return deployment_file
 
     else:
-        potential_extensions = ["json", "yml", "yaml"]
+        potential_extensions = ["json", "json.j2", "yml", "yml.j2", "yaml", "yaml.j2"]
 
         for ext in potential_extensions:
             candidate = pathlib.Path(f"conf/deployment.{ext}")
@@ -263,6 +280,20 @@ def finalize_deployment_file_path(deployment_file: Optional[str]) -> str:
             "Auto-discovery was unable to find any deployment file in the conf directory. "
             "Please provide file name via --deployment-file option"
         )
+
+
+def finalize_template_variables_file_path(template_variables_file: str) -> str:
+    file_extension = template_variables_file.split(".").pop()
+
+    if file_extension not in ["yaml", "yml"]:
+        raise Exception("Template variables file should have one of these extensions:" '[".yaml", ".yml"]')
+
+    if not pathlib.Path(template_variables_file).exists():
+        raise Exception(f"Template variables file ({template_variables_file}) does not exist")
+
+    dbx_echo(f"Using the provided template variables file {template_variables_file}")
+
+    return template_variables_file
 
 
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
