@@ -189,7 +189,7 @@ class Jinja2DeploymentConfig(AbstractDeploymentConfig):
         j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(file_path))
 
         if self._template_variables_file:
-            with open(self._template_variables_file, "r") as file:
+            with open(self._template_variables_file, "r", encoding="utf-8") as file:
                 template_vars = ruamel.yaml.safe_load(file)
             template_vars = {**os.environ, **template_vars}
         else:
