@@ -8,9 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] - YYYY-MM-DD
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
 ----
 
-## [Unreleased] - YYYY-MM-DD
+## [0.4.1] - 2022-03-01
+
+## Fixed
+
+- Jinja2-based file recognition behaviour
+
+## [0.4.0] - 2022-02-28
 
 ### Added
 
@@ -23,12 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Issue with empty paths in non-strict path adjustment logic
 - Issues with `--no-package` argument for multi-task jobs
 - Issues with named properties propagation for Jobs API 2.1
-
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 
 ## [0.3.3] - 2022-02-08

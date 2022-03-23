@@ -52,11 +52,14 @@ This command will configure a project file in :code:`.dbx/project.json` file. Fe
 Preparing Deployment Config
 ---------------------------
 
-Next step would be to configure your deployment objects. To make this process easy and flexible, we support two options to define the configuration.
+Next step would be to configure your deployment objects. The main idea of the deployment file is to provide a flexible way to configure jobs with their dependencies.
+To make this process easy and flexible, we support two options to define the configuration.
 
-#. JSON: :code:`conf/deployment.json`: This is the default file which will be picked up automatically.
-#. YAML: :code:`conf/deployment.yaml`: To use [ yaml | yml ] you will need to explicitly specify the file using the option :code:`--deployment-file=./conf/deployment.yaml`
+#. JSON: :code:`conf/deployment.json`
+#. YAML: :code:`conf/deployment.(yml|yaml)`
 
+If the above options are located relative to the project root directory they will be auto-discovered, else you will need to explicitly specify the file to :code:`dbx deploy` using the option :code:`--deployment-file=./path/to/file.(json|yml|yaml)`.
+The :code:`--deployment-file` option also allows you to use multiple different deployment files.
 
 .. note::
 
@@ -69,13 +72,14 @@ Next step would be to configure your deployment objects. To make this process ea
 
     :code:`dbx` supports passing environment variables into both JSON and YAML based deployment files. Please read more about this functionality :doc:`here <environment_variables>`.
 
+.. note::
+
+    Since version 0.4.1 :code:`dbx` :doc:`supports Jinja2 <jinja2_support>` rendering for JSON and YAML based configurations.
+
 
 JSON
 ****
 
-By default, deployment configuration is stored in :code:`conf/deployment.json`.
-The main idea of the deployment file is to provide a flexible way to configure job with it's dependencies.
-You can use multiple different deployment files, providing the filename as an argument to :code:`dbx deploy` via :code:`--deployment-file=/path/to/file.json` option.
 Here are some samples of deployment files for different cloud providers:
 
 .. tabs::
@@ -127,9 +131,6 @@ any local files can be referenced and will be uploaded to dbfs in a versioned wa
 
 YAML
 ****
-
-If you want to use yaml, you will have to specify the file using :code:`--deployment-file=/path/to/file.yaml` option
-available on the :code:`dbx deploy` or :code:`dbx execute` commands.
 
 You can define re-usable definitions in yaml. Here is an example yaml and its json equivalent:
 
