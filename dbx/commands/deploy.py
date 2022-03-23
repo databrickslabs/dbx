@@ -268,7 +268,7 @@ def finalize_deployment_file_path(deployment_file: Optional[str]) -> str:
         return deployment_file
 
     else:
-        potential_extensions = ["json", "json.j2", "yml", "yml.j2", "yaml", "yaml.j2"]
+        potential_extensions = ["json", "yml", "yaml", "json.j2", "yaml.j2", "yml.j2"]
 
         for ext in potential_extensions:
             candidate = pathlib.Path(f"conf/deployment.{ext}")
