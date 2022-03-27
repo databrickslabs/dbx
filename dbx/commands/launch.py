@@ -14,14 +14,14 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.utils.common import (
-    dbx_echo,
     generate_filter_string,
     prepare_environment,
-    environment_option,
     parse_multiple,
     InfoFile,
     get_current_branch_name,
 )
+from dbx.utils import dbx_echo
+from dbx.utils.options import environment_option
 from dbx.utils.job_listing import find_job_by_name
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]

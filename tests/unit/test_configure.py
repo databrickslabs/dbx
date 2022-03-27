@@ -1,7 +1,8 @@
 import unittest
 
 from dbx.commands.configure import configure
-from dbx.utils.common import InfoFile, INFO_FILE_PATH
+from dbx.utils.common import InfoFile
+from dbx.constants import INFO_FILE_PATH
 from .utils import invoke_cli_runner, DbxTest
 from pathlib import Path
 

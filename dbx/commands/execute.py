@@ -11,17 +11,17 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from dbx.commands.deploy import finalize_deployment_file_path
 from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
-    dbx_echo,
     prepare_environment,
-    FileUploader,
-    ContextLockFile,
-    ApiV1Client,
-    environment_option,
     get_deployment_config,
     handle_package,
     get_package_file,
     _preprocess_cluster_args,
 )
+from dbx.utils import dbx_echo
+from dbx.utils.file_uploader import FileUploader
+from dbx.utils.v1_client import ApiV1Client
+from dbx.api.context import LocalContextManager
+from dbx.utils.options import environment_option
 
 
 @click.command(
@@ -255,7 +255,7 @@ def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: s
 
 def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     dbx_echo("Preparing execution context")
-    lock_context_id = ContextLockFile.get_context()
+    lock_context_id = LocalContextManager.get_context()
 
     if _is_context_available(v1_client, cluster_id, lock_context_id):
         dbx_echo("Existing context is active, using it")
@@ -263,7 +263,7 @@ def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     else:
         dbx_echo("Existing context is not active, creating a new one")
         context_id = create_context(v1_client, cluster_id, language)
-        ContextLockFile.set_context(context_id)
+        LocalContextManager.set_context(context_id)
         dbx_echo("New context prepared, ready to use it")
         return context_id
 

@@ -2,7 +2,8 @@ import logging
 
 from path import Path
 
-from dbx.utils.common import InfoFile, read_json, INFO_FILE_PATH
+from dbx.utils.common import InfoFile, read_json
+from dbx.constants import INFO_FILE_PATH
 from .utils import DbxTest
 
 

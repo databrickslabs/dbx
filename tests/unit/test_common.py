@@ -1,7 +1,8 @@
 import unittest
 import json
 from unittest import mock
-from dbx.utils.common import update_json, ContextLockFile, get_deployment_config, read_json, Jinja2DeploymentConfig
+from dbx.utils.common import update_json, get_deployment_config, read_json, Jinja2DeploymentConfig
+from dbx.api.context import LocalContextManager
 from .utils import DbxTest
 import os
 
@@ -270,7 +271,7 @@ class CommonTest(DbxTest):
         self.assertRaises(FileNotFoundError, update_json, {"key": "value"}, "/absolutely/not/existent/file/path.json")
 
     def test_context_lock_file(self):
-        self.assertIsNone(ContextLockFile.get_context())
+        self.assertIsNone(LocalContextManager.get_context())
 
     def update_project_file(self):
         pass

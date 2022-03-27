@@ -2,7 +2,7 @@ import pathlib
 import unittest
 from unittest.mock import patch
 
-from dbx.utils.common import FileUploader
+from dbx.utils.file_uploader import FileUploader
 
 
 class FileUploaderTest(unittest.TestCase):

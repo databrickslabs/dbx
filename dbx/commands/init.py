@@ -5,7 +5,8 @@ from cookiecutter.main import cookiecutter
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.utils.common import dbx_echo, TEMPLATE_CHOICES, TEMPLATE_ROOT_PATH
+from dbx.utils import dbx_echo
+from dbx.constants import TEMPLATE_CHOICES, TEMPLATE_ROOT_PATH
 
 
 @click.command(
