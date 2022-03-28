@@ -694,5 +694,68 @@ class DeployTest(DbxTest):
             self.assertIsInstance(deploy_result.exception, IndexError)
 
 
+    @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("databricks_cli.workspace.api.WorkspaceService.get_status", return_value=True)
+    @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
+    @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.start_run", return_value=run_mock)
+    @patch("mlflow.tracking.fluent.end_run", return_value=None)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    def test_deploy_with_jinja_templates_and_custom_variables(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "default",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            configs_path = pathlib.Path(format_path("../deployment-configs/"))
+            # deployment_content = json.loads((configs_path / "09-jinja-with-custom-vars.json.j2").read_text())
+            # write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+
+            shutil.copy(configs_path / "09-jinja-with-custom-vars.json.j2",
+                        pathlib.Path("./conf/deployment.json.j2"))
+
+            shutil.copy(configs_path / "jinja-template-variables-file.yaml",
+                        pathlib.Path("./jinja-template-variables-file.yaml"))
+
+            # template_variables = yaml.safe_load((deployment_configs_path / "jinja-template-variables-file.yaml").read_text())
+            # yaml.safe_dump(template_variables, DEFAULT_DEPLOYMENT_FILE_PATH)
+
+            with patch(
+                "mlflow.get_experiment_by_name",
+                return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
+            ):
+                deploy_result = invoke_cli_runner(
+                    deploy,
+                    [
+                        "--environment",
+                        "default",
+                        "--template-variables-file",
+                        "jinja-template-variables-file.yaml",
+                    ],
+                )
+                print(line for line in deploy_result.stdout.splitlines())
+                print('\n\n\n\n', deploy_result)
+                # self.assertEqual(len(deleted_dependency_lines), 1)
+                #
+                self.assertEqual(deploy_result.exit_code, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

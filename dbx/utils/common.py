@@ -225,10 +225,7 @@ def get_deployment_config(path: str, template_variables_file: Optional[str] = No
         return YamlDeploymentConfig(path)
     elif ext == "j2":
         second_ext = path.split(".")[-2]
-        if template_variables_file:
-            return Jinja2DeploymentConfig(path, second_ext, template_variables_file)
-        else:
-            return Jinja2DeploymentConfig(path, second_ext)
+        return Jinja2DeploymentConfig(path, second_ext, template_variables_file)
     else:
         raise Exception(f"Undefined config file handler for extension: {ext}")
 
