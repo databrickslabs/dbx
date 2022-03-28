@@ -693,7 +693,6 @@ class DeployTest(DbxTest):
             )
             self.assertIsInstance(deploy_result.exception, IndexError)
 
-
     @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
     @patch(
         "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
@@ -728,11 +727,12 @@ class DeployTest(DbxTest):
             # deployment_content = json.loads((configs_path / "09-jinja-with-custom-vars.json.j2").read_text())
             # write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
 
-            shutil.copy(configs_path / "09-jinja-with-custom-vars.json.j2",
-                        pathlib.Path("./conf/deployment.json.j2"))
+            shutil.copy(configs_path / "09-jinja-with-custom-vars.json.j2", pathlib.Path("./conf/deployment.json.j2"))
 
-            shutil.copy(configs_path / "jinja-template-variables-file.yaml",
-                        pathlib.Path("./jinja-template-variables-file.yaml"))
+            shutil.copy(
+                configs_path / "jinja-template-variables-file.yaml",
+                pathlib.Path("./jinja-template-variables-file.yaml"),
+            )
 
             # template_variables = yaml.safe_load((deployment_configs_path / "jinja-template-variables-file.yaml").read_text())
             # yaml.safe_dump(template_variables, DEFAULT_DEPLOYMENT_FILE_PATH)
@@ -751,7 +751,7 @@ class DeployTest(DbxTest):
                     ],
                 )
                 print(line for line in deploy_result.stdout.splitlines())
-                print('\n\n\n\n', deploy_result)
+                print("\n\n\n\n", deploy_result)
                 # self.assertEqual(len(deleted_dependency_lines), 1)
                 #
                 self.assertEqual(deploy_result.exit_code, 0)
