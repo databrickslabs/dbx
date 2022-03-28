@@ -56,6 +56,7 @@ Requirements
 
 * Python Version > 3.6
 * :code:`pip` or :code:`conda`
+* Java (for unit testing)
 
 Installation
 ------------
