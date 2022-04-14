@@ -13,11 +13,11 @@ from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 
+from dbx.api.configure import ConfigurationManager
 from dbx.utils.common import (
     generate_filter_string,
     prepare_environment,
     parse_multiple,
-    InfoFile,
     get_current_branch_name,
 )
 from dbx.utils import dbx_echo
@@ -241,7 +241,7 @@ def _find_deployment_run(
             With file-based deployments (dbx_deployment_type='files_only')."""
             )
 
-        experiment_location = InfoFile.get("environments").get(environment).get("workspace_dir")
+        experiment_location = ConfigurationManager().get(environment).workspace_dir
         exception_string = (
             exception_string
             + f"""

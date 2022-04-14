@@ -14,9 +14,8 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy
 from dbx.commands.launch import launch, _define_payload_key
-from dbx.utils.common import write_json
 from tests.utils import DEFAULT_DEPLOYMENT_FILE_PATH
-from .utils import DbxTest, invoke_cli_runner, test_dbx_config
+from .utils import DbxTest, invoke_cli_runner, test_dbx_config, write_json
 
 DEFAULT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"sample": "1"}).encode("utf-8"))}
 RUN_SUBMIT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"test": {"jobs": [{"name": "sample"}]}}).encode("utf-8"))}

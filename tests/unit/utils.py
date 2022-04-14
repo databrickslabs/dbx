@@ -1,11 +1,13 @@
+import json
 import logging
 import shutil
 import tempfile
 import unittest
+from pathlib import Path
+from typing import Dict, Any
 from uuid import uuid4
 
 from click.testing import CliRunner
-
 from databricks_cli.configure.provider import DatabricksConfig
 from path import Path
 
@@ -56,3 +58,11 @@ class DbxTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         shutil.rmtree(self.test_dir)
+
+
+def write_json(content: Dict[Any, Any], file_path: str):
+    Path(file_path).write_text(json.dumps(content), encoding="utf-8")
+
+
+def read_json(file_path: str):
+    return json.loads(Path(file_path).read_text(encoding="utf-8"))

@@ -255,7 +255,7 @@ def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: s
 
 def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     dbx_echo("Preparing execution context")
-    lock_context_id = LocalContextManager.get_context()
+    lock_context_id = LocalContextManager().get_context()
 
     if _is_context_available(v1_client, cluster_id, lock_context_id):
         dbx_echo("Existing context is active, using it")
@@ -263,7 +263,7 @@ def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     else:
         dbx_echo("Existing context is not active, creating a new one")
         context_id = create_context(v1_client, cluster_id, language)
-        LocalContextManager.set_context(context_id)
+        LocalContextManager().set_context(context_id)
         dbx_echo("New context prepared, ready to use it")
         return context_id
 

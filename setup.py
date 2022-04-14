@@ -23,7 +23,6 @@ INSTALL_REQUIRES = [
     "emoji>=1.6.1",
     "cookiecutter>=1.7.2",
     "Jinja2>=2.11.2",
-    "dunamai"
 ]
 
 if sys.platform.startswith("win32"):

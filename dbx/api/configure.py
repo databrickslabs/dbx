@@ -1,22 +1,27 @@
 import json
-import pathlib
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 from dbx.constants import INFO_FILE_PATH
 
 
-def _current_path_name() -> str:
-    return Path(".").absolute().name
-
-
-@dataclass
 class EnvironmentInfo:
-    profile: str
-    workspace_dir: Optional[str] = f"/Shared/dbx/projects/{_current_path_name()}"
-    artifact_location: Optional[str] = f"dbfs:/dbx/{_current_path_name()}"
+    @property
+    def _current_path_name(self) -> str:
+        return Path(".").absolute().name
+
+    def __init__(self, profile: str, workspace_dir: Optional[str] = None, artifact_location: Optional[str] = None):
+        self.profile = profile
+        self.workspace_dir = f"/Shared/dbx/projects/{self._current_path_name}" if not workspace_dir else workspace_dir
+        self.artifact_location = f"dbfs:/dbx/{self._current_path_name}" if not artifact_location else artifact_location
+
+    def as_dict(self) -> Dict[str, str]:
+        return {
+            "profile": self.profile,
+            "workspace_dir": self.workspace_dir,
+            "artifact_location": self.artifact_location,
+        }
 
 
 class EnvironmentDataManager(ABC):
@@ -39,9 +44,9 @@ class EnvironmentDataManager(ABC):
             self.create(name, environment_info)
 
 
-class FileBasedManager(EnvironmentDataManager):
-    def __init__(self, file_path: Optional[str] = INFO_FILE_PATH):
-        self._file = pathlib.Path(file_path)
+class JsonFileBasedManager(EnvironmentDataManager):
+    def __init__(self, file_path: Optional[Path] = INFO_FILE_PATH):
+        self._file = file_path.absolute()
         if not self._file.parent.exists():
             self._file.parent.mkdir(parents=True)
 
@@ -55,9 +60,9 @@ class FileBasedManager(EnvironmentDataManager):
             return _typed
 
     @_file_content.setter
-    def _file_content(self, content: Dict[EnvironmentInfo]):
-        _untyped: Dict = {name: asdict(value) for name, value in content.items()}
-        _jsonified = json.dumps(_untyped, indent=4)
+    def _file_content(self, content: Dict[str, EnvironmentInfo]):
+        _untyped: Dict[str, Any] = {name: value.as_dict() for name, value in content.items()}
+        _jsonified = json.dumps({"environments": _untyped}, indent=4)
         self._file.write_text(_jsonified, encoding="utf-8")
 
     def update(self, name: str, environment_info: EnvironmentInfo):
@@ -68,13 +73,14 @@ class FileBasedManager(EnvironmentDataManager):
         return self._file_content.get(name)
 
     def create(self, name: str, environment_info: EnvironmentInfo):
-        _content = self._file_content.update({name: environment_info})
-        self._file_content = _content
+        _new = self._file_content.copy()
+        _new.update({name: environment_info})
+        self._file_content = _new
 
 
 class ConfigurationManager:
-    def __init__(self, underlying_manager: Optional[EnvironmentDataManager] = FileBasedManager()):
-        self._manager = underlying_manager
+    def __init__(self, underlying_manager: Optional[EnvironmentDataManager] = None):
+        self._manager = underlying_manager if underlying_manager else JsonFileBasedManager()
 
     def create_or_update(self, environment_name: str, environment_info: EnvironmentInfo):
         self._manager.create_or_update(environment_name, environment_info)

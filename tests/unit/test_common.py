@@ -1,10 +1,8 @@
-import unittest
-import json
-from unittest import mock
-from dbx.utils.common import update_json, get_deployment_config, read_json, Jinja2DeploymentConfig
-from dbx.api.context import LocalContextManager
-from .utils import DbxTest
 import os
+import unittest
+from unittest import mock
+
+from dbx.utils.common import get_deployment_config
 
 
 def format_path(rel_path: str):
@@ -264,17 +262,6 @@ class CommonUnitTest(unittest.TestCase):
         self.assertEqual(int(yaml_max_retries), 3)
         self.assertEqual(json_emails, None)
         self.assertEqual(yaml_emails, None)
-
-
-class CommonTest(DbxTest):
-    def test_update_json(self):
-        self.assertRaises(FileNotFoundError, update_json, {"key": "value"}, "/absolutely/not/existent/file/path.json")
-
-    def test_context_lock_file(self):
-        self.assertIsNone(LocalContextManager.get_context())
-
-    def update_project_file(self):
-        pass
 
 
 if __name__ == "__main__":

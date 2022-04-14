@@ -37,10 +37,10 @@ class ExecuteTest(DbxTest):
         "databricks_cli.clusters.api.ClusterService.get_cluster",
         return_value={"cluster_name": "some-name", "state": "RUNNING"},
     )
-    @patch("dbx.utils.common.ApiV1Client.create_context", return_value={"id": 1})
-    @patch("dbx.utils.common.ApiV1Client.execute_command", return_value={"id": 1})
+    @patch("dbx.utils.v1_client.ApiV1Client.create_context", return_value={"id": 1})
+    @patch("dbx.utils.v1_client.ApiV1Client.execute_command", return_value={"id": 1})
     @patch(
-        "dbx.utils.common.ApiV1Client.get_command_status",
+        "dbx.utils.v1_client.ApiV1Client.get_command_status",
         return_value={
             "status": "Finished",
             "results": {"resultType": "Ok", "data": "Ok!"},

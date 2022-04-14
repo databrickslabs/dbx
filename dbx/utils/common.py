@@ -113,10 +113,10 @@ class JsonDeploymentConfig(AbstractDeploymentConfig):
         return json.loads(self.PATTERN.sub(_env_resolver, json_str))
 
     def get_environment(self, environment: str) -> Any:
-        return self.resolve_env_vars(json.loads(self._path)).get(environment)
+        return self.resolve_env_vars(json.loads(pathlib.Path(self._path).read_text(encoding="utf-8"))).get(environment)
 
     def get_all_environment_names(self) -> Any:
-        return list(self.resolve_env_vars(json.loads(self._path)).keys())
+        return list(self.resolve_env_vars(json.loads(pathlib.Path(self._path).read_text(encoding="utf-8"))).keys())
 
 
 class Jinja2DeploymentConfig(AbstractDeploymentConfig):
