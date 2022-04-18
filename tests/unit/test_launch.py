@@ -1,7 +1,7 @@
 import base64
 import contextlib
 import datetime as dt
-import json
+
 import unittest
 from typing import Callable
 from unittest.mock import patch
@@ -14,11 +14,13 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy
 from dbx.commands.launch import launch, _define_payload_key
-from tests.utils import DEFAULT_DEPLOYMENT_FILE_PATH
-from .utils import DbxTest, invoke_cli_runner, test_dbx_config, write_json
+from dbx.utils.common import JsonUtils
+from json import dumps
 
-DEFAULT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"sample": "1"}).encode("utf-8"))}
-RUN_SUBMIT_DATA_MOCK = {"data": base64.b64encode(json.dumps({"test": {"jobs": [{"name": "sample"}]}}).encode("utf-8"))}
+from .utils import DbxTest, invoke_cli_runner, test_dbx_config, DEFAULT_DEPLOYMENT_FILE_PATH
+
+DEFAULT_DATA_MOCK = {"data": base64.b64encode(dumps({"sample": "1"}).encode("utf-8"))}
+RUN_SUBMIT_DATA_MOCK = {"data": base64.b64encode(dumps({"test": {"jobs": [{"name": "sample"}]}}).encode("utf-8"))}
 
 
 class LaunchTest(DbxTest):
@@ -88,7 +90,7 @@ class LaunchTest(DbxTest):
 
             deployment_content = {"test": {"dbfs": {}, "jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
@@ -147,7 +149,7 @@ class LaunchTest(DbxTest):
 
             deployment_content = {"test": {"dbfs": {}, "jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
@@ -208,7 +210,7 @@ class LaunchTest(DbxTest):
 
             deployment_content = {"test": {"dbfs": {}, "jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
@@ -281,7 +283,7 @@ class LaunchTest(DbxTest):
 
             deployment_content = {"test": {"dbfs": {}, "jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
@@ -329,7 +331,7 @@ class LaunchTest(DbxTest):
 
             deployment_content = {"test": {"dbfs": {}, "jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
@@ -409,7 +411,7 @@ class LaunchTest(DbxTest):
 
             deployment_content = {"test": {"dbfs": {}, "jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             def _test():
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])

@@ -1,6 +1,6 @@
 import json
 import os
-import pathlib
+from pathlib import Path, PurePosixPath
 import re
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional, Tuple
@@ -113,10 +113,10 @@ class JsonDeploymentConfig(AbstractDeploymentConfig):
         return json.loads(self.PATTERN.sub(_env_resolver, json_str))
 
     def get_environment(self, environment: str) -> Any:
-        return self.resolve_env_vars(json.loads(pathlib.Path(self._path).read_text(encoding="utf-8"))).get(environment)
+        return self.resolve_env_vars(JsonUtils.read(Path(self._path))).get(environment)
 
     def get_all_environment_names(self) -> Any:
-        return list(self.resolve_env_vars(json.loads(pathlib.Path(self._path).read_text(encoding="utf-8"))).keys())
+        return list(self.resolve_env_vars(JsonUtils.read(Path(self._path))).keys())
 
 
 class Jinja2DeploymentConfig(AbstractDeploymentConfig):
@@ -177,7 +177,7 @@ def generate_filter_string(env: str) -> str:
 
 
 def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
-    p = str(pathlib.PurePosixPath(ws_dir).parent)
+    p = str(PurePosixPath(ws_dir).parent)
     service = WorkspaceService(api_client)
     service.mkdirs(p)
 
@@ -253,9 +253,9 @@ def prepare_environment(environment: str) -> ApiClient:
     return api_client
 
 
-def get_package_file() -> Optional[pathlib.Path]:
+def get_package_file() -> Optional[Path]:
     dbx_echo("Locating package file")
-    file_locator = list(pathlib.Path("dist").glob("*.whl"))
+    file_locator = list(Path("dist").glob("*.whl"))
     sorted_locator = sorted(file_locator, key=os.path.getmtime)  # get latest modified file, aka latest package version
     if sorted_locator:
         file_path = sorted_locator[-1]
@@ -271,7 +271,7 @@ def handle_package(rebuild_arg):
         dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
     else:
         dbx_echo("Re-building package")
-        if not pathlib.Path("setup.py").exists():
+        if not Path("setup.py").exists():
             raise Exception(
                 "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild"
             )
@@ -319,3 +319,15 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str],
             raise NameError(f"Cluster with id {cluster_id} not found")
 
     return cluster_id
+
+
+class JsonUtils:
+    Content = Dict[Any, Any]
+
+    @staticmethod
+    def read(file_path: Path) -> Content:
+        return json.loads(file_path.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def write(file_path: Path, content: Content):
+        file_path.write_text(json.dumps(content), encoding="utf-8")

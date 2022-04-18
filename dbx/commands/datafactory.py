@@ -1,6 +1,4 @@
-import json
 import logging
-import pathlib
 import sys
 from pathlib import Path
 from typing import Dict, Any, List, Union
@@ -24,8 +22,8 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.configure.provider import DatabricksConfig
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.utils.common import get_environment_data, pick_config
 from dbx.utils import dbx_echo
+from dbx.utils.common import get_environment_data, pick_config, JsonUtils
 from dbx.utils.options import environment_option
 
 
@@ -110,10 +108,11 @@ class DatafactoryReflector:
 
     @staticmethod
     def _read_specs(specs_file, environment: str) -> List[Dict[str, Any]]:
-        if not Path(specs_file).exists():
+        specs_file = Path(specs_file)
+        if not specs_file.exists():
             raise FileNotFoundError(f"Specs file {specs_file} not found")
 
-        specs = json.loads(str(pathlib.Path(specs_file))).get(environment)
+        specs = JsonUtils.read(specs_file).get(environment)
 
         if not specs:
             raise Exception(f"Environment {environment} not found in specs file {specs_file}")
