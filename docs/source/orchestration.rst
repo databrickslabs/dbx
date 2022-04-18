@@ -11,7 +11,7 @@ To perform integration with Azure Data Factory, please do the following steps:
 
 .. code-block::
 
-    dbx deploy --write-specs-to-file=./dbx/deployment-result.json --files-only
+    dbx deploy --write-specs-to-file=.dbx/deployment-result.json --files-only
 
 * Reflect job definitions to Azure Data Factory activities:
 
