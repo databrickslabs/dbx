@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased] - YYYY-MM-DD
+
+- Refactor the configuration code
+- Refactor the JSON-related code
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
