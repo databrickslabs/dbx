@@ -15,6 +15,8 @@ To perform integration with Azure Data Factory, please do the following steps:
 
 * Reflect job definitions to Azure Data Factory activities:
 
+1. Deploy from cli command
+
 .. code-block::
 
     dbx datafactory reflect \
@@ -23,6 +25,29 @@ To perform integration with Azure Data Factory, please do the following steps:
         --resource-group some-group \
         --factory-name some-factory \
         --name some-pipeline-name
+        
+2. Deploy from CD pipeline
+
+Inside your CD pipeline, add Azure login before the ``dbx datafactory reflect`` step. Below is an example using GitAction:
+
+.. code-block::
+
+    - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Reflect job definition to ADF
+    dbx datafactory reflect \
+        --specs-file=.dbx/deployment-result.json \
+        --subscription-name some-subscription \
+        --resource-group some-group \
+        --factory-name some-factory \
+        --name some-pipeline-name        
+
+See more details on Azure login `here`_
+
+.. _here: https://github.com/marketplace/actions/azure-login#configure-a-service-principal-with-a-secret)
 
 This command will create or update linked services and pipeline activities. Each job will be configured as a separate activity.
 
