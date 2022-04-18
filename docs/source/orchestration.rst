@@ -7,15 +7,16 @@ Integration with Azure Data Factory
 To perform integration with Azure Data Factory, please do the following steps:
 
 * Please ensure that pipeline is created and published in Azure Data Factory.
-* Inside your CI pipeline, deploy latest job versions and write deployment result into a file:
+
+1. Deploy from cli command
+
+* Deploy the latest job version and write deployment result into a file
 
 .. code-block::
 
     dbx deploy --write-specs-to-file=.dbx/deployment-result.json --files-only
 
 * Reflect job definitions to Azure Data Factory activities:
-
-1. Deploy from cli command
 
 .. code-block::
 
@@ -26,19 +27,24 @@ To perform integration with Azure Data Factory, please do the following steps:
         --factory-name some-factory \
         --name some-pipeline-name
         
-2. Deploy from CD pipeline
+2. Deploy from CI/CD pipeline
 
-Inside your CD pipeline, add Azure login before the ``dbx datafactory reflect`` step. Below is an example using GitAction:
+Inside your CI/CD pipeline, add Azure login before the ``dbx datafactory reflect`` step. Below is an example using GitHub Actions:
 
 .. code-block::
 
+    - name: Deploy and write deployment result into a file
+      run: |
+        dbx deploy --deployment-file ./conf/deployment_single_task.yml --write-specs-to-file=./.dbx/deployment-result.json --files-only
+    
     - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Reflect job definition to ADF
-    dbx datafactory reflect \
+    - name: Reflect job definitions to ADF
+      run: |
+        dbx datafactory reflect \
         --specs-file=.dbx/deployment-result.json \
         --subscription-name some-subscription \
         --resource-group some-group \
