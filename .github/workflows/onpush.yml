@@ -5,6 +5,9 @@ on:
     types: [ opened, synchronize ]
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
 
 jobs:
   test-pipeline:

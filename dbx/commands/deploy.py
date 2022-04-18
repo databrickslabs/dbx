@@ -15,15 +15,15 @@ from requests.exceptions import HTTPError
 
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.common import (
-    dbx_echo,
     prepare_environment,
-    environment_option,
     parse_multiple,
-    FileUploader,
     get_current_branch_name,
     get_deployment_config,
     # noqa
 )
+from dbx.utils import dbx_echo
+from dbx.utils.file_uploader import FileUploader
+from dbx.utils.options import environment_option
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.job_listing import find_job_by_name
 

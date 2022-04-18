@@ -5,7 +5,7 @@ from typing import Callable, Dict, Optional, Any
 from jinja2 import Environment, FileSystemLoader
 
 from dbx.commands.configure import configure
-from dbx.utils.common import TEMPLATE_ROOT_PATH
+from dbx.constants import TEMPLATE_ROOT_PATH
 
 DBX_TEMPLATE_NAME = "python_basic"
 COMPONENTS_PATH = TEMPLATE_ROOT_PATH / DBX_TEMPLATE_NAME / "components"

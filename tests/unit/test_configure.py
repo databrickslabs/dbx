@@ -1,7 +1,8 @@
 import unittest
 
 from dbx.commands.configure import configure
-from dbx.utils.common import InfoFile, INFO_FILE_PATH
+from dbx.utils.common import ConfigurationManager
+from dbx.constants import INFO_FILE_PATH
 from .utils import invoke_cli_runner, DbxTest
 from pathlib import Path
 
@@ -19,14 +20,12 @@ class ConfigureTest(DbxTest):
                     self.profile_name,
                 ],
             )
-
             self.assertEqual(first_result.exit_code, 0)
-
-            env = InfoFile.get("environments").get("test")
+            env = ConfigurationManager().get("test")
             self.assertIsNotNone(env)
-            self.assertEqual(env["profile"], self.profile_name)
-            self.assertEqual(env["artifact_location"], f"dbfs:/dbx/{self.project_name}")
-            self.assertEqual(env["workspace_dir"], f"/Shared/dbx/projects/{self.project_name}")
+            self.assertEqual(env.profile, self.profile_name)
+            self.assertEqual(env.artifact_location, f"dbfs:/dbx/{self.project_name}")
+            self.assertEqual(env.workspace_dir, f"/Shared/dbx/projects/{self.project_name}")
 
     def test_configure(self, *args) -> None:
         with self.project_dir:
@@ -47,10 +46,10 @@ class ConfigureTest(DbxTest):
 
             self.assertEqual(first_result.exit_code, 0)
 
-            env = InfoFile.get("environments").get("test")
+            env = ConfigurationManager().get("test")
             self.assertIsNotNone(env)
-            self.assertEqual(env["profile"], self.profile_name)
-            self.assertEqual(env["workspace_dir"], ws_dir)
+            self.assertEqual(env.profile, self.profile_name)
+            self.assertEqual(env.workspace_dir, ws_dir)
 
     def test_update_configuration(self, *args):
         with self.project_dir:
@@ -80,10 +79,10 @@ class ConfigureTest(DbxTest):
                 ],
             )
 
-            env = InfoFile.get("environments").get("test")
+            env = ConfigurationManager().get("test")
             self.assertIsNotNone(env)
-            self.assertEqual(env["profile"], self.profile_name)
-            self.assertEqual(env["workspace_dir"], new_ws_dir)
+            self.assertEqual(env.profile, self.profile_name)
+            self.assertEqual(env.workspace_dir, new_ws_dir)
 
 
 if __name__ == "__main__":

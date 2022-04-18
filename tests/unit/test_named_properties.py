@@ -1,7 +1,7 @@
 import unittest
-import json
 
-import pathlib
+
+from pathlib import Path
 from typing import Dict, Any
 from unittest.mock import MagicMock, patch
 
@@ -11,23 +11,23 @@ from databricks_cli.clusters.api import ClusterService
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
-from dbx.utils.common import YamlDeploymentConfig
+from dbx.utils.common import YamlDeploymentConfig, JsonUtils
 from .test_common import format_path
 
 
 class NamedPropertiesProcessorTest(unittest.TestCase):
-    samples_root_path = pathlib.Path(format_path("../deployment-configs/"))
+    samples_root_path = Path(format_path("../deployment-configs/"))
 
-    json_conf = pathlib.Path(samples_root_path) / "05-json-with-named-properties.json"
-    yaml_conf = pathlib.Path(samples_root_path) / "05-yaml-with-named-properties.yaml"
+    json_conf = samples_root_path / "05-json-with-named-properties.json"
+    yaml_conf = samples_root_path / "05-yaml-with-named-properties.yaml"
 
-    mtj_json_conf = pathlib.Path(samples_root_path) / "08-json-with-named-properties-mtj.json"
-    mtj_yaml_conf = pathlib.Path(samples_root_path) / "08-yaml-with-named-properties-mtj.yaml"
+    mtj_json_conf = samples_root_path / "08-json-with-named-properties-mtj.json"
+    mtj_yaml_conf = samples_root_path / "08-yaml-with-named-properties-mtj.yaml"
 
-    json_deployment_conf = json.loads(json_conf.read_text()).get("default")
+    json_deployment_conf = JsonUtils.read(json_conf).get("default")
     yaml_deployment_conf = YamlDeploymentConfig(yaml_conf).get_environment("default")
 
-    mtj_json_dep_conf = json.loads(mtj_json_conf.read_text()).get("default")
+    mtj_json_dep_conf = JsonUtils.read(mtj_json_conf).get("default")
     mtj_yaml_dep_conf = YamlDeploymentConfig(mtj_yaml_conf).get_environment("default")
 
     @staticmethod

@@ -1,5 +1,4 @@
 import datetime as dt
-import json
 import os
 import pathlib
 import shutil
@@ -15,9 +14,9 @@ from requests import HTTPError
 
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy, _update_job  # noqa
-from dbx.utils.common import write_json, read_json, INFO_FILE_PATH
-from tests.utils import DEFAULT_DEPLOYMENT_FILE_PATH
-from .utils import DbxTest, invoke_cli_runner, test_dbx_config
+from dbx.constants import INFO_FILE_PATH
+from dbx.utils.common import JsonUtils
+from .utils import DbxTest, invoke_cli_runner, test_dbx_config, DEFAULT_DEPLOYMENT_FILE_PATH
 from .test_common import format_path
 
 run_info = RunInfo(
@@ -65,7 +64,7 @@ class DeployTest(DbxTest):
 
             deployment_content = {"test": {"jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             with patch(
                 "mlflow.get_experiment_by_name",
@@ -105,9 +104,9 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
-            deployment_content = json.loads((samples_path / "03-multitask-job.json").read_text())
+            deployment_content = JsonUtils.read(samples_path / "03-multitask-job.json")
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
             shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
@@ -119,7 +118,7 @@ class DeployTest(DbxTest):
                 deploy_result = invoke_cli_runner(
                     deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
                 )
-                _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
+                _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
                 self.assertNotIn("libraries", _content["default"]["jobs"][0])
                 self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -174,7 +173,7 @@ class DeployTest(DbxTest):
                         ".dbx/deployment-result.json",
                     ],
                 )
-                _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
+                _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
                 self.assertNotIn("libraries", _content["default"]["jobs"][0])
                 self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
                 self.assertEqual(deploy_result.exit_code, 0)
@@ -222,7 +221,7 @@ class DeployTest(DbxTest):
                 deploy_result = invoke_cli_runner(
                     deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
                 )
-                _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
+                _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
                 self.assertTrue(
                     _content["default"]["jobs"][0]["libraries"][0]["whl"].startswith("dbfs:/Shared/dbx-testing")
                 )
@@ -288,7 +287,7 @@ class DeployTest(DbxTest):
                     ],
                 )
 
-                _content = json.loads(pathlib.Path(".dbx/deployment-result.json").read_text())
+                _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
 
                 self.assertTrue(
                     _content["default"]["jobs"][0]["libraries"][0]["whl"].startswith("dbfs:/Shared/dbx-testing")
@@ -343,11 +342,11 @@ class DeployTest(DbxTest):
                 return_value=Experiment("id", None, "dbfs:/some/correct-location", None, None),
             ):
                 deployment_content = {"test": {"jobs": []}}
-                write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+                JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
-                sample_config = read_json(INFO_FILE_PATH)
+                sample_config = JsonUtils.read(INFO_FILE_PATH)
                 sample_config["environments"]["test"]["artifact_location"] = "dbfs:/some/another-location"
-                write_json(sample_config, INFO_FILE_PATH)
+                JsonUtils.write(INFO_FILE_PATH, sample_config)
 
                 deploy_result = invoke_cli_runner(deploy, ["--environment", "test"], expected_error=True)
 
@@ -386,7 +385,7 @@ class DeployTest(DbxTest):
 
             deployment_content = {"misconfigured-environment": {"dbfs": {}, "jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             with patch(
                 "mlflow.get_experiment_by_name",
@@ -429,7 +428,7 @@ class DeployTest(DbxTest):
 
             deployment_content = {"test": {"jobs": [{"name": "job-1"}, {"name": "job-2"}]}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             with patch(
                 "mlflow.get_experiment_by_name",
@@ -478,7 +477,7 @@ class DeployTest(DbxTest):
 
             deployment_content = {"test": {"jobs": []}}
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             sample_requirements = "\n".join(["pyspark=3.0.0", "xgboost=0.6.0", "pyspark3d"])
 
@@ -566,7 +565,7 @@ class DeployTest(DbxTest):
 
                 self.assertEqual(deploy_result.exit_code, 0)
 
-                spec_result = json.loads(pathlib.Path(spec_file).read_text())
+                spec_result = JsonUtils.read(pathlib.Path(spec_file))
 
                 self.assertIsNotNone(spec_result)
 
@@ -679,9 +678,9 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
-            deployment_content = json.loads((samples_path / "03-multitask-job.json").read_text())
+            deployment_content = JsonUtils.read(samples_path / "03-multitask-job.json")
 
-            write_json(deployment_content, DEFAULT_DEPLOYMENT_FILE_PATH)
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
             shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
             shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))

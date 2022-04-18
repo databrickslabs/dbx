@@ -7,7 +7,6 @@ with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 INSTALL_REQUIRES = [
-    "path>=15.0.0",
     "databricks-cli>=0.16.4",
     "click>=7.1.2",
     "retry>=0.9.2",

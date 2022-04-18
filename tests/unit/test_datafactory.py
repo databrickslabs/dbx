@@ -1,5 +1,4 @@
 import datetime as dt
-import json
 import pathlib
 import unittest
 from unittest.mock import patch
@@ -12,6 +11,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.commands.configure import configure
 from dbx.commands.datafactory import reflect as datafactory_reflect
 from dbx.commands.deploy import deploy, _update_job  # noqa
+from dbx.utils.common import JsonUtils
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
 run_info = RunInfo(
@@ -77,7 +77,7 @@ class DatafactoryDeployTest(DbxTest):
                 ]
             }
 
-            deployment_file.write_text(json.dumps(deploy_content, indent=4))
+            JsonUtils.write(deployment_file, deploy_content)
             with patch(
                 "mlflow.get_experiment_by_name",
                 return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),

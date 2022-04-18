@@ -2,17 +2,17 @@ import logging
 import shutil
 import tempfile
 import unittest
+from pathlib import Path
 from uuid import uuid4
-
+from path import Path as ContextPath
 from click.testing import CliRunner
-
 from databricks_cli.configure.provider import DatabricksConfig
-from path import Path
 
 from dbx.commands.init import init
 
 TEST_HOST = "https:/dbx.cloud.databricks.com"
 TEST_TOKEN = "dapiDBXTEST"
+DEFAULT_DEPLOYMENT_FILE_PATH = Path("conf/deployment.json")
 
 test_dbx_config = DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN)
 
@@ -49,10 +49,10 @@ class DbxTest(unittest.TestCase):
         self.profile_name = "dbx-test"
         logging.info("Launching test in directory %s with project name %s" % (self.test_dir, self.project_name))
 
-        with Path(self.test_dir):
+        with ContextPath(self.test_dir):
             initialize_cookiecutter(self.project_name)
 
-        self.project_dir = Path(self.test_dir).joinpath(self.project_name)
+        self.project_dir = ContextPath(self.test_dir).joinpath(self.project_name)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.test_dir)
