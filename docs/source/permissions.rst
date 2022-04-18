@@ -20,4 +20,4 @@ To enable permission settings during deploy, simply add :code:`"permissions"` se
       .. literalinclude:: ../../tests/deployment-configs/09-permissions.yaml
          :language: yaml
  
-Note that the **access control list** must be exhaustive, so the job owner and admin should be added to the list as well as added users/user groups permissions.
+Note that the **access control list** must be exhaustive, so the job owner should be added to the list as well as added users/user groups permissions.
