@@ -36,6 +36,7 @@
                                 "file:fuse://some/conf/file.yml"
                             ]
                         }
+                        "depends_on": [{"task_key":"first-task"}]
                     }
                             ],
                 "permissions": {
