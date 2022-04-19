@@ -27,12 +27,23 @@ environments:
             spark_python_task:
               python_file: "file://some/entrypoint.py"
               parameters: ["--conf-file", "file:fuse://some/conf/file.yml"]
-          - task_key: "third-task"
-            job_cluster_key: "basic-cluster"
-            depends_on:
+              depends_on:
               - task_key: "first-task"
-              - task_key: "second-task"
-            spark_python_task:
-              python_file: "file://some/entrypoint.py"
-              parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
-
+        permissions:
+          access_control_list: ## acl list needs to be exhaustive
+            - user_name: "some_user@example.com"
+              permission_level: "IS_OWNER"
+            - group_name: "some-user-group"
+              permission_level: "CAN_VIEW"
+        ## add notifications of job activities
+        email_notifications:
+          on_start:
+            - "some_user@example.com"
+          on_success: "some_user@example.com"
+          on_failure: ["some_user@example.com", "some_group@example.com]
+          no_alert_for_skipped_runs: false
+        ## add job schedule
+        schedule:
+          quartz_cron_expression: "16 30 * * * ?"
+          timezone_id: "America/Chicago"
+          pause_status: "PAUSED"
