@@ -39,8 +39,11 @@ environments:
         email_notifications:
           on_start:
             - "some_user@example.com"
-          on_success: "some_user@example.com"
-          on_failure: ["some_user@example.com", "some_group@example.com]
+          on_success: 
+            - "some_user@example.com"
+          on_failure: 
+            - "some_user@example.com"
+              "some_group@example.com"
           no_alert_for_skipped_runs: false
         ## add job schedule
         schedule:
