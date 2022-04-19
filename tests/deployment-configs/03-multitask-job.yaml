@@ -22,7 +22,7 @@ environments:
             spark_python_task:
               python_file: "./placeholder_2.py"
             depends_on:
-              - task_key: "second-task"
+              - task_key: "first-task"
         ## add job permissions
         permissions:
           access_control_list: ## acl list needs to be exhaustive
