@@ -8,7 +8,7 @@
                         "task_key": "first-task",
                         "description": "some description",
                         "new_cluster": {
-                            "spark_version": "7.3.x-cpu-ml-scala2.12",
+                            "spark_version": "9.1.x-cpu-ml-scala2.12",
                             "node_type_id": "some-node-type",
                             "num_workers": 2
                         },
@@ -21,7 +21,7 @@
                         "task_key": "second",
                         "description": "some description",
                         "new_cluster": {
-                            "spark_version": "7.3.x-cpu-ml-scala2.12",
+                            "spark_version": "9.1.x-cpu-ml-scala2.12",
                             "node_type_id": "some-node-type",
                             "num_workers": 2
                         },
@@ -35,7 +35,30 @@
                             }
                         ]
                     }
-                ]
+                ],
+                "permissions": {
+                    "access_control_list": [
+                        {
+                            "user_name": "some_user@example.com",
+                            "permission_level": "IS_OWNER"
+                        },
+                        {
+                            "group_name": "some-user-group",
+                            "permission_level": "CAN_VIEW"
+                        }
+                        ]
+                },
+                "email_notifications": {
+                    "on_start": "some_user@example.com",
+                    "on_success": "some_user@example.com",
+                    "on_failure": ["some_user@example.com", "some_group@example.com"],
+                    "no_alert_for_skipped_runs": false
+                },
+                "schedule": {
+                  "quartz_cron_expression": "16 30 * * * ?",
+                  "timezone_id": "America/Chicago",
+                  "pause_status": "PAUSED"
+                }
             }
         ]
     }
