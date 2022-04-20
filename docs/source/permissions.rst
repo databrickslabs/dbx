@@ -8,28 +8,16 @@ We're using the :code:`PUT` method of `this API method <https://docs.databricks.
 
 To enable permission settings during deploy, simply add :code:`"permissions"` section into your job definition. Please note that payload under this section shall be compliant with Permissions API.
 
-.. code-block:: javascript
+.. tabs::
 
-    {
-        "<environment-name>": [
-                {
-                    "name": "some-job-with-permissions",
-                    // this section shall have a permissions key
-                    "permissions":
-                        // here goes payload compliant with Permissions API
-                        {
-                            "access_control_list":
-                                [
-                                    {
-                                        "user_name": "some_user@example.com",
-                                        "permission_level": "IS_OWNER",
-                                    },
-                                    {
-                                        "group_name": "some-user-group",
-                                        "permission_level": "CAN_VIEW"
-                                    }
-                                ]
-                        }
-                }
-            ]
-    }
+   .. tab:: JSON
+
+      .. literalinclude:: ../../tests/deployment-configs/09-permissions.json
+         :language: JSON
+            
+   .. tab:: YAML
+
+      .. literalinclude:: ../../tests/deployment-configs/09-permissions.yaml
+         :language: yaml
+ 
+Note that the **access control list** must be exhaustive, so the job owner should be added to the list as well as added users/user groups permissions.
