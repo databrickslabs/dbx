@@ -234,11 +234,12 @@ def execute_command(v1_client: ApiV1Client, cluster_id: str, context_id: str, co
                 f"Command execution failed. " f'Cluster error cause: {execution_result["results"]["cause"]}'
             )
 
+        return_value = execution_result.get("results", {}).get("data")
         if verbose:
             dbx_echo("Command successfully executed")
-            print(execution_result["results"]["data"])
+            print(return_value)
 
-        return execution_result["results"]["data"]
+        return return_value
 
 
 def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: str):
