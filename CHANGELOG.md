@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactor the configuration code
 - Refactor the JSON-related code
+- Add `--path` and `--checkout` options to the `dbx init`
 
 ----
 > Unreleased changes must be tracked above this line.

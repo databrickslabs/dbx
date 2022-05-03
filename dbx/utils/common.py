@@ -321,6 +321,8 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str],
     return cluster_id
 
 
+# for some reason pylint doesn't recognise a type inside the class, so we disable this check here
+# pylint: disable=undefined-variable
 class JsonUtils:
     Content = Dict[Any, Any]
 
@@ -331,3 +333,6 @@ class JsonUtils:
     @staticmethod
     def write(file_path: Path, content: Content):
         file_path.write_text(json.dumps(content), encoding="utf-8")
+
+
+# pylint: enable=undefined-variable
