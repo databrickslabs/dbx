@@ -24,6 +24,7 @@ from setuptools import sandbox
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
 from dbx.constants import DATABRICKS_MLFLOW_URI
 from dbx.utils import dbx_echo
+from dbx.utils.json import JsonUtils
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -319,15 +320,3 @@ def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str],
             raise NameError(f"Cluster with id {cluster_id} not found")
 
     return cluster_id
-
-
-class JsonUtils:
-    Content = Dict[Any, Any]
-
-    @staticmethod
-    def read(file_path: Path) -> Content:
-        return json.loads(file_path.read_text(encoding="utf-8"))
-
-    @staticmethod
-    def write(file_path: Path, content: Content):
-        file_path.write_text(json.dumps(content), encoding="utf-8")

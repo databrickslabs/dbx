@@ -14,7 +14,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy
 from dbx.commands.launch import launch, _define_payload_key
-from dbx.utils.common import JsonUtils
+from dbx.utils.json import JsonUtils
 from json import dumps
 
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config, DEFAULT_DEPLOYMENT_FILE_PATH
