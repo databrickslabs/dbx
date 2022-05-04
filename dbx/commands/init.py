@@ -67,7 +67,7 @@ def init(
             "Both --template and --path options are not supported."
             "Please choose either built-in template or an external path"
         )
-    if not path:
+    if not path and template is None:
         template = DEFAULT_TEMPLATE
 
     msg_base = "Configuring new project from "
