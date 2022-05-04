@@ -1,6 +1,6 @@
 import unittest
 
-from {{cookiecutter.project_slug}}.jobs.sample.entrypoint import SampleJob
+from {{cookiecutter.project_slug}}.workloads.sample.entrypoint import SampleJob
 from uuid import uuid4
 from pyspark.dbutils import DBUtils  # noqa
 

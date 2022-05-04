@@ -3,7 +3,7 @@ import tempfile
 import os
 import shutil
 
-from {{cookiecutter.project_slug}}.jobs.sample.entrypoint import SampleJob
+from {{cookiecutter.project_slug}}.workloads.sample.entrypoint import SampleJob
 from pyspark.sql import SparkSession
 from unittest.mock import MagicMock
 

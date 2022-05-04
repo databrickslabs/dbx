@@ -1,7 +1,7 @@
-from {{cookiecutter.project_slug}}.common import Job
+from {{cookiecutter.project_slug}}.common import Workload
 
 
-class SampleJob(Job):
+class SampleJob(Workload):
 
     def launch(self):
         self.logger.info("Launching sample job")

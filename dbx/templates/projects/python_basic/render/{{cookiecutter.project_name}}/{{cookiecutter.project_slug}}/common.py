@@ -8,8 +8,8 @@ from pyspark.sql import SparkSession
 import sys
 
 
-# abstract class for jobs
-class Job(ABC):
+# abstract class for workloads (either Jobs or Tasks)
+class Workload(ABC):
     def __init__(self, spark=None, init_conf=None):
         self.spark = self._prepare_spark(spark)
         self.logger = self._prepare_logger()
