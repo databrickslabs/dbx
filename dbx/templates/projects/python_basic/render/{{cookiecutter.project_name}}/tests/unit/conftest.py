@@ -108,5 +108,5 @@ def mlflow_local():
 @pytest.fixture(scope="session", autouse=True)
 def dbutils_fixture() -> Iterator[None]:
     logging.info("Patching the DBUtils object")
-    with patch("v5_testify.common.get_dbutils", lambda _: DBUtilsFixture()):
+    with patch("{{cookiecutter.project_slug}}.common.get_dbutils", lambda _: DBUtilsFixture()):
         yield
