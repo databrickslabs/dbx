@@ -23,7 +23,8 @@ from databricks_cli.configure.provider import DatabricksConfig
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.utils import dbx_echo
-from dbx.utils.common import get_environment_data, pick_config, JsonUtils
+from dbx.utils.common import get_environment_data, pick_config
+from dbx.utils.json import JsonUtils
 from dbx.utils.options import environment_option
 
 

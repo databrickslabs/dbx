@@ -15,7 +15,7 @@ from requests import HTTPError
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy, _update_job  # noqa
 from dbx.constants import INFO_FILE_PATH
-from dbx.utils.common import JsonUtils
+from dbx.utils.json import JsonUtils
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config, DEFAULT_DEPLOYMENT_FILE_PATH
 from .test_common import format_path
 
