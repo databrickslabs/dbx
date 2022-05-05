@@ -42,11 +42,11 @@ jobs:
 
       - name: Jobless deployment (files only upload)
         run: |
-          dbx deploy --jobs={{project_name}}-sample-multitask --files-only
+          dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
 
       - name: Run the job in a jobless fashion
         run: |
-          dbx launch --jobs={{project_name}}-sample-multitask --files-only --as-run-submit --trace
+          dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
 
 
 

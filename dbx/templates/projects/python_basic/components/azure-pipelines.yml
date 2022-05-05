@@ -44,11 +44,11 @@ stages:
       displayName: 'Run Unit tests'
 
     - script: |
-        dbx deploy --jobs={{project_name}}-sample-multitask --files-only
+        dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
       displayName: 'Deploy integration test'
 
     - script: |
-        dbx launch --jobs={{project_name}}-sample-multitask --files-only --as-run-submit --trace
+        dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
       displayName: 'Launch integration on test'
 
     - task: PublishTestResults@2
@@ -94,7 +94,7 @@ stages:
         displayName: 'Run Unit tests'
 
       - script: |
-          dbx deploy --jobs={{project_name}}-sample-multitask
+          dbx deploy --job={{project_name}}-sample-etl-2.0
         displayName: 'Deploy the job'
 
       - task: PublishTestResults@2
