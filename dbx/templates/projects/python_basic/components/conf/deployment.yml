@@ -15,9 +15,17 @@ environments:
   default:
     strict_path_adjustment_policy: true
     jobs:
-      ###############################################
-      # this is an example job with single ETL task #
-      ###############################################
+      ##################################################################
+      # this is an example job with single ETL task based on 2.0 API  #
+      #################################################################
+      - name: "{{project_name}}-sample-etl-2.0"
+        <<: *basic-static-cluster
+        spark_python_task:
+          python_file: "file://{{project_slug}}/workloads/sample_etl_job.py"
+          parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
+      #######################################################################################
+      # this is an example job with single ETL task based on 2.1 API and wheel_task format #
+      ######################################################################################
       - name: "{{project_name}}-sample-etl"
         job_clusters:
           - job_cluster_key: "default"
@@ -43,9 +51,9 @@ environments:
               package_name: "{{project_slug}}"
               entry_point: "ml"
               parameters: [ "--conf-file", "file:fuse://conf/test/sample_ml_config.yml" ]
-      ###############################################
-      # this is an example multitask job            #
-      ###############################################
+      #############################################################
+      # this is an example multitask job with notebook task       #
+      #############################################################
       - name: "{{project_name}}-sample-multitask"
         job_clusters:
           - job_cluster_key: "default"
