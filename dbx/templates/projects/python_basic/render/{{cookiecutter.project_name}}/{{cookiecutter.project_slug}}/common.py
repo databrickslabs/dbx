@@ -23,8 +23,17 @@ def get_dbutils(
         return None
 
 
-# abstract class for workloads (either Jobs or Tasks)
 class Workload(ABC):
+    """
+    This is an abstract class that provides handy interfaces to implement workloads (e.g. jobs or job tasks).
+    Create a child from this class and implement the abstract launch method.
+    Class provides access to the following useful objects:
+    * self.spark is a SparkSession
+    * self.dbutils provides access to the DBUtils
+    * self.logger provides access to the Spark-compatible logger
+    * self.conf provides access to the parsed configuration of the job
+    """
+
     def __init__(self, spark=None, init_conf=None):
         self.spark = self._prepare_spark(spark)
         self.logger = self._prepare_logger()

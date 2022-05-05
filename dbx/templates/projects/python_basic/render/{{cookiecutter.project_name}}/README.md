@@ -80,7 +80,7 @@ databricks repos create --url <your repo URL> --provider <your-provider>
 This command will create your personal repository under `/Repos/<username>/{{cookiecutter.project_slug}}`.
 3. To set up the CI/CD pipeline with the notebook, create a separate `Staging` repo:
 ```bash
-databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/{{project_slug}}/
+databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/{{cookiecutter.project_slug}}
 ```
 
 ## CI/CD pipeline settings
