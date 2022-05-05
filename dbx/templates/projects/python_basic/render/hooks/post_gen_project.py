@@ -71,6 +71,9 @@ class PostProcessor:
         elif CICD_TOOL == "GitLab":
             NamedTemplate(env, ".gitlab-ci.yml").render_and_write(parameters=PostProcessor.TEMPLATE_PARAMETERS)
 
+        elif CICD_TOOL == "None":
+            print("CI/CD tool argument was set to None, no CI configuration would be provided")
+
     @staticmethod
     def process_cloud_component(env: Environment):
 

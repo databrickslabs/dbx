@@ -85,7 +85,7 @@ class ExecuteTest(DbxTest):
                         "--cluster-id",
                         "000-some-cluster-id",
                         "--job",
-                        f"{self.project_name}-sample",
+                        f"{self.project_name}-sample-etl-2.0",
                     ],
                 )
 

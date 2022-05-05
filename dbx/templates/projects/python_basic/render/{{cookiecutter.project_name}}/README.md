@@ -4,37 +4,58 @@ This is a sample project for Databricks, generated via cookiecutter.
 
 While using this project, you need Python 3.X and `pip` or `conda` for package management.
 
-## Installing project requirements
+## Local environment setup
 
+1. Instantiate a local Python environment via a tool of your choice. This example is based on `conda`, but you can use any environment management tool:
 ```bash
-pip install -r unit-requirements.txt
+conda create -n {{cookiecutter.project_slug}} python=3.9
+conda activate {{cookiecutter.project_slug}}
 ```
 
-## Install project package in a developer mode
-
+2. If you don't have JDK installed on your local machine, install it (in this example we use `conda`-based installation):
 ```bash
+conda install -c anaconda "openjdk=8.0.152"
+```
+
+3. Install unit requirements for local development and the project package in a developer mode:
+```bash
+pip install -r unit-requirements.txt
 pip install -e .
 ```
 
-## Testing
+## Running unit tests
 
-For local unit testing, please use `pytest`:
+For unit testing, please use `pytest`:
 ```
 pytest tests/unit --cov
 ```
 
+Please check the directory `tests/unit` for more details on how to use unit tests.
+In the `tests/unit/conftest.py` you'll also find useful testing primitives, such as local Spark instance with Delta support, local MLflow and DBUtils fixture.
+
+## Running integration tests
+
+There are two options for running integration tests:
+
+- On an interactive cluster via `dbx execute`
+- On a job cluster via `dbx launch`
+
+For quicker startup of the job clusters we recommend using instance pools ([AWS](https://docs.databricks.com/clusters/instance-pools/index.html), [Azure](https://docs.microsoft.com/en-us/azure/databricks/clusters/instance-pools/), [GCP](https://docs.gcp.databricks.com/clusters/instance-pools/index.html)).
+
 For an integration test on interactive cluster, use the following command:
 ```
-dbx execute --cluster-name=<name of interactive cluster> --job={{cookiecutter.project_name}}-sample-integration-test
+dbx execute --cluster-name=<name of interactive cluster> --job=<name of the job to test>
 ```
 
 For a test on an automated job cluster, deploy the job files and then launch:
 ```
-dbx deploy --jobs={{cookiecutter.project_name}}-sample-integration-test --files-only
-dbx launch --job={{cookiecutter.project_name}}-sample-integration-test --as-run-submit --trace
+dbx deploy --jobs=<name of the job to test> --files-only
+dbx launch --job=<name of the job to test> --as-run-submit --trace
 ```
 
-## Interactive execution and development
+Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/run_submit.html), so you won't affect existing job definitions.
+
+## Interactive execution and development on Databricks clusters
 
 1. `dbx` expects that cluster for interactive execution supports `%pip` and `%conda` magic [commands](https://docs.databricks.com/libraries/notebooks-python-libraries.html).
 2. Please configure your job in `conf/deployment.yml` file.
@@ -47,44 +68,22 @@ dbx execute \
 
 Multiple users also can use the same cluster for development. Libraries will be isolated per each execution context.
 
-## Preparing deployment file
+## Working with notebooks and Repos
 
-Next step would be to configure your deployment objects. To make this process easy and flexible, we're using YAML for configuration.
+To start working with your notebooks from a Repos, do the following steps:
 
-By default, deployment configuration is stored in `conf/deployment.yml`.
-
-## Deployment for Run Submit API
-
-To deploy only the files and not to override the job definitions, do the following:
-
+1. Add your git provider token to your user settings
+2. Add your repository to Repos. This could be done via UI, or via CLI command below:
 ```bash
-dbx deploy --files-only
+databricks repos create --url <your repo URL> --provider <your-provider>
 ```
-
-To launch the file-based deployment:
-```
-dbx launch --as-run-submit --trace
-```
-
-This type of deployment is handy for working in different branches, not to affect the main job definition.
-
-## Deployment for Run Now API
-
-To deploy files and update the job definitions:
-
+This command will create your personal repository under `/Repos/<username>/{{cookiecutter.project_slug}}`.
+3. To set up the CI/CD pipeline with the notebook, create a separate `Staging` repo:
 ```bash
-dbx deploy
+databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/{{cookiecutter.project_slug}}
 ```
 
-To launch the file-based deployment:
-```
-dbx launch --job=<job-name>
-```
-
-This type of deployment shall be mainly used from the CI pipeline in automated way during new release.
-
-
-## CICD pipeline settings
+## CI/CD pipeline settings
 
 Please set the following secrets or environment variables for your CI provider:
 - `DATABRICKS_HOST`

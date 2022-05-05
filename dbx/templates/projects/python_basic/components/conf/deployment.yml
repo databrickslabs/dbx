@@ -1,3 +1,5 @@
+# Custom section is used to store configurations that might be repetative.
+# Please read YAML documentation for details on how to use substitutions and anchors.
 custom:
   basic-cluster-props: &basic-cluster-props
     spark_version: "9.1.x-cpu-ml-scala2.12"
@@ -13,15 +15,75 @@ environments:
   default:
     strict_path_adjustment_policy: true
     jobs:
-      - name: "{{project_name}}-sample"
-        <<:
-          - *basic-static-cluster
+      ##################################################################
+      # this is an example job with single ETL task based on 2.0 API  #
+      #################################################################
+      - name: "{{project_name}}-sample-etl-2.0"
+        <<: *basic-static-cluster
         spark_python_task:
-          python_file: "file://{{project_slug}}/jobs/sample/entrypoint.py"
-          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
-      - name: "{{project_name}}-sample-integration-test"
-        <<:
-          - *basic-static-cluster
-        spark_python_task:
-          python_file: "file://tests/integration/sample_test.py"
-          parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
+          python_file: "file://{{project_slug}}/workloads/sample_etl_job.py"
+          parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
+      #######################################################################################
+      # this is an example job with single ETL task based on 2.1 API and wheel_task format #
+      ######################################################################################
+      - name: "{{project_name}}-sample-etl"
+        job_clusters:
+          - job_cluster_key: "default"
+            <<: *basic-static-cluster
+        tasks:
+          - task_key: "main"
+            job_cluster_key: "default"
+            python_wheel_task:
+              package_name: "{{project_slug}}"
+              entry_point: "etl" # take a look at the setup.py entry_points section for details on how to define an entrypoint
+              parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
+      ###############################################
+      # this is an example job with single ML task  #
+      ###############################################
+      - name: "{{project_name}}-sample-ml"
+        job_clusters:
+          - job_cluster_key: "default"
+            <<: *basic-static-cluster
+        tasks:
+          - task_key: "main"
+            job_cluster_key: "default"
+            python_wheel_task:
+              package_name: "{{project_slug}}"
+              entry_point: "ml"
+              parameters: [ "--conf-file", "file:fuse://conf/test/sample_ml_config.yml" ]
+      #############################################################
+      # this is an example multitask job with notebook task       #
+      #############################################################
+      - name: "{{project_name}}-sample-multitask"
+        job_clusters:
+          - job_cluster_key: "default"
+            <<: *basic-static-cluster
+        tasks:
+          - task_key: "etl"
+            job_cluster_key: "default"
+            python_wheel_task:
+              package_name: "{{project_slug}}"
+              entry_point: "etl"
+              parameters: [ "--conf-file", "file:fuse://conf/test/sample_etl_config.yml" ]
+          - task_key: "ml"
+            depends_on:
+              - task_key: "etl"
+            job_cluster_key: "default"
+            python_wheel_task:
+              package_name: "{{project_slug}}"
+              entry_point: "ml"
+              parameters: [ "--conf-file", "file:fuse://conf/test/sample_ml_config.yml" ]
+          ###############################################################################
+          # this is an example task based on the notebook                               #
+          # Please note that first you'll need to add a Repo and commit notebook to it. #
+          ###############################################################################
+          - task_key: "notebook"
+            deployment_config:
+              no_package: true # we omit using package since code will be shipped directly from the Repo
+            depends_on:
+              - task_key: "ml"
+            job_cluster_key: "default"
+            notebook_task:
+              notebook_path: "/Repos/Staging/{{project_slug}}/notebooks/sample_notebook"
+
+
