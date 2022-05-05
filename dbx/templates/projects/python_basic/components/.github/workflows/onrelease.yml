@@ -37,7 +37,7 @@ jobs:
 
       - name: Deploy the job
         run: |
-          dbx deploy --jobs={{project_name}}-sample
+          dbx deploy --jobs={{project_name}}-sample-multitask
 
       - name: Create Release
         id: create_release

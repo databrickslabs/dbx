@@ -1,3 +1,5 @@
+# Custom section is used to store configurations that might be repetative.
+# Please read YAML documentation for details on how to use substitutions and anchors.
 custom:
   basic-cluster-props: &basic-cluster-props
     spark_version: "9.1.x-cpu-ml-scala2.12"
@@ -44,7 +46,7 @@ environments:
       ###############################################
       # this is an example multitask job            #
       ###############################################
-      - name: "{{project_name}}-sample-mtj"
+      - name: "{{project_name}}-sample-multitask"
         job_clusters:
           - job_cluster_key: "default"
             <<: *basic-static-cluster
@@ -63,5 +65,17 @@ environments:
               package_name: "{{project_slug}}"
               entry_point: "ml"
               parameters: [ "--conf-file", "file:fuse://conf/test/sample_ml_config.yml" ]
+          ###############################################################################
+          # this is an example task based on the notebook                               #
+          # Please note that first you'll need to add a Repo and commit notebook to it. #
+          ###############################################################################
+          - task_key: "notebook"
+            deployment_config:
+              no_package: true # we omit using package since code will be shipped directly from the Repo
+            depends_on:
+              - task_key: "ml"
+            job_cluster_key: "default"
+            notebook_task:
+              notebook_path: "/Repos/Staging/{{project_slug}}/notebooks/sample_notebook"
 
 

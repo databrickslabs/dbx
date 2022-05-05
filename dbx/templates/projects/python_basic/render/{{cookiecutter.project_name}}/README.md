@@ -12,19 +12,14 @@ conda create -n {{cookiecutter.project_slug}} python=3.9
 conda activate {{cookiecutter.project_slug}}
 ```
 
-2. If you don't have Java installed on your local machine, install it (in this example we use conda-based installation):
+2. If you don't have JDK installed on your local machine, install it (in this example we use `conda`-based installation):
 ```bash
 conda install -c anaconda "openjdk=8.0.152"
 ```
 
-3. Install unit requirements for local development:
+3. Install unit requirements for local development and the project package in a developer mode:
 ```bash
 pip install -r unit-requirements.txt
-```
-
-4. Install project package in a developer mode
-
-```bash
 pip install -e .
 ```
 
@@ -60,7 +55,7 @@ dbx launch --job=<name of the job to test> --as-run-submit --trace
 
 Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/run_submit.html), so you won't affect existing job definitions.
 
-## Interactive execution and development
+## Interactive execution and development on Databricks clusters
 
 1. `dbx` expects that cluster for interactive execution supports `%pip` and `%conda` magic [commands](https://docs.databricks.com/libraries/notebooks-python-libraries.html).
 2. Please configure your job in `conf/deployment.yml` file.
@@ -73,7 +68,22 @@ dbx execute \
 
 Multiple users also can use the same cluster for development. Libraries will be isolated per each execution context.
 
-## CICD pipeline settings
+## Working with notebooks and Repos
+
+To start working with your notebooks from a Repos, do the following steps:
+
+1. Add your git provider token to your user settings
+2. Add your repository to Repos. This could be done via UI, or via CLI command below:
+```bash
+databricks repos create --url <your repo URL> --provider <your-provider>
+```
+This command will create your personal repository under `/Repos/<username>/{{cookiecutter.project_slug}}`.
+3. To set up the CI/CD pipeline with the notebook, create a separate `Staging` repo:
+```bash
+databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/{{project_slug}}/
+```
+
+## CI/CD pipeline settings
 
 Please set the following secrets or environment variables for your CI provider:
 - `DATABRICKS_HOST`

@@ -1,3 +1,7 @@
+"""
+This conftest.py contains handy components that prepare SparkSession and other relevant objects.
+"""
+
 import os
 from pathlib import Path
 import shutil
@@ -15,6 +19,9 @@ from dataclasses import dataclass
 
 @dataclass
 class FileInfoFixture:
+    """
+    This class mocks the DBUtils FileInfo object
+    """
     path: str
     name: str
     size: int
@@ -65,6 +72,11 @@ class DBUtilsFixture:
 
 @pytest.fixture(scope="session")
 def spark() -> SparkSession:
+    """
+    This fixture provides preconfigured SparkSession with Hive and Delta support.
+    After the test session, temporary warehouse directory is deleted.
+    :return: SparkSession
+    """
     logging.info("Configuring Spark session for testing environment")
     warehouse_dir = tempfile.TemporaryDirectory().name
     _builder = (
@@ -87,6 +99,13 @@ def spark() -> SparkSession:
 
 @pytest.fixture(scope="session", autouse=True)
 def mlflow_local():
+    """
+    This fixture provides local instance of mlflow with support for tracking and registry functions.
+    After the test session:
+    * temporary storage for tracking and registry is deleted.
+    * Active run will be automatically stopped to avoid verbose errors.
+    :return: None
+    """
     logging.info("Configuring local MLflow instance")
     tracking_uri = tempfile.TemporaryDirectory().name
     registry_uri = f"sqlite:///{tempfile.TemporaryDirectory().name}"
@@ -103,10 +122,18 @@ def mlflow_local():
 
     if Path(registry_uri).exists():
         Path(registry_uri).unlink()
+    logging.info("Test session finished, unrolling the MLflow instance")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def dbutils_fixture() -> Iterator[None]:
+    """
+    This fixture patches the `get_dbutils` function.
+    Please note that patch is applied on a string name of the function.
+    If you change the name or location of it, patching won't work.
+    :return:
+    """
     logging.info("Patching the DBUtils object")
     with patch("{{cookiecutter.project_slug}}.common.get_dbutils", lambda _: DBUtilsFixture()):
         yield
+    logging.info("Test session finished, patching completed")
