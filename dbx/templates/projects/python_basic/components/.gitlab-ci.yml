@@ -23,9 +23,9 @@ integration-testing:
     - pip install -r unit-requirements.txt
     - pip install -e .
     - echo "Deploying tests"
-    - dbx deploy --jobs={{project_name}}-integration-test --files-only
+    - dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
     - echo "Running tests"
-    - dbx launch --job={{project_name}}-integration-test --as-run-submit --trace
+    - dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
 
 release:
   stage: release
@@ -38,4 +38,4 @@ release:
     - pip install -r unit-requirements.txt
     - pip install -e .
     - echo "Deploying Job"
-    - dbx deploy --jobs={{project_name}}-sample
+    - dbx deploy --job={{project_name}}-sample-multitask

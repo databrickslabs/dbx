@@ -11,7 +11,8 @@ from databricks_cli.clusters.api import ClusterService
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
-from dbx.utils.common import YamlDeploymentConfig, JsonUtils
+from dbx.utils.common import YamlDeploymentConfig
+from dbx.utils.json import JsonUtils
 from .test_common import format_path
 
 

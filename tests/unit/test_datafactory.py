@@ -11,7 +11,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 from dbx.commands.configure import configure
 from dbx.commands.datafactory import reflect as datafactory_reflect
 from dbx.commands.deploy import deploy, _update_job  # noqa
-from dbx.utils.common import JsonUtils
+from dbx.utils.json import JsonUtils
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
 run_info = RunInfo(

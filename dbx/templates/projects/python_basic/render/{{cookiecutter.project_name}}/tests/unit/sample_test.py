@@ -1,39 +1,32 @@
-import unittest
-import tempfile
-import os
-import shutil
-
-from {{cookiecutter.project_slug}}.jobs.sample.entrypoint import SampleJob
+from {{cookiecutter.project_slug}}.workloads.sample_etl_job import SampleETLJob
+from {{cookiecutter.project_slug}}.workloads.sample_ml_job import SampleMLJob
 from pyspark.sql import SparkSession
-from unittest.mock import MagicMock
+from pathlib import Path
+import mlflow
+import logging
 
-class SampleJobUnitTest(unittest.TestCase):
-    def setUp(self):
-        self.test_dir = tempfile.TemporaryDirectory().name
-        self.spark = SparkSession.builder.master("local[1]").getOrCreate()
-        self.test_config = {
-            "output_format": "parquet",
-            "output_path": os.path.join(self.test_dir, "output"),
-        }
-        self.job = SampleJob(spark=self.spark, init_conf=self.test_config)
+def test_jobs(spark: SparkSession, tmp_path: Path):
+    logging.info("Testing the ETL job")
+    common_config = {"database": "default", "table": "sklearn_housing"}
+    test_etl_config = {"output": common_config}
+    etl_job = SampleETLJob(spark, test_etl_config)
+    etl_job.launch()
+    table_name = f"{test_etl_config['output']['database']}.{test_etl_config['output']['table']}"
+    _count = spark.table(table_name).count()
+    assert _count > 0
+    logging.info("Testing the ETL job - done")
 
-    def test_sample(self):
-        # feel free to add new methods to this magic mock to mock some particular functionality
-        self.job.dbutils = MagicMock()
-
-        self.job.launch()
-
-        output_count = (
-            self.spark.read.format(self.test_config["output_format"])
-            .load(self.test_config["output_path"])
-            .count()
-        )
-
-        self.assertGreater(output_count, 0)
-
-    def tearDown(self):
-        shutil.rmtree(self.test_dir)
+    logging.info("Testing the ML job")
+    test_ml_config = {
+        "input": common_config,
+        "experiment": "/Shared/{{cookiecutter.project_name}}/sample_experiment"
+    }
+    ml_job = SampleMLJob(spark, test_ml_config)
+    ml_job.launch()
+    experiment = mlflow.get_experiment_by_name(test_ml_config['experiment'])
+    assert experiment is not None
+    runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
+    assert runs.empty is False
+    logging.info("Testing the ML job - done")
 
 
-if __name__ == "__main__":
-    unittest.main()
