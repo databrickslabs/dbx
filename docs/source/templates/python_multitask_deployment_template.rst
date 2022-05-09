@@ -38,12 +38,25 @@ Multi Task Deployment.yaml Template
 
 :code:`$ databricks clusters list-node-types`
 
+**Note**
+
+Documentation tries to list all the options, based on your need some options may not be relevant.
+Example: If pool_id is used, then note_type_id may not be relevant and so on.
+
 .. code-block:: yaml
 
   custom:
   basic-cluster-props: &basic-cluster-props
       spark_version: "your-spark-version"
       node_type_id: "your-node-type-id"
+      spark_conf:
+        spark.databricks.delta.preview.enabled: 'true'
+      instance_pool_id: <enter pool id>
+      driver_instance_pool_id: <enter pool id>
+      runtime_engine: STANDARD
+      init_scripts:
+      - dbfs:
+        destination: dbfs:/<enter your path>
 
   basic-auto-scale-props: &basic-auto-scale-props
       autoscale:
