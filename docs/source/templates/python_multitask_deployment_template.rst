@@ -41,7 +41,7 @@ Multi Task Deployment.yaml Template
 **Note**
 
 Documentation tries to list all the options, based on your need some options may not be relevant.
-Example: If pool_id is used, then note_type_id may not be relevant and so on.
+*Example*: If pool_id is used, then note_type_id may not be relevant and so on.
 
 .. code-block:: yaml
 
