@@ -104,7 +104,8 @@ def main_loop(
         delete_unmatched_option=delete_unmatched_option,
     )
 
-    # Windows by default uses a different event loop policy which results in "Event loop is closed" errors for some reason.
+    # Windows by default uses a different event loop policy which results in "Event loop is closed" errors
+    # for some reason.
     if platform.system() == "Windows":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
