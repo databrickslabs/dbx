@@ -183,15 +183,13 @@ check: ## Run black checks
 	@echo ""
 	@echo "${YELLOW}Check code with black:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m black --check ./dbx
-	$(PYTHON) -m black --check ./tests
+	$(PYTHON) -m black --check .
 
 fix: ## fix the code with black formatter.
 	@echo ""
 	@echo "${YELLOW}Fixing code with black:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m black ./dbx
-	$(PYTHON) -m black ./tests
+	$(PYTHON) -m black .
 
 ##############################################################################
 
