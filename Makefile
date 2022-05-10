@@ -16,6 +16,7 @@ PYTHON_VERSION=3.7.5
 VENV_NAME=.venv
 VENV_DIR=${VENV_NAME}
 PYTHON=${VENV_DIR}/bin/python
+RSTCHECK=${VENV_DIR}/bin/rstcheck
 SPHINX_AUTOBUILD=${VENV_DIR}/bin/sphinx-autobuild
 SPHINX_BUILD=${VENV_DIR}/bin/sphinx-build
 ##############################################################################
@@ -175,7 +176,7 @@ lint: ## Run the lint and checks
 	@echo "${YELLOW}Linting code:${NORMAL}"
 	@make helper-line
 	$(PYTHON) -m prospector --profile prospector.yaml
-	$(PYTHON) -m rstcheck README.rst
+	$(RSTCHECK) README.rst
 	@make check
 
 check: ## Run black checks
