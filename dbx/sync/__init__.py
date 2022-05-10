@@ -2,20 +2,27 @@ import asyncio
 import hashlib
 import os
 import pickle
+from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, Union
 
 import aiohttp
 import click
-from watchdog.utils.dirsnapshot import DirectorySnapshot, DirectorySnapshotDiff, EmptyDirectorySnapshot
+from watchdog.utils.dirsnapshot import DirectorySnapshot, EmptyDirectorySnapshot
 
 from dbx.utils import dbx_echo
 
 from .clients import BaseClient
 from .constants import DBX_SYNC_DIR
 from .path_matcher import PathMatcher
-from .snapshot import compute_snapshot_diff
+from .snapshot import SnapshotDiff, compute_snapshot_diff
+
+
+class DeleteUnmatchedOption(Enum):
+    ALLOW_DELETE_UNMATCHED = 1
+    DISALLOW_DELETE_UNMATCHED = 2
+    UNSPECIFIED_DELETE_UNMATCHED = 3
 
 
 def is_dir_ancestor(possible_ancestor: str, path: str) -> str:
@@ -73,6 +80,7 @@ class RemoteSyncer:
         full_sync: bool = False,
         max_parallel: int = 4,
         state_dir: Union[Path, str] = DBX_SYNC_DIR,
+        delete_unmatched_option: DeleteUnmatchedOption = DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED,
     ):
         # State directory should be relative to the directory we're syncing from.  Usually this will
         # be the same directory the tool is run from, but you can specify a different source directory.
@@ -92,6 +100,7 @@ class RemoteSyncer:
         self.matcher = matcher
         self.snapshot_path = os.path.join(state_dir, get_snapshot_name(client))
         self.last_snapshot = None
+        self.delete_unmatched_option = delete_unmatched_option
 
         if not os.path.exists(state_dir):
             os.makedirs(state_dir)
@@ -117,7 +126,7 @@ class RemoteSyncer:
             for include in self.includes:
                 await self.client.delete(include, session=session, recursive=True)
 
-    async def _apply_dirs_created(self, diff: DirectorySnapshotDiff, session: aiohttp.ClientSession) -> None:
+    async def _apply_dirs_created(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
         op_count = 0
 
         # Sort dirs by depth so we can create directories in parallel as much as possible.
@@ -149,7 +158,7 @@ class RemoteSyncer:
         return op_count
 
     async def _apply_dirs_deleted(
-        self, diff: DirectorySnapshotDiff, session: aiohttp.ClientSession, deleted_dirs: List[str]
+        self, diff: SnapshotDiff, session: aiohttp.ClientSession, deleted_dirs: List[str]
     ) -> None:
         op_count = 0
 
@@ -171,7 +180,7 @@ class RemoteSyncer:
                     dbx_echo(f"(noop) Dir deleted: {path}")
         return op_count
 
-    async def _apply_files_created(self, diff: DirectorySnapshotDiff, session: aiohttp.ClientSession) -> None:
+    async def _apply_files_created(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
         tasks = []
         op_count = 0
         for path in sorted(diff.files_created):
@@ -186,7 +195,7 @@ class RemoteSyncer:
         return op_count
 
     async def _apply_files_deleted(
-        self, diff: DirectorySnapshotDiff, session: aiohttp.ClientSession, deleted_dirs: List[str]
+        self, diff: SnapshotDiff, session: aiohttp.ClientSession, deleted_dirs: List[str]
     ) -> None:
         tasks = []
         op_count = 0
@@ -204,7 +213,7 @@ class RemoteSyncer:
             await asyncio.gather(*tasks)
         return op_count
 
-    async def _apply_files_modified(self, diff: DirectorySnapshotDiff, session: aiohttp.ClientSession) -> None:
+    async def _apply_files_modified(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
         tasks = []
         op_count = 0
         for path in sorted(diff.files_modified):
@@ -218,7 +227,7 @@ class RemoteSyncer:
             await asyncio.gather(*tasks)
         return op_count
 
-    async def _apply_snapshot_diff(self, diff: DirectorySnapshotDiff, session: aiohttp.ClientSession) -> int:
+    async def _apply_snapshot_diff(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> int:
         op_count = 0
 
         # Collects directories deleted while applying this diff.  Since we perform recursive deletes, we can
@@ -233,35 +242,75 @@ class RemoteSyncer:
 
         return op_count
 
-    async def incremental_copy(self) -> int:
+    def _remove_unmatched_deletes(self, diff: SnapshotDiff) -> SnapshotDiff:
+        """Creates a new snapshot diff where file and directory deletes that don't match the current
+        filters are removed.  If this diff is applied then these files/directories won't be deleted
+        in the remote location.
+
+        Args:
+            diff (SnapshotDiff): diff to update
+
+        Returns:
+            SnapshotDiff: new diff with unmatched deletes removed
         """
-        Performs an incremental copy from source using the client.
 
-        Returns the number of operations performed or would have been performed (if dry run).
+        return SnapshotDiff(
+            files_created=diff.files_created,
+            files_modified=diff.files_modified,
+            dirs_created=diff.dirs_created,
+            dirs_deleted=[d for d in diff.dirs_deleted if self.matcher.match(d, is_directory=True)],
+            files_deleted=[f for f in diff.files_deleted if self.matcher.match(f, is_directory=False)],
+        )
+
+    async def _dryrun_snapshot_diff_unmatched_deletes(self, diff: SnapshotDiff) -> int:
+        """Performs a dry run on only the unmatched file and directory deletes.  These are paths that would
+        not be matched by the current filters.  This dry run provides useful logging to the user to understand
+        what is happening.
+
+        Unmatched deletes happen when the user switches the include/exclude options between different runs.
+        This results in files/directories being removed in the remote that don't match the filters, which may
+        or may not be what the user wants.
+
+        Args:
+            diff (SnapshotDiff): diff to perform dry run with
+
+        Returns:
+            int: number of operations that would have been performed on unmatched deletes
         """
+        prev_dry_run = self.dry_run
+        try:
+            self.dry_run = True
 
-        if self.is_first_sync:
-            self.is_first_sync = False
+            # Modify the diff to only include files and directories being deleted that don't match the current
+            # filter.  This implies that these are only being deleted because they're not in the filter.
+            # We should confirm with the user that this is what they want to do.
 
-            if self.delete_dest and not self.dry_run:
-                await self._delete_dest_directories()
+            dirs_deleted = [d for d in diff.dirs_deleted if not self.matcher.match(d, is_directory=True)]
+            files_deleted = [f for f in diff.files_deleted if not self.matcher.match(f, is_directory=False)]
 
-            if self.full_sync:
-                if not self.dry_run and os.path.exists(self.snapshot_path):
-                    os.remove(self.snapshot_path)
-                self.last_snapshot = EmptyDirectorySnapshot()
-            else:
-                if os.path.exists(self.snapshot_path):
-                    dbx_echo(f"Restoring sync snapshot from {self.snapshot_path}")
-                    with open(self.snapshot_path, "rb") as f:
-                        try:
-                            self.last_snapshot = pickle.load(f)
-                        except pickle.UnpicklingError:
-                            dbx_echo("Failed to restore sync state.  Starting from clean state.")
-                            self.last_snapshot = EmptyDirectorySnapshot()
-                else:
-                    self.last_snapshot = EmptyDirectorySnapshot()
+            diff = SnapshotDiff(
+                files_created=[],
+                files_modified=[],
+                dirs_created=[],
+                dirs_deleted=dirs_deleted,
+                files_deleted=files_deleted,
+            )
 
+            op_count = 0
+
+            # Dry run, so we don't need a session.
+            session = None
+
+            deleted_dirs = []
+
+            op_count += await self._apply_dirs_deleted(diff, session, deleted_dirs)
+            op_count += await self._apply_files_deleted(diff, session, deleted_dirs)
+
+            return op_count
+        finally:
+            self.dry_run = prev_dry_run
+
+    def _prepare_snapshot(self) -> DirectorySnapshot:
         # When walking the directory tree, we use the ignore spec to do an initial first pass at excluding
         # paths that should be definitely ignored.  Good examples of this are the .git folder, if it exists.
         # This makes the directory walk more efficient.
@@ -302,7 +351,73 @@ class RemoteSyncer:
         # Replace the snapshot's path dictionary with the newly filtered set.
         snapshot._stat_info = {**matched_paths, **additional_matched_paths}
 
+        return snapshot
+
+    async def _check_for_unmatched_deletes(self, diff: SnapshotDiff) -> SnapshotDiff:
+        dbx_echo("Checking if any unmatched files/directories would be deleted")
+        unmatched_delete_op_count = await self._dryrun_snapshot_diff_unmatched_deletes(diff)
+
+        if unmatched_delete_op_count:
+            dbx_echo(
+                f"Detected {unmatched_delete_op_count} files and/or directories that will be deleted in the remote "
+                "location because they don't match the current include/exclude filters."
+            )
+
+            delete_unmatched_option = self.delete_unmatched_option
+
+            if delete_unmatched_option == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED:
+                dbx_echo("You most likely have changed the include/exclude filters since the last run.")
+                dbx_echo("You can either:")
+                dbx_echo("1) proceed with deleting these files in the remote location, or")
+                dbx_echo("2) clear the paths from the local sync state so they won't be removed")
+
+                if click.confirm("Do you want to delete the files and directories above in the remote location?"):
+                    delete_unmatched_option = DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED
+                else:
+                    delete_unmatched_option = DeleteUnmatchedOption.DISALLOW_DELETE_UNMATCHED
+
+            if delete_unmatched_option == DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED:
+                dbx_echo("Unmatched files/directories will be removed in the remote location.")
+            else:
+                # Update the diff to remove the unmatched file/directory deletes so they aren't deleted.
+                dbx_echo("Unmatched files/directories will not be removed in the remote location.")
+                diff = self._remove_unmatched_deletes(diff)
+
+        return diff
+
+    async def incremental_copy(self) -> int:
+        """
+        Performs an incremental copy from source using the client.
+
+        Returns the number of operations performed or would have been performed (if dry run).
+        """
+
+        if self.is_first_sync:
+            if self.delete_dest and not self.dry_run:
+                await self._delete_dest_directories()
+
+            if self.full_sync:
+                if not self.dry_run and os.path.exists(self.snapshot_path):
+                    os.remove(self.snapshot_path)
+                self.last_snapshot = EmptyDirectorySnapshot()
+            else:
+                if os.path.exists(self.snapshot_path):
+                    dbx_echo(f"Restoring sync snapshot from {self.snapshot_path}")
+                    with open(self.snapshot_path, "rb") as f:
+                        try:
+                            self.last_snapshot = pickle.load(f)
+                        except pickle.UnpicklingError:
+                            dbx_echo("Failed to restore sync state.  Starting from clean state.")
+                            self.last_snapshot = EmptyDirectorySnapshot()
+                else:
+                    self.last_snapshot = EmptyDirectorySnapshot()
+
+        snapshot = self._prepare_snapshot()
+
         diff = compute_snapshot_diff(ref=self.last_snapshot, snapshot=snapshot)
+
+        if self.is_first_sync:
+            diff = await self._check_for_unmatched_deletes(diff)
 
         connector = aiohttp.TCPConnector(limit=self.max_parallel)
         async with aiohttp.ClientSession(connector=connector) as session:
@@ -317,5 +432,7 @@ class RemoteSyncer:
         if not self.dry_run:
             with open(self.snapshot_path, "wb") as f:
                 pickle.dump(self.last_snapshot, f)
+
+        self.is_first_sync = False
 
         return op_count

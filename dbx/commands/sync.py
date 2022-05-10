@@ -10,12 +10,20 @@ from dbx.sync.clients import BaseClient, DBFSClient, ReposClient
 from dbx.sync.config import get_databricks_config
 from dbx.sync.event_handler import file_watcher
 from dbx.sync.path_matcher import PathMatcher
-from dbx.sync import RemoteSyncer
+from dbx.sync import DeleteUnmatchedOption, RemoteSyncer
 from dbx.utils import dbx_echo
 
 # Patterns for files that are ignored by default.  There don't seem to be any reasonable scenarios where someone
 # would want to sync these, so we don't make this configurable.
 DEFAULT_IGNORES = [".git/", ".dbx", "*.isorted"]
+
+
+def validate_allow_unmatched(ctx, param, value):  # noqa
+    if value is None:
+        return DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+    if value:
+        return DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED
+    return DeleteUnmatchedOption.DISALLOW_DELETE_UNMATCHED
 
 
 @click.group()
@@ -75,6 +83,7 @@ def main_loop(
     excludes: List[str],
     watch: bool,
     sleep_interval: float = 0.25,
+    delete_unmatched_option: DeleteUnmatchedOption = DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED,
 ):
     """
     Performs the initial sync from the source directory and then watches for changes, performing
@@ -92,6 +101,7 @@ def main_loop(
         full_sync=full_sync,
         delete_dest=delete_dest,
         matcher=matcher,
+        delete_unmatched_option=delete_unmatched_option,
     )
 
     dbx_echo("Starting initial copy")
@@ -219,6 +229,14 @@ def common_options(f):
         required=False,
         help="Pattern under the source directory to sync",
     )(f)
+    f = click.option(
+        "--allow-delete-unmatched/--disallow-delete-unmatched",
+        "delete_unmatched_option",
+        callback=validate_allow_unmatched,
+        type=bool,
+        default=None,
+        help="How to handle files/directories that would be deleted in remote because they don't match a filter",
+    )(f)
     f = click.option("--exclude-pattern", "-ep", "exclude_patterns", type=str, multiple=True)(f)
     f = click.option("--watch/--no-watch", is_flag=True, default=True)(f)
     return f
@@ -241,6 +259,7 @@ def dbfs(
     watch: bool,
     include_patterns: List[str],
     exclude_patterns: List[str],
+    delete_unmatched_option: DeleteUnmatchedOption,
 ):
     """
     Syncs from source directory to DBFS.
@@ -298,6 +317,7 @@ def dbfs(
         includes=include_patterns,
         excludes=exclude_patterns,
         watch=watch,
+        delete_unmatched_option=delete_unmatched_option,
     )
 
 
@@ -325,6 +345,7 @@ def repo(
     watch: bool,
     include_patterns: List[str],
     exclude_patterns: List[str],
+    delete_unmatched_option: DeleteUnmatchedOption,
 ):
     """
     Syncs from source directory to a repo in Databricks.
@@ -361,4 +382,5 @@ def repo(
         includes=include_patterns,
         excludes=exclude_patterns,
         watch=watch,
+        delete_unmatched_option=delete_unmatched_option,
     )
