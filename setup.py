@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
     "Jinja2>=2.11.2",
     "aiohttp>=3.8.1",
     "pathspec>=0.9.0",
-    "watchdog>=2.1.0"
+    "watchdog>=2.1.0",
 ]
 
 if sys.platform.startswith("win32"):

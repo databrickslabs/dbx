@@ -43,7 +43,7 @@ class PathMatcher:
         elif is_directory is False:
             raise ValueError("Path should not end in '/' and also not be a directory")
 
-        path = path[len(self.root_dir) + 1:]
+        path = path[len(self.root_dir) + 1 :]
 
         return path
 

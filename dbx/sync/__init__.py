@@ -34,7 +34,7 @@ def get_relative_path(ancestor: str, path: str):
     path = path.rstrip("/")
     if not is_dir_ancestor(ancestor, path):
         raise ValueError(f"{ancestor} is not an ancestor of {path}")
-    return path[len(ancestor) + 1:]
+    return path[len(ancestor) + 1 :]
 
 
 def with_depth(d: str) -> int:
