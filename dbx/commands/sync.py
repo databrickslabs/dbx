@@ -77,7 +77,6 @@ def main_loop(
     source: str,
     client: BaseClient,
     full_sync: bool,
-    delete_dest: bool,
     dry_run: bool,
     includes: List[str],
     excludes: List[str],
@@ -99,7 +98,6 @@ def main_loop(
         excludes=excludes,
         dry_run=dry_run,
         full_sync=full_sync,
-        delete_dest=delete_dest,
         matcher=matcher,
         delete_unmatched_option=delete_unmatched_option,
     )
@@ -206,9 +204,6 @@ def common_options(f):
     f = click.option("--profile", type=str, help="The databricks-cli profile to use for accessing the API token")(f)
     f = click.option("--source", "-s", type=click.Path(exists=True, dir_okay=True, file_okay=False), required=False)(f)
     f = click.option("--full-sync", is_flag=True, help="Copy everything from the source on the initial sync")(f)
-    f = click.option(
-        "--delete-dest", is_flag=True, help="Delete the destination directories before syncing in order to reset"
-    )(f)
     f = click.option("--dry-run", is_flag=True)(f)
     f = click.option(
         "--include",
@@ -252,7 +247,6 @@ def dbfs(
     full_sync: bool,
     dry_run: bool,
     include_dirs: List[str],
-    delete_dest: bool,
     dest_path: str,
     exclude_dirs: List[str],
     profile: str,
@@ -313,7 +307,6 @@ def dbfs(
         client=client,
         full_sync=full_sync,
         dry_run=dry_run,
-        delete_dest=delete_dest,
         includes=include_patterns,
         excludes=exclude_patterns,
         watch=watch,
@@ -338,7 +331,6 @@ def repo(
     full_sync: bool,
     dry_run: bool,
     include_dirs: List[str],
-    delete_dest: bool,
     dest_repo: str,
     exclude_dirs: List[str],
     profile: str,
@@ -378,7 +370,6 @@ def repo(
         client=client,
         full_sync=full_sync,
         dry_run=dry_run,
-        delete_dest=delete_dest,
         includes=include_patterns,
         excludes=exclude_patterns,
         watch=watch,

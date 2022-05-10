@@ -25,7 +25,6 @@ def test_syncing_many_files():
             dry_run=False,
             includes=None,
             excludes=None,
-            delete_dest=False,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,

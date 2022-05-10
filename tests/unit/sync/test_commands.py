@@ -55,7 +55,6 @@ def test_repo_basic_opts(mock_get_config, mock_main_loop):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
@@ -80,7 +79,6 @@ def test_repo_dry_run(mock_get_config, mock_main_loop):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert not mock_main_loop.call_args[1]["watch"]
@@ -108,7 +106,6 @@ def test_repo_include_dir(mock_get_config, mock_main_loop):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == ["/foo/"]
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
@@ -136,7 +133,6 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == ["/foo/"]
         assert mock_main_loop.call_args[1]["watch"]
@@ -181,7 +177,6 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop):
         assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
@@ -231,7 +226,6 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_getuser):
         assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
@@ -264,7 +258,6 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_getuser):
         assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert not mock_main_loop.call_args[1]["watch"]
@@ -294,7 +287,6 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_getuser):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
@@ -327,7 +319,6 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_getuser):
         assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert not mock_main_loop.call_args[1]["delete_dest"]
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]

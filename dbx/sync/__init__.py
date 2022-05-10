@@ -76,7 +76,6 @@ class RemoteSyncer:
         matcher: PathMatcher,
         includes: List[str],
         excludes: List[str],
-        delete_dest: bool,
         full_sync: bool = False,
         max_parallel: int = 4,
         state_dir: Union[Path, str] = DBX_SYNC_DIR,
@@ -91,7 +90,6 @@ class RemoteSyncer:
         self.client = client
         self.source = source
         self.state_dir = state_dir
-        self.delete_dest = delete_dest
         self.full_sync = full_sync
         self.dry_run = dry_run
         self.max_parallel = max_parallel
@@ -108,23 +106,8 @@ class RemoteSyncer:
         if self.dry_run:
             dbx_echo("Performing a dry run")
 
-        if self.delete_dest:
-            self.full_sync = True
-            dbx_echo("Performing a full sync due to deleting destination directories")
-        elif self.full_sync:
+        if self.full_sync:
             dbx_echo("Performing a full sync")
-
-    async def _delete_dest_directories(self):
-        # Delete the destination directories in case they already exist.  We only delete those
-        # directories that are included in the sync.
-        # TODO This should techincally delete the base destination directory when there are no includes specified.
-        if not self.includes:
-            raise click.BadArgumentUsage("Cannot delete destination directories if no includes specified")
-        dbx_echo("Deleting destination included directories")
-        connector = aiohttp.TCPConnector()
-        async with aiohttp.ClientSession(connector=connector) as session:
-            for include in self.includes:
-                await self.client.delete(include, session=session, recursive=True)
 
     async def _apply_dirs_created(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
         op_count = 0
@@ -393,9 +376,6 @@ class RemoteSyncer:
         """
 
         if self.is_first_sync:
-            if self.delete_dest and not self.dry_run:
-                await self._delete_dest_directories()
-
             if self.full_sync:
                 if not self.dry_run and os.path.exists(self.snapshot_path):
                     os.remove(self.snapshot_path)

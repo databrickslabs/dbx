@@ -15,7 +15,6 @@ def test_main_loop_no_watch(remote_syncer_class_mock):
             source=source,
             client=client,
             full_sync=False,
-            delete_dest=False,
             dry_run=False,
             includes=None,
             excludes=None,
@@ -27,7 +26,6 @@ def test_main_loop_no_watch(remote_syncer_class_mock):
         assert remote_syncer_class_mock.call_args[1]["source"] == source
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
-        assert not remote_syncer_class_mock.call_args[1]["delete_dest"]
         assert not remote_syncer_class_mock.call_args[1]["dry_run"]
         assert not remote_syncer_class_mock.call_args[1]["includes"]
         assert not remote_syncer_class_mock.call_args[1]["excludes"]
@@ -45,7 +43,6 @@ def test_main_loop_dry_run(remote_syncer_class_mock):
             source=source,
             client=client,
             full_sync=False,
-            delete_dest=False,
             dry_run=True,
             includes=None,
             excludes=None,
@@ -57,7 +54,6 @@ def test_main_loop_dry_run(remote_syncer_class_mock):
         assert remote_syncer_class_mock.call_args[1]["source"] == source
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
-        assert not remote_syncer_class_mock.call_args[1]["delete_dest"]
         assert remote_syncer_class_mock.call_args[1]["dry_run"]
         assert not remote_syncer_class_mock.call_args[1]["includes"]
         assert not remote_syncer_class_mock.call_args[1]["excludes"]
@@ -87,7 +83,6 @@ def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
             source=source,
             client=client,
             full_sync=False,
-            delete_dest=False,
             dry_run=False,
             includes=None,
             excludes=None,
@@ -100,7 +95,6 @@ def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
         assert remote_syncer_class_mock.call_args[1]["source"] == source
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
-        assert not remote_syncer_class_mock.call_args[1]["delete_dest"]
         assert not remote_syncer_class_mock.call_args[1]["dry_run"]
         assert not remote_syncer_class_mock.call_args[1]["includes"]
         assert not remote_syncer_class_mock.call_args[1]["excludes"]
@@ -141,7 +135,6 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
             source=source,
             client=client,
             full_sync=False,
-            delete_dest=False,
             dry_run=False,
             includes=None,
             excludes=None,
@@ -155,7 +148,6 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
         assert remote_syncer_class_mock.call_args[1]["source"] == source
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
-        assert not remote_syncer_class_mock.call_args[1]["delete_dest"]
         assert not remote_syncer_class_mock.call_args[1]["dry_run"]
         assert not remote_syncer_class_mock.call_args[1]["includes"]
         assert not remote_syncer_class_mock.call_args[1]["excludes"]
