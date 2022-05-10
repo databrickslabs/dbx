@@ -132,7 +132,7 @@ class Jinja2DeploymentConfig(AbstractDeploymentConfig):
         # jinja are not actual filesystem paths, but often have a one-to-one mapping.
         # To retain platform independence, we replace whatever the operating system's
         # preferred separator is with a forward slash to keep compatibility with jinja.
-        template_path = os.path.relpath(self._path, start=root_dir).replace(os.sep, '/')
+        template_path = os.path.relpath(self._path, start=root_dir).replace(os.sep, "/")
         # We render templates with an environment from the root directory so
         # that other template includes can be processed
         j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(root_dir))
