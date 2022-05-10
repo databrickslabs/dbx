@@ -1,7 +1,9 @@
 import asyncio
 import os
+import platform
 import time
 from getpass import getuser
+from pathlib import Path
 from typing import List
 
 import click
@@ -102,6 +104,10 @@ def main_loop(
         delete_unmatched_option=delete_unmatched_option,
     )
 
+    # Windows by default uses a different event loop policy which results in "Event loop is closed" errors for some reason.
+    if platform.system() == "Windows":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
     dbx_echo("Starting initial copy")
 
     # Run the incremental copy and record how many operations were performed or would have been
@@ -154,7 +160,7 @@ def subdirs_to_patterns(source: str, subdirs: List[str]) -> List[str]:
         full_subdir = os.path.join(source, subdir)
         if not os.path.exists(full_subdir):
             raise click.BadArgumentUsage(f"Path {full_subdir} does not exist")
-        subdir = subdir.rstrip("/")
+        subdir = Path(subdir).as_posix()
         patterns.append(f"/{subdir}/")
     return patterns
 
@@ -193,7 +199,7 @@ def handle_source(source: str = None) -> str:
         else:
             raise click.UsageError("Must specify source directory using --source")
 
-    source = os.path.abspath(source).rstrip("/")
+    source = os.path.abspath(source)
 
     dbx_echo(f"Syncing from {source}")
 

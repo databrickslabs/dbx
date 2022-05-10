@@ -30,11 +30,11 @@ def is_dir_ancestor(possible_ancestor: str, path: str) -> str:
 
 
 def get_relative_path(ancestor: str, path: str):
-    ancestor = ancestor.rstrip("/")
-    path = path.rstrip("/")
+    ancestor = str(Path(ancestor))
+    path = str(Path(path))
     if not is_dir_ancestor(ancestor, path):
         raise ValueError(f"{ancestor} is not an ancestor of {path}")
-    return path[len(ancestor) + 1 :]
+    return Path(path[len(ancestor) + 1 :]).as_posix()
 
 
 def with_depth(d: str) -> int:
@@ -47,7 +47,7 @@ def with_depth(d: str) -> int:
     Returns:
         int: depth of directory
     """
-    return (len(d.split("/")), d)
+    return (len(Path(d).as_posix().split("/")), d)
 
 
 def get_snapshot_name(client: BaseClient) -> str:
@@ -325,7 +325,7 @@ class RemoteSyncer:
         for path, st in unmatched_paths.items():
             # We assume the target directory being synced to at this point already exists and doesn't need
             # to be created.
-            if path.rstrip("/") == self.source.rstrip("/"):
+            if Path(path) == Path(self.source):
                 continue
             for matched_path in matched_paths:
                 if matched_path.startswith(path) and os.path.commonpath([path, matched_path]) == path:

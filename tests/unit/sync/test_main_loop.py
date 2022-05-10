@@ -3,10 +3,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from dbx.commands.sync import StopIncrementalCopy, main_loop
 
+from .utils import temporary_directory
+
 
 @patch("dbx.commands.sync.RemoteSyncer")
 def test_main_loop_no_watch(remote_syncer_class_mock):
-    with tempfile.TemporaryDirectory() as source:
+    with temporary_directory() as source:
         client = MagicMock()
         remote_sync_mock = AsyncMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
@@ -34,7 +36,7 @@ def test_main_loop_no_watch(remote_syncer_class_mock):
 
 @patch("dbx.commands.sync.RemoteSyncer")
 def test_main_loop_dry_run(remote_syncer_class_mock):
-    with tempfile.TemporaryDirectory() as source:
+    with temporary_directory() as source:
         client = MagicMock()
         remote_sync_mock = AsyncMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
@@ -63,7 +65,7 @@ def test_main_loop_dry_run(remote_syncer_class_mock):
 @patch("dbx.commands.sync.file_watcher")
 @patch("dbx.commands.sync.RemoteSyncer")
 def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
-    with tempfile.TemporaryDirectory() as source:
+    with temporary_directory() as source:
         client = MagicMock()
         remote_sync_mock = AsyncMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
@@ -108,7 +110,7 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
     Test running the main loop with one of the get_events calls returning no events, resulting in a short sleep.
     """
 
-    with tempfile.TemporaryDirectory() as source:
+    with temporary_directory() as source:
         client = MagicMock()
         remote_sync_mock = AsyncMock()
         remote_syncer_class_mock.return_value = remote_sync_mock

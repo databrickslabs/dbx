@@ -1,5 +1,4 @@
 import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -7,12 +6,14 @@ import pytest
 from dbx.commands.sync import create_path_matcher
 from dbx.sync.path_matcher import PathMatcher
 
+from .utils import temporary_directory
+
 
 def test_no_rules():
     """
     Tests that with no rules, it matches everything.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         matcher = PathMatcher(tempdir)
@@ -34,8 +35,8 @@ def test_invalid_root():
     """
     Tests that calling should_ignore on a path inconsistent with the root path is ignored.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
-        with tempfile.TemporaryDirectory() as tempdir2:
+    with temporary_directory() as tempdir:
+        with temporary_directory() as tempdir2:
             tempdir = Path(tempdir)
             tempdir2 = Path(tempdir2)
             matcher = PathMatcher(tempdir)
@@ -51,7 +52,7 @@ def test_include_spec():
     """
     Tests that should_ignore can properly follow included patterns.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         matcher = PathMatcher(tempdir, includes=["foo/"])
@@ -83,7 +84,7 @@ def test_ignore_spec():
     """
     Tests that should_ignore can properly follow ignored patterns.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         matcher = PathMatcher(tempdir, ignores=["foo/"])
@@ -115,7 +116,7 @@ def test_ignore_and_include_spec():
     """
     Tests that should_ignore can properly follow included and ignored patterns when used together.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         matcher = PathMatcher(tempdir, includes=["foo/"], ignores=["foo/bar/"])
@@ -136,7 +137,7 @@ def test_create_path_matcher():
     """
     Tests using create_path_matcher to create the PathMatcher instead.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         (tempdir / "foo").mkdir()
@@ -158,7 +159,7 @@ def test_create_path_matcher_with_gitignore():
     """
     Tests using create_path_matcher to automatically handle .gitignore and .git.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         (tempdir / "foo").mkdir()
@@ -203,7 +204,7 @@ def test_create_path_matcher_with_syncinclude():
     """
     Tests using create_path_matcher to automatically handle .syncinclude.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         # should be ignored
@@ -237,7 +238,7 @@ def test_create_path_matcher_with_syncinclude_and_includes():
     """
     Tests using create_path_matcher to ignore .syncinclude when there are explicit includes.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
 
         # included due to explicit include
@@ -271,7 +272,7 @@ def test_nonexistent_file():
     """
     Tests that the matcher can be applied to files that don't exist.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         tempdir = Path(tempdir)
         matcher = PathMatcher(tempdir, includes=["foo/", "bar"])
 

@@ -1,5 +1,4 @@
 import os
-import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -10,14 +9,15 @@ from watchdog.events import DirCreatedEvent, FileCreatedEvent, FileDeletedEvent,
 from dbx.sync.event_handler import CollectingEventHandler, file_watcher
 from dbx.sync.path_matcher import PathMatcher
 
+from .utils import temporary_directory
+
 
 @contextmanager
 def temp_event_handler(*, ignores: List[str] = None, includes: List[str] = None):
-    with tempfile.TemporaryDirectory() as tempdir:
-        tempdir = Path(os.path.realpath(tempdir))
+    with temporary_directory() as tempdir:
         matcher = PathMatcher(tempdir, includes=includes, ignores=ignores)
         with file_watcher(source=tempdir, matcher=matcher) as event_handler:
-            yield (event_handler, tempdir)
+            yield (event_handler, Path(tempdir))
 
 
 def get_events(event_handler: CollectingEventHandler, expected: int, *, timeout_seconds: int = 5):
@@ -42,7 +42,7 @@ def test_event_handler_create_file():
         events = get_events(event_handler, expected=1)
         assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_create_file_ignored():
@@ -55,7 +55,7 @@ def test_event_handler_create_file_ignored():
         events = get_events(event_handler, expected=1)
         assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_create_dir():
@@ -67,7 +67,7 @@ def test_event_handler_create_dir():
         events = get_events(event_handler, expected=1)
         assert len(events) == 1
         assert isinstance(events[0], DirCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_create_dir_ignored():
@@ -80,7 +80,7 @@ def test_event_handler_create_dir_ignored():
         events = get_events(event_handler, expected=1)
         assert len(events) == 1
         assert isinstance(events[0], DirCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_delete_file():
@@ -93,9 +93,9 @@ def test_event_handler_delete_file():
         events = get_events(event_handler, expected=2)
         assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileDeletedEvent)
-        assert events[1].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[1].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_delete_file_ignored():
@@ -109,7 +109,7 @@ def test_event_handler_delete_file_ignored():
         events = get_events(event_handler, expected=1)
         assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_modify_file():
@@ -122,9 +122,9 @@ def test_event_handler_modify_file():
         events = get_events(event_handler, expected=2)
         assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileModifiedEvent)
-        assert events[1].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[1].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_modify_file_ignored():
@@ -139,9 +139,9 @@ def test_event_handler_modify_file_ignored():
         events = get_events(event_handler, expected=2)
         assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileModifiedEvent)
-        assert events[1].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[1].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_move_file():
@@ -154,9 +154,9 @@ def test_event_handler_move_file():
         events = get_events(event_handler, expected=2)
         assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileMovedEvent)
-        assert events[1].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[1].src_path == os.path.join(tempdir, "foo")
 
 
 def test_event_handler_move_file_ignored():
@@ -170,15 +170,14 @@ def test_event_handler_move_file_ignored():
         events = get_events(event_handler, expected=1)
         assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
-        assert events[0].src_path == os.path.join(os.path.realpath(tempdir), "foo")
+        assert events[0].src_path == os.path.join(tempdir, "foo")
 
 
 def test_keyboard_interrupt():
     """
     Tests that the keyboard interrupt will cause the file watcher to stop without throwing an error.
     """
-    with tempfile.TemporaryDirectory() as tempdir:
-        tempdir = Path(os.path.realpath(tempdir))
+    with temporary_directory() as tempdir:
         matcher = PathMatcher(tempdir, includes=None, ignores=None)
         with file_watcher(source=tempdir, matcher=matcher):
             # this should be captured by the file_watcher

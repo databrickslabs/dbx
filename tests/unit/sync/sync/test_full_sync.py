@@ -1,11 +1,12 @@
 import asyncio
 import os
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock
 
 from dbx.commands.sync import create_path_matcher
 from dbx.sync import RemoteSyncer
+
+from tests.unit.sync.utils import temporary_directory
 
 
 def test_initial_full_sync():
@@ -17,7 +18,7 @@ def test_initial_full_sync():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         matcher = create_path_matcher(source=source, includes=None, excludes=None)
         syncer = RemoteSyncer(
             client=client,
@@ -69,7 +70,7 @@ def test_full_sync_after_initial_sync():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         matcher = create_path_matcher(source=source, includes=None, excludes=None)
         syncer = RemoteSyncer(
             client=client,
@@ -163,7 +164,7 @@ def test_dry_run_full_sync_after_initial_sync():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         matcher = create_path_matcher(source=source, includes=None, excludes=None)
         syncer = RemoteSyncer(
             client=client,

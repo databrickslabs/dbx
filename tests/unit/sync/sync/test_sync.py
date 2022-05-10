@@ -2,11 +2,12 @@ import asyncio
 import os
 import shutil
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock, MagicMock
 
 from dbx.commands.sync import create_path_matcher
 from dbx.sync import RemoteSyncer
+
+from tests.unit.sync.utils import temporary_directory
 
 
 def test_empty_dir():
@@ -16,7 +17,7 @@ def test_empty_dir():
     client = MagicMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         matcher = create_path_matcher(source=source, includes=None, excludes=None)
         syncer = RemoteSyncer(
             client=client,
@@ -49,7 +50,7 @@ def test_single_file_put_and_delete():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         matcher = create_path_matcher(source=source, includes=None, excludes=None)
         syncer = RemoteSyncer(
             client=client,
@@ -113,7 +114,7 @@ def test_put_dir_and_file_and_delete():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         matcher = create_path_matcher(source=source, includes=None, excludes=None)
         syncer = RemoteSyncer(
             client=client,
@@ -182,7 +183,7 @@ def test_single_file_put_twice():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         matcher = create_path_matcher(source=source, includes=None, excludes=None)
         syncer = RemoteSyncer(
             client=client,

@@ -83,12 +83,18 @@ async def _api_mkdirs(*, api_base_path: str, path: str, session: aiohttp.ClientS
                 raise ClientError(resp.status)
 
 
+def check_path(path: str) -> None:
+    if not path:
+        raise ValueError("Path is empty")
+    if "\\" in path:
+        raise ValueError("Paths should not contain backslashes")
+
+
 class DBFSClient(BaseClient):
     name = "dbfs"
 
     def __init__(self, *, base_path: str, config: DatabricksConfig):
-        if not base_path:
-            raise ValueError("Expected a base path")
+        check_path(base_path)
         self.base_path = "dbfs:" + base_path.rstrip("/")
         self.api_token = config.token
         self.host = config.host.rstrip("/")
@@ -97,24 +103,21 @@ class DBFSClient(BaseClient):
         dbx_echo(f"Target base path: {self.base_path}")
 
     async def delete(self, sub_path: str, *, session: aiohttp.ClientSession, recursive: bool = False):
-        if not sub_path:
-            raise ValueError("Empty sub path")
+        check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         await _api_delete(
             api_base_path=self.api_base_path, path=path, session=session, recursive=recursive, api_token=self.api_token
         )
 
     async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
-        if not sub_path:
-            raise ValueError("Empty sub path")
+        check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         await _api_mkdirs(api_base_path=self.api_base_path, path=path, session=session, api_token=self.api_token)
 
     async def put(
         self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession, overwrite: bool = True
     ):
-        if not sub_path:
-            raise ValueError("Empty sub path")
+        check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         dbx_echo(f"Putting {path}")
         with open(full_source_path, "rb") as f:
@@ -151,8 +154,7 @@ class ReposClient(BaseClient):
         dbx_echo(f"Target base path: {self.base_path}")
 
     async def delete(self, sub_path: str, *, session: aiohttp.ClientSession, recursive: bool = False):
-        if not sub_path:
-            raise ValueError("Empty sub path")
+        check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         await _api_delete(
             api_base_path=self.workspace_api_base_path,
@@ -163,8 +165,7 @@ class ReposClient(BaseClient):
         )
 
     async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
-        if not sub_path:
-            raise ValueError("Empty sub path")
+        check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         await _api_mkdirs(
             api_base_path=self.workspace_api_base_path, path=path, session=session, api_token=self.api_token
@@ -173,8 +174,7 @@ class ReposClient(BaseClient):
     async def put(
         self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession, overwrite: bool = True
     ):
-        if not sub_path:
-            raise ValueError("Empty sub path")
+        check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         dbx_echo(f"Putting {path}")
         with open(full_source_path, "rb") as f:

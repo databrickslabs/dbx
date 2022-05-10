@@ -2,11 +2,12 @@ import asyncio
 import logging
 import os
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock
 
 from dbx.commands.sync import create_path_matcher
 from dbx.sync import RemoteSyncer
+
+from tests.unit.sync.utils import temporary_directory
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def test_include():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         includes = ["foo"]
         excludes = None
         matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
@@ -71,7 +72,7 @@ def test_default_ignore_git():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         includes = None
         excludes = None
         matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
@@ -122,7 +123,7 @@ def test_exclude():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         includes = None
         excludes = ["baz"]
         matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
@@ -174,7 +175,7 @@ def test_include_deeply_nested():
     client = AsyncMock()
     client.name = "test"
     client.base_path = "/test"
-    with TemporaryDirectory() as source, TemporaryDirectory() as state_dir:
+    with temporary_directory() as source, temporary_directory() as state_dir:
         includes = ["foo/bar/baz"]
         excludes = None
         matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)

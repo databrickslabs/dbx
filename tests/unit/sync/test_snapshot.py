@@ -1,16 +1,17 @@
 import os
 import shutil
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 from watchdog.utils.dirsnapshot import DirectorySnapshot
 
 from dbx.sync.snapshot import compute_snapshot_diff
 from dbx.sync import get_relative_path
 
+from .utils import temporary_directory
+
 
 def test_empty_dir():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         # initially no files
         snapshot1 = DirectorySnapshot(source)
@@ -28,7 +29,7 @@ def test_empty_dir():
 
 
 def test_create_dir():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         snapshot1 = DirectorySnapshot(source)
 
@@ -48,7 +49,7 @@ def test_create_dir():
 
 
 def test_delete_dir():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").mkdir()
 
@@ -70,7 +71,7 @@ def test_delete_dir():
 
 
 def test_move_dir():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").mkdir()
 
@@ -93,7 +94,7 @@ def test_move_dir():
 
 
 def test_create_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         snapshot1 = DirectorySnapshot(source)
 
@@ -113,7 +114,7 @@ def test_create_file():
 
 
 def test_delete_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").touch()
 
@@ -135,7 +136,7 @@ def test_delete_file():
 
 
 def test_modify_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").touch()
 
@@ -158,7 +159,7 @@ def test_modify_file():
 
 
 def test_move_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").touch()
 
@@ -181,7 +182,7 @@ def test_move_file():
 
 
 def test_create_dir_with_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         snapshot1 = DirectorySnapshot(source)
 
@@ -199,11 +200,11 @@ def test_create_dir_with_file():
         assert len(diff.files_modified) == 0
 
         assert get_relative_path(source, diff.dirs_created[0]) == "foo"
-        assert get_relative_path(source, diff.files_created[0]) == "foo/bar"
+        assert Path(get_relative_path(source, diff.files_created[0])).as_posix() == "foo/bar"
 
 
 def test_move_dir_with_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").mkdir()
         (Path(source) / "foo" / "bar").touch()
@@ -224,12 +225,12 @@ def test_move_dir_with_file():
 
         assert get_relative_path(source, diff.dirs_deleted[0]) == "foo"
         assert get_relative_path(source, diff.dirs_created[0]) == "foo2"
-        assert get_relative_path(source, diff.files_deleted[0]) == "foo/bar"
-        assert get_relative_path(source, diff.files_created[0]) == "foo2/bar"
+        assert Path(get_relative_path(source, diff.files_deleted[0])).as_posix() == "foo/bar"
+        assert Path(get_relative_path(source, diff.files_created[0])).as_posix() == "foo2/bar"
 
 
 def test_delete_dir_with_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").mkdir()
         (Path(source) / "foo" / "bar").touch()
@@ -249,11 +250,11 @@ def test_delete_dir_with_file():
         assert len(diff.files_modified) == 0
 
         assert get_relative_path(source, diff.dirs_deleted[0]) == "foo"
-        assert get_relative_path(source, diff.files_deleted[0]) == "foo/bar"
+        assert Path(get_relative_path(source, diff.files_deleted[0])).as_posix() == "foo/bar"
 
 
 def test_replace_dir_with_file():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").mkdir()
 
@@ -277,7 +278,7 @@ def test_replace_dir_with_file():
 
 
 def test_replace_file_with_dir():
-    with TemporaryDirectory() as source:
+    with temporary_directory() as source:
 
         (Path(source) / "foo").touch()
 

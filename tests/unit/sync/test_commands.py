@@ -1,5 +1,4 @@
 import os
-from contextlib import contextmanager
 from tempfile import TemporaryDirectory
 from unittest.mock import patch, call, MagicMock
 
@@ -8,15 +7,7 @@ from dbx.sync.clients import DBFSClient, ReposClient
 
 from tests.unit.utils import invoke_cli_runner
 
-
-@contextmanager
-def pushd(d):
-    previous = os.getcwd()
-    os.chdir(d)
-    try:
-        yield
-    finally:
-        os.chdir(previous)
+from .utils import temporary_directory, pushd
 
 
 @patch("dbx.commands.sync.get_databricks_config")
@@ -44,7 +35,7 @@ def test_repo_no_opts(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_repo_basic_opts(mock_get_config, mock_main_loop):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
         invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me"])
@@ -68,7 +59,7 @@ def test_repo_basic_opts(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_repo_dry_run(mock_get_config, mock_main_loop):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
         invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "--dry-run"])
@@ -92,7 +83,7 @@ def test_repo_dry_run(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_repo_include_dir(mock_get_config, mock_main_loop):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
 
         os.mkdir(os.path.join(tempdir, "foo"))
 
@@ -119,7 +110,7 @@ def test_repo_include_dir(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_repo_exclude_dir(mock_get_config, mock_main_loop):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
 
         os.mkdir(os.path.join(tempdir, "foo"))
 
@@ -146,7 +137,7 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
 
         # we don't create the "foo" subdir, so it should produce an error
 
@@ -163,8 +154,7 @@ def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_repo_inferred_source(mock_get_config, mock_main_loop):
-    with TemporaryDirectory() as tempdir, pushd(tempdir):
-
+    with temporary_directory() as tempdir, pushd(tempdir):
         os.mkdir(os.path.join(tempdir, ".git"))
 
         config = MagicMock()
@@ -174,7 +164,7 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop):
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
 
-        assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
+        assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
         assert mock_main_loop.call_args[1]["includes"] == []
@@ -190,7 +180,7 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop):
-    with TemporaryDirectory() as tempdir, pushd(tempdir):
+    with temporary_directory() as tempdir, pushd(tempdir):
 
         # source can only be inferred when the cwd contains a .git subdir
 
@@ -208,7 +198,7 @@ def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_getuser):
-    with TemporaryDirectory() as tempdir, pushd(tempdir):
+    with temporary_directory() as tempdir, pushd(tempdir):
 
         # infer source based on cwd having a .git directory
         os.mkdir(os.path.join(tempdir, ".git"))
@@ -223,7 +213,7 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_getuser):
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
 
-        assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
+        assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
         assert mock_main_loop.call_args[1]["includes"] == []
@@ -240,7 +230,7 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_getuser):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_getuser):
-    with TemporaryDirectory() as tempdir, pushd(tempdir):
+    with temporary_directory() as tempdir, pushd(tempdir):
 
         # infer source based on cwd having a .git directory
         os.mkdir(os.path.join(tempdir, ".git"))
@@ -255,7 +245,7 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_getuser):
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
 
-        assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
+        assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert mock_main_loop.call_args[1]["dry_run"]
         assert mock_main_loop.call_args[1]["includes"] == []
@@ -272,7 +262,7 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_getuser):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_getuser):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
 
         config = MagicMock()
         mock_get_config.return_value = config
@@ -301,7 +291,7 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_getuser):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_getuser):
-    with TemporaryDirectory() as tempdir, pushd(tempdir):
+    with temporary_directory() as tempdir, pushd(tempdir):
 
         # infer source based on cwd having a .git directory
         os.mkdir(os.path.join(tempdir, ".git"))
@@ -316,7 +306,7 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_getuser):
         assert mock_get_config.call_count == 1
         assert mock_getuser.call_count == 0
 
-        assert mock_main_loop.call_args[1]["source"] == os.path.realpath(tempdir)
+        assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
         assert mock_main_loop.call_args[1]["includes"] == []
@@ -333,7 +323,7 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_getuser):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_getuser):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
 
         config = MagicMock()
         mock_get_config.return_value = config
@@ -352,7 +342,7 @@ def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_getuser):
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
 def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_getuser):
-    with TemporaryDirectory() as tempdir:
+    with temporary_directory() as tempdir:
 
         config = MagicMock()
         mock_get_config.return_value = config

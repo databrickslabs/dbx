@@ -5,6 +5,17 @@ from typing import List, Union
 import pathspec
 
 
+def path_as_posix(path: Union[str, Path]) -> str:
+    if isinstance(path, str):
+        ends_with_sep = path.endswith("/") or path.endswith("\\")
+        path = Path(path).as_posix()
+        if ends_with_sep:
+            path = path + "/"
+    else:
+        path = path.as_posix()
+    return path
+
+
 class PathMatcher:
     """
     Applies gitignore-style ignore and include patterns to match file paths.
@@ -29,7 +40,8 @@ class PathMatcher:
             includes (List[str], optional): patterns to include. Defaults to None, which means everything will be
                                             included, unless otherwise ignored.
         """
-        self.root_dir = str(root_dir).rstrip("/")
+
+        self.root_dir = path_as_posix(root_dir)
         self.include_spec = pathspec.PathSpec.from_lines("gitwildmatch", includes) if includes else None
         self.ignore_spec = pathspec.PathSpec.from_lines("gitwildmatch", ignores) if ignores else None
 
@@ -58,8 +70,7 @@ class PathMatcher:
         Returns:
             bool: True if it should be ignored due to the ignore spec
         """
-        if isinstance(path, Path):
-            path = str(path)
+        path = path_as_posix(path)
 
         path = self._clean_relative_path(path, is_directory=is_directory)
 
@@ -89,8 +100,7 @@ class PathMatcher:
             bool: True if the path should be ignored, and False otherwise
         """
 
-        if isinstance(path, Path):
-            path = str(path)
+        path = path_as_posix(path)
 
         # Sometimes we get events that are outside of the root directory.  For example we may get a directory
         # creation event about the source directory, which also results in a modification event for the parent
