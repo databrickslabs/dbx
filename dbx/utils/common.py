@@ -126,12 +126,17 @@ class Jinja2DeploymentConfig(AbstractDeploymentConfig):
         self._ext = ext
 
     def _render_jinja_template(self) -> str:
-        path_list = self._path.split("/")
-        file_name = path_list.pop()
-        file_path = "/".join(path_list)
-
-        j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(file_path))
-        return j2_env.get_template(file_name).render(os.environ)
+        root_dir = "."
+        # Jinja processes templates by path relative to provided FileSystemLoader
+        # Jinja expects paths always with forward separators, because the "paths" in
+        # jinja are not actual filesystem paths, but often have a one-to-one mapping.
+        # To retain platform independence, we replace whatever the operating system's
+        # preferred separator is with a forward slash to keep compatibility with jinja.
+        template_path = os.path.relpath(self._path, start=root_dir).replace(os.sep, '/')
+        # We render templates with an environment from the root directory so
+        # that other template includes can be processed
+        j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(root_dir))
+        return j2_env.get_template(template_path).render(os.environ)
 
     def _get_deployment_config(self) -> Dict[str, Any]:
         template = self._render_jinja_template()
