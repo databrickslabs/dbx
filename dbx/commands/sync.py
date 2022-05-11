@@ -2,13 +2,13 @@ import asyncio
 import os
 import platform
 import time
-from getpass import getuser
 from pathlib import Path
 from typing import List
 
 import click
+from databricks_cli.configure.provider import DatabricksConfig
 
-from dbx.sync.clients import BaseClient, DBFSClient, ReposClient
+from dbx.sync.clients import BaseClient, DBFSClient, ReposClient, get_user
 from dbx.sync.config import get_databricks_config
 from dbx.sync.event_handler import file_watcher
 from dbx.sync.path_matcher import PathMatcher
@@ -140,8 +140,7 @@ def main_loop(
                 if op_count < 0:
                     break
 
-                if op_count > 0:
-                    dbx_echo("Done")
+                dbx_echo("Done")
 
 
 def subdirs_to_patterns(source: str, subdirs: List[str]) -> List[str]:
@@ -207,6 +206,18 @@ def handle_source(source: str = None) -> str:
     dbx_echo(f"Syncing from {source}")
 
     return source
+
+
+def get_user_name(config: DatabricksConfig) -> str:
+    user_info = get_user(config)
+    return user_info.get("userName")
+
+
+def get_source_base_name(source: str) -> str:
+    source_base_name = os.path.basename(source.rstrip("/"))
+    if not source_base_name:
+        raise click.UsageError("Destination path can't be determined.  Please specify with --dest.")
+    return source_base_name
 
 
 def common_options(f):
@@ -290,18 +301,19 @@ def dbfs(
     # To make the tool easier to use, pick a reasonable destination path under /tmp if one is not specified that is
     # highly unlikely to overwrite anything important.
     if not dest_path:
-        source_base_name = os.path.basename(source)
-        if not source_base_name:
-            raise click.UsageError("Destination path can't be determined.  Please specify with --dest.")
+        source_base_name = get_source_base_name(source)
 
         if not user_name:
-            user_name = getuser()
+            user_name = get_user_name(config)
 
         if not user_name:
             raise click.UsageError(
                 "Destination path can't be automatically determined because the user is not known. "
                 "Please either specify the user with --user or provide the destination path with --dest."
             )
+
+        # if user name is an email, just use the first part
+        user_name = user_name.split("@")[0]
 
         dest_path = f"/tmp/users/{user_name}/{source_base_name}"
 
@@ -329,13 +341,12 @@ def dbfs(
 @click.option(
     "--user",
     "-u",
-    "user",
+    "user_name",
     type=str,
     help="USER in the destination path /Repos/USER/REPO",
-    default=os.environ.get("DBX_SYNC_REPO_USER"),
 )
 def repo(
-    user: str,
+    user_name: str,
     source: str,
     full_sync: bool,
     dry_run: bool,
@@ -354,15 +365,21 @@ def repo(
     This can sync to a destination path under /Repos/<user>/<repo> using --dest-repo and --user.
     """
 
-    if not user:
-        raise click.UsageError("Repo user must be specified with --user")
-
     # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
     # we'll set watch to false here.
     if dry_run:
         watch = False
 
     config = get_databricks_config(profile)
+
+    if not user_name:
+        user_name = get_user_name(config)
+
+    if not user_name:
+        raise click.UsageError(
+            "Destination repo path can't be automatically determined because the user is not known. "
+            "Please either specify the user with --user."
+        )
 
     source = handle_source(source)
 
@@ -372,7 +389,7 @@ def repo(
     include_patterns.extend(subdirs_to_patterns(source, include_dirs))
     exclude_patterns.extend(subdirs_to_patterns(source, exclude_dirs))
 
-    client = ReposClient(user=user, repo_name=dest_repo, config=config)
+    client = ReposClient(user=user_name, repo_name=dest_repo, config=config)
 
     main_loop(
         source=source,

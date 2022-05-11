@@ -3,6 +3,7 @@ import base64
 from abc import ABC, abstractmethod
 
 import aiohttp
+import requests
 from databricks_cli.configure.provider import DatabricksConfig
 
 from dbx.utils import dbx_echo
@@ -31,6 +32,26 @@ class BaseClient(ABC):
 def get_auth_headers(api_token: str) -> dict:
     headers = {"Authorization": f"Bearer {api_token}"}
     return headers
+
+
+def get_user(config: DatabricksConfig) -> dict:
+    """Gets information about the user associated with the token in the config.
+
+    Args:
+        config (DatabricksConfig): config which contains the API token
+
+    Returns:
+        dict: information about the user, such as their userName, or None if the API returns an error
+              or isn't supported
+    """
+    api_token = config.token
+    host = config.host.rstrip("/")
+    headers = get_auth_headers(api_token)
+    url = f"{host}/api/2.0/preview/scim/v2/Me"
+    resp = requests.get(url, headers=headers)
+    if resp.status_code == 200:
+        return resp.json()
+    return None
 
 
 async def _rate_limit_sleep(resp, *, default_sleep=0.5):
