@@ -1,10 +1,16 @@
-from collections import namedtuple
+from dataclasses import dataclass
+from typing import List
 
 from watchdog.utils.dirsnapshot import DirectorySnapshot
 
-SnapshotDiff = namedtuple(
-    "SnapshotDiff", ["files_created", "files_deleted", "files_modified", "dirs_created", "dirs_deleted"]
-)
+
+@dataclass
+class SnapshotDiff:
+    files_created: List[str]
+    files_deleted: List[str]
+    files_modified: List[str]
+    dirs_created: List[str]
+    dirs_deleted: List[str]
 
 
 def compute_snapshot_diff(ref: DirectorySnapshot, snapshot: DirectorySnapshot) -> SnapshotDiff:
