@@ -1,7 +1,7 @@
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from dbx.commands.sync import StopIncrementalCopy, main_loop
+from dbx.commands.sync import main_loop
 
 from .utils import temporary_directory
 
@@ -71,7 +71,7 @@ def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
         remote_syncer_class_mock.return_value = remote_sync_mock
 
         # incremental_copy should be called four times, with the last time breaking out of the loop.
-        remote_sync_mock.incremental_copy.side_effect = [1, 1, 1, StopIncrementalCopy]
+        remote_sync_mock.incremental_copy.side_effect = [1, 1, 1, -1]
 
         mock_file_watch_result = MagicMock()
         mock_event_handler = MagicMock()
@@ -116,7 +116,7 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
         remote_syncer_class_mock.return_value = remote_sync_mock
 
         # incremental_copy should be called three times, with the last time breaking out of the loop.
-        remote_sync_mock.incremental_copy.side_effect = [1, 1, StopIncrementalCopy]
+        remote_sync_mock.incremental_copy.side_effect = [1, 1, -1]
 
         mock_file_watch_result = MagicMock()
         mock_event_handler = MagicMock()

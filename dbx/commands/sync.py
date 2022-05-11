@@ -70,10 +70,6 @@ def create_path_matcher(*, source: str, includes: List[str], excludes: List[str]
     return PathMatcher(root_dir=source, ignores=ignores, includes=includes)
 
 
-class StopIncrementalCopy(Exception):
-    pass
-
-
 def main_loop(
     *,
     source: str,
@@ -126,16 +122,22 @@ def main_loop(
 
         with file_watcher(source=source, matcher=matcher) as event_handler:
             while True:
+                # Keep looping until the event handler sees some file system events
+                # under the source path that match the provided filters.
                 while True:
                     events = event_handler.get_events()
+
+                    # Once at least one event has occurred, break out of the loop so we can
+                    # sync the change over.
                     if events:
                         break
                     time.sleep(sleep_interval)
 
-                try:
-                    op_count = asyncio.run(syncer.incremental_copy())
-                except StopIncrementalCopy:
-                    # simple way to enable unit testing to break out of loop
+                # Run incremental copy to sync over changes since the last sync.
+                op_count = asyncio.run(syncer.incremental_copy())
+
+                # simple way to enable unit testing to break out of loop
+                if op_count < 0:
                     break
 
                 if op_count > 0:
