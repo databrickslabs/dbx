@@ -5,6 +5,7 @@ exclude = '''
 /(
   | dbx/templates/projects
   | build
+  | .venv
 )/
 
 '''
