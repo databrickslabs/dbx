@@ -29,7 +29,9 @@ pylint:
     - raise-missing-from # pretty strange requirement with acquaint logic
 
 pep8:
-  disable: W293 # disabled because we have newlines in docstrings
+  # W293: disabled because we have newlines in docstrings
+  # E203: disabled because pep8 and black disagree on whitespace before colon in some cases
+  disable: W293,E203
 
 mccabe:
   disable:
