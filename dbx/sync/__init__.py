@@ -336,9 +336,41 @@ class RemoteSyncer:
 
         return snapshot
 
-    async def _check_for_unmatched_deletes(self, diff: SnapshotDiff) -> SnapshotDiff:
+    async def _first_sync_sanity_checks(self, snapshot: DirectorySnapshot, diff: SnapshotDiff) -> SnapshotDiff:
+        """Performs sanity checks to help the user from making syncing mistakes.
+
+        One of the checks this performs is looking for unmatched deletes.  These are files/directories that will
+        be deleted that don't match the current set of filters.  The implication here is that the only reason they
+        are being deleted is because of a change in the filters.  For example, suppose a user syncs over the "foo"
+        directory with a "-i foo" option.  Then they change the filter to sync the "bar" directory with "-i bar".
+        This second sync would result in the "foo" directory being deleted in the remote.  This may or may not be
+        what the user wants, so we ask what they want to do.
+
+        The other check performed is to see whether there are any files matched by the current set of filters.
+        If there are no files matched then it might mean that the user made a mistake in the filters.  For example,
+        suppose they wanted all the Python files under "foo", but instead of `-ip "foo/*.py"` they wrote
+        `-ip "fo/*.py"`.
+
+        Args:
+            snapshot (DirectorySnapshot): the current snapshot of the files/directories in the source
+            diff (SnapshotDiff): diff comparing the current snapshot with the last snapshot from the previous run
+
+        Returns:
+            SnapshotDiff: the new diff to use, which has been updated based on the user's choice of how to handle
+                          unmatched deletes
+        """
         dbx_echo("Checking if any unmatched files/directories would be deleted")
         unmatched_delete_op_count = await self._dryrun_snapshot_diff_unmatched_deletes(diff)
+
+        if not snapshot.paths:
+            dbx_echo(
+                "WARNING: No files were found under the source directory with the current filters. "
+                "This means no files will be copied over."
+            )
+            dbx_echo(
+                "WARNING: Consider adjusting the patterns you are filtering on "
+                "(--include-pattern and --exclude-pattern)."
+            )
 
         if unmatched_delete_op_count:
             dbx_echo(
@@ -353,6 +385,7 @@ class RemoteSyncer:
                 dbx_echo("You can either:")
                 dbx_echo("1) proceed with deleting these files in the remote location, or")
                 dbx_echo("2) clear the paths from the local sync state so they won't be removed")
+                dbx_echo("Note: see options --allow-delete-unmatched and --disallow-delete-unmatched")
 
                 if click.confirm("Do you want to delete the files and directories above in the remote location?"):
                     delete_unmatched_option = DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED
@@ -397,7 +430,7 @@ class RemoteSyncer:
         diff = compute_snapshot_diff(ref=self.last_snapshot, snapshot=snapshot)
 
         if self.is_first_sync:
-            diff = await self._check_for_unmatched_deletes(diff)
+            diff = await self._first_sync_sanity_checks(snapshot, diff)
 
         connector = aiohttp.TCPConnector(limit=self.max_parallel)
         async with aiohttp.ClientSession(connector=connector) as session:
