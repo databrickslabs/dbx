@@ -1,0 +1,38 @@
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "9.1.x-cpu-ml-scala2.12"
+
+  basic-static-cluster: &basic-static-cluster
+    new_cluster:
+      <<: *basic-cluster-props
+      num_workers: 1
+      node_type_id: "{some-node-type-id}"
+
+environments:
+  default:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: "dbx_jobs_v21_test"
+        job_clusters:
+          - job_cluster_key: "basic-cluster"
+            <<: *basic-static-cluster
+        tasks:
+          - task_key: "first-task"
+            job_cluster_key: "basic-cluster"
+            spark_python_task:
+              python_file: "file://some/entrypoint.py"
+              parameters: ["--conf-file", "file:fuse://some/conf/file.yml"]
+          - task_key: "second-task"
+            job_cluster_key: "basic-cluster"
+            spark_python_task:
+              python_file: "file://some/entrypoint.py"
+              parameters: ["--conf-file", "file:fuse://some/conf/file.yml"]
+          - task_key: "third-task"
+            job_cluster_key: "basic-cluster"
+            depends_on:
+              - task_key: "first-task"
+              - task_key: "second-task"
+            spark_python_task:
+              python_file: "file://some/entrypoint.py"
+              parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
+

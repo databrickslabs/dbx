@@ -1,0 +1,11 @@
+setuptools
+wheel
+pyspark
+pyyaml
+pytest
+pytest-cov
+dbx
+mlflow
+delta-spark
+scikit-learn
+pandas

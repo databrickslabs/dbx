@@ -1,0 +1,13 @@
+environments:
+  <environment-name>:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name": "some-job-with-permissions"
+        ## this section shall have a permissions key
+        permissions:
+          ## here goes payload compliant with Permissions API
+          access_control_list:
+            - user_name: "some_user@example.com"
+              permission_level: "IS_OWNER"
+            - group_name: "some-user-group"
+              permission_level: "CAN_VIEW"
