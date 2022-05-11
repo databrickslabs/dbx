@@ -9,6 +9,7 @@ rst2pdf==0.99
 wheel
 path
 pytest
+pytest-asyncio
 pytest-cov
 pytest-timeout
 pytest-clarity
