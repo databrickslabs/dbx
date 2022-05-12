@@ -65,9 +65,10 @@ async def _rate_limit_sleep(resp, *, default_sleep=0.5):
 
 
 async def _api(
-    *, url: str, path: str, session: aiohttp.ClientSession, api_token: str,
-    ok_status={200}, **more_json_data
+    *, url: str, path: str, session: aiohttp.ClientSession, api_token: str, ok_status=None, **more_json_data
 ):
+    if not ok_status:
+        ok_status = {200}
     json_data = {"path": path, **more_json_data}
     while True:
         headers = get_auth_headers(api_token)
@@ -88,8 +89,14 @@ async def _api_delete(
 ):
     dbx_echo(f"Deleting {path}")
     more_opts = {"recursive": True} if recursive else {}
-    await _api(url=f"{api_base_path}/delete", path=path, session=session, api_token=api_token, ok_status={200, 404},
-               **more_opts)
+    await _api(
+        url=f"{api_base_path}/delete",
+        path=path,
+        session=session,
+        api_token=api_token,
+        ok_status={200, 404},
+        **more_opts,
+    )
 
 
 async def _api_mkdirs(*, api_base_path: str, path: str, session: aiohttp.ClientSession, api_token: str):
@@ -145,8 +152,9 @@ class DBFSClient(BaseClient):
         path = f"{self.base_path}/{sub_path}"
         with open(full_source_path, "rb") as f:
             contents = base64.b64encode(f.read()).decode("ascii")
-        await _api_put(api_base_path=self.api_base_path, path=path, session=session, api_token=self.api_token,
-                       contents=contents)
+        await _api_put(
+            api_base_path=self.api_base_path, path=path, session=session, api_token=self.api_token, contents=contents
+        )
 
 
 class ReposClient(BaseClient):
