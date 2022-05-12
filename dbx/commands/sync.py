@@ -167,18 +167,6 @@ def subdirs_to_patterns(source: str, subdirs: List[str]) -> List[str]:
     return patterns
 
 
-@cli.command()
-@click.option("--profile", type=str, help="The databricks-cli profile to use for accessing the API token")
-def check(profile: str):
-    """
-    Check if configuration for Databricks is valid.
-    """
-    # This will fail if the API token doesn't work.
-    get_databricks_config(profile)
-
-    click.echo(click.style("Databricks API token is properly configured and working", fg="green"))
-
-
 def handle_source(source: str = None) -> str:
     """Determine the source directory to sync from.  If the source directory is not specified
     then it will check if the current directory has a .git subdirectory, implying that the current

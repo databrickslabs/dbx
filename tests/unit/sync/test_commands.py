@@ -4,7 +4,7 @@ from unittest.mock import patch, call, MagicMock
 import click
 import pytest
 
-from dbx.commands.sync import check, dbfs, repo, get_user_name, get_source_base_name
+from dbx.commands.sync import dbfs, repo, get_user_name, get_source_base_name
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
 
@@ -28,20 +28,6 @@ def test_get_source_base_name():
     assert get_source_base_name("/foo/bar/") == "bar"
     with pytest.raises(click.UsageError):
         get_source_base_name("/")
-
-
-@patch("dbx.commands.sync.get_databricks_config")
-def test_check(mock_get_config):
-    invoke_cli_runner(check, [])
-    assert mock_get_config.call_count == 1
-    assert mock_get_config.call_args == call(None)
-
-
-@patch("dbx.commands.sync.get_databricks_config")
-def test_check_with_profile(mock_get_config):
-    invoke_cli_runner(check, ["--profile", "foo"])
-    assert mock_get_config.call_count == 1
-    assert mock_get_config.call_args == call("foo")
 
 
 @patch("dbx.commands.sync.get_databricks_config")
