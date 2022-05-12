@@ -30,6 +30,15 @@ def test_delete(client: DBFSClient):
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
 
 
+def test_delete_backslash(client: DBFSClient):
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+    with pytest.raises(ValueError):
+        asyncio.run(client.delete(sub_path="foo\\bar", session=session))
+
+
 def test_delete_no_path(client: DBFSClient):
     session = MagicMock()
     with pytest.raises(ValueError):
@@ -112,6 +121,15 @@ def test_mkdirs(client: DBFSClient):
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
 
 
+def test_mkdirs_backslash(client: DBFSClient):
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+    with pytest.raises(ValueError):
+        asyncio.run(client.mkdirs(sub_path="foo\\bar", session=session))
+
+
 def test_mkdirs_no_path(client: DBFSClient):
     session = MagicMock()
     with pytest.raises(ValueError):
@@ -185,6 +203,16 @@ def test_put(client: DBFSClient, dummy_file_path: str):
         "contents": base64.b64encode(b"yo").decode("ascii"),
         "overwrite": True,
     }
+
+
+def test_put_backslash(client: DBFSClient, dummy_file_path: str):
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+
+    with pytest.raises(ValueError):
+        asyncio.run(client.put(sub_path="foo\\bar", full_source_path=dummy_file_path, session=session))
 
 
 def test_put_no_path(client: DBFSClient, dummy_file_path: str):

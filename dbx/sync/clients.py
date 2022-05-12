@@ -23,9 +23,7 @@ class BaseClient(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def put(
-        self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession, overwrite: bool = True
-    ):
+    async def put(self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession):
         raise NotImplementedError
 
 
@@ -136,14 +134,18 @@ class DBFSClient(BaseClient):
         await _api_mkdirs(api_base_path=self.api_base_path, path=path, session=session, api_token=self.api_token)
 
     async def put(
-        self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession, overwrite: bool = True
+        self,
+        sub_path: str,
+        full_source_path: str,
+        *,
+        session: aiohttp.ClientSession,
     ):
         check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         dbx_echo(f"Putting {path}")
         with open(full_source_path, "rb") as f:
             contents = base64.b64encode(f.read()).decode("ascii")
-            json_data = dict(path=path, contents=contents, overwrite=overwrite)
+            json_data = dict(path=path, contents=contents, overwrite=True)
             while True:
                 headers = get_auth_headers(self.api_token)
                 async with session.post(url=f"{self.host}/api/2.0/dbfs/put", json=json_data, headers=headers) as resp:
@@ -192,9 +194,7 @@ class ReposClient(BaseClient):
             api_base_path=self.workspace_api_base_path, path=path, session=session, api_token=self.api_token
         )
 
-    async def put(
-        self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession, overwrite: bool = True
-    ):
+    async def put(self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession):
         check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         dbx_echo(f"Putting {path}")
@@ -202,9 +202,7 @@ class ReposClient(BaseClient):
             content = f.read()
             path = path.lstrip("/")
             url = f"{self.workspace_files_api_base_path}/{path}"
-            params = {}
-            if overwrite:
-                params["overwrite"] = "true"
+            params = {"overwrite": "true"}
             while True:
                 headers = get_auth_headers(self.api_token)
                 async with session.post(url=url, data=content, params=params, headers=headers) as resp:

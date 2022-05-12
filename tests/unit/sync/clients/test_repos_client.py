@@ -12,10 +12,20 @@ def client(mock_config):
     return ReposClient(user="foo@somewhere.com", repo_name="my-repo", config=mock_config)
 
 
-def test_init(client):
+def test_init(mock_config):
+    client = ReposClient(user="foo@somewhere.com", repo_name="my-repo", config=mock_config)
     assert client.api_token == "fake-token"
     assert client.host == "http://fakehost.asdf/base"
     assert client.base_path == "/Repos/foo@somewhere.com/my-repo"
+
+    with pytest.raises(ValueError):
+        ReposClient(user="", repo_name="my-repo", config=mock_config)
+    with pytest.raises(ValueError):
+        ReposClient(user=None, repo_name="my-repo", config=mock_config)
+    with pytest.raises(ValueError):
+        ReposClient(user="foo@somewhere.com", repo_name="", config=mock_config)
+    with pytest.raises(ValueError):
+        ReposClient(user="foo@somewhere.com", repo_name=None, config=mock_config)
 
 
 def test_delete(client: ReposClient):
@@ -28,6 +38,15 @@ def test_delete(client: ReposClient):
     assert session.post.call_count == 1
     assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
+
+
+def test_delete_backslash(client: ReposClient):
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+    with pytest.raises(ValueError):
+        asyncio.run(client.delete(sub_path="foo\\bar", session=session))
 
 
 def test_delete_no_path(client: ReposClient):
@@ -112,6 +131,15 @@ def test_mkdirs(client: ReposClient):
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
 
 
+def test_mkdirs_backslash(client: ReposClient):
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+    with pytest.raises(ValueError):
+        asyncio.run(client.mkdirs(sub_path="foo\\bar", session=session))
+
+
 def test_mkdirs_no_path(client: ReposClient):
     session = MagicMock()
     with pytest.raises(ValueError):
@@ -184,6 +212,16 @@ def test_put(client: ReposClient, dummy_file_path: str):
         == "http://fakehost.asdf/base/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
     )
     assert session.post.call_args[1]["data"] == b"yo"
+
+
+def test_put_backslash(client: ReposClient, dummy_file_path: str):
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+
+    with pytest.raises(ValueError):
+        asyncio.run(client.put(sub_path="foo\\bar", full_source_path=dummy_file_path, session=session))
 
 
 def test_put_no_path(client: ReposClient, dummy_file_path: str):
