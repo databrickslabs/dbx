@@ -100,7 +100,7 @@ from dbx.utils.job_listing import find_job_by_name
     default=None,
     help="""Writes final job definitions into a given local file.
               Helpful when final representation of a deployed job is needed for other integrations.
-              Please not that output file will be overwritten if it exists.""",
+              Please note that output file will be overwritten if it exists.""",
 )
 @click.option(
     "--branch-name",
