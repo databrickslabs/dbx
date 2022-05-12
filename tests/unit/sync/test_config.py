@@ -76,3 +76,16 @@ def test_get_databricks_config_default_config_error(mock_get_config, mock_has_va
         get_databricks_config()
     assert mock_get_config.call_count == 1
     assert mock_has_valid_token.call_count == 0
+
+
+@patch("dbx.sync.config.has_valid_token")
+@patch("dbx.sync.config.ProfileConfigProvider")
+def test_get_databricks_config_default(mock_provider_class, mock_has_valid_token):
+    config = MagicMock()
+    instance = mock_provider_class.return_value
+    instance.get_config.return_value = config
+    mock_has_valid_token.return_value = True
+    assert get_databricks_config("foo") == config
+    assert mock_has_valid_token.call_args == call(config)
+    assert mock_provider_class.call_count == 1
+    assert mock_provider_class.call_args == call("foo")

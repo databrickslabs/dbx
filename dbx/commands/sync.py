@@ -33,7 +33,7 @@ def cli():
     """
     Sync local files to Databricks and watch for changes.
     """
-    pass
+    pass  # pragma: no cover
 
 
 def create_path_matcher(*, source: str, includes: List[str], excludes: List[str]) -> PathMatcher:
@@ -103,7 +103,7 @@ def main_loop(
     # Windows by default uses a different event loop policy which results in "Event loop is closed" errors
     # for some reason.
     if platform.system() == "Windows":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # pragma: no cover
 
     dbx_echo("Starting initial copy")
 

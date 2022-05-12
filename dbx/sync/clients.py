@@ -16,17 +16,17 @@ class ClientError(Exception):
 class BaseClient(ABC):
     @abstractmethod
     async def delete(self, sub_path: str, *, session: aiohttp.ClientSession, recursive: bool = False):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def put(
         self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession, overwrite: bool = True
     ):
-        pass
+        raise NotImplementedError
 
 
 def get_auth_headers(api_token: str) -> dict:

@@ -22,6 +22,9 @@ def test_no_rules():
         (tempdir / "foo" / "bar").touch()
         (tempdir / "baz").touch()
 
+        # never match the source itself
+        assert not matcher.match(tempdir)
+
         assert matcher.match(tempdir / "foo")
         assert matcher.match(f"{tempdir}/foo")
         assert matcher.match(tempdir / "foo" / "bar")
@@ -29,6 +32,7 @@ def test_no_rules():
 
         # only match files within the directory, not the directory itself
         assert not matcher.match(tempdir)
+        assert not matcher.match(f"{tempdir}/")
 
 
 def test_invalid_root():
@@ -66,6 +70,10 @@ def test_include_spec():
         (tempdir / "baz" / "foo" / "wee").touch()
         (tempdir / "bar" / "bop").touch()
 
+        # never match the source itself
+        assert not matcher.match(tempdir)
+        assert not matcher.match(f"{tempdir}/")
+
         # everything under the foo directory is included
         assert matcher.match(tempdir / "foo")
         assert matcher.match(tempdir / "foo" / "bar")
@@ -78,6 +86,8 @@ def test_include_spec():
         assert matcher.match(tempdir / "baz" / "foo" / "wee")
 
         assert not matcher.match(tempdir / "bar" / "bop")
+
+        assert not matcher.should_ignore(tempdir / "foo")
 
 
 def test_ignore_spec():
@@ -110,6 +120,8 @@ def test_ignore_spec():
         assert not matcher.match(tempdir / "baz" / "foo" / "wee")
 
         assert matcher.match(tempdir / "bar" / "bop")
+
+        assert matcher.should_ignore(tempdir / "foo")
 
 
 def test_ignore_and_include_spec():
