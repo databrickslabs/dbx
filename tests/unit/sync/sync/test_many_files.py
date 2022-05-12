@@ -135,3 +135,169 @@ def test_syncing_many_files():
         assert client.delete.call_count == 1
         assert client.mkdirs.call_count == 4
         assert client.put.call_count == 10
+
+
+def test_syncing_many_flat_dirs():
+    """
+    Tests that RemoteSyncer can be used to sync many directories.
+    """
+
+    client = AsyncMock()
+    client.name = "test"
+    client.base_path = "/test"
+    with temporary_directory() as source, temporary_directory() as state_dir:
+        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        syncer = RemoteSyncer(
+            client=client,
+            source=source,
+            dry_run=False,
+            includes=None,
+            excludes=None,
+            full_sync=False,
+            state_dir=state_dir,
+            matcher=matcher,
+        )
+
+        # initially no files
+        op_count = asyncio.run(syncer.incremental_copy())
+        assert op_count == 0
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 0
+        assert client.put.call_count == 0
+
+        # create a directory and a file in that directory
+        (Path(source) / "foo").mkdir()
+        (Path(source) / "bar").mkdir()
+        (Path(source) / "baz").mkdir()
+        (Path(source) / "bop").mkdir()
+        (Path(source) / "boo").mkdir()
+
+        parent = AsyncMock()
+        parent.attach_mock(client, "client")
+
+        # directories should be created in the proper order
+        assert asyncio.run(syncer.incremental_copy()) == 5
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 5
+        assert client.put.call_count == 0
+
+        mock_calls = iter(parent.mock_calls)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("bar",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("baz",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("boo",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("bop",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("foo",)
+
+        # now remove all the directories
+        (Path(source) / "foo").rmdir()
+        (Path(source) / "bar").rmdir()
+        (Path(source) / "baz").rmdir()
+        (Path(source) / "bop").rmdir()
+        (Path(source) / "boo").rmdir()
+
+        parent = AsyncMock()
+        parent.attach_mock(client, "client")
+
+        # directories should be deleted in the proper order
+        assert asyncio.run(syncer.incremental_copy()) == 5
+        assert client.delete.call_count == 5
+        assert client.mkdirs.call_count == 5
+        assert client.put.call_count == 0
+
+        mock_calls = iter(parent.mock_calls)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.delete"
+        assert next_call[1] == ("bar",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.delete"
+        assert next_call[1] == ("baz",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.delete"
+        assert next_call[1] == ("boo",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.delete"
+        assert next_call[1] == ("bop",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.delete"
+        assert next_call[1] == ("foo",)
+
+
+def test_syncing_many_nested_dirs():
+    """
+    Tests that RemoteSyncer can be used to sync many nested directories.
+    """
+
+    client = AsyncMock()
+    client.name = "test"
+    client.base_path = "/test"
+    with temporary_directory() as source, temporary_directory() as state_dir:
+        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        syncer = RemoteSyncer(
+            client=client,
+            source=source,
+            dry_run=False,
+            includes=None,
+            excludes=None,
+            full_sync=False,
+            state_dir=state_dir,
+            matcher=matcher,
+        )
+
+        # initially no files
+        op_count = asyncio.run(syncer.incremental_copy())
+        assert op_count == 0
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 0
+        assert client.put.call_count == 0
+
+        # create a directory and a file in that directory
+        (Path(source) / "foo").mkdir()
+        (Path(source) / "foo" / "bar").mkdir()
+        (Path(source) / "foo" / "bar" / "baz").mkdir()
+
+        parent = AsyncMock()
+        parent.attach_mock(client, "client")
+
+        # directories should be created in the proper order
+        assert asyncio.run(syncer.incremental_copy()) == 3
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 3
+        assert client.put.call_count == 0
+
+        mock_calls = iter(parent.mock_calls)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("foo",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("foo/bar",)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.mkdirs"
+        assert next_call[1] == ("foo/bar/baz",)
+
+        # now remove all the directories
+        shutil.rmtree(Path(source) / "foo")
+
+        parent = AsyncMock()
+        parent.attach_mock(client, "client")
+
+        # directories should be deleted in the proper order
+        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert client.delete.call_count == 1
+        assert client.mkdirs.call_count == 3
+        assert client.put.call_count == 0
+
+        mock_calls = iter(parent.mock_calls)
+        next_call = next(mock_calls)
+        assert next_call[0] == "client.delete"
+        assert next_call[1] == ("foo",)

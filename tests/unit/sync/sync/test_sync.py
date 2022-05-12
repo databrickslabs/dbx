@@ -4,8 +4,10 @@ import shutil
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from dbx.commands.sync import create_path_matcher
-from dbx.sync import RemoteSyncer
+from dbx.sync import RemoteSyncer, get_relative_path
 
 from tests.unit.sync.utils import temporary_directory
 
@@ -41,6 +43,33 @@ def test_empty_dir():
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
         assert client.put.call_count == 0
+
+
+def test_state_dir_creation():
+    """
+    Tests that RemoteSyncer creates the state directory.
+    """
+    client = MagicMock()
+    client.name = "test"
+    client.base_path = "/test"
+    with temporary_directory() as source, temporary_directory() as state_dir:
+        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+
+        # define a new state dir, but don't create it
+        state_dir = Path(state_dir) / "state" / "really" / "nested"
+
+        RemoteSyncer(
+            client=client,
+            source=source,
+            dry_run=False,
+            includes=None,
+            excludes=None,
+            full_sync=False,
+            state_dir=state_dir,
+            matcher=matcher,
+        )
+
+        assert os.path.exists(state_dir)
 
 
 def test_single_file_put_and_delete():
@@ -225,6 +254,89 @@ def test_single_file_put_twice():
         with open(Path(source) / "foo", "w") as f:
             f.write("blah")
 
+        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 0
+        assert client.put.call_count == 2
+
+
+def test_get_relative_path():
+    assert get_relative_path("/foo/bar", "/foo/bar/baz") == "baz"
+    assert get_relative_path("/foo/bar/", "/foo/bar/baz") == "baz"
+    assert get_relative_path("/foo/bar/", "/foo/bar/baz/") == "baz"
+
+    assert get_relative_path("/foo/bar", "/foo/bar/baz/bop") == "baz/bop"
+
+    with pytest.raises(ValueError):
+        assert get_relative_path("/foo/bar", "/foo/bar")
+    with pytest.raises(ValueError):
+        assert get_relative_path("/foo/bar", "/foo/bar/")
+    with pytest.raises(ValueError):
+        assert get_relative_path("/foo/bar/baz", "/foo/bar")
+
+
+def test_corrupt_state():
+    """
+    Tests that RemoteSyncer can sync a file after it is created and then delete it after it is deleted.
+    """
+    client = AsyncMock()
+    client.name = "test"
+    client.base_path = "/test"
+    with temporary_directory() as source, temporary_directory() as state_dir:
+        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+
+        def _create_syncer():
+            return RemoteSyncer(
+                client=client,
+                source=source,
+                dry_run=False,
+                includes=None,
+                excludes=None,
+                full_sync=False,
+                state_dir=state_dir,
+                matcher=matcher,
+            )
+
+        syncer = _create_syncer()
+
+        # initially no files
+        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 0
+        assert client.put.call_count == 0
+
+        # create a file to sync
+        (Path(source) / "foo").touch()
+
+        # sync the file
+        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 0
+        assert client.put.call_count == 1
+
+        # sync again, no ops because already synced
+        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 0
+        assert client.put.call_count == 1
+
+        # new syncer will restore state
+        syncer = _create_syncer()
+
+        # sync again, no ops because already synced
+        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert client.delete.call_count == 0
+        assert client.mkdirs.call_count == 0
+        assert client.put.call_count == 1
+
+        # corrupt the pickled state
+        with open(syncer.snapshot_path, "wb") as f:
+            f.write(b"asdf")
+
+        # new syncer will restore state but fail, resulting in empty state
+        syncer = _create_syncer()
+
+        # sync again, put happens again due to empty state
         assert asyncio.run(syncer.incremental_copy()) == 1
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0

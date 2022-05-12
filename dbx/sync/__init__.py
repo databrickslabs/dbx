@@ -32,6 +32,8 @@ def is_dir_ancestor(possible_ancestor: str, path: str) -> str:
 def get_relative_path(ancestor: str, path: str):
     ancestor = str(Path(ancestor))
     path = str(Path(path))
+    if ancestor == path:
+        raise ValueError(f"ancestor and path are the same: {path}")
     if not is_dir_ancestor(ancestor, path):
         raise ValueError(f"{ancestor} is not an ancestor of {path}")
     return Path(path[len(ancestor) + 1 :]).as_posix()
