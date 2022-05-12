@@ -32,7 +32,7 @@ def test_initial_full_sync():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -46,7 +46,7 @@ def test_initial_full_sync():
         parent.attach_mock(client, "client")
 
         # directory and file should be created in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -56,7 +56,7 @@ def test_initial_full_sync():
         assert parent.mock_calls[1][1] == ("foo/bar", os.path.join(source, "foo", "bar"))
 
         # sync again.  no more ops.
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -84,7 +84,7 @@ def test_full_sync_after_initial_sync():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -98,7 +98,7 @@ def test_full_sync_after_initial_sync():
         parent.attach_mock(client, "client")
 
         # directory and file should be created in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -108,7 +108,7 @@ def test_full_sync_after_initial_sync():
         assert parent.mock_calls[1][1] == ("foo/bar", os.path.join(source, "foo", "bar"))
 
         # sync again.  no more ops.
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -126,7 +126,7 @@ def test_full_sync_after_initial_sync():
         )
 
         # sync again.  no more ops.
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -147,7 +147,7 @@ def test_full_sync_after_initial_sync():
         parent.attach_mock(client, "client")
 
         # sync again.  same operations repeated again.
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 2
         assert client.put.call_count == 2
@@ -178,7 +178,7 @@ def test_dry_run_full_sync_after_initial_sync():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -192,7 +192,7 @@ def test_dry_run_full_sync_after_initial_sync():
         parent.attach_mock(client, "client")
 
         # directory and file should be created in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -202,7 +202,7 @@ def test_dry_run_full_sync_after_initial_sync():
         assert parent.mock_calls[1][1] == ("foo/bar", os.path.join(source, "foo", "bar"))
 
         # sync again.  no more ops.
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -223,7 +223,7 @@ def test_dry_run_full_sync_after_initial_sync():
         parent.attach_mock(client, "client")
 
         # sync again.  no additional operations should be made.
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1

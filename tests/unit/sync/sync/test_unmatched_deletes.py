@@ -57,7 +57,7 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
         syncer = create_syncer(includes=["foo"])
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -68,7 +68,7 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
         (Path(source) / "bar").touch()
 
         # sync the file
-        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert syncer.incremental_copy() == 1
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
         assert client.put.call_count == 1
@@ -77,7 +77,7 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
         assert client.put.call_args_list[0][0] == ("foo", os.path.join(source, "foo"))
 
         # syncing again should result in no additional operations
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
         assert client.put.call_count == 1
@@ -90,13 +90,13 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
 
         if confirm_delete:
             # syncing again should result in a delete and put
-            assert asyncio.run(syncer.incremental_copy()) == 2
+            assert syncer.incremental_copy() == 2
             assert client.delete.call_count == 1
             assert client.mkdirs.call_count == 0
             assert client.put.call_count == 2
         else:
             # syncing again should result in only a put, as we ignore the previous file
-            assert asyncio.run(syncer.incremental_copy()) == 1
+            assert syncer.incremental_copy() == 1
             assert client.delete.call_count == 0
             assert client.mkdirs.call_count == 0
             assert client.put.call_count == 2

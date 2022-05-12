@@ -1,6 +1,4 @@
-import asyncio
 import os
-import platform
 import time
 from pathlib import Path
 from typing import List
@@ -100,17 +98,12 @@ def main_loop(
         delete_unmatched_option=delete_unmatched_option,
     )
 
-    # Windows by default uses a different event loop policy which results in "Event loop is closed" errors
-    # for some reason.
-    if platform.system() == "Windows":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # pragma: no cover
-
     dbx_echo("Starting initial copy")
 
     # Run the incremental copy and record how many operations were performed or would have been
     # performed (if in dry run mode).  An operation usually translates to an API call, such as
     # create a directory, put a file, etc.
-    op_count = asyncio.run(syncer.incremental_copy())
+    op_count = syncer.incremental_copy()
 
     if not op_count:
         dbx_echo("No changes found during initial copy")
@@ -134,7 +127,7 @@ def main_loop(
                     time.sleep(sleep_interval)
 
                 # Run incremental copy to sync over changes since the last sync.
-                op_count = asyncio.run(syncer.incremental_copy())
+                op_count = syncer.incremental_copy()
 
                 # simple way to enable unit testing to break out of loop
                 if op_count < 0:

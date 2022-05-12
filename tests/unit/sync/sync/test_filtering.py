@@ -48,7 +48,7 @@ def test_include():
         parent.attach_mock(client, "client")
 
         # sync the file and dir
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -58,7 +58,7 @@ def test_include():
         assert parent.mock_calls[1][1] == ("foo/bar", os.path.join(source, "foo", "bar"))
 
         # syncing again should result in no additional operations
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -99,7 +99,7 @@ def test_default_ignore_git():
         parent.attach_mock(client, "client")
 
         # sync the file and dir
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -109,7 +109,7 @@ def test_default_ignore_git():
         assert parent.mock_calls[1][1] == ("foo/bar", os.path.join(source, "foo", "bar"))
 
         # syncing again should result in no additional operations
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -150,7 +150,7 @@ def test_exclude():
         parent.attach_mock(client, "client")
 
         # sync the file and dir
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -160,7 +160,7 @@ def test_exclude():
         assert parent.mock_calls[1][1] == ("foo/bar", os.path.join(source, "foo", "bar"))
 
         # syncing again should result in no additional operations
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -205,7 +205,7 @@ def test_include_deeply_nested():
         parent.attach_mock(client, "client")
 
         # sync the file and dir
-        assert asyncio.run(syncer.incremental_copy()) == 4
+        assert syncer.incremental_copy() == 4
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 3
         assert client.put.call_count == 1
@@ -219,7 +219,7 @@ def test_include_deeply_nested():
         assert parent.mock_calls[3][1] == ("foo/bar/baz/bop", os.path.join(source, "foo", "bar", "baz", "bop"))
 
         # syncing again should result in no additional operations
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 3
         assert client.put.call_count == 1

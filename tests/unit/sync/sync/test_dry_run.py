@@ -30,7 +30,7 @@ def test_single_file_put():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -40,7 +40,7 @@ def test_single_file_put():
         (Path(source) / "foo").touch()
 
         # sync the file.  because it's a dry run we don't copy anything.
-        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert syncer.incremental_copy() == 1
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
         assert client.put.call_count == 0
@@ -67,7 +67,7 @@ def test_mkdir_put():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -78,7 +78,7 @@ def test_mkdir_put():
         (Path(source) / "foo" / "bar").touch()
 
         # sync the file and dir.  because it's a dry run we don't copy anything.
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
         assert client.put.call_count == 0
@@ -107,7 +107,7 @@ def test_delete():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -118,13 +118,13 @@ def test_delete():
         (Path(source) / "foo" / "bar").touch()
 
         # sync the file.  because it's a dry run we don't copy anything.
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
 
         # sync again.  should be nothing else to sync.
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
 
         # second syncer does do dry run
         syncer = RemoteSyncer(
@@ -142,7 +142,7 @@ def test_delete():
         shutil.rmtree(Path(source) / "foo")
 
         # sync the file.  because it's a dry run we don't delete anything for real.
-        assert asyncio.run(syncer.incremental_copy()) == 2
+        assert syncer.incremental_copy() == 2
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 1
         assert client.put.call_count == 1
@@ -169,7 +169,7 @@ def test_single_file_put_twice():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -179,7 +179,7 @@ def test_single_file_put_twice():
         (Path(source) / "foo").touch()
 
         # sync the file.  because it's a dry run we don't copy anything.
-        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert syncer.incremental_copy() == 1
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
         assert client.put.call_count == 0
@@ -189,7 +189,7 @@ def test_single_file_put_twice():
             f.write("blah")
 
         # sync the file.  because it's a dry run we don't copy anything.
-        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert syncer.incremental_copy() == 1
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
         assert client.put.call_count == 0

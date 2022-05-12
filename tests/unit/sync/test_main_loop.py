@@ -1,5 +1,5 @@
 import tempfile
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from dbx.commands.sync import main_loop
 
@@ -10,7 +10,7 @@ from .utils import temporary_directory
 def test_main_loop_no_watch(remote_syncer_class_mock):
     with temporary_directory() as source:
         client = MagicMock()
-        remote_sync_mock = AsyncMock()
+        remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
         remote_sync_mock.incremental_copy.return_value = 0
         main_loop(
@@ -38,7 +38,7 @@ def test_main_loop_no_watch(remote_syncer_class_mock):
 def test_main_loop_dry_run(remote_syncer_class_mock):
     with temporary_directory() as source:
         client = MagicMock()
-        remote_sync_mock = AsyncMock()
+        remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
         remote_sync_mock.incremental_copy.return_value = 5
         main_loop(
@@ -67,7 +67,7 @@ def test_main_loop_dry_run(remote_syncer_class_mock):
 def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
     with temporary_directory() as source:
         client = MagicMock()
-        remote_sync_mock = AsyncMock()
+        remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
 
         # incremental_copy should be called four times, with the last time breaking out of the loop.
@@ -112,7 +112,7 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
 
     with temporary_directory() as source:
         client = MagicMock()
-        remote_sync_mock = AsyncMock()
+        remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
 
         # incremental_copy should be called three times, with the last time breaking out of the loop.

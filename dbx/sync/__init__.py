@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import os
 import pickle
+import platform
 from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -111,6 +112,11 @@ class RemoteSyncer:
         if self.full_sync:
             dbx_echo("Performing a full sync")
 
+        # Windows by default uses a different event loop policy which results in "Event loop is closed" errors
+        # for some reason.
+        if platform.system() == "Windows":
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # pragma: no cover
+
     async def _apply_dirs_created(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
         op_count = 0
 
@@ -212,18 +218,20 @@ class RemoteSyncer:
             await asyncio.gather(*tasks)
         return op_count
 
-    async def _apply_snapshot_diff(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> int:
-        op_count = 0
+    async def _apply_snapshot_diff(self, diff: SnapshotDiff) -> int:
+        connector = aiohttp.TCPConnector(limit=self.max_parallel)
+        async with aiohttp.ClientSession(connector=connector) as session:
+            op_count = 0
 
-        # Collects directories deleted while applying this diff.  Since we perform recursive deletes, we can
-        # avoid making some delete operations if an ancestor has already been deleted.
-        deleted_dirs = []
+            # Collects directories deleted while applying this diff.  Since we perform recursive deletes, we can
+            # avoid making some delete operations if an ancestor has already been deleted.
+            deleted_dirs = []
 
-        op_count += await self._apply_dirs_deleted(diff, session, deleted_dirs)
-        op_count += await self._apply_dirs_created(diff, session)
-        op_count += await self._apply_files_created(diff, session)
-        op_count += await self._apply_files_deleted(diff, session, deleted_dirs)
-        op_count += await self._apply_files_modified(diff, session)
+            op_count += await self._apply_dirs_deleted(diff, session, deleted_dirs)
+            op_count += await self._apply_dirs_created(diff, session)
+            op_count += await self._apply_files_created(diff, session)
+            op_count += await self._apply_files_deleted(diff, session, deleted_dirs)
+            op_count += await self._apply_files_modified(diff, session)
 
         return op_count
 
@@ -403,7 +411,7 @@ class RemoteSyncer:
 
         return diff
 
-    async def incremental_copy(self) -> int:
+    def incremental_copy(self) -> int:
         """
         Performs an incremental copy from source using the client.
 
@@ -432,11 +440,11 @@ class RemoteSyncer:
         diff = compute_snapshot_diff(ref=self.last_snapshot, snapshot=snapshot)
 
         if self.is_first_sync:
-            diff = await self._first_sync_sanity_checks(snapshot, diff)
+            diff = asyncio.run(self._first_sync_sanity_checks(snapshot, diff))
 
-        connector = aiohttp.TCPConnector(limit=self.max_parallel)
-        async with aiohttp.ClientSession(connector=connector) as session:
-            op_count = await self._apply_snapshot_diff(diff, session)
+        # Use the diff between current snapshot and previous snapshot to apply the same changes
+        # against the remote location.
+        op_count = asyncio.run(self._apply_snapshot_diff(diff))
 
         self.last_snapshot = snapshot
 

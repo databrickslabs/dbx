@@ -33,7 +33,7 @@ def test_syncing_many_files():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -55,7 +55,7 @@ def test_syncing_many_files():
         parent.attach_mock(client, "client")
 
         # directory and file should be created in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 10
+        assert syncer.incremental_copy() == 10
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 4
         assert client.put.call_count == 6
@@ -93,7 +93,7 @@ def test_syncing_many_files():
         assert next_call[1] == ("foo/bar/baz3", os.path.join(source, "foo", "bar", "baz3"))
 
         # sync again.  no more ops.
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 4
         assert client.put.call_count == 6
@@ -108,7 +108,7 @@ def test_syncing_many_files():
         # deleting the parent directory should result in the dir and file deleted in the proper order
         parent = AsyncMock()
         parent.attach_mock(client, "client")
-        assert asyncio.run(syncer.incremental_copy()) == 5
+        assert syncer.incremental_copy() == 5
         # only need to delete the parent dir
         assert client.delete.call_count == 1
         assert client.mkdirs.call_count == 4
@@ -131,7 +131,7 @@ def test_syncing_many_files():
         assert next_call[1] == ("bop", os.path.join(source, "bop"))
 
         # sync again.  no more ops.
-        assert asyncio.run(syncer.incremental_copy()) == 0
+        assert syncer.incremental_copy() == 0
         assert client.delete.call_count == 1
         assert client.mkdirs.call_count == 4
         assert client.put.call_count == 10
@@ -159,7 +159,7 @@ def test_syncing_many_flat_dirs():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -176,7 +176,7 @@ def test_syncing_many_flat_dirs():
         parent.attach_mock(client, "client")
 
         # directories should be created in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 5
+        assert syncer.incremental_copy() == 5
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 5
         assert client.put.call_count == 0
@@ -209,7 +209,7 @@ def test_syncing_many_flat_dirs():
         parent.attach_mock(client, "client")
 
         # directories should be deleted in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 5
+        assert syncer.incremental_copy() == 5
         assert client.delete.call_count == 5
         assert client.mkdirs.call_count == 5
         assert client.put.call_count == 0
@@ -254,7 +254,7 @@ def test_syncing_many_nested_dirs():
         )
 
         # initially no files
-        op_count = asyncio.run(syncer.incremental_copy())
+        op_count = syncer.incremental_copy()
         assert op_count == 0
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 0
@@ -269,7 +269,7 @@ def test_syncing_many_nested_dirs():
         parent.attach_mock(client, "client")
 
         # directories should be created in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 3
+        assert syncer.incremental_copy() == 3
         assert client.delete.call_count == 0
         assert client.mkdirs.call_count == 3
         assert client.put.call_count == 0
@@ -292,7 +292,7 @@ def test_syncing_many_nested_dirs():
         parent.attach_mock(client, "client")
 
         # directories should be deleted in the proper order
-        assert asyncio.run(syncer.incremental_copy()) == 1
+        assert syncer.incremental_copy() == 1
         assert client.delete.call_count == 1
         assert client.mkdirs.call_count == 3
         assert client.put.call_count == 0
