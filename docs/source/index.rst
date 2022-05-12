@@ -31,3 +31,4 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     named_properties
     templates_pointer
     generic_devops
+    examples/python_multitask_deployment_template
