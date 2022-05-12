@@ -263,6 +263,18 @@ class CommonUnitTest(unittest.TestCase):
         self.assertEqual(json_emails, None)
         self.assertEqual(yaml_emails, None)
 
+    def test_jinja_with_include(self):
+        """Ensure that templates from other directories can be included.
+
+        In this test, the top level jinja template includes another template which describes the
+        cluster.
+        """
+        json_j2_file = format_path("../deployment-configs/nested-configs/09-jinja-include.json.j2")
+        json_default_envs = get_deployment_config(json_j2_file).get_environment("default")
+        json_node_type = json_default_envs.get("jobs")[0].get("new_cluster").get("node_type_id")
+
+        self.assertEqual(json_node_type, "some-node-type")
+
 
 if __name__ == "__main__":
     unittest.main()
