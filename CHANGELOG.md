@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-DD
 
+- Support including jinja templates from subpaths of the current working directory
 - Refactor the configuration code
 - Refactor the JSON-related code
 - Add `--path` and `--checkout` options to the `dbx init`
