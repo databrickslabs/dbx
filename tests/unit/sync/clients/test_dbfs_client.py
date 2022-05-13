@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock
 import pytest
 
 from dbx.sync.clients import ClientError, DBFSClient
+from tests.unit.sync.utils import mocked_props
 
 
 @pytest.fixture
@@ -28,6 +29,37 @@ def test_delete(client: DBFSClient):
     assert session.post.call_count == 1
     assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
+    assert "ssl" not in session.post.call_args[1]
+
+
+def test_delete_secure(client: DBFSClient):
+    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=False)
+    client = DBFSClient(base_path="/tmp/foo", config=mock_config)
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+    asyncio.run(client.delete(sub_path="foo/bar", session=session))
+
+    assert session.post.call_count == 1
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
+    assert session.post.call_args[1]["ssl"] is True
+
+
+def test_delete_secure(client: DBFSClient):
+    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=True)
+    client = DBFSClient(base_path="/tmp/foo", config=mock_config)
+    session = MagicMock()
+    resp = MagicMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    session.post.return_value = create_async_with_result(resp)
+    asyncio.run(client.delete(sub_path="foo/bar", session=session))
+
+    assert session.post.call_count == 1
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
+    assert session.post.call_args[1]["ssl"] is False
 
 
 def test_delete_backslash(client: DBFSClient):

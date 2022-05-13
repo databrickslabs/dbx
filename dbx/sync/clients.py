@@ -65,14 +65,15 @@ async def _rate_limit_sleep(resp, *, default_sleep=0.5):
 
 
 async def _api(
-    *, url: str, path: str, session: aiohttp.ClientSession, api_token: str, ok_status=None, **more_json_data
+    *, url: str, path: str, session: aiohttp.ClientSession, api_token: str, ok_status=None, ssl=None, **more_json_data
 ):
     if not ok_status:
         ok_status = {200}
     json_data = {"path": path, **more_json_data}
     while True:
         headers = get_auth_headers(api_token)
-        async with session.post(url=url, json=json_data, headers=headers) as resp:
+        more_opts = {"ssl": ssl} if ssl is not None else {}
+        async with session.post(url=url, json=json_data, headers=headers, **more_opts) as resp:
             if resp.status in ok_status:
                 break
             if resp.status == 429:
@@ -85,7 +86,7 @@ async def _api(
 
 
 async def _api_delete(
-    *, api_base_path: str, path: str, session: aiohttp.ClientSession, recursive: bool = False, api_token: str
+    *, api_base_path: str, path: str, session: aiohttp.ClientSession, recursive: bool = False, api_token: str, ssl=None
 ):
     dbx_echo(f"Deleting {path}")
     more_opts = {"recursive": True} if recursive else {}
@@ -95,19 +96,20 @@ async def _api_delete(
         session=session,
         api_token=api_token,
         ok_status={200, 404},
+        ssl=ssl,
         **more_opts,
     )
 
 
-async def _api_mkdirs(*, api_base_path: str, path: str, session: aiohttp.ClientSession, api_token: str):
+async def _api_mkdirs(*, api_base_path: str, path: str, session: aiohttp.ClientSession, api_token: str, ssl=None):
     dbx_echo(f"Creating {path}")
-    await _api(url=f"{api_base_path}/mkdirs", path=path, session=session, api_token=api_token)
+    await _api(url=f"{api_base_path}/mkdirs", path=path, session=session, ssl=ssl, api_token=api_token)
 
 
-async def _api_put(*, api_base_path: str, path: str, session: aiohttp.ClientSession, api_token: str, **data):
+async def _api_put(*, api_base_path: str, path: str, session: aiohttp.ClientSession, api_token: str, ssl=None, **data):
     dbx_echo(f"Putting {path}")
     more_opts = {"overwrite": True, **data}
-    await _api(url=f"{api_base_path}/put", path=path, session=session, api_token=api_token, **more_opts)
+    await _api(url=f"{api_base_path}/put", path=path, session=session, api_token=api_token, ssl=ssl, **more_opts)
 
 
 def check_path(path: str) -> None:
@@ -126,20 +128,30 @@ class DBFSClient(BaseClient):
         self.api_token = config.token
         self.host = config.host.rstrip("/")
         self.api_base_path = f"{self.host}/api/2.0/dbfs"
-
+        if config.insecure is None:
+            self.ssl = None
+        else:
+            self.ssl = not config.insecure
         dbx_echo(f"Target base path: {self.base_path}")
 
     async def delete(self, sub_path: str, *, session: aiohttp.ClientSession, recursive: bool = False):
         check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         await _api_delete(
-            api_base_path=self.api_base_path, path=path, session=session, recursive=recursive, api_token=self.api_token
+            api_base_path=self.api_base_path,
+            path=path,
+            session=session,
+            recursive=recursive,
+            api_token=self.api_token,
+            ssl=self.ssl,
         )
 
     async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
         check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
-        await _api_mkdirs(api_base_path=self.api_base_path, path=path, session=session, api_token=self.api_token)
+        await _api_mkdirs(
+            api_base_path=self.api_base_path, path=path, session=session, api_token=self.api_token, ssl=self.ssl
+        )
 
     async def put(
         self,
@@ -153,7 +165,12 @@ class DBFSClient(BaseClient):
         with open(full_source_path, "rb") as f:
             contents = base64.b64encode(f.read()).decode("ascii")
         await _api_put(
-            api_base_path=self.api_base_path, path=path, session=session, api_token=self.api_token, contents=contents
+            api_base_path=self.api_base_path,
+            path=path,
+            session=session,
+            api_token=self.api_token,
+            contents=contents,
+            ssl=self.ssl,
         )
 
 
@@ -170,7 +187,10 @@ class ReposClient(BaseClient):
         self.host = config.host.rstrip("/")
         self.workspace_api_base_path = f"{self.host}/api/2.0/workspace"
         self.workspace_files_api_base_path = f"{self.host}/api/2.0/workspace-files/import-file"
-
+        if config.insecure is None:
+            self.ssl = None
+        else:
+            self.ssl = not config.insecure
         dbx_echo(f"Target base path: {self.base_path}")
 
     async def delete(self, sub_path: str, *, session: aiohttp.ClientSession, recursive: bool = False):
@@ -182,13 +202,18 @@ class ReposClient(BaseClient):
             session=session,
             recursive=recursive,
             api_token=self.api_token,
+            ssl=self.ssl,
         )
 
     async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
         check_path(sub_path)
         path = f"{self.base_path}/{sub_path}"
         await _api_mkdirs(
-            api_base_path=self.workspace_api_base_path, path=path, session=session, api_token=self.api_token
+            api_base_path=self.workspace_api_base_path,
+            path=path,
+            session=session,
+            api_token=self.api_token,
+            ssl=self.ssl,
         )
 
     async def put(self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession):
@@ -202,7 +227,8 @@ class ReposClient(BaseClient):
             params = {"overwrite": "true"}
             while True:
                 headers = get_auth_headers(self.api_token)
-                async with session.post(url=url, data=content, params=params, headers=headers) as resp:
+                more_opts = {"ssl": self.ssl} if self.ssl is not None else {}
+                async with session.post(url=url, data=content, params=params, headers=headers, **more_opts) as resp:
                     if resp.status == 200:
                         break
                     if resp.status == 429:
