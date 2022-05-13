@@ -81,6 +81,7 @@ class RemoteSyncer:
         excludes: List[str],
         full_sync: bool = False,
         max_parallel: int = 4,
+        max_parallel_puts: int = 10,
         state_dir: Union[Path, str] = DBX_SYNC_DIR,
         delete_unmatched_option: DeleteUnmatchedOption = DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED,
     ):
@@ -95,7 +96,8 @@ class RemoteSyncer:
         self.state_dir = state_dir
         self.full_sync = full_sync
         self.dry_run = dry_run
-        self.max_parallel = max_parallel
+        self.max_parallel = max_parallel  # applies to our HTTP client
+        self.max_parallel_puts = max_parallel_puts  # prevent from opening too many files at once
         self.is_first_sync = True
         self.tempdir = TemporaryDirectory().name  # noqa
         self.matcher = matcher
@@ -171,19 +173,32 @@ class RemoteSyncer:
                     dbx_echo(f"(noop) Dir deleted: {path}")
         return op_count
 
-    async def _apply_files_created(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
+    async def _apply_file_puts(self, session: aiohttp.ClientSession, paths: List[str], msg: str) -> None:
         tasks = []
         op_count = 0
-        for path in sorted(diff.files_created):
+        sem = asyncio.Semaphore(self.max_parallel_puts)
+        for path in sorted(paths):
             op_count += 1
             if not self.dry_run:
-                # Files can be created in parallel.
-                tasks.append(self.client.put(get_relative_path(self.source, path), path, session=session))
+
+                async def task(p):
+                    # Files can be created in parallel, but we limit how many are opened at a time
+                    # so we don't use memory excessively.
+                    async with sem:
+                        await self.client.put(get_relative_path(self.source, p), p, session=session)
+
+                tasks.append(task(path))
             else:
-                dbx_echo(f"(noop) File created: {path}")
+                dbx_echo(f"(noop) File {msg}: {path}")
         if tasks:
             await asyncio.gather(*tasks)
         return op_count
+
+    async def _apply_files_created(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
+        return await self._apply_file_puts(session, diff.files_created, "created")
+
+    async def _apply_files_modified(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
+        return await self._apply_file_puts(session, diff.files_modified, "modified")
 
     async def _apply_files_deleted(
         self, diff: SnapshotDiff, session: aiohttp.ClientSession, deleted_dirs: List[str]
@@ -200,20 +215,6 @@ class RemoteSyncer:
                     tasks.append(self.client.delete(get_relative_path(self.source, path), session=session))
                 else:
                     dbx_echo(f"(noop) File deleted: {path}")
-        if tasks:
-            await asyncio.gather(*tasks)
-        return op_count
-
-    async def _apply_files_modified(self, diff: SnapshotDiff, session: aiohttp.ClientSession) -> None:
-        tasks = []
-        op_count = 0
-        for path in sorted(diff.files_modified):
-            op_count += 1
-            if not self.dry_run:
-                # Files can be created in parallel.
-                tasks.append(self.client.put(get_relative_path(self.source, path), path, session=session))
-            else:
-                dbx_echo(f"(noop) File modified: {path}")
         if tasks:
             await asyncio.gather(*tasks)
         return op_count
