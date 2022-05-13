@@ -5,7 +5,7 @@ import databricks_cli
 import requests
 from databricks_cli.configure.provider import DatabricksConfig, ProfileConfigProvider, get_config
 
-from .clients import get_auth_headers
+from .clients import get_headers
 
 
 def has_valid_token(config: DatabricksConfig) -> bool:
@@ -19,7 +19,7 @@ def has_valid_token(config: DatabricksConfig) -> bool:
     """
     token = config.token
     host = config.host.rstrip("/")
-    headers = get_auth_headers(token)
+    headers = get_headers(token)
     resp = requests.get(f"{host}/api/2.0/dbfs/list", json={"path": "/"}, headers=headers)
     return resp.status_code == 200
 

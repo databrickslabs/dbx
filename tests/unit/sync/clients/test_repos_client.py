@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock
 import pytest
 
 from dbx.sync.clients import ClientError, ReposClient
-from tests.unit.sync.utils import mocked_props
+from tests.unit.sync.utils import mocked_props, is_repos_user_agent
 
 
 @pytest.fixture
@@ -40,6 +40,8 @@ def test_delete(client: ReposClient):
     assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
     assert "ssl" not in session.post.call_args[1]
+    assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_repos_user_agent(session.post.call_args[1]["headers"]["user-agent"])
 
 
 def test_delete_secure(client: ReposClient):
@@ -161,6 +163,8 @@ def test_mkdirs(client: ReposClient):
     assert session.post.call_count == 1
     assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
+    assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_repos_user_agent(session.post.call_args[1]["headers"]["user-agent"])
 
 
 def test_mkdirs_backslash(client: ReposClient):
@@ -244,6 +248,8 @@ def test_put(client: ReposClient, dummy_file_path: str):
         == "http://fakehost.asdf/base/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
     )
     assert session.post.call_args[1]["data"] == b"yo"
+    assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_repos_user_agent(session.post.call_args[1]["headers"]["user-agent"])
 
 
 def test_put_backslash(client: ReposClient, dummy_file_path: str):

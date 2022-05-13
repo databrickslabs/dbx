@@ -1,4 +1,5 @@
 import os
+import re
 from contextlib import contextmanager
 from tempfile import TemporaryDirectory
 
@@ -33,3 +34,11 @@ def pushd(d):
         yield
     finally:
         os.chdir(previous)
+
+
+def is_dbfs_user_agent(user_agent: str) -> bool:
+    return re.match(r"databricks-cli-[.\d]+-cicdtemplates-sync-dbfs", user_agent)
+
+
+def is_repos_user_agent(user_agent: str) -> bool:
+    return re.match(r"databricks-cli-[.\d]+-cicdtemplates-sync-repos", user_agent)

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock
 import pytest
 
 from dbx.sync.clients import ClientError, DBFSClient
-from tests.unit.sync.utils import mocked_props
+from tests.unit.sync.utils import mocked_props, is_dbfs_user_agent
 
 
 @pytest.fixture
@@ -30,6 +30,8 @@ def test_delete(client: DBFSClient):
     assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
     assert "ssl" not in session.post.call_args[1]
+    assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_dbfs_user_agent(session.post.call_args[1]["headers"]["user-agent"])
 
 
 def test_delete_secure(client: DBFSClient):
@@ -151,6 +153,8 @@ def test_mkdirs(client: DBFSClient):
     assert session.post.call_count == 1
     assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
+    assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_dbfs_user_agent(session.post.call_args[1]["headers"]["user-agent"])
 
 
 def test_mkdirs_backslash(client: DBFSClient):
@@ -235,6 +239,8 @@ def test_put(client: DBFSClient, dummy_file_path: str):
         "contents": base64.b64encode(b"yo").decode("ascii"),
         "overwrite": True,
     }
+    assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_dbfs_user_agent(session.post.call_args[1]["headers"]["user-agent"])
 
 
 def test_put_backslash(client: DBFSClient, dummy_file_path: str):

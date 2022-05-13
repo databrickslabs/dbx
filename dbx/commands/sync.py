@@ -190,6 +190,14 @@ def handle_source(source: str = None) -> str:
 
 
 def get_user_name(config: DatabricksConfig) -> str:
+    """Gets the name of the user according to the Databricks API using the config for authorization.
+
+    Args:
+        config (DatabricksConfig): config to use to get user info
+
+    Returns:
+        str: name of user
+    """
     user_info = get_user(config)
     return user_info.get("userName")
 
