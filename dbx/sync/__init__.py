@@ -57,6 +57,11 @@ def get_snapshot_name(client: BaseClient) -> str:
     """Gets the path that will be used to save sync snapshots for the given client.
     Each client writes to a particular destination type, like repos or dbfs, and uses
     a particular base path.  These together determine the name of the state file.
+    This state file represents the known state of where we are syncing to, so that when the
+    tool is restarted it can sync only new changes since the last time it ran for that destination.
+
+    The name of the state file is derived from the destination, and uses attributes of that
+    destination such as the host and path.
 
     Args:
         client (BaseClient): client used for syncing
@@ -64,8 +69,15 @@ def get_snapshot_name(client: BaseClient) -> str:
     Returns:
         str: name of the state file
     """
+
+    # State file starts with the name of the directory being synced to.  This is only intended for
+    # human readability when debugging is necessary.
     dir_name = client.base_path.split("/")[-1]
-    base_path_hash = hashlib.md5(client.base_path.encode("utf-8")).hexdigest()
+
+    # The host and the base path should uniquely identify where we are syncing to.
+    base_path_hash = hashlib.md5(f"{client.host}-{client.base_path}".encode("utf-8")).hexdigest()
+
+    # Include the client name as well for human readability.
     return f"{dir_name}-{client.name}-{base_path_hash}"
 
 
