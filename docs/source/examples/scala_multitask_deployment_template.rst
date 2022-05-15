@@ -1,4 +1,4 @@
-Python Multi Task Deployment YAML Template
+Scala Multi Task Deployment YAML Template
 ===========================================
 
 .. code-block:: bash
@@ -9,26 +9,24 @@ Python Multi Task Deployment YAML Template
   │   └── project.json
   ├── .gitignore
   ├── README.md
+  ├── build.sbt
+  │
   ├── conf
   │   ├── deployment.yml
+  │
+  ├── project
+  │   ├── assembly.sbt
+  │   ├── build.properties
+  │   └── plugins.sbt
+  ├── project
+  │   ├── target
+  ├── target
+  ├── src
+  │   ├── main
+  │   │   └── scala
   │   └── test
-  │       └── sample.yml
-  ├── pytest.ini
-  ├── sample_project
-  │   ├── __init__.py # <- this is the root folder of your Python package
-  │   ├── common.py # <- this file contains a generic class called Job, which provides you all necessary tools, such as Spark and DBUtils
-  │   └── jobs
-  │       ├── __init__.py
-  │       ├── your-file-01.py
-  │       └── your-file-02.py
-  ├── setup.py
-  ├── tests
-  │   ├── integration
-  │   │   └── sample_test.py
-  │   └── unit
-  │       └── sample_test.py
-  └── requirements.txt
-
+  │       └── scala
+  
 
 **To get list of spark-versions**
 
@@ -67,7 +65,6 @@ Documentation tries to list all the options, based on your need some options may
       new_cluster:
       <<: *basic-cluster-props
       num_workers: 2
-      requirements: file://requirements.txt
 
   basic-autoscale-cluster: &basic-autoscale-cluster
       new_cluster:
@@ -117,8 +114,12 @@ Documentation tries to list all the options, based on your need some options may
         - task_key: "your-task-01"
             job_cluster_key: "basic-cluster"
             max_retries: 1
-            spark_python_task:
-            python_file: "file://sample_project/jobs/your-file-01.py"
+            spark_jar_task:
+              jar_uri: ''
+              main_class_name: com.myorg.myproject.myclass
+              run_as_repl: true
+            libraries:
+            - jar: file://target/scala-2.12/myproject.myclass-0.1.0.jar
             max_retries: 2
             min_retry_interval_millis: 900000
             retry_on_timeout: false
@@ -134,19 +135,28 @@ Documentation tries to list all the options, based on your need some options may
 
         - task_key: "your-task-02"
             job_cluster_key: "basic-cluster"
-            spark_python_task:
-            python_file: "file://sample_project/jobs/your-file-02.py"
+            max_retries: 1
+            spark_jar_task:
+              jar_uri: ''
+              main_class_name: com.myorg.myproject.myclass2
+              run_as_repl: true
+            libraries:
+            - jar: file://target/scala-2.12/myproject.myclass2-0.1.0.jar
+            max_retries: 2
+            min_retry_interval_millis: 900000
+            retry_on_timeout: false
+            timeout_seconds: 0
+            email_notifications:
+                  on_start:
+                  - user@email.com
+                  on_success:
+                  - user@email.com
+                  on_failure:
+                  - user1@email.com
+                  - user2@email.com
             depends_on:
             - task_key: "your-task-01"
 
-        - task_key: "your-task-02"
-            job_cluster_key: "basic-cluster"
-            spark_python_task:
-            notebook_task:
-              notebook_path: "/shared/yourproject/test"
-            depends_on:
-            - task_key: "your-task-01"
-          
 **Create the Job from CLI**
 
 :code:`dbx deploy --environment=myjob --no-rebuild`
