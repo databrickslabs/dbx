@@ -32,3 +32,4 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     templates_pointer
     generic_devops
     examples/python_multitask_deployment_template
+    examples/scala_multitask_deployment_template
