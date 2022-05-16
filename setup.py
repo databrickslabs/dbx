@@ -12,7 +12,6 @@ INSTALL_REQUIRES = [
     "retry>=0.9.2",
     "requests>=2.24.0",
     "mlflow>=1.23.0",
-    "scipy<=1.7.3",  # 1.8.0 and higher require Python 3.8, we don't have such a limitation
     "tqdm>=4.50.0",
     "azure-identity>=1.7.1",
     "azure-mgmt-datafactory>=2.2.0",
