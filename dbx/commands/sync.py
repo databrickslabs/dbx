@@ -439,10 +439,6 @@ def dbfs(
 ):
     """
     Syncs from a source directory to `DBFS <https://docs.databricks.com/data/databricks-file-system.html>`_.
-
-    By default this syncs to a destination path under /tmp/users/<username>.  The destination path is derived
-    from the base name of the source path.  So syncing from /foo/bar would use a full destination path of
-    /tmp/users/<username>/bar.  The destination path can be changed from the default base name using --dest.
     """
 
     # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
@@ -540,8 +536,6 @@ def repo(
 ):
     """
     Syncs from source directory to a `Databricks Repo <https://docs.databricks.com/repos/index.html>`_.
-
-    This can sync to a destination path under /Repos/<user>/<repo> using --dest-repo and --user.
     """
 
     # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
