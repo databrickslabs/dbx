@@ -29,12 +29,67 @@ def validate_allow_unmatched(ctx, param, value):  # noqa
 @click.group()
 def sync():
     """
-    Sync local files to Databricks and watch for changes.
+    Sync local files to Databricks and watch for changes, with support for syncing to either a path
+    in `DBFS <https://docs.databricks.com/data/databricks-file-system.html>`_ or a
+    `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ via the :code:`dbfs` and :code:`repo`
+    subcommands.  This enables one to incrementally sync local files to Databricks in order to enable quick, iterative
+    development in an IDE with the ability to test changes almost immediately in Databricks notebooks.
 
-    This supports syncing to either a path in
-    `DBFS <https://docs.databricks.com/data/databricks-file-system.html>`_ or
-    a `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ via the :code:`dbfs` and :code:`repo`
-    subcommands.
+    Suppose you are using the `Repos for Git integration <https://docs.databricks.com/repos/index.html>`_ feature
+    and have cloned a git repo within Databricks where you have Python notebooks stored as well as various Python
+    modules that the notebooks import. You can edit any of these files directly in Databricks.
+    The :code:`dbx sync repo` command provides an additional option: edit the files in a local repo on your computer
+    in an IDE of your choice and sync the changes to the repo in Databricks as you make changes.
+
+    For example, when run from a local git clone, the following will sync all the files to an existing repo
+    named :code:`myrepo` in Databricks and watch for changes:
+
+    .. code-block:: sh
+
+        dbx sync repo -d myrepo
+
+    At the top of your notebook you can turn on
+    `autoreload <https://ipython.org/ipython-doc/3/config/extensions/autoreload.html>`_ so that execution of cells
+    will automatically pick up the changes:
+
+    .. code-block::
+
+        %load_ext autoreload
+        %autoreload 2
+
+    The :code:`dbx sync repo` command syncs to a repo in Databricks. If that repo is a git clone you can see the
+    changes made to the files, as if you'd made the edits directly in Databricks. Alternatively, you can use
+    :code:`dbx sync dbfs` to sync the files to a path in DBFS. This keeps the files independent from the repos but
+    still allows you to use them in notebooks either in a repo or in notebooks existing in your workspace.
+
+    For example, when run from a local git clone in a :code:`myrepo` directory under a user
+    :code:`first.last@somewhere.com`, the following will sync all the files to the DBFS path
+    :code:`/tmp/users/first.last/myrepo`:
+
+    .. code-block:: sh
+
+        dbx sync dbfs
+
+    The destination path can also be specified, as in: :code:`-d /tmp/myrepo`.
+
+    When executing notebooks in a repo, the root of the repo is automatically added to the Python path so that
+    imports work relative to the repo root. This means that aside from turning on autoreload you don't need to do
+    anything else special for the changes to be reflected in the cell's execution. However, when syncing to DBFS,
+    for the imports to work you need to update the Python path to include this target directory you're syncing to.
+    For example, to import from the :code:`/tmp/users/first.last/myrepo path` used above, use the following at the top
+    of your notebook:
+
+    .. code-block:: python
+
+        import sys
+
+        if "/tmp/users/first.last/myrepo" not in sys.path:
+            sys.path.insert(0, "/tmp/users/first.last/myrepo")
+
+    The :code:`dbx sync` commands have many options for controlling which files/directories to include/exclude from
+    syncing, which are well documented below..  For convenience, all patterns listed in a :code:`.gitignore` at the
+    source will be excluded from syncing. The :code:`.git` directory is excluded as well.
+
     """
     pass  # pragma: no cover
 
