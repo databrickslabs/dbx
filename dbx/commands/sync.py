@@ -87,7 +87,7 @@ def sync():
             sys.path.insert(0, "/tmp/users/first.last/myrepo")
 
     The :code:`dbx sync` commands have many options for controlling which files/directories to include/exclude from
-    syncing, which are well documented below..  For convenience, all patterns listed in a :code:`.gitignore` at the
+    syncing, which are well documented below.  For convenience, all patterns listed in a :code:`.gitignore` at the
     source will be excluded from syncing. The :code:`.git` directory is excluded as well.
 
     """
@@ -343,6 +343,10 @@ def common_options(f):
         * :code:`*.py` will match all Python files.
         * :code:`/foo/*.py` will match all Python files directly under the `foo` directory.
         * :code:`/foo/**/*.py` will match all Python files anywhere under the `foo` directory.
+
+        You may also store a list of patterns inside a :code:`.syncinclude` file under the source path.
+        Patterns in this file will be used as the default patterns to include.  This essentially behaves
+        as the opposite of a `gitignore <https://git-scm.com/docs/gitignore>`_ file, but with the same format.
         """,
     )(f)
     f = click.option(
