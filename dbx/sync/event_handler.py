@@ -95,7 +95,7 @@ def file_watcher(*, source: str, matcher: PathMatcher, polling_interval: float =
             observer.schedule(event_handler, source, recursive=True)
             observer.start()
         except OSError:
-            dbx_echo(f"Failed to start file watcher.  Falling back to polling-based observer.")
+            dbx_echo("Failed to start file watcher.  Falling back to polling-based observer.")
             observer = None
 
     if not observer:
