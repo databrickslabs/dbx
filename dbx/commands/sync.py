@@ -78,7 +78,7 @@ def main_loop(
     excludes: List[str],
     watch: bool,
     sleep_interval: float = 0.25,
-    polling_interval: float = None,
+    polling_interval_secs: float = None,
     delete_unmatched_option: DeleteUnmatchedOption = DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED,
 ):
     """
@@ -114,7 +114,7 @@ def main_loop(
     elif watch:
         dbx_echo("Done. Watching for changes...")
 
-        with file_watcher(source=source, matcher=matcher, polling_interval=polling_interval) as event_handler:
+        with file_watcher(source=source, matcher=matcher, polling_interval_secs=polling_interval_secs) as event_handler:
             while True:
                 # Keep looping until the event handler sees some file system events
                 # under the source path that match the provided filters.
@@ -246,8 +246,9 @@ def common_options(f):
     f = click.option("--watch/--no-watch", is_flag=True, default=True)(f)
     f = click.option(
         "--polling-interval",
+        "polling_interval_secs",
         type=float,
-        help="Use file system polling instead of file system events and set the polling interval",
+        help="Use file system polling instead of file system events and set the polling interval (in seconds)",
     )(f)
     return f
 
@@ -266,7 +267,7 @@ def dbfs(
     exclude_dirs: List[str],
     profile: str,
     watch: bool,
-    polling_interval: float,
+    polling_interval_secs: float,
     include_patterns: List[str],
     exclude_patterns: List[str],
     delete_unmatched_option: DeleteUnmatchedOption,
@@ -327,7 +328,7 @@ def dbfs(
         includes=include_patterns,
         excludes=exclude_patterns,
         watch=watch,
-        polling_interval=polling_interval,
+        polling_interval_secs=polling_interval_secs,
         delete_unmatched_option=delete_unmatched_option,
     )
 
@@ -352,7 +353,7 @@ def repo(
     exclude_dirs: List[str],
     profile: str,
     watch: bool,
-    polling_interval: float,
+    polling_interval_secs: float,
     include_patterns: List[str],
     exclude_patterns: List[str],
     delete_unmatched_option: DeleteUnmatchedOption,
@@ -397,6 +398,6 @@ def repo(
         includes=include_patterns,
         excludes=exclude_patterns,
         watch=watch,
-        polling_interval=polling_interval,
+        polling_interval_secs=polling_interval_secs,
         delete_unmatched_option=delete_unmatched_option,
     )

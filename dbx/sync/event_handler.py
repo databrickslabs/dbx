@@ -63,7 +63,7 @@ class CollectingEventHandler(FileSystemEventHandler):
 
 
 @contextmanager
-def file_watcher(*, source: str, matcher: PathMatcher, polling_interval: float = None):
+def file_watcher(*, source: str, matcher: PathMatcher, polling_interval_secs: float = None):
     """Watches a source directory for changes to files, filtered by the given path matcher.
 
     This yields an event handler that can be used to retrieve file events within the context of this
@@ -78,8 +78,8 @@ def file_watcher(*, source: str, matcher: PathMatcher, polling_interval: float =
     Args:
         source (str): source directory to watch for changes
         matcher (PathMatcher): used to identify which files to pay attention to and which to ignore
-        polling_interval (float): enabling polling for file system changes instead of using file system events
-                                  by setting the interval in seconds between polling the file system.
+        polling_interval_secs (float): enabling polling for file system changes instead of using file system events
+                                       by setting the interval in seconds between polling the file system.
 
     Yields:
         CollectingEventHandler: the event handler which collects together all the file events
@@ -89,7 +89,7 @@ def file_watcher(*, source: str, matcher: PathMatcher, polling_interval: float =
 
     observer = None
 
-    if not polling_interval:
+    if not polling_interval_secs:
         try:
             observer = Observer()
             observer.schedule(event_handler, source, recursive=True)
@@ -99,11 +99,11 @@ def file_watcher(*, source: str, matcher: PathMatcher, polling_interval: float =
             observer = None
 
     if not observer:
-        if not polling_interval:
-            polling_interval = 1.0
-        dbx_echo(f"Starting file system polling with {polling_interval} second polling interval")
+        if not polling_interval_secs:
+            polling_interval_secs = 1.0
+        dbx_echo(f"Starting file system polling with {polling_interval_secs} second polling interval")
         observer = PollingObserverVFS(
-            listdir=partial(filtered_listdir, matcher), stat=os.stat, polling_interval=polling_interval
+            listdir=partial(filtered_listdir, matcher), stat=os.stat, polling_interval=polling_interval_secs
         )
         observer.schedule(event_handler, source, recursive=True)
         observer.start()

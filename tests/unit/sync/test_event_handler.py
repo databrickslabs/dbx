@@ -14,10 +14,12 @@ from .utils import temporary_directory
 
 
 @contextmanager
-def temp_event_handler(*, ignores: List[str] = None, includes: List[str] = None, polling_interval: float = None):
+def temp_event_handler(*, ignores: List[str] = None, includes: List[str] = None, polling_interval_secs: float = None):
     with temporary_directory() as tempdir:
         matcher = PathMatcher(tempdir, includes=includes, ignores=ignores)
-        with file_watcher(source=tempdir, matcher=matcher, polling_interval=polling_interval) as event_handler:
+        with file_watcher(
+            source=tempdir, matcher=matcher, polling_interval_secs=polling_interval_secs
+        ) as event_handler:
             yield (event_handler, Path(tempdir))
 
 
@@ -50,7 +52,7 @@ def test_event_handler_create_file_polling():
     """
     Tests file_watcher can detect file creation with polling.
     """
-    with temp_event_handler(includes=["foo"], polling_interval=0.5) as (event_handler, tempdir):
+    with temp_event_handler(includes=["foo"], polling_interval_secs=0.5) as (event_handler, tempdir):
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=1)
         assert len(events) == 1

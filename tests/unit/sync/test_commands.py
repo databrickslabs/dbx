@@ -134,7 +134,7 @@ def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert mock_main_loop.call_args[1]["polling_interval"] == 2.0
+        assert mock_main_loop.call_args[1]["polling_interval_secs"] == 2.0
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
@@ -391,7 +391,7 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
-        assert mock_main_loop.call_args[1]["polling_interval"] == 3.0
+        assert mock_main_loop.call_args[1]["polling_interval_secs"] == 3.0
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
