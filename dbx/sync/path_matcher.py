@@ -126,3 +126,26 @@ class PathMatcher:
             return self.include_spec.match_file(path)
 
         return True
+
+
+def filtered_listdir(matcher: PathMatcher, root: str):
+    """A wrapper around os.scandir that filters out paths that should be ignored according to rules in the
+    given matcher.  Enabling this filtering makes the traversal more efficient.
+
+    To, apply a partial to pass in the matcher:
+
+        matcher = ...
+        snapshot = DirectorySnapshot(self.source, listdir=partial(matcher, filtered_listdir))
+
+    Args:
+        matcher (PathMatcher): the matcher to use for filtering
+        root (str): root path to list files/directories
+
+    Yields:
+        str: file/directory entries
+    """
+    for entry in os.scandir(root):
+        entry_name = os.path.join(root, entry if isinstance(entry, str) else entry.name)
+        # Some paths are definitely ignored due to an ignore spec.  These should not be traversed.
+        if not matcher.should_ignore(entry_name, is_directory=os.path.isdir(entry_name)):
+            yield entry

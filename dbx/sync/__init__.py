@@ -4,6 +4,7 @@ import os
 import pickle
 import platform
 from enum import Enum
+from functools import partial
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List, Union
@@ -16,7 +17,7 @@ from dbx.utils import dbx_echo
 
 from .clients import BaseClient
 from .constants import DBX_SYNC_DIR
-from .path_matcher import PathMatcher
+from .path_matcher import PathMatcher, filtered_listdir
 from .snapshot import SnapshotDiff, compute_snapshot_diff
 
 
@@ -321,14 +322,7 @@ class RemoteSyncer:
         # paths that should be definitely ignored.  Good examples of this are the .git folder, if it exists.
         # This makes the directory walk more efficient.
 
-        def _filtered_listdir(root):
-            for entry in os.scandir(root):
-                entry_name = os.path.join(root, entry if isinstance(entry, str) else entry.name)
-                # Some paths are definitely ignored due to an ignore spec.  These should not be traversed.
-                if not self.matcher.should_ignore(entry_name, is_directory=os.path.isdir(entry_name)):
-                    yield entry
-
-        snapshot = DirectorySnapshot(self.source, listdir=_filtered_listdir)
+        snapshot = DirectorySnapshot(self.source, listdir=partial(filtered_listdir, self.matcher))
 
         # Now that we've walked the full tree, apply the path matcher to each path, which applies both
         # the include and ignores rules.

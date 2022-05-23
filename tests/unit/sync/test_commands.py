@@ -119,6 +119,38 @@ def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.get_user_name")
 @patch("dbx.commands.sync.main_loop")
 @patch("dbx.commands.sync.get_databricks_config")
+def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
+    with temporary_directory() as tempdir:
+        config = MagicMock()
+        mock_get_config.return_value = config
+        mock_get_user_name.return_value = "me"
+
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "--polling-interval", "2"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 1
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["polling_interval_secs"] == 2.0
+        assert mock_main_loop.call_args[1]["includes"] == []
+        assert mock_main_loop.call_args[1]["excludes"] == []
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, ReposClient)
+        assert client.base_path == "/Repos/me/the-repo"
+
+
+@patch("dbx.commands.sync.get_user_name")
+@patch("dbx.commands.sync.main_loop")
+@patch("dbx.commands.sync.get_databricks_config")
 def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -327,6 +359,39 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["source"] == tempdir
         assert not mock_main_loop.call_args[1]["full_sync"]
         assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["includes"] == []
+        assert mock_main_loop.call_args[1]["excludes"] == []
+        assert mock_main_loop.call_args[1]["watch"]
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, DBFSClient)
+        assert client.base_path == f"dbfs:/tmp/users/me/{os.path.basename(tempdir)}"
+
+
+@patch("dbx.commands.sync.get_user_name")
+@patch("dbx.commands.sync.main_loop")
+@patch("dbx.commands.sync.get_databricks_config")
+def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
+    with temporary_directory() as tempdir, pushd(tempdir):
+
+        # infer source based on cwd having a .git directory
+        os.mkdir(os.path.join(tempdir, ".git"))
+
+        config = MagicMock()
+        mock_get_config.return_value = config
+        mock_get_user_name.return_value = "me"
+
+        # we can run with no options as long as the source and user can be automatically inferred
+        invoke_cli_runner(dbfs, ["--polling-interval", "3"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["polling_interval_secs"] == 3.0
         assert mock_main_loop.call_args[1]["includes"] == []
         assert mock_main_loop.call_args[1]["excludes"] == []
         assert mock_main_loop.call_args[1]["watch"]
