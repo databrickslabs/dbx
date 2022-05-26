@@ -1,0 +1,41 @@
+stages:
+    - unit-testing
+    - integration-testing
+    - release
+
+unit-testing:
+  stage: unit-testing
+  image: python:3.7-stretch
+  script:
+    - echo "Install dependencies"
+    - apt-get update
+    - apt-get install default-jdk -y
+    - pip install -r unit-requirements.txt
+    - pip install -e .
+    - echo "Launching unit tests"
+    - pytest tests/unit
+
+integration-testing:
+  stage: integration-testing
+  image: python:3.7-stretch
+  script:
+    - echo "Install dependencies"
+    - pip install -r unit-requirements.txt
+    - pip install -e .
+    - echo "Deploying tests"
+    - dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
+    - echo "Running tests"
+    - dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
+
+release:
+  stage: release
+  image: python:3.7-stretch
+  only:
+    refs:
+      - master
+  script:
+    - echo "Install dependencies"
+    - pip install -r unit-requirements.txt
+    - pip install -e .
+    - echo "Deploying Job"
+    - dbx deploy --job={{project_name}}-sample-multitask

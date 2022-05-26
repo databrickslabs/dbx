@@ -1,0 +1,3 @@
+output:
+  database: "default"
+  table: "sklearn_housing"

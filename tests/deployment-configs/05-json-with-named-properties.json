@@ -1,0 +1,40 @@
+{
+    "default": {
+        "jobs": [
+            {
+                "name": "named-props-instance-pool-name",
+                "new_cluster": {
+                    "instance_pool_name": "some-instance-pool-name",
+                    "driver_instance_pool_name": "some-instance-pool-name"
+                },
+                "libraries": [],
+                "max_retries": 0,
+                "spark_python_task": {
+                    "python_file": "dbx_named_params/jobs/sample/entrypoint.py"
+                }
+            },
+            {
+                "name": "named-props-existing-cluster-name",
+                "existing_cluster_name": "some-cluster",
+                "libraries": [],
+                "max_retries": 0,
+                "spark_python_task": {
+                    "python_file": "dbx_named_params/jobs/sample/entrypoint.py"
+                }
+            },
+            {
+                "name": "named-props-instance-profile-name",
+                "new_cluster": {
+                    "aws_attributes": {
+                        "instance_profile_name": "some-instance-profile-name"
+                    }
+                },
+                "libraries": [],
+                "max_retries": 0,
+                "spark_python_task": {
+                    "python_file": "dbx_named_params/jobs/sample/entrypoint.py"
+                }
+            }
+        ]
+    }
+}

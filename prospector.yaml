@@ -1,0 +1,38 @@
+strictness: high
+test-warnings: True
+doc-warnings: false
+
+ignore-paths:
+  - build
+  - tests
+  - dbx/templates
+
+max-line-length: 120
+
+pylint:
+  disable:
+    - too-many-statements
+    - too-many-instance-attributes
+    - cyclic-import
+    - len-as-condition
+    - invalid-name
+    - no-else-return
+    - no-self-use
+    - protected-access
+    - too-many-arguments
+    - too-many-locals # TBD: this rule is actually a good one, we need to enable it and refactor code
+    - inconsistent-return-statements
+    - import-outside-toplevel
+    - consider-using-set-comprehension
+    - useless-object-inheritance
+    - unnecessary-pass
+    - raise-missing-from # pretty strange requirement with acquaint logic
+
+pep8:
+  # W293: disabled because we have newlines in docstrings
+  # E203: disabled because pep8 and black disagree on whitespace before colon in some cases
+  disable: W293,E203
+
+mccabe:
+  disable:
+    - MC0001

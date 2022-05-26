@@ -1,0 +1,52 @@
+name: CI pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*' # this tag type is used for release pipelines
+
+jobs:
+  ci-pipeline:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+
+    env:
+      DATABRICKS_HOST: {{ '${{ secrets.DATABRICKS_HOST }}' }}
+      DATABRICKS_TOKEN:  {{ '${{ secrets.DATABRICKS_TOKEN }}' }}
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7.5
+
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install dependencies and project in dev mode
+        run: |
+          pip install -r unit-requirements.txt
+          pip install -e .
+
+      - name: Run unit tests
+        run: |
+          echo "Launching unit tests"
+          pytest tests/unit
+
+      - name: Jobless deployment (files only upload)
+        run: |
+          dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
+
+      - name: Run the job in a jobless fashion
+        run: |
+          dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
+
+
+

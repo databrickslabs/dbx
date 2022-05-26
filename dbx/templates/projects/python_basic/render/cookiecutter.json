@@ -1,0 +1,19 @@
+{
+    "project_name": "cicd-sample-project",
+    "version": "0.0.1",
+    "cloud": [
+        "AWS",
+        "Azure",
+        "Google Cloud"
+    ],
+    "cicd_tool": [
+        "GitHub Actions",
+        "Azure DevOps",
+        "GitLab",
+        "None"
+    ],
+    "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
+    "workspace_dir": "/Shared/dbx/{{cookiecutter.project_slug}}",
+    "artifact_location": "dbfs:/Shared/dbx/projects/{{cookiecutter.project_slug}}",
+    "profile": "DEFAULT"
+}
