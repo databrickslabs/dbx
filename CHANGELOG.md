@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `--path` and `--checkout` options to the `dbx init`
 - Change the format of the `python_basic` to use pytest
 - Add `sync repo` and `sync dbfs` commands for syncing local files to Databricks and watching for changes.
+- Add `--job-run-log-level` option to `dbx launch` to retrieve log after trace run
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
