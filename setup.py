@@ -11,7 +11,7 @@ INSTALL_REQUIRES = [
     "click>=7.1.2",
     "retry>=0.9.2",
     "requests>=2.24.0",
-    "mlflow==1.26.0",
+    "mlflow==1.26.1",
     "protobuf==3.20.1",
     "tqdm>=4.50.0",
     "azure-identity>=1.7.1",
