@@ -12,7 +12,7 @@ INSTALL_REQUIRES = [
     "retry>=0.9.2",
     "requests>=2.24.0",
     "mlflow==1.26.1",
-    "protobuf==3.20.1",
+    "protobuf==4.21.1",
     "tqdm>=4.50.0",
     "azure-identity>=1.7.1",
     "azure-mgmt-datafactory>=2.2.0",
