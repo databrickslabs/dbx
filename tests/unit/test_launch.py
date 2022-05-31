@@ -477,7 +477,7 @@ class LaunchTest(DbxTest):
     @patch(
         "databricks_cli.jobs.api.JobsService.get_run_output", return_value={"logs": "test log", "error": "test error"}
     )
-    def test_trace_runs_with_job_run_log(self, *_):
+    def test_trace_runs_with_job_run_log_all(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
             configure_result = invoke_cli_runner(
@@ -514,6 +514,101 @@ class LaunchTest(DbxTest):
                         "--trace",
                         "--job-run-log-level",
                         "all",
+                    ],
+                )
+
+                self.assertEqual(launch_result.exit_code, 0)
+
+            self._launch_in_provided_context(_test)
+
+    @patch(
+        "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
+        return_value=test_dbx_config,
+    )
+    @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
+    @patch("mlflow.set_experiment", return_value=None)
+    @patch("mlflow.log_artifact", return_value=None)
+    @patch("mlflow.set_tags", return_value=None)
+    @patch("mlflow.search_runs", return_value=pd.DataFrame([{"run_id": 1, "tags.cake": "cheesecake"}]))
+    @patch("databricks_cli.dbfs.api.DbfsService.read", return_value=DEFAULT_DATA_MOCK)
+    @patch("databricks_cli.jobs.api.JobsService.list_runs", return_value={"runs": []})
+    @patch(
+        "databricks_cli.jobs.api.JobsService.list_jobs",
+        return_value={
+            "jobs": [
+                {
+                    "settings": {
+                        "name": "sample",
+                    },
+                    "job_id": 1,
+                }
+            ]
+        },
+    )
+    @patch("databricks_cli.jobs.api.JobsService.run_now", return_value={"run_id": "1"})
+    @patch(
+        "databricks_cli.jobs.api.JobsService.get_run",
+        side_effect=[
+            {
+                "run_id": "1",
+                "run_page_url": "http://some",
+                "tasks": [{"run_id": "1", "task_key": "test key"}],
+                "state": {"state_message": "RUNNING", "result_state": None},
+            },
+            {
+                "run_id": "1",
+                "run_page_url": "http://some",
+                "tasks": [{"run_id": "1", "task_key": "test key"}],
+                "state": {"state_message": "RUNNING", "life_cycle_state": "TERMINATED", "result_state": "SUCCESS"},
+            },
+            {
+                "run_id": "1",
+                "run_page_url": "http://some",
+                "tasks": [{"run_id": "1", "task_key": "test key"}],
+                "state": {"state_message": "RUNNING", "life_cycle_state": "TERMINATED", "result_state": "ERROR"},
+            },
+        ],
+    )
+    @patch(
+        "databricks_cli.jobs.api.JobsService.get_run_output", return_value={"logs": "test log", "error": "test error"}
+    )
+    def test_trace_runs_with_job_run_log_error(self, *_):
+        with self.project_dir:
+            ws_dir = "/Shared/dbx/projects/%s" % self.project_name
+            configure_result = invoke_cli_runner(
+                configure,
+                [
+                    "--environment",
+                    "test",
+                    "--profile",
+                    self.profile_name,
+                    "--workspace-dir",
+                    ws_dir,
+                ],
+            )
+            self.assertEqual(configure_result.exit_code, 0)
+
+            deployment_content = {"test": {"dbfs": {}, "jobs": []}}
+
+            JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
+
+            def _test():
+                deploy_result = invoke_cli_runner(deploy, ["--environment", "test", "--tags", "cake=cheesecake"])
+
+                self.assertEqual(deploy_result.exit_code, 0)
+
+                launch_result = invoke_cli_runner(
+                    launch,
+                    [
+                        "--environment",
+                        "test",
+                        "--job",
+                        "sample",
+                        "--tags",
+                        "cake=cheesecake",
+                        "--trace",
+                        "--job-run-log-level",
+                        "error",
                     ],
                 )
 
