@@ -11,8 +11,8 @@ INSTALL_REQUIRES = [
     "click>=7.1.2",
     "retry>=0.9.2",
     "requests>=2.24.0",
-    "mlflow>=1.23.0",
-    "scipy<=1.7.3",  # 1.8.0 and higher require Python 3.8, we don't have such a limitation
+    "mlflow==1.26.1",
+    "protobuf==4.21.1",
     "tqdm>=4.50.0",
     "azure-identity>=1.7.1",
     "azure-mgmt-datafactory>=2.2.0",
@@ -22,6 +22,9 @@ INSTALL_REQUIRES = [
     "emoji>=1.6.1",
     "cookiecutter>=1.7.2",
     "Jinja2>=2.11.2",
+    "aiohttp>=3.8.1",
+    "pathspec>=0.9.0",
+    "watchdog>=2.1.0",
 ]
 
 if sys.platform.startswith("win32"):
@@ -29,7 +32,7 @@ if sys.platform.startswith("win32"):
 
 setup(
     name="dbx",
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
     install_requires=INSTALL_REQUIRES,

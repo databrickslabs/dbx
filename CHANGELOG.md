@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor the JSON-related code
 - Add `--path` and `--checkout` options to the `dbx init`
 - Change the format of the `python_basic` to use pytest
+- Add `sync repo` and `sync dbfs` commands for syncing local files to Databricks and watching for changes.
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.

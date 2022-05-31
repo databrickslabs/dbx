@@ -14,7 +14,7 @@ conda activate {{cookiecutter.project_slug}}
 
 2. If you don't have JDK installed on your local machine, install it (in this example we use `conda`-based installation):
 ```bash
-conda install -c anaconda "openjdk=8.0.152"
+conda install -c conda-forge openjdk
 ```
 
 3. Install unit requirements for local development and the project package in a developer mode:
