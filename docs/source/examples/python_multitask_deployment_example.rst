@@ -1,5 +1,5 @@
-Scala Multi Task Deployment YAML Example
-========================================
+Python Multi Task Deployment YAML Example
+=========================================
 
 Project structure
 -----------------
@@ -12,23 +12,25 @@ Project structure
   │   └── project.json
   ├── .gitignore
   ├── README.md
-  ├── build.sbt
-  │
   ├── conf
   │   ├── deployment.yml
-  │
-  ├── project
-  │   ├── assembly.sbt
-  │   ├── build.properties
-  │   └── plugins.sbt
-  ├── project
-  │   ├── target
-  ├── target
-  ├── src
-  │   ├── main
-  │   │   └── scala
   │   └── test
-  │       └── scala
+  │       └── sample.yml
+  ├── pytest.ini
+  ├── sample_project
+  │   ├── __init__.py # <- this is the root folder of your Python package
+  │   ├── common.py # <- this file contains a generic class called Job, which provides you all necessary tools, such as Spark and DBUtils
+  │   └── jobs
+  │       ├── __init__.py
+  │       ├── your-file-01.py
+  │       └── your-file-02.py
+  ├── setup.py
+  ├── tests
+  │   ├── integration
+  │   │   └── sample_test.py
+  │   └── unit
+  │       └── sample_test.py
+  └── requirements.txt
 
 
 Useful commands
@@ -46,5 +48,8 @@ Example deployment file
     Documentation tries to list all the options, based on your need some options may not be relevant.
     For example, if instance_pool_name is used, then note_type_id may not be relevant and so on.
 
-.. literalinclude:: ./scala_mtj.yml
+.. literalinclude:: ./python_mtj.yml
     :language: yaml
+
+
+
