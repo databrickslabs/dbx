@@ -10,29 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-DD
 
-- Support including jinja templates from subpaths of the current working directory
-- Refactor the configuration code
-- Refactor the JSON-related code
-- Add `--path` and `--checkout` options to the `dbx init`
-- Change the format of the `python_basic` to use pytest
-- Add `sync repo` and `sync dbfs` commands for syncing local files to Databricks and watching for changes.
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
 > And empty the **[Unreleased]** section above.
 ----
 
-## [0.4.3] - 2022-05-15
-
-### Added
-
-- YAML Example for deploying multi task scala job
-
-## [0.4.2] - 2022-05-11
+## [0.5.0] - 2022-06-01
 
 ### Added
 
 - YAML Example for deploying multi task python job
+- YAML Example for deploying multi task scala job
+- Support including jinja templates from subpaths of the current working directory
+- Add `--path` and `--checkout` options to the `dbx init`
+- Change the format of the `python_basic` to use pytest
+- Add `sync repo` and `sync dbfs` commands for syncing local files to Databricks and watching for changes.
+
+### Changed
+
+- Refactor the configuration code
+- Refactor the JSON-related code
 
 ## [0.4.1] - 2022-03-01
 
