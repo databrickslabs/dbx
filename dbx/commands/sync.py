@@ -76,15 +76,15 @@ def sync():
     imports work relative to the repo root. This means that aside from turning on autoreload you don't need to do
     anything else special for the changes to be reflected in the cell's execution. However, when syncing to DBFS,
     for the imports to work you need to update the Python path to include this target directory you're syncing to.
-    For example, to import from the :code:`/tmp/users/first.last/myrepo path` used above, use the following at the top
+    For example, to import from the :code:`/tmp/users/first.last/myrepo` path used above, use the following at the top
     of your notebook:
 
     .. code-block:: python
 
         import sys
 
-        if "/tmp/users/first.last/myrepo" not in sys.path:
-            sys.path.insert(0, "/tmp/users/first.last/myrepo")
+        if "/dbfs/tmp/users/first.last/myrepo" not in sys.path:
+            sys.path.insert(0, "/dbfs/tmp/users/first.last/myrepo")
 
     The :code:`dbx sync` commands have many options for controlling which files/directories to include/exclude from
     syncing, which are well documented below.  For convenience, all patterns listed in a :code:`.gitignore` at the
