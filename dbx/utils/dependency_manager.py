@@ -17,12 +17,9 @@ class DependencyManager:
     This class manages dependency references in the job or task deployment.
     """
 
-    def __init__(
-        self, global_no_package: bool, no_rebuild: bool, strict_adjustment: bool, requirements_file: Optional[str]
-    ):
+    def __init__(self, global_no_package: bool, no_rebuild: bool, requirements_file: Optional[str]):
         self._global_no_package = global_no_package
         self._no_rebuild = no_rebuild
-        self._strict_adjustment = strict_adjustment
         self._core_package_reference: Optional[LibraryReference] = self._get_package_requirement()
         self._requirements_references: List[LibraryReference] = self._get_requirements_from_file(requirements_file)
 
@@ -68,8 +65,7 @@ class DependencyManager:
             return None
         else:
             if package_file:
-                file_reference = str(package_file) if not self._strict_adjustment else f"file://{package_file}"
-                return {"whl": file_reference}
+                return {"whl": f"file://{package_file}"}
             else:
                 dbx_echo(
                     "Package file was not found! "

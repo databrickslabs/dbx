@@ -13,7 +13,6 @@ custom:
 # please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
 environments:
   default:
-    strict_path_adjustment_policy: true
     jobs:
       ##################################################################
       # this is an example job with single ETL task based on 2.0 API  #

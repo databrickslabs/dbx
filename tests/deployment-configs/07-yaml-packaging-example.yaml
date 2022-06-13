@@ -1,6 +1,5 @@
 environments:
   default:
-    strict_path_adjustment_policy: true
     jobs:
       - name: single-task-job
         deployment_config:

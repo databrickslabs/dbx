@@ -3,11 +3,17 @@ Path adjustment logic during deployment
 
 
 During deployment, :code:`dbx` supports uploading local files and properly referencing them in the job definition.
-By default, any files referenced in the deployment file (file path shall be relative to the project root) will be uploaded to the dbfs and properly referenced in the job definition.
+Any keys referenced in the deployment file starting with :code:`file://` or :code:`file:fuse://` will be uploaded to the artifact storage.
+References are resolved with relevance to the root of the project.
 
-However, this logic might be too wide defined in some particular cases. To make it more compliant and reliable,
-since version 0.2.0 :code:`dbx deploy` supports strict path adjustment policy. To enable this policy, add the following property to the environment:
+There are two types of how the file path will be resolved and referenced in the final deployment definition:
 
+* **Standard** - This definition looks like this :code:`file://some/path/in/project/some.file`. This definition will be resolved into :code:`dbfs://<artifact storage prefix>/some/path/in/project/some.file`
+* **FUSE** - This definition looks like this :code:`file:fuse://some/path/in/project/some.file`. This definition will be resolved into :code:`/dbfs/<artifact storage prefix>/some/path/in/project/some.file`
+
+The latter type of path resolution might come in handy when the using system doesn't know how to work with cloud storage protocols.
+
+Please find more examples on path resolution below:
 
 .. tabs::
 
@@ -20,6 +26,4 @@ since version 0.2.0 :code:`dbx deploy` supports strict path adjustment policy. T
 
       .. literalinclude:: ../../tests/deployment-configs/04-path-adjustment-policy.yaml
          :language: yaml
-
-Since 0.2.0 :code:`dbx` also supports FUSE-based path replacement (instead of :code:`dbfs:/...` a FUSE-based path will be provided :code:`/dbfs/`).
 

@@ -23,4 +23,4 @@ environments:
         max_retries: {{ MAX_RETRY | default(3) }}
         {% endif %}
         spark_python_task:
-          python_file: "tests/deployment-configs/placeholder_1.py"
+          python_file: "file://tests/deployment-configs/placeholder_1.py"

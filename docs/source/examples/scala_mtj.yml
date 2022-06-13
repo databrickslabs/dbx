@@ -29,7 +29,6 @@ custom:
 
 environments:
   default:
-    strict_path_adjustment_policy: true
     jobs:
       - name: "your-job-name"
         email_notifications:

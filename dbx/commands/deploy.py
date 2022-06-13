@@ -146,18 +146,16 @@ def deploy(
         """
         )
 
-    is_strict = deployment.get("strict_path_adjustment_policy", False)
-
     requested_jobs = _define_deployable_jobs(job, jobs)
 
     _preprocess_deployment(deployment, requested_jobs)
 
-    dependency_manager = DependencyManager(no_package, no_rebuild, is_strict, requirements_file)
+    dependency_manager = DependencyManager(no_package, no_rebuild, requirements_file)
 
     with mlflow.start_run() as deployment_run:
 
         artifact_base_uri = deployment_run.info.artifact_uri
-        _file_uploader = FileUploader(artifact_base_uri, is_strict)
+        _file_uploader = FileUploader(artifact_base_uri)
 
         adjust_job_definitions(deployment["jobs"], dependency_manager, _file_uploader, api_client)
 

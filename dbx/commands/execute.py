@@ -90,7 +90,6 @@ def execute(
     deployment_file = finalize_deployment_file_path(deployment_file)
 
     deployment = get_deployment_config(deployment_file).get_environment(environment)
-    is_strict = deployment.get("strict_path_adjustment_policy", False)
 
     _verify_deployment(deployment, environment, deployment_file)
 
@@ -101,13 +100,12 @@ def execute(
 
     job_payload = found_jobs[0]
 
-    entrypoint_file = job_payload.get("spark_python_task").get("python_file")
+    entrypoint_file = job_payload.get("spark_python_task").get("python_file").replace("file://", "")
 
     if not entrypoint_file:
         raise FileNotFoundError(
             f"No entrypoint file provided in job {job}. " f"Please add one under spark_python_task.python_file section"
         )
-    entrypoint_file = entrypoint_file if not is_strict else entrypoint_file.replace("file://", "")
 
     cluster_service = ClusterService(api_client)
 
@@ -120,7 +118,7 @@ def execute(
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
-        file_uploader = FileUploader(artifact_base_uri, is_strict)
+        file_uploader = FileUploader(artifact_base_uri)
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():

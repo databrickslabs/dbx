@@ -133,7 +133,7 @@ class NamedPropertiesProcessorTest(unittest.TestCase):
         api_client = MagicMock()
         test_profile_arn = "arn:aws:iam::123456789:instance-profile/some-instance-profile-name"
 
-        dm = DependencyManager(global_no_package=False, no_rebuild=True, strict_adjustment=True, requirements_file=None)
+        dm = DependencyManager(global_no_package=False, no_rebuild=True, requirements_file=None)
 
         api_client.perform_query = MagicMock(
             return_value={"instance_profiles": [{"instance_profile_arn": test_profile_arn}]}
