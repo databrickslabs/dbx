@@ -208,7 +208,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
-    job_run_log_level: Optional[str],
+    job_output_log_level: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -236,7 +236,7 @@ def launch(
             artifact_base_uri = deployment_run.info.artifact_uri
 
             if not as_run_submit:
-                run_launcher = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, prepared_parameters, job_run_log_level)
+                run_launcher = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, prepared_parameters, job_output_log_level)
             else:
                 run_launcher = RunSubmitLauncher(
                     job, api_client, artifact_base_uri, existing_runs, prepared_parameters, environment
@@ -252,14 +252,14 @@ def launch(
                 if kill_on_sigterm:
                     dbx_echo("Click Ctrl+C to stop the run")
                     try:
-                        dbx_status = _trace_run(api_client, run_data, job_run_log_level)
+                        dbx_status = _trace_run(api_client, run_data, job_output_log_level)
                     except KeyboardInterrupt:
                         dbx_status = "CANCELLED"
                         dbx_echo("Cancelling the run gracefully")
                         _cancel_run(api_client, run_data)
                         dbx_echo("Run cancelled successfully")
                 else:
-                    dbx_status = _trace_run(api_client, run_data, job_run_log_level)
+                    dbx_status = _trace_run(api_client, run_data, job_output_log_level)
 
                 if dbx_status == "ERROR":
                     raise Exception("Tracked run failed during execution. Please check Databricks UI for run logs")
@@ -400,14 +400,14 @@ class RunSubmitLauncher:
 
 class RunNowLauncher:
     def __init__(
-        self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any, job_run_log_level: str
+        self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any, job_output_log_level: str
     ):
         self.job = job
         self.api_client = api_client
         self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
         self.prepared_parameters = prepared_parameters
-        self.job_run_log_level = job_run_log_level
+        self.job_output_log_level = job_output_log_level
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
@@ -427,7 +427,7 @@ class RunNowLauncher:
 
             if self.existing_runs == "wait":
                 dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
-                _wait_run(self.api_client, run, self.job_run_log_level)
+                _wait_run(self.api_client, run, self.job_output_log_level)
 
             if self.existing_runs == "cancel":
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
@@ -485,7 +485,7 @@ def _load_dbx_file(api_client: ApiClient, artifact_base_uri: str, name: str) -> 
     return deployments
 
 
-def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_run_log_level: str) -> Dict[str, Any]:
+def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_level: str) -> Dict[str, Any]:
     dbx_echo(f"Tracing run with id {run_data['run_id']}")
     output = JobOutput(api_client, run_data)
     while True:
@@ -494,11 +494,11 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_run_log_level
 
         output.get()
         output.print_status()
-        if job_run_log_level in ["all", "notebook"]:
+        if job_output_log_level in ["all", "notebook"]:
             output.print_notebook_output()
-        if job_run_log_level in ["all", "logs"]:
+        if job_output_log_level in ["all", "logs"]:
             output.print_logs()
-        if job_run_log_level in ["all", "error"]:
+        if job_output_log_level in ["all", "error"]:
             output.print_error_trace()
             output.print_error()
 
@@ -507,8 +507,8 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_run_log_level
             return output
 
 
-def _trace_run(api_client: ApiClient, run_data: Dict[str, Any], job_run_log_level: bool) -> str:
-    job_output = _wait_run(api_client, run_data, job_run_log_level)
+def _trace_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_level: bool) -> str:
+    job_output = _wait_run(api_client, run_data, job_output_log_level)
     result_state = job_output["metadata"]["state"].get("result_state", None)
     if result_state == "SUCCESS":
         dbx_echo("Job run finished successfully")
