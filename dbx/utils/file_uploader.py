@@ -12,12 +12,10 @@ class FileUploader:
     FileUploader represents a class that is used for uploading local files into mlflow storage
     """
 
-    def __init__(self, artifact_uri: str, is_strict: Optional[bool] = False):
+    def __init__(self, artifact_uri: str):
         """
         artifact_uri - base location of files for mlflow
-        is_strict - if true, apply strict path adjustment logic
         """
-        self.is_strict = is_strict
         self._artifact_uri = artifact_uri
         self._uploaded_files: Dict[
             pathlib.Path, str

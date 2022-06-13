@@ -38,14 +38,14 @@ environments:
         libraries: []
         max_retries: 0
         spark_python_task:
-          python_file: "tests/deployment-configs/placeholder_1.py"
+          python_file: "file://tests/deployment-configs/placeholder_1.py"
 
       - name: "your-job-name-2"
         <<: *basic-static-cluster
         libraries: []
         max_retries: 0
         spark_python_task:
-          python_file: "tests/deployment-configs/placeholder_2.py"
+          python_file: "file://tests/deployment-configs/placeholder_2.py"
 
       - name: "your-job-name-3"
         <<:
@@ -53,7 +53,7 @@ environments:
           - *basic-cluster-libraries
         max_retries: 5
         spark_python_task:
-          python_file: "tests/deployment-configs/placeholder_2.py"
+          python_file: "file://tests/deployment-configs/placeholder_2.py"
 
       - name: "your-job-name-4"
         <<:
@@ -61,4 +61,4 @@ environments:
           - *basic-cluster-libraries
         max_retries: 5
         spark_python_task:
-          python_file: "tests/deployment-configs/placeholder_2.py"
+          python_file: "file://tests/deployment-configs/placeholder_2.py"

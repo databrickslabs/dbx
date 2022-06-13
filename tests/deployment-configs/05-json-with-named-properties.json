@@ -10,7 +10,7 @@
                 "libraries": [],
                 "max_retries": 0,
                 "spark_python_task": {
-                    "python_file": "dbx_named_params/jobs/sample/entrypoint.py"
+                    "python_file": "file://dbx_named_params/jobs/sample/entrypoint.py"
                 }
             },
             {
@@ -19,7 +19,7 @@
                 "libraries": [],
                 "max_retries": 0,
                 "spark_python_task": {
-                    "python_file": "dbx_named_params/jobs/sample/entrypoint.py"
+                    "python_file": "file://dbx_named_params/jobs/sample/entrypoint.py"
                 }
             },
             {
@@ -32,7 +32,7 @@
                 "libraries": [],
                 "max_retries": 0,
                 "spark_python_task": {
-                    "python_file": "dbx_named_params/jobs/sample/entrypoint.py"
+                    "python_file": "file://dbx_named_params/jobs/sample/entrypoint.py"
                 }
             }
         ]

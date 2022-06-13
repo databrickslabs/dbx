@@ -120,7 +120,7 @@ def execute(
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
-        file_uploader = FileUploader(artifact_base_uri, is_strict)
+        file_uploader = FileUploader(artifact_base_uri)
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
