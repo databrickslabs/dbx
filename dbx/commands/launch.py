@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import time
 from typing import Dict, Any, Optional, Tuple
@@ -27,6 +28,69 @@ from dbx.utils.job_listing import find_job_by_name
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
 
+
+class JobOutput:
+    def __init__(self, api_client, run_data):
+        self.api_client = api_client
+        self.run_data = run_data
+        self._current_byte_count_offset_logs = 0
+        self._current_byte_count_offset_notebook = 0
+        self.response = {}
+        self._refresh()
+        self._process_s = 0
+
+    def get(self):
+        process_s_start = time.time()
+        jobs_service = JobsService(self.api_client)
+        self.response = jobs_service.get_run(self.run_data["run_id"])
+        self._refresh()
+        self._process_s = time.time() - process_s_start
+
+    def _refresh(self):
+        self.logs = self.response.get("logs", {})
+        self.logs_truncated = self.response.get("logs_truncated", {})
+        self.error = self.response.get("error", {})
+        self.error_trace = self.response.get("error_trace", {})
+        self.metadata = self.response.get("metadata", {})
+        self.run_state = self.metadata.get("state", {})
+
+    def _read_new(self, string, byte_count_offset):
+        byte_count = len(string.encode('utf-8'))
+        filelike = io.StringIO(string)
+        filelike.seek(byte_count_offset)
+        return filelike.read(), byte_count
+
+    def _print_new(self, label: str, string: str, byte_count_offset: int):
+        new_string, byte_count = self._read_new(string, byte_count_offset)
+        if byte_count > self._current_byte_count_offset_logs:
+            dbx_echo(
+                f"[Run Id: {self.run_data['run_id']}] {label} - ",
+                new_string
+            )
+        self._current_byte_count_offset_logs = byte_count
+
+    def print_logs(self):
+        self._print_new(
+            label="Latest cluster logs",
+            string=self.logs,
+            byte_count_offset=self._current_byte_count_offset_logs
+        )
+
+    def print_notebook_output(self):
+        self._print_new(
+            label="Latest notebook output",
+            string=self.notebook_output,
+            byte_count_offset=self._current_byte_count_offset_notebook
+        )
+
+    def print_status(self):
+        self._print_new(
+            label="Current run status info",
+            string=f"result state: {self.run_state.get('result_state', None)}, "
+            f"lifecycle state: {self.run_state.get('life_cycle_state', None)}, "
+            f"state message: {self.run_state.get('state_message', '')}",
+            byte_count_offset=0
+        )
 
 @click.command(
     context_settings=CONTEXT_SETTINGS,
@@ -99,6 +163,12 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     help="""The name of the current branch.
               If not provided or empty, dbx will try to detect the branch name.""",
 )
+@click.option(
+    "--print-output",
+    is_flag=True,
+    help="""In addition to job status, print notebook output and/or cluster logs if available from job.
+              For launched python jobs, this is the result of calls to the `print()` function.""",
+)
 @environment_option
 @debug_option
 def launch(
@@ -112,6 +182,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
+    print_output: bool,
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -139,7 +210,7 @@ def launch(
             artifact_base_uri = deployment_run.info.artifact_uri
 
             if not as_run_submit:
-                run_launcher = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, prepared_parameters)
+                run_launcher = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, prepared_parameters, print_output)
             else:
                 run_launcher = RunSubmitLauncher(
                     job, api_client, artifact_base_uri, existing_runs, prepared_parameters, environment
@@ -155,14 +226,14 @@ def launch(
                 if kill_on_sigterm:
                     dbx_echo("Click Ctrl+C to stop the run")
                     try:
-                        dbx_status = _trace_run(api_client, run_data)
+                        dbx_status = _trace_run(api_client, run_data, print_output)
                     except KeyboardInterrupt:
                         dbx_status = "CANCELLED"
                         dbx_echo("Cancelling the run gracefully")
                         _cancel_run(api_client, run_data)
                         dbx_echo("Run cancelled successfully")
                 else:
-                    dbx_status = _trace_run(api_client, run_data)
+                    dbx_status = _trace_run(api_client, run_data, print_output)
 
                 if dbx_status == "ERROR":
                     raise Exception("Tracked run failed during execution. Please check Databricks UI for run logs")
@@ -303,13 +374,14 @@ class RunSubmitLauncher:
 
 class RunNowLauncher:
     def __init__(
-        self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any
+        self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any, print_output: bool
     ):
         self.job = job
         self.api_client = api_client
         self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
         self.prepared_parameters = prepared_parameters
+        self.print_output = print_output
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
@@ -329,7 +401,7 @@ class RunNowLauncher:
 
             if self.existing_runs == "wait":
                 dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
-                _wait_run(self.api_client, run)
+                _wait_run(self.api_client, run, self.print_output)
 
             if self.existing_runs == "cancel":
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
@@ -387,39 +459,29 @@ def _load_dbx_file(api_client: ApiClient, artifact_base_uri: str, name: str) -> 
     return deployments
 
 
-def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
+def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], print_output: bool) -> Dict[str, Any]:
     dbx_echo(f"Tracing run with id {run_data['run_id']}")
+    output = JobOutput(api_client, run_data)
     while True:
-        time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
-        status = _get_run_status(api_client, run_data)
-        run_state = status["state"]
-        result_state = run_state.get("result_state", None)
-        life_cycle_state = run_state.get("life_cycle_state", None)
-        state_message = run_state.get("state_message")
+        # print at exact interval compensated for time taken to process API request
+        time.sleep(min(5 - output._process_s), 0)  # runs API is eventually consistent, it's better to have a short pause for status update
 
-        dbx_echo(
-            f"[Run Id: {run_data['run_id']}] Current run status info - "
-            f"result state: {result_state}, "
-            f"lifecycle state: {life_cycle_state}, "
-            f"state message: {state_message}"
-        )
+        output.get()
+        output.print_status()
+        if print_output:
+            output.print_logs()
+            output.print_notebook_output()
 
-        if life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
+        if output.life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
             dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
-            return status
+            return output
 
 
-def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
-    final_status = _wait_run(api_client, run_data)
-    result_state = final_status["state"].get("result_state", None)
+def _trace_run(api_client: ApiClient, run_data: Dict[str, Any], print_output: bool) -> str:
+    final_status = _wait_run(api_client, run_data, print_output)
+    result_state = final_status["metadata"]["state"].get("result_state", None)
     if result_state == "SUCCESS":
         dbx_echo("Job run finished successfully")
         return "SUCCESS"
     else:
         return "ERROR"
-
-
-def _get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
-    jobs_service = JobsService(api_client)
-    run_status = jobs_service.get_run(run_data["run_id"])
-    return run_status
