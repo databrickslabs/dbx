@@ -393,6 +393,36 @@ class LaunchTest(DbxTest):
             },
         ],
     )
+    @patch(
+        "databricks_cli.jobs.api.JobsService.get_run_output",
+        side_effect=[
+            {"run_id": "1", "run_page_url": "http://some", "state": {"state_message": "RUNNING", "result_state": None}},
+            {
+                "notebook_output": {
+                    "result": "An arbitrary string passed by calling dbutils.notebook.exit(...)",
+                    "truncated": False,
+                },
+                "logs": "Hello World!",
+                "logs_truncated": True,
+                "error": "",
+                "metadata": {
+                    "state": {"state_message": "RUNNING", "result_state": None},
+                }
+            },
+            {
+                "notebook_output": {
+                    "result": "An arbitrary string passed by calling dbutils.notebook.exit(...)",
+                    "truncated": False,
+                },
+                "logs": "Hello World! new text",
+                "logs_truncated": False,
+                "error": "ZeroDivisionError: integer division or modulo by zero",
+                "metadata": {
+                    "state": {"state_message": "RUNNING", "life_cycle_state": "TERMINATED", "result_state": "SUCCESS"},
+                }
+            },
+        ],
+    )
     def test_trace_runs(self, *_):
         with self.project_dir:
             ws_dir = "/Shared/dbx/projects/%s" % self.project_name
