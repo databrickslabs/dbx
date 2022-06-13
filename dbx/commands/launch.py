@@ -105,8 +105,8 @@ class JobOutput:
     def print_status(self):
         self._print_new(
             label="Current run status info",
-            string=f"result state: {self.run_state.get('result_state', None)}, "
-            f"lifecycle state: {self.run_state.get('life_cycle_state', None)}, "
+            string=f"result state: {self.run_state.get('result_state')}, "
+            f"lifecycle state: {self.run_state.get('life_cycle_state')}, "
             f"state message: {self.run_state.get('state_message', '')}",
             byte_count_offset=0
         )
@@ -504,7 +504,7 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_le
             output.print_error_trace()
             output.print_error()
 
-        if output.run_state.get("life_cycle_state", None) in TERMINAL_RUN_LIFECYCLE_STATES:
+        if output.run_state.get("life_cycle_state") in TERMINAL_RUN_LIFECYCLE_STATES:
             dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
             return output
 
