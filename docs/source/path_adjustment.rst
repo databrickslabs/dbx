@@ -8,10 +8,12 @@ References are resolved with relevance to the root of the project.
 
 There are two types of how the file path will be resolved and referenced in the final deployment definition:
 
-* **Standard** - This definition looks like this :code:`file://some/path/in/project/some.file`. This definition will be resolved into `dbfs://<artifact storage prefix>/some/path/in/project/some.file`.
-* **FUSE** - This definition looks like this :code:`file:fuse://some/path/in/project/some.file`. This definition will be resolved into `/dbfs/<artifact storage prefix>/some/path/in/project/some.file`.
+* **Standard** - This definition looks like this :code:`file://some/path/in/project/some.file`. This definition will be resolved into :code:`dbfs://<artifact storage prefix>/some/path/in/project/some.file`
+* **FUSE** - This definition looks like this :code:`file:fuse://some/path/in/project/some.file`. This definition will be resolved into :code:`/dbfs/<artifact storage prefix>/some/path/in/project/some.file`
 
 The latter type of path resolution might come in handy when the using system doesn't know how to work with cloud storage protocols.
+
+Please find more examples on path resolution below:
 
 .. tabs::
 
