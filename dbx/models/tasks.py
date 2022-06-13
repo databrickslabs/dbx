@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from pydantic import root_validator
 
 from dbx.models.base import FlexibleBaseModel
+from dbx.models.clusters import NewCluster
 
 
 class DependencyDefinition(FlexibleBaseModel):
@@ -49,6 +50,12 @@ class TaskDefinition(FlexibleBaseModel):
     pipeline_task: Optional[PipelineTask]
     python_wheel_task: Optional[PythonWheelTask]
 
+    # cluster properties might be also defined on the task level
+    new_cluster: Optional[NewCluster]
+
+    existing_cluster_id: Optional[str]
+    existing_cluster_name: Optional[str]  # this field is used in the named properties' resolution logic
+
     class Config:
         SUPPORTED_TASK_DEFINITIONS = [
             "notebook_task",
@@ -67,9 +74,9 @@ class TaskDefinition(FlexibleBaseModel):
         :return: all values of the model
         """
         task_items = [values[k] for k in cls.__config__.SUPPORTED_TASK_DEFINITIONS]
-        if not task_items:
+        if all(t is None for t in task_items):
             raise Exception(
-                f"No task launch definition was provided for task {values['name']}. "
+                f"No task launch definition was provided for task {values['task_key']}. "
                 f"Please provide one of {cls.__config__.SUPPORTED_TASK_DEFINITIONS}"
             )
         return values

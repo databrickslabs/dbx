@@ -17,7 +17,7 @@ from databricks_cli.workspace.api import WorkspaceService
 from setuptools import sandbox
 
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
-from dbx.api.readers import AbstractConfigReader, YamlConfigReader, JsonConfigReader, Jinja2ConfigReader
+from dbx.api.config import AbstractConfigReader, YamlConfigReader, JsonConfigReader, Jinja2ConfigReader
 from dbx.constants import DATABRICKS_MLFLOW_URI
 from dbx.utils import dbx_echo
 

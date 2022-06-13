@@ -7,7 +7,7 @@ from typing import List, Optional
 import jinja2
 import yaml
 
-from dbx.models.deployment import Deployments, Environment
+from dbx.models.deployment import Deployment, Environment
 from dbx.utils.json import JsonUtils
 
 
@@ -17,7 +17,7 @@ class AbstractConfigReader(ABC):
         self.config = self._read_file()
 
     @abstractmethod
-    def _read_file(self) -> Deployments:
+    def _read_file(self) -> Deployment:
         pass
 
     def _get_file_extensions(self) -> List[str]:
@@ -25,30 +25,37 @@ class AbstractConfigReader(ABC):
 
 
 class YamlConfigReader(AbstractConfigReader):
-    def _read_file(self) -> Deployments:
+    def _read_file(self) -> Deployment:
         content = yaml.load(self._path.read_text(encoding="utf-8"), yaml.SafeLoader)
-        return Deployments(**content)
+        return Deployment(**content)
 
 
 class JsonConfigReader(AbstractConfigReader):
-    def _read_file(self) -> Deployments:
-        return Deployments(**JsonUtils.read(self._path))
+    def _read_file(self) -> Deployment:
+        return Deployment(**JsonUtils.read(self._path))
 
 
 class Jinja2ConfigReader(AbstractConfigReader):
-    def _read_file(self) -> Deployments:
+    def __init__(self, path: pathlib.Path, ext: str):
+        self._ext = ext
+        super().__init__(path)
+
+    def _read_file(self) -> Deployment:
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(self._path.parent))
         rendered = env.get_template(str(self._path)).render(os=os.environ)
-        ext = self._get_file_extensions()[0]
-        if ext == "json":
+        if self._ext == ".json":
             return json.loads(rendered)
-        elif ext in ["yml", "yaml"]:
+        elif self._ext in [".yml", ".yaml"]:
             return yaml.load(rendered, yaml.SafeLoader).get("environments")
-        else:
-            raise Exception(f"File extension {ext} is not supported for Jinja2 template reader")
 
 
 class ConfigProvider:
+    """
+    Entrypoint for reading the raw configurations from files.
+    In most cases there is no need to use the lower-level config readers.
+    If a new reader is introduced, it shall be used via the :code:`_define_reader` method.
+    """
+
     def __init__(self, path: pathlib.Path):
         self._path = path
         self._reader = self._define_reader()
@@ -56,7 +63,7 @@ class ConfigProvider:
     def _define_reader(self) -> AbstractConfigReader:
         if len(self._path.suffixes) > 1:
             if self._path.suffixes[0] in [".json", ".yaml", ".yml"] and self._path.suffixes[1] == ".j2":
-                return Jinja2ConfigReader(self._path)
+                return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0])
         else:
             if self._path.suffixes[0] == ".json":
                 return JsonConfigReader(self._path)
