@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Non-strict path adjustment policy has been deleted
+- Non-strict path adjustment policy has been deleted from code and docs
 
 ----
 > Unreleased changes must be tracked above this line.
