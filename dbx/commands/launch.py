@@ -487,7 +487,7 @@ def _load_dbx_file(api_client: ApiClient, artifact_base_uri: str, name: str) -> 
     return deployments
 
 
-def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_level: str) -> Dict[str, Any]:
+def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_level: str) -> JobOutput:
     dbx_echo(f"Tracing run with id {run_data['run_id']}")
     output = JobOutput(api_client, run_data)
     while True:
@@ -511,7 +511,7 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_le
 
 def _trace_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_level: bool) -> str:
     job_output = _wait_run(api_client, run_data, job_output_log_level)
-    result_state = job_output["metadata"]["state"].get("result_state", None)
+    result_state = job_output.metadata.get("state").get("result_state")
     if result_state == "SUCCESS":
         dbx_echo("Job run finished successfully")
         return "SUCCESS"
