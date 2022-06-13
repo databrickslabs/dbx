@@ -45,7 +45,7 @@ class JobOutput:
     def get(self):
         process_s_start = time.time()
         jobs_service = JobsService(self.api_client)
-        self._response = jobs_service.get_run(self.run_data["run_id"])
+        self._response = jobs_service.get_run_output(self.run_data["run_id"])
         self._refresh()
         self._process_s = time.time() - process_s_start
 
@@ -56,6 +56,9 @@ class JobOutput:
         self.error_trace = self._response.get("error_trace", "")
         self.metadata = self._response.get("metadata", {})
         self.run_state = self.metadata.get("state", {})
+        self.notebook_output = self._response.get("notebook_output", {})
+        self.notebook_output["result"] = self.notebook_output.get("result", "")
+        self.notebook_output["truncated"] = self.notebook_output.get("truncated", False)
 
     def _read_new(self, string, byte_count_offset):
         byte_count = len(string.encode('utf-8'))
@@ -81,7 +84,7 @@ class JobOutput:
     def print_notebook_output(self):
         self._current_byte_count_offset_notebook = self._print_new(
             label="Latest notebook output",
-            string=self.notebook_output,
+            string=self.notebook_output["result"],
             byte_count_offset=self._current_byte_count_offset_notebook
         )
 
@@ -501,7 +504,7 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], job_output_log_le
             output.print_error_trace()
             output.print_error()
 
-        if output.life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
+        if output.run_state.get("life_cycle_state", None) in TERMINAL_RUN_LIFECYCLE_STATES:
             dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
             return output
 
