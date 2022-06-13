@@ -464,7 +464,7 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any], print_output: boo
     output = JobOutput(api_client, run_data)
     while True:
         # print at exact interval compensated for time taken to process API request
-        time.sleep(min(5 - output._process_s), 0)  # runs API is eventually consistent, it's better to have a short pause for status update
+        time.sleep(min(5 - output._process_s, 0))  # runs API is eventually consistent, it's better to have a short pause for status update
 
         output.get()
         output.print_status()
