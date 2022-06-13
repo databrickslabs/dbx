@@ -62,22 +62,22 @@ class JobOutput:
 
     def _print_new(self, label: str, string: str, byte_count_offset: int):
         new_string, byte_count = self._read_new(string, byte_count_offset)
-        if byte_count > self._current_byte_count_offset_logs:
+        if byte_count > byte_count_offset:
             dbx_echo(
                 f"[Run Id: {self.run_data['run_id']}] {label} - ",
                 new_string
             )
-        self._current_byte_count_offset_logs = byte_count
+        return byte_count
 
     def print_logs(self):
-        self._print_new(
+        self._current_byte_count_offset_logs = self._print_new(
             label="Latest cluster logs",
             string=self.logs,
             byte_count_offset=self._current_byte_count_offset_logs
         )
 
     def print_notebook_output(self):
-        self._print_new(
+        self._current_byte_count_offset_notebook = self._print_new(
             label="Latest notebook output",
             string=self.notebook_output,
             byte_count_offset=self._current_byte_count_offset_notebook
