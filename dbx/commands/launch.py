@@ -47,10 +47,10 @@ class JobOutput:
         self._process_s = time.time() - process_s_start
 
     def _refresh(self):
-        self.logs = self.response.get("logs", {})
-        self.logs_truncated = self.response.get("logs_truncated", {})
-        self.error = self.response.get("error", {})
-        self.error_trace = self.response.get("error_trace", {})
+        self.logs = self.response.get("logs", "")
+        self.logs_truncated = self.response.get("logs_truncated", False)
+        self.error = self.response.get("error", "")
+        self.error_trace = self.response.get("error_trace", "")
         self.metadata = self.response.get("metadata", {})
         self.run_state = self.metadata.get("state", {})
 
