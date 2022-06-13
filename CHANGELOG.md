@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Non-strict path adjustment policy has been deleted from code and docs
+- Jinja2 templates functionality has been properly refactored and now supports Python-based customization
+
+### Removed
+
+- Passing environment variables directly into JSON/YAML files is **not** supported anymore. Please use Jinja templates for this purpose.
 
 ----
 > Unreleased changes must be tracked above this line.

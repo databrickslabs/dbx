@@ -1,15 +1,10 @@
-import json
 import os
 from pathlib import Path, PurePosixPath
-import re
-from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import git
-import jinja2
 import mlflow
 import mlflow.entities
-import ruamel.yaml
 from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.configure.provider import (
     ProfileConfigProvider,
@@ -22,9 +17,9 @@ from databricks_cli.workspace.api import WorkspaceService
 from setuptools import sandbox
 
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
+from dbx.api.readers import AbstractConfigReader, YamlConfigReader, JsonConfigReader, Jinja2ConfigReader
 from dbx.constants import DATABRICKS_MLFLOW_URI
 from dbx.utils import dbx_echo
-from dbx.utils.json import JsonUtils
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -33,135 +28,15 @@ def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
     return tags_dict
 
 
-class AbstractDeploymentConfig(ABC):
-    def __init__(self, path):
-        self._path = path
-
-    @abstractmethod
-    def get_environment(self, environment: str) -> Any:
-        pass
-
-    @abstractmethod
-    def get_all_environment_names(self) -> Any:
-        pass
-
-    def _get_file_extension(self):
-        return self._path.split(".").pop()
-
-
-class YamlDeploymentConfig(AbstractDeploymentConfig):
-    # only for reading purposes.
-    # if you need to round-trip see this: https://yaml.readthedocs.io/en/latest/overview.html
-
-    # ENV variable pattern and tag
-    PATTERN = re.compile(r".*?\$\{([^}{:]+)(:[^}^{]+)?\}.*?")  # noqa
-    YAML_TAG = "!ENV"
-
-    def resolve_env_vars(self, loader: ruamel.yaml.SafeLoader, node: ruamel.yaml.Node):
-        value = loader.construct_scalar(node)
-        match = self.PATTERN.findall(value)
-
-        full_value = value
-        if match:
-            for var in match:
-                env_var_name, default_val = var
-                env_val = os.environ.get(env_var_name, "")
-
-                if env_val == "" and default_val:
-                    env_val = default_val[1:]  # Remove the leading colon
-
-                val_to_replace = "".join(var)
-                full_value = full_value.replace(f"${{{val_to_replace}}}", env_val)
-
-        return full_value
-
-    def _read_yaml(self, file_path: str) -> Dict[str, Any]:
-        loader = ruamel.yaml.SafeLoader
-
-        # Tags indicate where to search for the pattern
-        # In this case, it is !ENV
-        loader.add_implicit_resolver(self.YAML_TAG, self.PATTERN, None)
-
-        # Env variable resolver
-        loader.add_constructor(self.YAML_TAG, self.resolve_env_vars)
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            return ruamel.yaml.load(f, Loader=loader)
-
-    def get_environment(self, environment: str) -> Any:
-        return self._read_yaml(self._path).get("environments").get(environment)
-
-    def get_all_environment_names(self) -> List[str]:
-        return list(self._read_yaml(self._path).get("environments").keys())
-
-
-class JsonDeploymentConfig(AbstractDeploymentConfig):
-    # ENV variable pattern
-    PATTERN = re.compile(r"\$\{([^}{:]+)(:[^}^{]+)?\}")  # noqa
-
-    def resolve_env_vars(self, json_obj: Dict[str, Any]) -> Dict[str, Any]:
-        json_str = json.dumps(json_obj)
-
-        def _env_resolver(match):
-            env_var_name, default_val = match.group(1, 2)
-            env_val = os.environ.get(env_var_name, "")
-
-            if env_val == "" and default_val:
-                env_val = default_val[1:]  # Remove the leading colon
-
-            return json.dumps(env_val)[1:-1]
-
-        return json.loads(self.PATTERN.sub(_env_resolver, json_str))
-
-    def get_environment(self, environment: str) -> Any:
-        return self.resolve_env_vars(JsonUtils.read(Path(self._path))).get(environment)
-
-    def get_all_environment_names(self) -> Any:
-        return list(self.resolve_env_vars(JsonUtils.read(Path(self._path))).keys())
-
-
-class Jinja2DeploymentConfig(AbstractDeploymentConfig):
-    def __init__(self, path, ext):
-        super().__init__(path)
-        self._ext = ext
-
-    def _render_jinja_template(self) -> str:
-        root_dir = "."
-        # Jinja processes templates by path relative to provided FileSystemLoader
-        # Jinja expects paths always with forward separators, because the "paths" in
-        # jinja are not actual filesystem paths, but often have a one-to-one mapping.
-        # To retain platform independence, we replace whatever the operating system's
-        # preferred separator is with a forward slash to keep compatibility with jinja.
-        template_path = os.path.relpath(self._path, start=root_dir).replace(os.sep, "/")
-        # We render templates with an environment from the root directory so
-        # that other template includes can be processed
-        j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(root_dir))
-        return j2_env.get_template(template_path).render(os.environ)
-
-    def _get_deployment_config(self) -> Dict[str, Any]:
-        template = self._render_jinja_template()
-        if self._ext == "json":
-            return json.loads(template)
-        elif self._ext in ["yml", "yaml"]:
-            yaml = ruamel.yaml.YAML(typ="safe")
-            return yaml.load(template).get("environments")
-
-    def get_environment(self, environment: str) -> Any:
-        return self._get_deployment_config().get(environment)
-
-    def get_all_environment_names(self) -> Any:
-        return list(self._get_deployment_config().keys())
-
-
-def get_deployment_config(path: str) -> AbstractDeploymentConfig:
+def get_deployment_config(path: str) -> AbstractConfigReader:
     ext = path.split(".").pop()
     if ext == "json":
-        return JsonDeploymentConfig(path)
+        return JsonConfigReader(path)
     elif ext in ["yml", "yaml"]:
-        return YamlDeploymentConfig(path)
+        return YamlConfigReader(path)
     elif ext == "j2":
         second_ext = path.split(".")[-2]
-        return Jinja2DeploymentConfig(path, second_ext)
+        return Jinja2ConfigReader(path, second_ext)
     else:
         raise Exception(f"Undefined config file handler for extension: {ext}")
 

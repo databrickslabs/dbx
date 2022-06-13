@@ -1,6 +1,6 @@
 {
     "default": {
-        "jobs": [
+        "workloads": [
             {
                 "name": "multitask-job-name",
                 "tasks": [

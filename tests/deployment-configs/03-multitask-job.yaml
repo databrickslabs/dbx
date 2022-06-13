@@ -13,16 +13,17 @@ custom:
 
 environments:
   default:
-    jobs:
+    workloads:
       - name: "your-job-name"
         tasks:
           - task_key: "first-task"
             <<: *basic-static-cluster
-            spark_python_task:
-              python_file: "file://placeholder_1.py"
+            notebook_task:
+              notebook_path: "/Repos/some-project/notebooks/some-notebook"
           - task_key: "second-task"
             <<: *basic-static-cluster
             spark_python_task:
               python_file: "file://placeholder_2.py"
             depends_on:
               - task_key: "second-task"
+            max_retries: 10
