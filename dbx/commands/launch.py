@@ -208,7 +208,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
-    job_run_log_level: bool,
+    job_run_log_level: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
