@@ -28,9 +28,9 @@ class MlflowArtifactStorageProperties(BaseModel):
         return props
 
     @classmethod
-    def parse_from_provided(cls, properties: Optional[List[str]] = None) -> MlflowArtifactStorageProperties:
+    def parse_from_provided(cls, properties: Optional[List[str]]) -> MlflowArtifactStorageProperties:
         _properties = cls.get_default_properties()
-        _parsed = parse_list_of_arguments(properties) if properties else {}
+        _parsed = parse_list_of_arguments(properties)
         _properties.update(_parsed)
         return cls.parse_obj(_properties)
 

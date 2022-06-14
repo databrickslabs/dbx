@@ -7,6 +7,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.utils import dbx_echo
 from dbx.constants import TEMPLATE_CHOICES, TEMPLATE_ROOT_PATH
+from dbx.utils.cli import parse_list_of_arguments
 
 DEFAULT_TEMPLATE = "python_basic"
 
@@ -80,10 +81,8 @@ def init(
             "No template parameters were provided. "
             "Please follow the cookiecutter init dialogue to pass template parameters..."
         )
-        parameters = {}
-    else:
-        splits = [item.split("=") for item in parameters]
-        parameters = {item[0]: item[1] for item in splits}
+
+    parameters = parse_list_of_arguments(parameters)
 
     _path = path if path else str(TEMPLATE_ROOT_PATH / template / "render")
     cookiecutter(_path, extra_context=parameters, no_input=no_input, checkout=checkout)

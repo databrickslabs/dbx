@@ -20,3 +20,7 @@ class FlexibleBaseModel(BaseModel):
                 extra[field_name] = values.pop(field_name)
         values["extra"] = extra
         return values
+
+
+class CustomProperties(BaseModel):
+    disable_core_package_reference: Optional[bool] = False

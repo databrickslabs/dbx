@@ -14,18 +14,21 @@ In particular, this code supports the following resolutions:
 import abc
 import collections.abc
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 
-from databricks_cli.sdk import ApiClient, InstancePoolService, PolicyService
+from databricks_cli.sdk import InstancePoolService, PolicyService
 
-from dbx.utils.cli import _preprocess_cluster_args
+from dbx.api.clients.databricks_api import DatabricksClientProvider
+from dbx.models.clusters import NewCluster
+from dbx.models.tasks import TaskDefinition
 from dbx.utils import dbx_echo
+from dbx.utils.cli import ClusterArgumentPreprocessor
 from dbx.utils.policy_parser import PolicyParser
 
 
 class AbstractProcessor(abc.ABC):
-    def __init__(self, api_client: ApiClient):
-        self._api_client = api_client
+    def __init__(self):
+        self._api_client = DatabricksClientProvider.get_v2_client()
 
     @abc.abstractmethod
     def process(self, object_reference: Dict[str, Any]):
@@ -33,16 +36,19 @@ class AbstractProcessor(abc.ABC):
 
 
 class PolicyNameProcessor(AbstractProcessor):
-    def process(self, object_reference: Dict[str, Any]):
-        policy_name = object_reference.get("policy_name")
+    def process(self, cluster: NewCluster) -> NewCluster:
 
-        if policy_name:
-            dbx_echo(f"Processing policy name {policy_name}")
-            policy_spec = self._preprocess_policy_name(policy_name)
+        if cluster.policy_name:
+            policy_id = cluster.policy_id
+            dbx_echo(f"Processing policy name {cluster.policy_name}")
+            policy_spec = self._preprocess_policy_name(cluster.policy_name)
             policy = json.loads(policy_spec["definition"])
             policy_props = PolicyParser(policy).parse()
-            self._deep_update(object_reference, policy_props, policy_name)
-            object_reference["policy_id"] = policy_spec["policy_id"]
+            _d = cluster.dict()
+            self._deep_update(_d, policy_props, cluster.policy_name)
+            cluster_def = NewCluster(**_d)
+            cluster_def.policy_id = policy_id
+            return cluster_def
 
     @staticmethod
     def _deep_update(d: Dict, u: collections.abc.Mapping, policy_name: str) -> Dict:
@@ -62,8 +68,11 @@ class PolicyNameProcessor(AbstractProcessor):
                 d[k] = v
         return d
 
+    def _list_policies(self) -> List[Dict[str, Any]]:
+        return PolicyService(self._api_client).list_policies().get("policies", [])
+
     def _preprocess_policy_name(self, policy_name: str):
-        policies = PolicyService(self._api_client).list_policies().get("policies", [])
+        policies = self._list_policies()
         found_policies = [p for p in policies if p["name"] == policy_name]
 
         if not found_policies:
@@ -76,37 +85,36 @@ class PolicyNameProcessor(AbstractProcessor):
         return policy_spec
 
 
-class WorkloadPropertiesProcessor(AbstractProcessor):
-    def process(self, object_reference: Dict[str, Any]):
-        self._preprocess_existing_cluster_name(object_reference)
+class ExistingClusterNamePreprocessor(AbstractProcessor):
+    def process(self, task: TaskDefinition):
+        self._preprocess_existing_cluster_name(task)
 
-    def _preprocess_existing_cluster_name(self, object_reference: Dict[str, Any]):
-        existing_cluster_name = object_reference.get("existing_cluster_name")
-
-        if existing_cluster_name:
+    @staticmethod
+    def _preprocess_existing_cluster_name(task: TaskDefinition):
+        if task.existing_cluster_name:
             dbx_echo("Named parameter existing_cluster_name is provided, looking for it's id")
-            existing_cluster_id = _preprocess_cluster_args(self._api_client, existing_cluster_name, None)
-            object_reference["existing_cluster_id"] = existing_cluster_id
+            existing_cluster_id = ClusterArgumentPreprocessor.preprocess(task.existing_cluster_name, None)
+            task.existing_cluster_id = existing_cluster_id
 
 
 class NewClusterPropertiesProcessor(AbstractProcessor):
-    def process(self, object_reference: Dict[str, Any]):
-        self._preprocess_instance_profile_name(object_reference)
-        self._preprocess_driver_instance_pool_name(object_reference)
-        self._preprocess_instance_pool_name(object_reference)
+    def process(self, new_cluster: NewCluster):
+        self._preprocess_instance_profile_name(new_cluster)
+        self._preprocess_driver_instance_pool_name(new_cluster)
+        self._preprocess_instance_pool_name(new_cluster)
 
     @staticmethod
     def _name_from_profile(profile_def) -> str:
         return profile_def.get("instance_profile_arn").split("/")[-1]
 
-    def _preprocess_instance_profile_name(self, object_reference: Dict[str, Any]):
-        instance_profile_name = object_reference.get("aws_attributes", {}).get("instance_profile_name")
+    def _list_instance_profiles(self) -> List[Dict[str, Any]]:
+        return self._api_client.perform_query("get", "/instance-profiles/list").get("instance_profiles", [])
 
+    def _preprocess_instance_profile_name(self, new_cluster: NewCluster):
+        instance_profile_name = new_cluster.aws_attributes.instance_profile_name
         if instance_profile_name:
             dbx_echo("Named parameter instance_profile_name is provided, looking for it's id")
-            all_instance_profiles = self._api_client.perform_query("get", "/instance-profiles/list").get(
-                "instance_profiles", []
-            )
+            all_instance_profiles = self._list_instance_profiles()
             instance_profile_names = [self._name_from_profile(p) for p in all_instance_profiles]
             matching_profiles = [
                 p for p in all_instance_profiles if self._name_from_profile(p) == instance_profile_name
@@ -123,27 +131,29 @@ class NewClusterPropertiesProcessor(AbstractProcessor):
                     f"Found multiple instance profiles with name {instance_profile_name}"
                     f"Please provide unique names for the instance profiles."
                 )
+            new_cluster.aws_attributes.instance_profile_arn = matching_profiles[0]["instance_profile_arn"]
 
-            object_reference["aws_attributes"]["instance_profile_arn"] = matching_profiles[0]["instance_profile_arn"]
-
-    def _preprocess_driver_instance_pool_name(self, object_reference: Dict[str, Any]):
+    def _preprocess_driver_instance_pool_name(self, new_cluster: NewCluster):
         self._generic_instance_pool_name_preprocessor(
-            object_reference, "driver_instance_pool_name", "instance_pool_id", "driver_instance_pool_id"
+            new_cluster, "driver_instance_pool_name", "instance_pool_id", "driver_instance_pool_id"
         )
 
-    def _preprocess_instance_pool_name(self, object_reference: Dict[str, Any]):
+    def _preprocess_instance_pool_name(self, new_cluster: NewCluster):
         self._generic_instance_pool_name_preprocessor(
-            object_reference, "instance_pool_name", "instance_pool_id", "instance_pool_id"
+            new_cluster, "instance_pool_name", "instance_pool_id", "instance_pool_id"
         )
+
+    def _list_instance_pools(self) -> List[Dict[str, Any]]:
+        return InstancePoolService(self._api_client).list_instance_pools().get("instance_pools", [])
 
     def _generic_instance_pool_name_preprocessor(
-        self, object_reference: Dict[str, Any], named_parameter, search_id, property_name
+        self, new_cluster: NewCluster, named_parameter, search_id, property_name
     ):
-        instance_pool_name = object_reference.get(named_parameter)
+        instance_pool_name = new_cluster.dict().get(named_parameter)
 
         if instance_pool_name:
             dbx_echo(f"Named parameter {named_parameter} is provided, looking for its id")
-            all_pools = InstancePoolService(self._api_client).list_instance_pools().get("instance_pools", [])
+            all_pools = self._list_instance_pools()
             instance_pool_names = [p.get("instance_pool_name") for p in all_pools]
             matching_pools = [p for p in all_pools if p["instance_pool_name"] == instance_pool_name]
 
@@ -157,4 +167,4 @@ class NewClusterPropertiesProcessor(AbstractProcessor):
                     f"Found multiple pools with name {instance_pool_name}, please provide unique names for the pools"
                 )
 
-            object_reference[property_name] = matching_pools[0][search_id]
+            new_cluster.__setattr__(property_name, matching_pools[0][search_id])

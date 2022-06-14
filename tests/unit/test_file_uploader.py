@@ -2,7 +2,7 @@ import pathlib
 import unittest
 from unittest.mock import patch
 
-from dbx.utils.file_uploader import FileUploader
+from dbx.utils.file_uploader import MlflowFileUploader
 
 
 class FileUploaderTest(unittest.TestCase):
@@ -15,7 +15,7 @@ class FileUploaderTest(unittest.TestCase):
 
         for artifact_uri in self.TEST_ARTIFACT_PATHS:
             for local_path in local_paths:
-                uploader = FileUploader(artifact_uri=artifact_uri)
+                uploader = MlflowFileUploader(artifact_uri=artifact_uri)
                 resulting_path = uploader.upload_and_provide_path(local_path)
                 expected_path = "/".join([artifact_uri, str(local_path.as_posix())])
                 self.assertEqual(expected_path, resulting_path)
@@ -26,7 +26,7 @@ class FileUploaderTest(unittest.TestCase):
         local_path = pathlib.Path("/some/local/file")
 
         for artifact_uri in self.TEST_ARTIFACT_PATHS:
-            uploader = FileUploader(artifact_uri=artifact_uri)
+            uploader = MlflowFileUploader(artifact_uri=artifact_uri)
 
             if not artifact_uri.startswith("dbfs:/"):
                 with self.assertRaises(Exception):

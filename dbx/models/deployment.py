@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 
 from pydantic import BaseModel
 
@@ -10,6 +10,9 @@ class WorkloadDefinition(BaseModel):
     name: str
     job_clusters: Optional[List[JobCluster]]
     tasks: List[TaskDefinition]
+
+    def to_api_format(self) -> Dict[str, Any]:
+        return self.dict()
 
 
 class Environment(BaseModel):

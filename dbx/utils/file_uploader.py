@@ -7,9 +7,9 @@ from retry import retry
 from dbx.utils import dbx_echo
 
 
-class FileUploader:
+class MlflowFileUploader:
     """
-    FileUploader represents a class that is used for uploading local files into mlflow storage
+    MlflowFileUploader represents a class that is used for uploading local files into mlflow storage
     """
 
     def __init__(self, artifact_uri: str):

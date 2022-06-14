@@ -9,8 +9,8 @@ from databricks_cli.instance_pools.api import InstancePoolService
 from databricks_cli.clusters.api import ClusterService
 
 from dbx.utils.adjuster import adjust_job_definitions
-from dbx.utils.dependency_manager import DependencyManager
-from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
+from dbx.utils.dependency_manager import BuildManager
+from dbx.utils.named_properties import NewClusterPropertiesProcessor, ExistingClusterNamePreprocessor
 from dbx.api.config_reader import _YamlConfigReader
 from dbx.utils.json import JsonUtils
 from .test_common import format_path
@@ -113,7 +113,7 @@ class NamedPropertiesProcessorTest(unittest.TestCase):
             "list_clusters",
             return_value={"clusters": [{"cluster_name": "some-cluster", "cluster_id": test_existing_cluster_id}]},
         ):
-            processor = WorkloadPropertiesProcessor(api_client)
+            processor = ExistingClusterNamePreprocessor(api_client)
             processor.process(job_in_json)
             processor.process(job_in_yaml)
 
@@ -124,7 +124,7 @@ class NamedPropertiesProcessorTest(unittest.TestCase):
         job1 = self._get_job_by_name(self.json_deployment_conf, "named-props-existing-cluster-name")
         api_client = MagicMock()
 
-        processor = WorkloadPropertiesProcessor(api_client)
+        processor = ExistingClusterNamePreprocessor(api_client)
 
         self.assertRaises(Exception, processor.process, job1)
 
@@ -133,7 +133,7 @@ class NamedPropertiesProcessorTest(unittest.TestCase):
         api_client = MagicMock()
         test_profile_arn = "arn:aws:iam::123456789:instance-profile/some-instance-profile-name"
 
-        dm = DependencyManager(global_no_package=False, no_rebuild=True, requirements_file=None)
+        dm = BuildManager(global_no_package=False, no_rebuild=True, requirements_file=None)
 
         api_client.perform_query = MagicMock(
             return_value={"instance_profiles": [{"instance_profile_arn": test_profile_arn}]}

@@ -2,8 +2,9 @@ from typing import List, Optional, Dict, Any
 
 from pydantic import root_validator
 
-from dbx.models.base import FlexibleBaseModel
+from dbx.models.base import FlexibleBaseModel, CustomProperties
 from dbx.models.clusters import NewCluster
+from dbx.models.libraries import Library
 
 
 class DependencyDefinition(FlexibleBaseModel):
@@ -43,6 +44,9 @@ class PythonWheelTask(FlexibleBaseModel):
 class TaskDefinition(FlexibleBaseModel):
     task_key: str
     depends_on: Optional[List[DependencyDefinition]]
+    custom_properties: Optional[CustomProperties]
+    libraries: Optional[List[Library]]
+
     notebook_task: Optional[NotebookTask]
     spark_jar_task: Optional[SparkJarTask]
     spark_python_task: Optional[SparkPythonTask]
