@@ -28,41 +28,42 @@ class MlflowStorageConfigurationManager:
         parsed = urlparse(url)
         return f"{parsed.scheme}://{parsed.netloc}"
 
-    def _setup_tracking_uri(self):
-        os.environ[self.DATABRICKS_HOST_ENV] = self._strip_url(self._config.host)
-        os.environ[self.DATABRICKS_TOKEN_ENV] = self._config.token
+    @classmethod
+    def _setup_tracking_uri(cls):
+        config = AuthConfigProvider.get_config()
+        os.environ[cls.DATABRICKS_HOST_ENV] = cls._strip_url(config.host)
+        os.environ[cls.DATABRICKS_TOKEN_ENV] = config.token
         mlflow.set_tracking_uri(DATABRICKS_MLFLOW_URI)
 
-    def __init__(self, properties: MlflowArtifactStorageProperties):
-        self._config = AuthConfigProvider().get_config()
-        self._properties = properties
+    @classmethod
+    def prepare(cls, properties: MlflowArtifactStorageProperties):
+        cls._setup_tracking_uri()
+        cls._prepare_workspace_dir(properties)
+        cls._setup_experiment(properties)
 
-    def prepare(self):
-        self._setup_tracking_uri()
-        self._prepare_workspace_dir()
-        self._setup_experiment()
-
-    def _prepare_workspace_dir(self):
+    @classmethod
+    def _prepare_workspace_dir(cls, properties: MlflowArtifactStorageProperties):
         api_client = DatabricksClientProvider().get_v2_client()
-        p = str(PurePosixPath(self._properties.workspace_directory).parent)
+        p = str(PurePosixPath(properties.workspace_directory).parent)
         service = WorkspaceService(api_client)
         service.mkdirs(p)
 
-    def _setup_experiment(self):
-        experiment: Optional[Experiment] = mlflow.get_experiment_by_name(self._properties.workspace_directory)
+    @classmethod
+    def _setup_experiment(cls, properties: MlflowArtifactStorageProperties):
+        experiment: Optional[Experiment] = mlflow.get_experiment_by_name(properties.workspace_directory)
 
         if not experiment:
-            mlflow.create_experiment(self._properties.workspace_directory, self._properties.artifact_location)
+            mlflow.create_experiment(properties.workspace_directory, properties.artifact_location)
         else:
             # verify experiment location
-            if experiment.artifact_location != self._properties.artifact_location:
+            if experiment.artifact_location != properties.artifact_location:
                 raise Exception(
-                    f"Required location of experiment {self._properties.workspace_directory} "
+                    f"Required location of experiment {properties.workspace_directory} "
                     f"doesn't match the project defined one: \n"
                     f"\t experiment artifact location: {experiment.artifact_location} \n"
-                    f"\t project artifact location   : {self._properties.artifact_location} \n"
+                    f"\t project artifact location   : {properties.artifact_location} \n"
                     f"Change of experiment location is currently not supported in Mlflow. "
                     f"Please change the experiment name (workspace_directory property) to create a new experiment."
                 )
 
-        mlflow.set_experiment(self._properties.workspace_directory)
+        mlflow.set_experiment(properties.workspace_directory)

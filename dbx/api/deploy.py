@@ -40,7 +40,7 @@ class DeploymentManager:
 
     def prepare_storage(self):
         if self.storage_info.storage_type == "mlflow":
-            MlflowStorageConfigurationManager(self.storage_info.properties).prepare()
+            MlflowStorageConfigurationManager.prepare(self.storage_info.properties)
 
     def _adjust_and_upload(self, base_uri: str) -> List[WorkloadDefinition]:
         uploader = MlflowFileUploader(base_uri)

@@ -57,11 +57,7 @@ def deploy_common(
     deployment_file = DeploymentArgumentsPreprocessor.preprocess_deployment_file(deployment_file)
     _env = DeploymentArgumentsPreprocessor.preprocess_config(deployment_file, environment)
 
-    workloads = (
-        DeploymentArgumentsPreprocessor.preprocess_workload(_env, workload_name, all)
-        if workload_name
-        else [w.name for w in _env.workloads]
-    )
+    workloads = DeploymentArgumentsPreprocessor.preprocess_workload(_env, workload_name, all)
 
     if not no_rebuild:
         BuildManager.build_core_package()

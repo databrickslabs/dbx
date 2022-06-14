@@ -40,18 +40,16 @@ class AuthConfigProvider:
             else:
                 return config
 
-    def __init__(self):
-        self.config_type: Optional[str] = None
-
-    def get_config(self) -> DatabricksConfig:
-        profile_config = self._get_config_from_profile(self.DBX_PROFILE_ENV)
-        env_config = self._get_config_from_env()
+    @classmethod
+    def get_config(cls) -> DatabricksConfig:
+        profile_config = cls._get_config_from_profile(cls.DBX_PROFILE_ENV)
+        env_config = cls._get_config_from_env()
 
         if not profile_config and not env_config:
             raise Exception(
                 "No valid authentication information was provided.\n"
                 "Please either provide host and token for environment as per Databricks CLI docs \n"
-                f"Or provide the env variable {self.DBX_PROFILE_ENV} which points to the pre-configured profile."
+                f"Or provide the env variable {cls.DBX_PROFILE_ENV} which points to the pre-configured profile."
             )
         elif env_config:
             if profile_config:
@@ -62,5 +60,5 @@ class AuthConfigProvider:
             dbx_echo("host/token environment variables will be used")
             return env_config
         else:
-            dbx_echo(f"profile with name {self.DBX_PROFILE_ENV} will be used")
+            dbx_echo(f"profile with name {cls.DBX_PROFILE_ENV} will be used")
             return profile_config

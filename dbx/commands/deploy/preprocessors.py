@@ -45,12 +45,20 @@ class DeploymentArgumentsPreprocessor:
         return environment
 
     @staticmethod
-    def preprocess_workload(env: Environment, workload: str, all_workloads: bool) -> List[WorkloadDefinition]:
-        if all_workloads:
+    def preprocess_workload(env: Environment, workload: Optional[str], all_workloads: bool) -> List[WorkloadDefinition]:
+        workload_names = [w.name for w in env.workloads]
+        if not workload and not all_workloads:
+            raise Exception(
+                f"No workloads were chosen for deployment. "
+                f"Please choose one of {workload_names} or pass --all argument to deploy all workloads.`"
+            )
+        elif all_workloads and workload:
+            raise Exception("Both workload name and --all options cannot be used together.")
+        elif all_workloads:
             return env.workloads
-        elif workload in [w.name for w in env.workloads]:
+        elif workload in workload_names:
             return [w for w in env.workloads if w.name == workload]
         else:
             raise NameError(
-                f"Workload {workload} was not found in environment. Available workload names are {env.workloads}"
+                f"Workload {workload} was not found in environment. Available workload names are {workload_names}"
             )

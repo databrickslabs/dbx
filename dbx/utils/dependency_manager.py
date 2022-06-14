@@ -14,5 +14,5 @@ class BuildManager:
     @staticmethod
     def _build_wheel():
         dbx_echo("Re-building package")
-        subprocess.check_call([sys.executable] + shlex.split("pip wheel -w dist -e . --prefer-binary"))
+        subprocess.check_call([sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary"))
         dbx_echo("Package re-build finished")

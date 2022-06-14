@@ -28,6 +28,14 @@ class MlflowFileUploader:
         dbx_echo(f"Uploading file: {file_path}")
         mlflow.log_artifact(str(file_path), str(posix_path.parent))
 
+    def _convert_to_fuse_path(self, remote_path: str):
+        if not self._artifact_uri.startswith("dbfs:/"):
+            raise Exception(
+                "Fuse-based paths are not supported for non-dbfs artifact locations."
+                "If fuse-like paths are required, consider using DBFS mount as artifact location."
+            )
+        return remote_path.replace("dbfs:/", "/dbfs/")
+
     def upload_and_provide_path(self, local_path: pathlib.Path, as_fuse: Optional[bool] = False) -> str:
         if local_path in self._uploaded_files:
             dbx_echo("File is already uploaded, returning it's path to the definition")
@@ -37,11 +45,5 @@ class MlflowFileUploader:
             remote_path = "/".join([self._artifact_uri, str(local_path.as_posix())])
             self._uploaded_files[local_path] = remote_path
 
-        if not self._artifact_uri.startswith("dbfs:/") and as_fuse:
-            raise Exception(
-                "Fuse-based paths are not supported for non-dbfs artifact locations."
-                "If fuse-like paths are required, consider using DBFS mount as artifact location."
-            )
-
-        remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
+        remote_path = self._convert_to_fuse_path(remote_path) if as_fuse else remote_path
         return remote_path

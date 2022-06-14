@@ -2,19 +2,25 @@ import contextlib
 import logging
 import os
 import pathlib
+import random
 import shutil
 import tempfile
 from pathlib import Path
+from typing import List, Dict
 from unittest.mock import MagicMock
 from uuid import uuid4
 
 from click.testing import CliRunner
 
+from dbx.api.clients.databricks_api import DatabricksClientProvider
+from dbx.api.jobs import AdvancedJobsService
 from dbx.api.mlflow import MlflowStorageConfigurationManager
 import mlflow
 import pytest
 
 from dbx.commands.init import init
+from dbx.models.deployment import WorkloadDefinition
+from dbx.utils.file_uploader import MlflowFileUploader
 
 
 def invoke_cli_runner(*args, **kwargs):
@@ -77,7 +83,17 @@ def mlflow_fixture(session_mocker):
     :return: None
     """
     session_mocker.patch.object(MlflowStorageConfigurationManager, "prepare", MagicMock())
+    session_mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+    session_mocker.patch.object(
+        MlflowFileUploader, "_convert_to_fuse_path", MagicMock(side_effect=(lambda p: p.replace("file:///", "")))
+    )
 
+    def mocked_mapping(workloads: List[WorkloadDefinition]) -> Dict[str, int]:
+        return {w.name: random.randint(0, 1000) for w in workloads}
+
+    session_mocker.patch.object(
+        AdvancedJobsService, "create_jobs_and_get_id_mapping", MagicMock(side_effect=mocked_mapping)
+    )
     logging.info("Configuring local Mlflow instance")
     tracking_uri = tempfile.TemporaryDirectory().name
     registry_uri = f"sqlite:///{tempfile.TemporaryDirectory().name}"

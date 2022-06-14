@@ -111,27 +111,28 @@ class NewClusterPropertiesProcessor(AbstractProcessor):
         return self._api_client.perform_query("get", "/instance-profiles/list").get("instance_profiles", [])
 
     def _preprocess_instance_profile_name(self, new_cluster: NewCluster):
-        instance_profile_name = new_cluster.aws_attributes.instance_profile_name
-        if instance_profile_name:
-            dbx_echo("Named parameter instance_profile_name is provided, looking for it's id")
-            all_instance_profiles = self._list_instance_profiles()
-            instance_profile_names = [self._name_from_profile(p) for p in all_instance_profiles]
-            matching_profiles = [
-                p for p in all_instance_profiles if self._name_from_profile(p) == instance_profile_name
-            ]
+        if new_cluster.aws_attributes:
+            instance_profile_name = new_cluster.aws_attributes.instance_profile_name
+            if instance_profile_name:
+                dbx_echo("Named parameter instance_profile_name is provided, looking for it's id")
+                all_instance_profiles = self._list_instance_profiles()
+                instance_profile_names = [self._name_from_profile(p) for p in all_instance_profiles]
+                matching_profiles = [
+                    p for p in all_instance_profiles if self._name_from_profile(p) == instance_profile_name
+                ]
 
-            if not matching_profiles:
-                raise Exception(
-                    f"No instance profile with name {instance_profile_name} found."
-                    f"Available instance profiles are: {instance_profile_names}"
-                )
+                if not matching_profiles:
+                    raise Exception(
+                        f"No instance profile with name {instance_profile_name} found."
+                        f"Available instance profiles are: {instance_profile_names}"
+                    )
 
-            if len(matching_profiles) > 1:
-                raise Exception(
-                    f"Found multiple instance profiles with name {instance_profile_name}"
-                    f"Please provide unique names for the instance profiles."
-                )
-            new_cluster.aws_attributes.instance_profile_arn = matching_profiles[0]["instance_profile_arn"]
+                if len(matching_profiles) > 1:
+                    raise Exception(
+                        f"Found multiple instance profiles with name {instance_profile_name}"
+                        f"Please provide unique names for the instance profiles."
+                    )
+                new_cluster.aws_attributes.instance_profile_arn = matching_profiles[0]["instance_profile_arn"]
 
     def _preprocess_driver_instance_pool_name(self, new_cluster: NewCluster):
         self._generic_instance_pool_name_preprocessor(

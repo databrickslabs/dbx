@@ -19,7 +19,6 @@ from dbx.utils.named_properties import (
 
 
 class AdjustmentManager:
-    # TODO: Add core library recognition and packaging options
     def __init__(self, workloads: List[WorkloadDefinition], uploader: MlflowFileUploader):
         self._existing_cluster_name_preprocessor = ExistingClusterNamePreprocessor()
         self._new_cluster_processor = NewClusterPropertiesProcessor()
@@ -103,7 +102,6 @@ class AdjustmentManager:
                 _adjusted = self._adjust_path(candidate)
                 if _adjusted != candidate:
                     self._update_candidate_value(parent, index, _adjusted)
-
             elif isinstance(candidate, dict):
                 for key, sub_element in candidate.items():
                     self._adjust(candidate, key, sub_element)
@@ -117,8 +115,9 @@ class AdjustmentManager:
                     self._update_candidate_value(parent, index, new)
                 elif isinstance(candidate, TaskDefinition):
                     self._existing_cluster_name_preprocessor.process(candidate)
-                    if not candidate.custom_properties.disable_core_package_reference:
-                        self._add_core_package(candidate)
+                    if candidate.custom_properties:
+                        if candidate.custom_properties.disable_core_package_reference:
+                            self._add_core_package(candidate)
                 for name, sub_element in candidate:
                     self._adjust(candidate, name, sub_element)
 

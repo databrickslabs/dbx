@@ -35,7 +35,7 @@ class PipelineTask(FlexibleBaseModel):
 
 
 class PythonWheelTask(FlexibleBaseModel):
-    package: str
+    package_name: str
     entry_point: str
     parameters: Optional[List[str]]
     named_parameters: Optional[Dict[str, Any]]
@@ -77,7 +77,7 @@ class TaskDefinition(FlexibleBaseModel):
         :param values: all values of the model
         :return: all values of the model
         """
-        task_items = [values[k] for k in cls.__config__.SUPPORTED_TASK_DEFINITIONS]
+        task_items = [values.get(k) for k in cls.__config__.SUPPORTED_TASK_DEFINITIONS]
         if all(t is None for t in task_items):
             raise Exception(
                 f"No task launch definition was provided for task {values['task_key']}. "
