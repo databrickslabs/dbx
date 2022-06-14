@@ -74,6 +74,21 @@ def temp_project(tmp_path: pathlib.Path):
 
 
 @pytest.fixture(scope="session", autouse=True)
+def v2_client_fixture(session_mocker):
+    session_mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+
+
+@pytest.fixture(scope="function")
+def job_creation_fixture(mocker):
+    def mocked_mapping(workloads: List[WorkloadDefinition]) -> Dict[str, int]:
+        return {w.name: random.randint(0, 1000) for w in workloads}
+
+    mocker.patch.object(
+        AdvancedJobsService, "create_jobs_and_get_id_mapping", MagicMock(side_effect=mocked_mapping)
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
 def mlflow_fixture(session_mocker):
     """
     This fixture provides local instance of mlflow with support for tracking and registry functions.
@@ -83,17 +98,11 @@ def mlflow_fixture(session_mocker):
     :return: None
     """
     session_mocker.patch.object(MlflowStorageConfigurationManager, "prepare", MagicMock())
-    session_mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+
     session_mocker.patch.object(
         MlflowFileUploader, "_convert_to_fuse_path", MagicMock(side_effect=(lambda p: p.replace("file:///", "")))
     )
 
-    def mocked_mapping(workloads: List[WorkloadDefinition]) -> Dict[str, int]:
-        return {w.name: random.randint(0, 1000) for w in workloads}
-
-    session_mocker.patch.object(
-        AdvancedJobsService, "create_jobs_and_get_id_mapping", MagicMock(side_effect=mocked_mapping)
-    )
     logging.info("Configuring local Mlflow instance")
     tracking_uri = tempfile.TemporaryDirectory().name
     registry_uri = f"sqlite:///{tempfile.TemporaryDirectory().name}"
