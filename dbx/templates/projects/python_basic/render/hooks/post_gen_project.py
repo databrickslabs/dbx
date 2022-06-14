@@ -4,8 +4,9 @@ from typing import Callable, Dict, Optional, Any
 
 from jinja2 import Environment, FileSystemLoader
 
-from dbx.commands.configure import configure
+from dbx.api.configure import ProjectConfigurationManager
 from dbx.constants import TEMPLATE_ROOT_PATH
+from dbx.models.project import MlflowArtifactStorageInfo, MlflowArtifactStorageProperties
 
 DBX_TEMPLATE_NAME = "python_basic"
 COMPONENTS_PATH = TEMPLATE_ROOT_PATH / DBX_TEMPLATE_NAME / "components"
@@ -91,8 +92,14 @@ class PostProcessor:
     @staticmethod
     def process():
 
-        configure.callback(
-            environment="default", workspace_dir=WORKSPACE_DIR, artifact_location=ARTIFACT_LOCATION, profile=PROFILE
+        ProjectConfigurationManager().create_or_update(
+            environment_name="default",
+            storage_info=MlflowArtifactStorageInfo(
+                properties=MlflowArtifactStorageProperties(
+                    workspace_directory=WORKSPACE_DIR,
+                    artifact_location=ARTIFACT_LOCATION
+                )
+            )
         )
 
         env = Environment(loader=FileSystemLoader(COMPONENTS_PATH))

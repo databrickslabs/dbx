@@ -56,4 +56,4 @@ def test_positive_model():
 
 def test_negative_task_model():
     with pytest.raises(Exception):
-        badly_configured_task = TaskDefinition(**{"task_key": "something"})
+        _ = TaskDefinition(**{"task_key": "something"})

@@ -11,7 +11,7 @@ from databricks_cli.clusters.api import ClusterService
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
-from dbx.api.config import YamlConfigReader
+from dbx.api.config_reader import _YamlConfigReader
 from dbx.utils.json import JsonUtils
 from .test_common import format_path
 
@@ -26,10 +26,10 @@ class NamedPropertiesProcessorTest(unittest.TestCase):
     mtj_yaml_conf = samples_root_path / "08-yaml-with-named-properties-mtj.yaml"
 
     json_deployment_conf = JsonUtils.read(json_conf).get("default")
-    yaml_deployment_conf = YamlConfigReader(yaml_conf).get_environment("default")
+    yaml_deployment_conf = _YamlConfigReader(yaml_conf).get_environment("default")
 
     mtj_json_dep_conf = JsonUtils.read(mtj_json_conf).get("default")
-    mtj_yaml_dep_conf = YamlConfigReader(mtj_yaml_conf).get_environment("default")
+    mtj_yaml_dep_conf = _YamlConfigReader(mtj_yaml_conf).get_environment("default")
 
     @staticmethod
     def _get_job_by_name(src: Dict[str, Any], name: str):

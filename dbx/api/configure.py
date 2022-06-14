@@ -1,89 +1,74 @@
-import json
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Union
 
 from dbx.constants import INFO_FILE_PATH
+from dbx.models.project import ArtifactStorageInfo, Project, MlflowArtifactStorageInfo
+from dbx.utils.json import JsonUtils
 
 
-class EnvironmentInfo:
-    @property
-    def _current_path_name(self) -> str:
-        return Path(".").absolute().name
-
-    def __init__(self, profile: str, workspace_dir: Optional[str] = None, artifact_location: Optional[str] = None):
-        self.profile = profile
-        self.workspace_dir = f"/Shared/dbx/projects/{self._current_path_name}" if not workspace_dir else workspace_dir
-        self.artifact_location = f"dbfs:/dbx/{self._current_path_name}" if not artifact_location else artifact_location
-
-    def as_dict(self) -> Dict[str, str]:
-        return {
-            "profile": self.profile,
-            "workspace_dir": self.workspace_dir,
-            "artifact_location": self.artifact_location,
-        }
-
-
-class EnvironmentDataManager(ABC):
+class _ProjectFileManager(ABC):
     @abstractmethod
-    def create(self, name: str, environment_info: EnvironmentInfo):
+    def create(self, name: str, info: ArtifactStorageInfo):
         pass
 
     @abstractmethod
-    def update(self, name: str, environment_info: EnvironmentInfo):
+    def update(self, name: str, info: ArtifactStorageInfo):
         pass
 
     @abstractmethod
-    def get(self, name: str) -> Optional[EnvironmentInfo]:
+    def get(self, name: str) -> Optional[Union[MlflowArtifactStorageInfo]]:
         pass
 
-    def create_or_update(self, name: str, environment_info: EnvironmentInfo):
+    def create_or_update(self, name: str, info: ArtifactStorageInfo):
         if self.get(name):
-            self.update(name, environment_info)
+            self.update(name, info)
         else:
-            self.create(name, environment_info)
+            self.create(name, info)
 
 
-class JsonFileBasedManager(EnvironmentDataManager):
+class _JsonFileBasedManager(_ProjectFileManager):
     def __init__(self, file_path: Optional[Path] = INFO_FILE_PATH):
         self._file = file_path.absolute()
         if not self._file.parent.exists():
             self._file.parent.mkdir(parents=True)
 
     @property
-    def _file_content(self) -> Dict[str, EnvironmentInfo]:
-        if not self._file.exists():
-            return {}
+    def _file_content(self) -> Optional[Project]:
+        if self._file.exists():
+            return Project(**JsonUtils.read(self._file))
         else:
-            _raw: Dict = json.loads(self._file.read_text(encoding="utf-8")).get("environments", {})
-            _typed = {name: EnvironmentInfo(**value) for name, value in _raw.items()}
-            return _typed
+            return None
 
     @_file_content.setter
-    def _file_content(self, content: Dict[str, EnvironmentInfo]):
-        _untyped: Dict[str, Any] = {name: value.as_dict() for name, value in content.items()}
-        _jsonified = json.dumps({"environments": _untyped}, indent=4)
-        self._file.write_text(_jsonified, encoding="utf-8")
+    def _file_content(self, content: Project):
+        self._file.write_text(content.json(), encoding="utf-8")
 
-    def update(self, name: str, environment_info: EnvironmentInfo):
+    def update(self, name: str, info: ArtifactStorageInfo):
         # for file-based manager it's the same logic
-        self.create(name, environment_info)
+        self.create(name, info)
 
-    def get(self, name: str) -> Optional[EnvironmentInfo]:
-        return self._file_content.get(name)
+    def get(self, name: str) -> Optional[ArtifactStorageInfo]:
+        if self._file.exists():
+            return self._file_content.environments.get(name)
+        else:
+            return None
 
-    def create(self, name: str, environment_info: EnvironmentInfo):
-        _new = self._file_content.copy()
-        _new.update({name: environment_info})
+    def create(self, name: str, info: ArtifactStorageInfo):
+        if self._file_content:
+            _new = self._file_content.copy()
+            _new.environments.update({name: info})
+        else:
+            _new = Project(environments={name: info})
         self._file_content = _new
 
 
-class ConfigurationManager:
-    def __init__(self, underlying_manager: Optional[EnvironmentDataManager] = None):
-        self._manager = underlying_manager if underlying_manager else JsonFileBasedManager()
+class ProjectConfigurationManager:
+    def __init__(self, underlying_manager: Optional[_ProjectFileManager] = None):
+        self._manager = underlying_manager if underlying_manager else _JsonFileBasedManager()
 
-    def create_or_update(self, environment_name: str, environment_info: EnvironmentInfo):
-        self._manager.create_or_update(environment_name, environment_info)
+    def create_or_update(self, environment_name: str, storage_info: ArtifactStorageInfo):
+        self._manager.create_or_update(environment_name, storage_info)
 
-    def get(self, environment_name: str) -> Optional[EnvironmentInfo]:
+    def get(self, environment_name: str) -> Union[MlflowArtifactStorageInfo]:
         return self._manager.get(environment_name)

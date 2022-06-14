@@ -11,7 +11,7 @@ from dbx.models.deployment import Deployment, Environment
 from dbx.utils.json import JsonUtils
 
 
-class AbstractConfigReader(ABC):
+class _AbstractConfigReader(ABC):
     def __init__(self, path: pathlib.Path):
         self._path = path
         self.config = self._read_file()
@@ -24,18 +24,18 @@ class AbstractConfigReader(ABC):
         return self._path.suffixes
 
 
-class YamlConfigReader(AbstractConfigReader):
+class _YamlConfigReader(_AbstractConfigReader):
     def _read_file(self) -> Deployment:
         content = yaml.load(self._path.read_text(encoding="utf-8"), yaml.SafeLoader)
         return Deployment(**content)
 
 
-class JsonConfigReader(AbstractConfigReader):
+class _JsonConfigReader(_AbstractConfigReader):
     def _read_file(self) -> Deployment:
         return Deployment(**JsonUtils.read(self._path))
 
 
-class Jinja2ConfigReader(AbstractConfigReader):
+class _Jinja2ConfigReader(_AbstractConfigReader):
     def __init__(self, path: pathlib.Path, ext: str):
         self._ext = ext
         super().__init__(path)
@@ -49,7 +49,7 @@ class Jinja2ConfigReader(AbstractConfigReader):
             return yaml.load(rendered, yaml.SafeLoader).get("environments")
 
 
-class ConfigProvider:
+class ConfigReader:
     """
     Entrypoint for reading the raw configurations from files.
     In most cases there is no need to use the lower-level config readers.
@@ -60,15 +60,15 @@ class ConfigProvider:
         self._path = path
         self._reader = self._define_reader()
 
-    def _define_reader(self) -> AbstractConfigReader:
+    def _define_reader(self) -> _AbstractConfigReader:
         if len(self._path.suffixes) > 1:
             if self._path.suffixes[0] in [".json", ".yaml", ".yml"] and self._path.suffixes[1] == ".j2":
-                return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0])
+                return _Jinja2ConfigReader(self._path, ext=self._path.suffixes[0])
         else:
             if self._path.suffixes[0] == ".json":
-                return JsonConfigReader(self._path)
+                return _JsonConfigReader(self._path)
             elif self._path.suffixes[0] in [".yaml", ".yml"]:
-                return YamlConfigReader(self._path)
+                return _YamlConfigReader(self._path)
 
         # no matching reader found, raising an exception
         raise Exception(

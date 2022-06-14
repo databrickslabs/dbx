@@ -16,9 +16,10 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from setuptools import sandbox
 
-from dbx.api.configure import ConfigurationManager, EnvironmentInfo
-from dbx.api.config import AbstractConfigReader, YamlConfigReader, JsonConfigReader, Jinja2ConfigReader
+from dbx.api.configure import ProjectConfigurationManager
+from dbx.api.config_reader import _AbstractConfigReader, _YamlConfigReader, _JsonConfigReader, _Jinja2ConfigReader
 from dbx.constants import DATABRICKS_MLFLOW_URI
+from dbx.models.project import MlflowArtifactStorageInfo
 from dbx.utils import dbx_echo
 
 
@@ -28,15 +29,15 @@ def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
     return tags_dict
 
 
-def get_deployment_config(path: str) -> AbstractConfigReader:
+def get_deployment_config(path: str) -> _AbstractConfigReader:
     ext = path.split(".").pop()
     if ext == "json":
-        return JsonConfigReader(path)
+        return _JsonConfigReader(path)
     elif ext in ["yml", "yaml"]:
-        return YamlConfigReader(path)
+        return _YamlConfigReader(path)
     elif ext == "j2":
         second_ext = path.split(".")[-2]
-        return Jinja2ConfigReader(path, second_ext)
+        return _Jinja2ConfigReader(path, second_ext)
     else:
         raise Exception(f"Undefined config file handler for extension: {ext}")
 
@@ -63,8 +64,8 @@ def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
     service.mkdirs(p)
 
 
-def get_environment_data(environment: str) -> EnvironmentInfo:
-    environment_data = ConfigurationManager().get(environment)
+def get_environment_data(environment: str) -> MlflowArtifactStorageInfo:
+    environment_data = ProjectConfigurationManager().get(environment)
 
     if not environment_data:
         raise Exception(f"No environment {environment} provided in the project file")
