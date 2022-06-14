@@ -7,18 +7,18 @@ from dbx.models.project import ArtifactStorageInfo, Project, MlflowArtifactStora
 from dbx.utils.json import JsonUtils
 
 
-class _ProjectFileManager(ABC):
+class _ProjectManager(ABC):
     @abstractmethod
     def create(self, name: str, info: ArtifactStorageInfo):
-        pass
+        """"""
 
     @abstractmethod
     def update(self, name: str, info: ArtifactStorageInfo):
-        pass
+        """"""
 
     @abstractmethod
     def get(self, name: str) -> Optional[Union[MlflowArtifactStorageInfo]]:
-        pass
+        """"""
 
     def create_or_update(self, name: str, info: ArtifactStorageInfo):
         if self.get(name):
@@ -27,7 +27,7 @@ class _ProjectFileManager(ABC):
             self.create(name, info)
 
 
-class _JsonFileBasedManager(_ProjectFileManager):
+class _JsonFileBasedManager(_ProjectManager):
     def __init__(self, file_path: Optional[Path] = INFO_FILE_PATH):
         self._file = file_path.absolute()
         if not self._file.parent.exists():
@@ -42,7 +42,7 @@ class _JsonFileBasedManager(_ProjectFileManager):
 
     @_file_content.setter
     def _file_content(self, content: Project):
-        self._file.write_text(content.json(), encoding="utf-8")
+        JsonUtils.write(self._file, content.dict())
 
     def update(self, name: str, info: ArtifactStorageInfo):
         # for file-based manager it's the same logic
@@ -64,7 +64,7 @@ class _JsonFileBasedManager(_ProjectFileManager):
 
 
 class ProjectConfigurationManager:
-    def __init__(self, underlying_manager: Optional[_ProjectFileManager] = None):
+    def __init__(self, underlying_manager: Optional[_ProjectManager] = None):
         self._manager = underlying_manager if underlying_manager else _JsonFileBasedManager()
 
     def create_or_update(self, environment_name: str, storage_info: ArtifactStorageInfo):

@@ -68,8 +68,9 @@ def init(
             "Both --template and --path options are not supported."
             "Please choose either built-in template or an external path"
         )
-    if not path and template is None:
-        template = DEFAULT_TEMPLATE
+
+    if not path:
+        template = DEFAULT_TEMPLATE if template is None else template
 
     msg_base = "Configuring new project from "
     msg = f"template {template} :gear:" if template else f"path {path} :link:"

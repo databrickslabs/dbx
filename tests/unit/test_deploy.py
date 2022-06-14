@@ -104,7 +104,7 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
-            deployment_content = JsonUtils.read(samples_path / "03-multitask-job.json")
+            deployment_content = JsonUtils.read(samples_path / "deployment.json")
 
             JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
@@ -678,7 +678,7 @@ class DeployTest(DbxTest):
             self.assertEqual(configure_result.exit_code, 0)
 
             samples_path = pathlib.Path(format_path("../deployment-configs/"))
-            deployment_content = JsonUtils.read(samples_path / "03-multitask-job.json")
+            deployment_content = JsonUtils.read(samples_path / "deployment.json")
 
             JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 

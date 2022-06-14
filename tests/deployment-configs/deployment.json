@@ -1,11 +1,11 @@
 {
     "default": {
-        "jobs": [
+        "workloads": [
             {
-                "name": "multitask-job-name",
+                "name": "simple",
                 "tasks": [
                     {
-                        "task_key": "first-task",
+                        "task_key": "first",
                         "description": "some description",
                         "new_cluster": {
                             "spark_version": "7.3.x-cpu-ml-scala2.12",
@@ -26,8 +26,8 @@
                             "num_workers": 2
                         },
                         "max_retries": 0,
-                        "spark_python_task": {
-                            "python_file": "file://placeholder_1.py"
+                        "notebook_task": {
+                            "notebook_path": "/Repos/some/path"
                         },
                         "depends_on": [
                             {
