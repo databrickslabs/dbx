@@ -17,9 +17,9 @@ from dbx.api.configure import ProjectConfigurationManager
 from dbx.utils.common import (
     generate_filter_string,
     prepare_environment,
-    parse_multiple,
     get_current_branch_name,
 )
+from dbx.utils.cli import parse_list_of_arguments
 from dbx.utils import dbx_echo
 from dbx.utils.options import environment_option
 from dbx.utils.job_listing import find_job_by_name
@@ -116,7 +116,7 @@ def launch(
     dbx_echo(f"Launching job {job} on environment {environment}")
 
     api_client = prepare_environment(environment)
-    additional_tags = parse_multiple(tags)
+    additional_tags = parse_list_of_arguments(tags)
 
     if not branch_name:
         branch_name = get_current_branch_name()
@@ -124,7 +124,7 @@ def launch(
     if parameters_raw:
         prepared_parameters = parameters_raw
     else:
-        override_parameters = parse_multiple(parameters)
+        override_parameters = parse_list_of_arguments(parameters)
         prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
 
     filter_string = generate_filter_string(environment)

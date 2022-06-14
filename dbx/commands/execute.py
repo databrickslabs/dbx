@@ -15,8 +15,8 @@ from dbx.utils.common import (
     get_deployment_config,
     handle_package,
     get_package_file,
-    _preprocess_cluster_args,
 )
+from dbx.utils.cli import _preprocess_cluster_args
 from dbx.utils import dbx_echo
 from dbx.utils.file_uploader import FileUploader
 from dbx.utils.v1_client import ApiV1Client

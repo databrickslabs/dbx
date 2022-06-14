@@ -16,11 +16,11 @@ from requests.exceptions import HTTPError
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.common import (
     prepare_environment,
-    parse_multiple,
     get_current_branch_name,
     get_deployment_config,
     # noqa
 )
+from dbx.utils.cli import parse_list_of_arguments
 from dbx.utils import dbx_echo
 from dbx.utils.file_uploader import FileUploader
 from dbx.utils.options import environment_option
@@ -128,7 +128,7 @@ def deploy(
     dbx_echo(f"Starting new deployment for environment {environment}")
 
     api_client = prepare_environment(environment)
-    additional_tags = parse_multiple(tags)
+    additional_tags = parse_list_of_arguments(tags)
 
     if not branch_name:
         branch_name = get_current_branch_name()

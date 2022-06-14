@@ -1,6 +1,6 @@
 import os
 from pathlib import Path, PurePosixPath
-from typing import Dict, List, Optional, Tuple
+from typing import Optional, Tuple
 
 import git
 import mlflow
@@ -11,35 +11,13 @@ from databricks_cli.configure.provider import (
     EnvironmentVariableConfigProvider,
     DatabricksConfig,
 )
-from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.workspace.api import WorkspaceService
 from setuptools import sandbox
 
 from dbx.api.configure import ProjectConfigurationManager
-from dbx.api.config_reader import _AbstractConfigReader, _YamlConfigReader, _JsonConfigReader, _Jinja2ConfigReader
 from dbx.constants import DATABRICKS_MLFLOW_URI
-from dbx.models.project import MlflowArtifactStorageInfo
 from dbx.utils import dbx_echo
-
-
-def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
-    tags_splitted = [t.split("=") for t in multiple_argument]
-    tags_dict = {t[0]: t[1] for t in tags_splitted}
-    return tags_dict
-
-
-def get_deployment_config(path: str) -> _AbstractConfigReader:
-    ext = path.split(".").pop()
-    if ext == "json":
-        return _JsonConfigReader(path)
-    elif ext in ["yml", "yaml"]:
-        return _YamlConfigReader(path)
-    elif ext == "j2":
-        second_ext = path.split(".")[-2]
-        return _Jinja2ConfigReader(path, second_ext)
-    else:
-        raise Exception(f"Undefined config file handler for extension: {ext}")
 
 
 def generate_filter_string(env: str) -> str:
@@ -64,14 +42,6 @@ def _prepare_workspace_dir(api_client: ApiClient, ws_dir: str):
     service.mkdirs(p)
 
 
-def get_environment_data(environment: str) -> MlflowArtifactStorageInfo:
-    environment_data = ProjectConfigurationManager().get(environment)
-
-    if not environment_data:
-        raise Exception(f"No environment {environment} provided in the project file")
-    return environment_data
-
-
 def pick_config(profile: str) -> Tuple[str, DatabricksConfig]:
     config = EnvironmentVariableConfigProvider().get_config()
     if config:
@@ -87,7 +57,7 @@ def pick_config(profile: str) -> Tuple[str, DatabricksConfig]:
 
 
 def prepare_environment(environment: str) -> ApiClient:
-    environment_data = get_environment_data(environment)
+    environment_data = ProjectConfigurationManager().get(environment)
 
     config_type, config = pick_config(environment_data.profile)
 
@@ -174,30 +144,3 @@ def get_current_branch_name() -> Optional[str]:
                 return repo.active_branch.name
         except git.InvalidGitRepositoryError:
             return None
-
-
-def _preprocess_cluster_args(api_client: ApiClient, cluster_name: Optional[str], cluster_id: Optional[str]) -> str:
-    cluster_service = ClusterService(api_client)
-
-    if not cluster_name and not cluster_id:
-        raise RuntimeError("Parameters --cluster-name and --cluster-id couldn't be empty at the same time.")
-
-    if cluster_name:
-
-        existing_clusters = [
-            c for c in cluster_service.list_clusters().get("clusters") if not c.get("cluster_name").startswith("job-")
-        ]
-        matching_clusters = [c for c in existing_clusters if c.get("cluster_name") == cluster_name]
-
-        if not matching_clusters:
-            cluster_names = [c["cluster_name"] for c in existing_clusters]
-            raise NameError(f"No clusters with name {cluster_name} found. Available clusters are: {cluster_names} ")
-        if len(matching_clusters) > 1:
-            raise NameError(f"Found more then one cluster with name {cluster_name}: {matching_clusters}")
-
-        cluster_id = matching_clusters[0]["cluster_id"]
-    else:
-        if not cluster_service.get_cluster(cluster_id):
-            raise NameError(f"Cluster with id {cluster_id} not found")
-
-    return cluster_id

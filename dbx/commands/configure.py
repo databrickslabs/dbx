@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Optional, List
 
 import click
@@ -58,22 +57,9 @@ def configure(
 ):
     dbx_echo(f"Configuring new environment with name {environment}")
     manager = ProjectConfigurationManager()
-    _properties = get_default_properties()
-
-    if properties:
-        provided_properties = dict(tuple(item.split("=")) for item in properties)  # noqa
-        _properties.update(provided_properties)
-
-    manager.create_or_update(
-        environment, MlflowArtifactStorageInfo(properties=MlflowArtifactStorageProperties(**_properties))
-    )
+    if storage_type == "mlflow":
+        _properties = MlflowArtifactStorageProperties.parse_from_provided(properties)
+        manager.create_or_update(environment, MlflowArtifactStorageInfo(properties=_properties))
+    else:
+        raise NotImplementedError("Currently only mlflow-based artifact storage is supported")
     dbx_echo("Environment configuration successfully finished")
-
-
-def get_default_properties():
-    current_path_name = Path(".").absolute().name
-    props = {
-        "workspace_directory": f"/Shared/dbx/projects/{current_path_name}",
-        "artifact_location": f"dbfs:/dbx/{current_path_name}",
-    }
-    return props

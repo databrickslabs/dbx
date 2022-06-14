@@ -9,7 +9,7 @@ from mlflow.entities.run import Run, RunInfo, RunData
 
 from dbx.commands.configure import configure
 from dbx.commands.execute import execute, awake_cluster  # noqa
-from dbx.utils.common import _preprocess_cluster_args
+from dbx.utils.cli import _preprocess_cluster_args
 from .utils import DbxTest, invoke_cli_runner, test_dbx_config
 
 run_info = RunInfo(
