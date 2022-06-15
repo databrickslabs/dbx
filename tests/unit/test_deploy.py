@@ -479,7 +479,7 @@ class DeployTest(DbxTest):
 
             JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
 
-            sample_requirements = "\n".join(["pyspark=3.0.0", "xgboost=0.6.0", "pyspark3d"])
+            sample_requirements = "\n".join(["pyspark==3.0.0", "xgboost==0.6.0", "pyspark3d"])
 
             pathlib.Path("runtime_requirements.txt").write_text(sample_requirements)
 
