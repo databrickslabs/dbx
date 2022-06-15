@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - YYYY-MM-DD
 
 ### Changed
-
+- Docs fixed in terms of allowed versions
 - Non-strict path adjustment policy has been deleted from code and docs
 
 ----

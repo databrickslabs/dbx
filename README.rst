@@ -95,7 +95,7 @@ Limitations
 -----------
 
 * Python > 3.6
-* :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X and only for Python-based projects.
+* :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X or higher and only for Python-based projects.
 
 Versioning
 ----------
