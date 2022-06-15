@@ -1,5 +1,6 @@
 import pathlib
 from typing import Optional, Dict, List, Union, Any
+import pkg_resources
 
 from dbx.utils.common import handle_package, get_package_file
 from dbx.utils import dbx_echo
@@ -24,12 +25,12 @@ class DependencyManager:
         self._requirements_references: List[LibraryReference] = self._get_requirements_from_file(requirements_file)
 
     @staticmethod
-    def _delete_managed_libraries(packages: List[str]) -> List[str]:
+    def _delete_managed_libraries(packages: List[pkg_resources.Requirement]) -> List[pkg_resources.Requirement]:
         output_packages = []
 
         for package in packages:
 
-            if package == "pyspark" or package.startswith("pyspark="):
+            if package.key == "pyspark":
                 dbx_echo("pyspark dependency deleted from the list of libraries, because it's a managed library")
             else:
                 output_packages.append(package)
@@ -47,11 +48,11 @@ class DependencyManager:
                 dbx_echo("Requirements file was not found")
                 return []
             else:
-                requirements_content = requirements_path.read_text(encoding="utf-8").split("\n")
-                filtered_libraries = self._delete_managed_libraries(requirements_content)
-
-                requirements_payload = [{"pypi": {"package": req}} for req in filtered_libraries if req]
-                return requirements_payload
+                with requirements_path.open(encoding="utf-8") as requirements_txt:
+                    requirements_content = pkg_resources.parse_requirements(requirements_txt)
+                    filtered_libraries = self._delete_managed_libraries(requirements_content)
+                    requirements_payload = [{"pypi": {"package": str(req)}} for req in filtered_libraries]
+                    return requirements_payload
 
     def _get_package_requirement(self) -> Optional[LibraryReference]:
         """
