@@ -14,7 +14,10 @@ from dbx.utils.json import JsonUtils
 class _AbstractConfigReader(ABC):
     def __init__(self, path: Path):
         self._path = path
-        self.config = self._read_file()
+        self.config = self._get_config()
+
+    def _get_config(self) -> Dict[str, Any]:
+        return self._read_file()
 
     @abstractmethod
     def _read_file(self) -> Dict[str, Any]:

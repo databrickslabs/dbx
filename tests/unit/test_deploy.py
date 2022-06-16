@@ -1,12 +1,13 @@
+import shutil
 from pathlib import Path
 from unittest.mock import MagicMock
 
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.commands.deploy import deploy, _update_job, _log_dbx_file  # noqa
-from .conftest import invoke_cli_runner, extract_function_name
+from .conftest import invoke_cli_runner, extract_function_name, get_path_with_relation_to_current_file
 
 
-def test_deploy_default(mocker, temp_project: Path, mlflow_file_uploader):
+def test_deploy_smoke_default(mocker, temp_project: Path, mlflow_file_uploader):
     func = _log_dbx_file
     mocker.patch(extract_function_name(func), MagicMock())
     mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
@@ -14,27 +15,20 @@ def test_deploy_default(mocker, temp_project: Path, mlflow_file_uploader):
     assert deploy_result.exit_code == 0
 
 
-# def test_deploy_multitask_json():
-#     samples_path = Path(format_path("../deployment-configs/"))
-#     deployment_content = JsonUtils.read(samples_path / "03-multitask-job.json")
-#
-#     JsonUtils.write(DEFAULT_DEPLOYMENT_FILE_PATH, deployment_content)
-#
-#     shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
-#     shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
-#
-#     with patch(
-#         "mlflow.get_experiment_by_name",
-#         return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-#     ):
-#         deploy_result = invoke_cli_runner(
-#             deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
-#         )
-#         _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
-#         self.assertNotIn("libraries", _content["default"]["jobs"][0])
-#         self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
-#         self.assertEqual(deploy_result.exit_code, 0)
+def test_deploy_multitask_json(mocker):
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+    samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
+    shutil.copy(samples_path / "03-multitask-job.json", Path("./conf/deployment.json"))
+    shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
+    shutil.copy(samples_path / "placeholder_2.py", Path("./placeholder_2.py"))
 
+    deploy_result = invoke_cli_runner(
+        deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
+    )
+    # _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
+    # self.assertNotIn("libraries", _content["default"]["jobs"][0])
+    # self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
+    # self.assertEqual(deploy_result.exit_code, 0)
 
 #
 # @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
