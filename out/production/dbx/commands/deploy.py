@@ -13,15 +13,16 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
-from dbx.api.config_reader import ConfigReader
+from api.config_reader import ConfigReader
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.common import (
     prepare_environment,
     parse_multiple,
     get_current_branch_name,
+    # noqa
 )
 from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import MlflowFileUploader
+from dbx.utils.file_uploader import FileUploader
 from dbx.utils.options import environment_option
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.job_listing import find_job_by_name
@@ -153,7 +154,7 @@ def deploy(
     with mlflow.start_run() as deployment_run:
 
         artifact_base_uri = deployment_run.info.artifact_uri
-        _file_uploader = MlflowFileUploader(artifact_base_uri)
+        _file_uploader = FileUploader(artifact_base_uri)
 
         adjust_job_definitions(deployment["jobs"], dependency_manager, _file_uploader, api_client)
 

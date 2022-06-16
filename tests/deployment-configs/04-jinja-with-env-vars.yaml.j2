@@ -2,10 +2,10 @@ environments:
   default:
     jobs:
       - name: "your-job-name"
-        timeout_seconds: {{ TIMEOUT }}
+        timeout_seconds: {{ env['TIMEOUT'] }}
         email_notifications:
           on_failure:
-            - {{ ALERT_EMAIL | lower }}
+            - {{ env['ALERT_EMAIL'] | lower }}
             - "presetEmail@test.com"
         new_cluster:
           spark_version: "7.3.x-cpu-ml-scala2.12"

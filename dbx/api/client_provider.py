@@ -5,6 +5,8 @@ import requests
 from databricks_cli.sdk import ApiClient
 from retry import retry
 
+from dbx.api.auth import AuthConfigProvider
+
 
 class ApiV1Client:
     def __init__(self, api_client: ApiClient):
@@ -35,3 +37,34 @@ class ApiV1Client:
     def create_context(self, payload):
         result = self.v1_client.perform_query(method="POST", path="/contexts/create", data=payload)
         return result
+
+
+class DatabricksClientProvider:
+    """
+    Provides both v1/v2 clients for Databricks API.
+    """
+
+    @classmethod
+    def _get_v2_client(cls) -> ApiClient:
+        config = AuthConfigProvider.get_config()
+        verify = config.insecure is None
+        _client = ApiClient(
+            host=config.host,
+            token=config.token,
+            verify=verify,
+            command_name="cicdtemplates-",
+        )
+        return _client
+
+    @classmethod
+    def _get_v1_client(cls) -> ApiV1Client:
+        _client = ApiV1Client(cls._get_v2_client())
+        return _client
+
+    @classmethod
+    def get_v2_client(cls) -> ApiClient:
+        return cls._get_v2_client()
+
+    @classmethod
+    def get_v1_client(cls) -> ApiV1Client:
+        return cls._get_v1_client()

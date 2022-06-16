@@ -8,10 +8,7 @@ from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from setuptools import sandbox
 
-from dbx.api.auth import AuthConfigProvider
-from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
-from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.utils import dbx_echo
 
 
@@ -19,17 +16,6 @@ def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
     tags_splitted = [t.split("=") for t in multiple_argument]
     tags_dict = {t[0]: t[1] for t in tags_splitted}
     return tags_dict
-
-
-def transfer_profile_name(info: EnvironmentInfo):
-    os.environ[AuthConfigProvider.DBX_PROFILE_ENV] = info.profile
-
-
-def prepare_environment(env_name: str) -> ApiClient:
-    info = ConfigurationManager().get(env_name)
-    transfer_profile_name(info)
-    MlflowStorageConfigurationManager.prepare(info)
-    return DatabricksClientProvider.get_v2_client()
 
 
 def generate_filter_string(env: str) -> str:

@@ -22,9 +22,8 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.configure.provider import DatabricksConfig
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.api.auth import AuthConfigProvider
 from dbx.utils import dbx_echo
-from dbx.utils.common import get_environment_data, prepare_environment, transfer_profile_name
+from dbx.utils.common import get_environment_data, pick_config
 from dbx.utils.json import JsonUtils
 from dbx.utils.options import environment_option
 
@@ -105,8 +104,7 @@ class DatafactoryReflector:
 
     def _get_config(self) -> DatabricksConfig:
         environment_data = get_environment_data(self.environment)
-        transfer_profile_name(environment_data)
-        config = AuthConfigProvider.get_config()
+        _, config = pick_config(environment_data.profile)
         return config
 
     @staticmethod

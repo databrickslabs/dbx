@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Docs fixed in terms of allowed versions
 - Non-strict path adjustment policy has been deleted from code and docs
+- Dropped support for environment variables in plain JSON/YAML files
+- Refactored code for reading configurations
+- All tests are now based on pytest
 
 ### Fixed
 

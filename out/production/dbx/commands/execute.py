@@ -8,17 +8,18 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.api.client_provider import ApiV1Client
-from dbx.api.config_reader import ConfigReader
+from dbx.commands.deploy import finalize_deployment_file_path
 from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
     prepare_environment,
+    get_deployment_config,
     handle_package,
     get_package_file,
     _preprocess_cluster_args,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import MlflowFileUploader
+from dbx.utils.file_uploader import FileUploader
+from dbx.utils.v1_client import ApiV1Client
 from dbx.api.context import LocalContextManager
 from dbx.utils.options import environment_option
 
@@ -86,9 +87,9 @@ def execute(
 
     handle_package(no_rebuild)
 
-    config_reader = ConfigReader(deployment_file)
+    deployment_file = finalize_deployment_file_path(deployment_file)
 
-    deployment = config_reader.get_environment(environment)
+    deployment = get_deployment_config(deployment_file).get_environment(environment)
 
     _verify_deployment(deployment, environment, deployment_file)
 
@@ -117,7 +118,7 @@ def execute(
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
-        file_uploader = MlflowFileUploader(artifact_base_uri)
+        file_uploader = FileUploader(artifact_base_uri)
 
         requirements_fp = pathlib.Path(requirements_file)
         if requirements_fp.exists():
