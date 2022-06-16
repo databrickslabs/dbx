@@ -22,7 +22,11 @@ def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
 
 
 def transfer_profile_name(info: EnvironmentInfo):
-    os.environ[AuthConfigProvider.DBX_PROFILE_ENV] = info.profile
+    if not os.environ.get(AuthConfigProvider.DBX_PROFILE_ENV):
+        dbx_echo("Using profile provided from the project file")
+        os.environ[AuthConfigProvider.DBX_PROFILE_ENV] = info.profile
+    else:
+        dbx_echo(f"Using profile provided via the env variable {AuthConfigProvider.DBX_PROFILE_ENV}")
 
 
 def prepare_environment(env_name: str) -> ApiClient:
