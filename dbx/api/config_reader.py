@@ -1,6 +1,6 @@
 import json
 import os
-import pathlib
+from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
 
@@ -12,7 +12,7 @@ from dbx.utils.json import JsonUtils
 
 
 class _AbstractConfigReader(ABC):
-    def __init__(self, path: pathlib.Path):
+    def __init__(self, path: Path):
         self._path = path
         self.config = self._read_file()
 
@@ -36,7 +36,7 @@ class _JsonConfigReader(_AbstractConfigReader):
 
 
 class _Jinja2ConfigReader(_AbstractConfigReader):
-    def __init__(self, path: pathlib.Path, ext: str):
+    def __init__(self, path: Path, ext: str):
         self._ext = ext
         super().__init__(path)
 
@@ -56,12 +56,12 @@ class ConfigReader:
     If a new reader is introduced, it shall be used via the :code:`_define_reader` method.
     """
 
-    def __init__(self, path: Optional[pathlib.Path] = None):
+    def __init__(self, path: Optional[Path] = None):
         self._path = self._verify_deployment_file(path) if path else self._find_deployment_file()
         self._reader = self._define_reader()
 
     @staticmethod
-    def _verify_deployment_file(candidate: pathlib.Path) -> pathlib.Path:
+    def _verify_deployment_file(candidate: Path) -> Path:
         file_extension = candidate.suffixes[-1]
 
         if file_extension == ".j2":
@@ -79,11 +79,11 @@ class ConfigReader:
         return candidate
 
     @staticmethod
-    def _find_deployment_file() -> pathlib.Path:
+    def _find_deployment_file() -> Path:
         potential_extensions = ["json", "yml", "yaml", "json.j2", "yaml.j2", "yml.j2"]
 
         for ext in potential_extensions:
-            candidate = pathlib.Path(f"conf/deployment.{ext}")
+            candidate = Path(f"conf/deployment.{ext}")
             if candidate.exists():
                 dbx_echo(f"Auto-discovery found deployment file {candidate}")
                 return candidate

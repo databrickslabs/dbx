@@ -29,6 +29,10 @@ def extract_function_name(func: Callable) -> str:
     return f"{func.__module__}.{func.__name__}"
 
 
+def get_path_with_relation_to_current_file(p: str):
+    return Path(__file__).parent.joinpath(str(p)).resolve()
+
+
 def invoke_cli_runner(*args, **kwargs):
     """
     Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
@@ -78,6 +82,20 @@ def temp_project(tmp_path: Path) -> Path:
         yield project_path
 
 
+@pytest.fixture(scope="function")
+def mlflow_file_uploader(mocker):
+    real_adjuster = adjust_path
+
+    def fake_adjuster(candidate: str, file_uploader: MlflowFileUploader) -> str:
+        if isinstance(candidate, str) and candidate.startswith(mlflow.get_tracking_uri()):
+            return candidate
+        else:
+            real_adjuster(candidate, file_uploader)
+
+    mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
+    mocker.patch(extract_function_name(real_adjuster), MagicMock(side_effect=fake_adjuster))
+
+
 @pytest.fixture(scope="session", autouse=True)
 def mlflow_fixture(session_mocker):
     """
@@ -94,20 +112,9 @@ def mlflow_fixture(session_mocker):
 
     mlflow.set_tracking_uri(Path(tracking_uri).as_uri())
     mlflow.set_registry_uri(registry_uri)
-
+    session_mocker.patch.object(MlflowStorageConfigurationManager, "prepare", MagicMock())
     # we introduce this mock since all files uploaded to the local tracking URI
     # will start with file:/// by default, so FileUploader will try to load them once again.
-    real_adjuster = adjust_path
-
-    def fake_adjuster(candidate: str, file_uploader: MlflowFileUploader) -> str:
-        if isinstance(candidate, str) and candidate.startswith(mlflow.get_tracking_uri()):
-            return candidate
-        else:
-            real_adjuster(candidate, file_uploader)
-
-    session_mocker.patch.object(MlflowStorageConfigurationManager, "prepare", MagicMock())
-    session_mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
-    session_mocker.patch(extract_function_name(real_adjuster), MagicMock(side_effect=fake_adjuster))
 
     logging.info("Mlflow instance configured")
     yield None

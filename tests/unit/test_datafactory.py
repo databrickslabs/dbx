@@ -1,38 +1,19 @@
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dbx.api.client_provider import DatabricksClientProvider
-from dbx.commands.configure import configure
 from dbx.commands.datafactory import reflect
-from dbx.commands.deploy import deploy, _update_job, _log_dbx_file  # noqa
+from dbx.commands.deploy import deploy, _log_dbx_file
 from .conftest import invoke_cli_runner, extract_function_name
 
 
-def test_datafactory_deploy(mocker, temp_project):
+def test_datafactory_deploy(mocker, temp_project: Path, mlflow_file_uploader):
     mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
     func = _log_dbx_file
     mocker.patch(extract_function_name(func), MagicMock())
-
-    ws_dir = "/Shared/dbx/projects/%s" % temp_project.name
-    configure_result = invoke_cli_runner(
-        configure,
-        [
-            "--environment",
-            "default",
-            "--profile",
-            temp_project.name,
-            "--workspace-dir",
-            ws_dir,
-        ],
-    )
-    assert configure_result.exit_code == 0
-
     deploy_result = invoke_cli_runner(
         deploy,
         [
-            "--deployment-file",
-            "conf/deployment.yml",
-            "--environment",
-            "default",
             "--write-specs-to-file",
             ".dbx/deployment-result.json",
         ],

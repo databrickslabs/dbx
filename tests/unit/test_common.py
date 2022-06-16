@@ -1,25 +1,21 @@
 import os
-from pathlib import Path
 from unittest import mock
 
 from dbx.api.config_reader import ConfigReader
+from .conftest import get_path_with_relation_to_current_file
 
+json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")
+yaml_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-yaml-test.yaml")
+jinja_json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-jinja-test.json.j2")
+jinja_yaml_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-jinja-test.yaml.j2")
 
-def with_relation_to_file(p: str):
-    return Path(__file__).parent.joinpath(str(p)).resolve()
-
-
-json_file_01 = with_relation_to_file("../deployment-configs/01-json-test.json")
-yaml_file_01 = with_relation_to_file("../deployment-configs/01-yaml-test.yaml")
-jinja_json_file_01 = with_relation_to_file("../deployment-configs/01-jinja-test.json.j2")
-jinja_yaml_file_01 = with_relation_to_file("../deployment-configs/01-jinja-test.yaml.j2")
-
-
-json_j2_file_04 = with_relation_to_file("../deployment-configs/04-jinja-with-env-vars.json.j2")
-yaml_j2_file_04 = with_relation_to_file("../deployment-configs/04-jinja-with-env-vars.yaml.j2")
-json_j2_file_06 = with_relation_to_file("../deployment-configs/06-jinja-with-logic.json.j2")
-yaml_j2_file_06 = with_relation_to_file("../deployment-configs/06-jinja-with-logic.yaml.j2")
-json_j2_file_09 = with_relation_to_file("../deployment-configs/nested-configs/09-jinja-include.json.j2")
+json_j2_file_04 = get_path_with_relation_to_current_file("../deployment-configs/04-jinja-with-env-vars.json.j2")
+yaml_j2_file_04 = get_path_with_relation_to_current_file("../deployment-configs/04-jinja-with-env-vars.yaml.j2")
+json_j2_file_06 = get_path_with_relation_to_current_file("../deployment-configs/06-jinja-with-logic.json.j2")
+yaml_j2_file_06 = get_path_with_relation_to_current_file("../deployment-configs/06-jinja-with-logic.yaml.j2")
+json_j2_file_09 = get_path_with_relation_to_current_file(
+    "../deployment-configs/nested-configs/09-jinja-include.json.j2"
+)
 
 
 def test_all_file_formats_can_be_read():
