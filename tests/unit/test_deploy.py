@@ -2,90 +2,50 @@ import shutil
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
+
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.commands.deploy import deploy, _update_job, _log_dbx_file  # noqa
+from dbx.utils.json import JsonUtils
 from .conftest import invoke_cli_runner, extract_function_name, get_path_with_relation_to_current_file
 
 
-def test_deploy_smoke_default(mocker, temp_project: Path, mlflow_file_uploader):
+@pytest.fixture()
+def mock_dbx_file_upload(mocker):
     func = _log_dbx_file
     mocker.patch(extract_function_name(func), MagicMock())
+
+
+@pytest.fixture()
+def mock_api_client(mocker):
     mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+
+
+def test_deploy_smoke_default(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_client):
     deploy_result = invoke_cli_runner(deploy)
     assert deploy_result.exit_code == 0
 
 
-def test_deploy_multitask_json(mocker):
-    mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock_api_client):
     samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
-    shutil.copy(samples_path / "03-multitask-job.json", Path("./conf/deployment.json"))
-    shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
-    shutil.copy(samples_path / "placeholder_2.py", Path("./placeholder_2.py"))
+    for file_name in ["03-multitask-job.json", "03-multitask-job.yaml"]:
+        deployment_file = Path("./conf/") / file_name
+        shutil.copy(samples_path / file_name, str(deployment_file))
+        shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
+        shutil.copy(samples_path / "placeholder_2.py", Path("./placeholder_2.py"))
 
-    deploy_result = invoke_cli_runner(
-        deploy, ["--environment", "default", "--write-specs-to-file", ".dbx/deployment-result.json"]
-    )
-    # _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
-    # self.assertNotIn("libraries", _content["default"]["jobs"][0])
-    # self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
-    # self.assertEqual(deploy_result.exit_code, 0)
+        deploy_result = invoke_cli_runner(
+            deploy, [
+                "--environment", "default",
+                "--deployment-file", str(deployment_file),
+                "--write-specs-to-file", ".dbx/deployment-result.json"
+            ]
+        )
+        assert deploy_result.exit_code == 0
+        _content = JsonUtils.read(Path(".dbx/deployment-result.json"))
+        assert "libraries" not in _content["default"]["jobs"][0]
+        assert "libraries" in _content["default"]["jobs"][0]["tasks"][0]
 
-#
-# @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
-# @patch(
-#     "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
-#     return_value=test_dbx_config,
-# )
-# @patch("databricks_cli.jobs.api.JobsService.list_jobs", return_value={"jobs": []})
-# @patch("databricks_cli.jobs.api.JobsApi.create_job", return_value={"job_id": "1"})
-# @patch("databricks_cli.workspace.api.WorkspaceService.mkdirs", return_value=True)
-# @patch("mlflow.set_experiment", return_value=None)
-# @patch("mlflow.start_run", return_value=run_mock)
-# @patch("mlflow.tracking.fluent.end_run", return_value=None)
-# @patch("mlflow.log_artifact", return_value=None)
-# @patch("mlflow.set_tags", return_value=None)
-# @patch("databricks_cli.configure.config._get_api_client", return_value=None)
-# def test_deploy_multitask_yaml(self, *_):
-#     with self.project_dir:
-#         ws_dir = "/Shared/dbx/projects/%s" % self.project_name
-#         configure_result = invoke_cli_runner(
-#             configure,
-#             [
-#                 "--environment",
-#                 "default",
-#                 "--profile",
-#                 self.profile_name,
-#                 "--workspace-dir",
-#                 ws_dir,
-#             ],
-#         )
-#         self.assertEqual(configure_result.exit_code, 0)
-#
-#         samples_path = pathlib.Path(format_path("../deployment-configs/"))
-#         shutil.copy(samples_path / "03-multitask-job.yaml", pathlib.Path("./deployment.yml"))
-#         shutil.copy(samples_path / "placeholder_1.py", pathlib.Path("./placeholder_1.py"))
-#         shutil.copy(samples_path / "placeholder_2.py", pathlib.Path("./placeholder_2.py"))
-#
-#         with patch(
-#             "mlflow.get_experiment_by_name",
-#             return_value=Experiment("id", None, f"dbfs:/dbx/{self.project_name}", None, None),
-#         ):
-#             deploy_result = invoke_cli_runner(
-#                 deploy,
-#                 [
-#                     "--environment",
-#                     "default",
-#                     "--deployment-file",
-#                     "deployment.yml",
-#                     "--write-specs-to-file",
-#                     ".dbx/deployment-result.json",
-#                 ],
-#             )
-#             _content = JsonUtils.read(pathlib.Path(".dbx/deployment-result.json"))
-#             self.assertNotIn("libraries", _content["default"]["jobs"][0])
-#             self.assertIn("libraries", _content["default"]["jobs"][0]["tasks"][0])
-#             self.assertEqual(deploy_result.exit_code, 0)
-#
 # @patch("databricks_cli.sdk.service.DbfsService.get_status", return_value=None)
 # @patch(
 #     "databricks_cli.configure.provider.ProfileConfigProvider.get_config",

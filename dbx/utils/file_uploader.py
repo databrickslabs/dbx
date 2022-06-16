@@ -24,10 +24,9 @@ class MlflowFileUploader:
     @staticmethod
     @retry(tries=3, delay=1, backoff=0.3)
     def _upload_file(file_path: pathlib.Path):
-        posix_path_str = file_path.as_posix()
-        posix_path = pathlib.PurePosixPath(posix_path_str)
-        dbx_echo(f"Uploading file: {file_path}")
-        mlflow.log_artifact(str(file_path), str(posix_path.parent))
+        posix_path = pathlib.PurePosixPath(file_path.as_posix())
+        parent = str(posix_path.parent) if str(posix_path.parent) != "." else None
+        mlflow.log_artifact(str(file_path), parent)
 
     def _verify_fuse_support(self):
         if not self._artifact_uri.startswith("dbfs:/"):
