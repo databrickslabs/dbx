@@ -1,5 +1,5 @@
 import json
-import pathlib
+from pathlib import Path
 import shutil
 import tempfile
 from typing import Dict, Any, Union, Optional
@@ -54,7 +54,7 @@ from dbx.utils.job_listing import find_job_by_name
 @click.option(
     "--deployment-file",
     required=False,
-    type=click.Path(path_type=pathlib.Path),
+    type=click.Path(path_type=Path),
     help="Path to deployment file in one of these formats: [json, yaml]",
 )
 @click.option(
@@ -74,7 +74,7 @@ from dbx.utils.job_listing import find_job_by_name
               Both :code:`--jobs` and :code:`--job` cannot be provided.
               """,
 )
-@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+@click.option("--requirements-file", required=False, type=click.Path(path_type=Path), default=Path("requirements.txt"))
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
@@ -112,10 +112,10 @@ from dbx.utils.job_listing import find_job_by_name
 @debug_option
 @environment_option
 def deploy(
-    deployment_file: Optional[pathlib.Path],
+    deployment_file: Optional[Path],
     job: Optional[str],
     jobs: Optional[str],
-    requirements_file: str,
+    requirements_file: Optional[Path],
     tags: List[str],
     environment: str,
     no_rebuild: bool,
@@ -196,7 +196,7 @@ def deploy(
 
         if write_specs_to_file:
             dbx_echo("Writing final job specifications into file")
-            specs_file = pathlib.Path(write_specs_to_file)
+            specs_file = Path(write_specs_to_file)
 
             if specs_file.exists():
                 specs_file.unlink()
@@ -207,7 +207,7 @@ def deploy(
 def _log_dbx_file(content: Dict[Any, Any], name: str):
     temp_dir = tempfile.mkdtemp()
     serialized_data = json.dumps(content, indent=4)
-    temp_path = pathlib.Path(temp_dir, name)
+    temp_path = Path(temp_dir, name)
     temp_path.write_text(serialized_data, encoding="utf-8")
     mlflow.log_artifact(str(temp_path), ".dbx")
     shutil.rmtree(temp_dir)
@@ -236,7 +236,7 @@ def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[Lis
 
 def _preprocess_files(files: Dict[str, Any]):
     for key, file_path_str in files.items():
-        file_path = pathlib.Path(file_path_str)
+        file_path = Path(file_path_str)
         if not file_path.exists():
             raise FileNotFoundError(f"File path ({file_path}) does not exist")
         files[key] = file_path

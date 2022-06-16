@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Non-strict path adjustment policy has been deleted from code and docs
 - Dropped support for environment variables in plain JSON/YAML files
 - Refactored code for reading configurations
+- Drop support for `ruamel.yaml` in favor of standard `pyyaml`
 - All tests are now based on pytest
 
 ### Fixed
