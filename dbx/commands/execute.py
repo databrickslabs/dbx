@@ -21,6 +21,7 @@ from dbx.utils import dbx_echo
 from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.api.context import LocalContextManager
 from dbx.utils.options import environment_option
+from pathlib import Path
 
 
 @click.command(
@@ -56,10 +57,10 @@ from dbx.utils.options import environment_option
 @click.option(
     "--deployment-file",
     required=False,
-    type=str,
+    type=click.Path(path_type=Path),
     help="Path to deployment file in one of these formats: [json, yaml]",
 )
-@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+@click.option("--requirements-file", required=False, type=click.Path(path_type=Path), default=Path("requirements.txt"))
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
@@ -73,8 +74,8 @@ def execute(
     cluster_id: str,
     cluster_name: str,
     job: str,
-    deployment_file: Optional[str],
-    requirements_file: str,
+    deployment_file: Optional[Path],
+    requirements_file: Path,
     no_package: bool,
     no_rebuild: bool,
 ):
@@ -252,7 +253,7 @@ def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: s
 
 def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     dbx_echo("Preparing execution context")
-    lock_context_id = LocalContextManager().get_context()
+    lock_context_id = LocalContextManager.get_context()
 
     if _is_context_available(v1_client, cluster_id, lock_context_id):
         dbx_echo("Existing context is active, using it")
@@ -260,7 +261,7 @@ def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     else:
         dbx_echo("Existing context is not active, creating a new one")
         context_id = create_context(v1_client, cluster_id, language)
-        LocalContextManager().set_context(context_id)
+        LocalContextManager.set_context(context_id)
         dbx_echo("New context prepared, ready to use it")
         return context_id
 

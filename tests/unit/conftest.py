@@ -13,9 +13,11 @@ import pytest
 from click.testing import CliRunner
 from databricks_cli.configure.provider import DatabricksConfig
 
-from dbx.utils.adjuster import adjust_path
+from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
+from dbx.commands.deploy import _log_dbx_file
 from dbx.commands.init import init
+from dbx.utils.adjuster import adjust_path
 from dbx.utils.file_uploader import MlflowFileUploader
 
 TEST_HOST = "https:/dbx.cloud.databricks.com"
@@ -26,7 +28,7 @@ test_dbx_config = DatabricksConfig.from_token(TEST_HOST, TEST_TOKEN)
 
 
 def extract_function_name(func: Callable) -> str:
-    return f"{func.__module__}.{func.__name__}"
+    return f"{func.__module__}.{func.__name__}"  # noqa
 
 
 def get_path_with_relation_to_current_file(p: str):
@@ -37,7 +39,7 @@ def invoke_cli_runner(*args, **kwargs):
     """
     Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
     """
-    expected_error = kwargs.pop("expected_error") if kwargs.get("expected_error") else None
+    expected_error = kwargs.pop("expected_error") if "expected_error" in kwargs else None
 
     res = CliRunner().invoke(*args, **kwargs)
 
@@ -82,20 +84,6 @@ def temp_project(tmp_path: Path) -> Path:
         yield project_path
 
 
-@pytest.fixture(scope="function")
-def mlflow_file_uploader(mocker):
-    real_adjuster = adjust_path
-
-    def fake_adjuster(candidate: str, file_uploader: MlflowFileUploader) -> str:
-        if isinstance(candidate, str) and candidate.startswith(mlflow.get_tracking_uri()):
-            return candidate
-        else:
-            real_adjuster(candidate, file_uploader)
-
-    mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
-    mocker.patch(extract_function_name(real_adjuster), MagicMock(side_effect=fake_adjuster))
-
-
 @pytest.fixture(scope="session", autouse=True)
 def mlflow_fixture(session_mocker):
     """
@@ -127,3 +115,34 @@ def mlflow_fixture(session_mocker):
     if Path(registry_uri).exists():
         Path(registry_uri).unlink()
     logging.info("Test session finished, unrolling the Mlflow instance")
+
+
+@pytest.fixture(scope="function")
+def mlflow_file_uploader(mocker, mlflow_fixture):
+    real_adjuster = adjust_path
+
+    def fake_adjuster(candidate: str, file_uploader: MlflowFileUploader) -> str:
+        if str(candidate).startswith(file_uploader._artifact_uri):
+            return candidate
+        else:
+            adjusted = real_adjuster(candidate, file_uploader)
+            return adjusted
+
+    mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
+    mocker.patch(extract_function_name(real_adjuster), MagicMock(side_effect=fake_adjuster))
+
+
+@pytest.fixture()
+def mock_dbx_file_upload(mocker):
+    func = _log_dbx_file
+    mocker.patch(extract_function_name(func), MagicMock())
+
+
+@pytest.fixture()
+def mock_api_v2_client(mocker):
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+
+
+@pytest.fixture()
+def mock_api_v1_client(mocker):
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
