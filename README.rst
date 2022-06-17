@@ -94,8 +94,23 @@ Differences from other tools
 Limitations
 -----------
 
-* Python > 3.6
-* :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X and only for Python-based projects.
+* Development:
+
+    * | :code:`dbx` currently doesn't provide interactive debugging capabilities.
+      | If you want to use interactive debugging, you can use `Databricks Connect <https://docs.databricks.com/dev-tools/databricks-connect.html>`_ + :code:`dbx` for deployment operations.
+    * :code:`dbx execute` only supports Python-based projects which use local files (Notebooks or Repos are not supported in :code:`dbx execute`).
+    * :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X or higher.
+
+* General:
+
+    * :code:`dbx` doesn't support `Delta Live Tables <https://databricks.com/product/delta-live-tables>`_ at the moment.
+    * | :code:`host` in your profile configuration in :code:`~/.databrickscfg` shall only consist of two parts: :code:`{scheme}://netlog`, e.g. :code:`https://some-host.cloud.databricks.com`.
+      | Strings like :code:`https://some-host.cloud.databricks.com/?o=XXXX#` are not supported. As a symptom if this you might the the error below:
+
+.. code-block::
+
+    raise MlflowException("%s. Response body: '%s'" % (base_msg, response.text))
+    mlflow.exceptions.MlflowException: API request to endpoint was successful but the response body was not in a valid JSON format.
 
 Versioning
 ----------
