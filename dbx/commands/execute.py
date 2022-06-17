@@ -1,5 +1,5 @@
-import pathlib
 import time
+from pathlib import Path
 from typing import Any, List, Optional
 
 import click
@@ -10,6 +10,8 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.api.client_provider import ApiV1Client
 from dbx.api.config_reader import ConfigReader
+from dbx.api.context import LocalContextManager
+from dbx.utils import dbx_echo
 from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
     prepare_environment,
@@ -17,11 +19,8 @@ from dbx.utils.common import (
     get_package_file,
     _preprocess_cluster_args,
 )
-from dbx.utils import dbx_echo
 from dbx.utils.file_uploader import MlflowFileUploader
-from dbx.api.context import LocalContextManager
 from dbx.utils.options import environment_option
-from pathlib import Path
 
 
 @click.command(
@@ -120,10 +119,9 @@ def execute(
         artifact_base_uri = execution_run.info.artifact_uri
         file_uploader = MlflowFileUploader(artifact_base_uri)
 
-        requirements_fp = pathlib.Path(requirements_file)
-        if requirements_fp.exists():
+        if requirements_file.exists():
 
-            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_fp, as_fuse=True)
+            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_file, as_fuse=True)
 
             installation_command = f"%pip install -U -r {localized_requirements_path}"
 
@@ -132,7 +130,7 @@ def execute(
             dbx_echo("Provided requirements installed")
         else:
             dbx_echo(
-                f"Requirements file {requirements_fp} is not provided"
+                f"Requirements file {requirements_file} is not provided"
                 + ", following the execution without any additional packages"
             )
 
@@ -159,7 +157,6 @@ def execute(
         task_props: List[Any] = job_payload.get("spark_python_task").get("parameters", [])
 
         if task_props:
-
             def adjustment_callback(p: Any):
                 return adjust_path(p, file_uploader)
 
@@ -178,7 +175,7 @@ def execute(
 
         dbx_echo("Starting entrypoint file execution")
 
-        execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text(encoding="utf-8"))
+        execute_command(v1_client, cluster_id, context_id, Path(entrypoint_file).read_text(encoding="utf-8"))
         dbx_echo("Command execution finished")
 
 

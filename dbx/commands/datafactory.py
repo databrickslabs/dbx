@@ -24,7 +24,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.api.auth import AuthConfigProvider
 from dbx.utils import dbx_echo
-from dbx.utils.common import get_environment_data, prepare_environment, transfer_profile_name
+from dbx.utils.common import get_environment_data, transfer_profile_name
 from dbx.utils.json import JsonUtils
 from dbx.utils.options import environment_option
 
