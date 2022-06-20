@@ -10,13 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-DD
 
+### Added
+
+- Added dev container config for VSCode and GitHub CodeSpaces
+
 ### Changed
 - Docs fixed in terms of allowed versions
 - Non-strict path adjustment policy has been deleted from code and docs
 
 ### Fixed
 
-- Parsing of `requirements.txt` has been improved to properly handle comments in requirements files.
+- Parsing of `requirements.txt` has been improved to properly handle comments in requirements files
 
 ----
 > Unreleased changes must be tracked above this line.
