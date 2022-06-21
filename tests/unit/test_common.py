@@ -70,8 +70,8 @@ def test_jinja_files_with_env_variables_array_type():
 def test_jinja_file_with_env_variables_default_values():
     """
     JINJA:
-    max_retries is set to {{ MAX_RETRY | default(3) }};
-    new_cluster.aws_attributes.availability is set to {{ AVAILABILITY | default('SPOT') }}.
+    max_retries is set to {{ env['MAX_RETRY'] | default(3) }};
+    new_cluster.aws_attributes.availability is set to {{ env['AVAILABILITY'] | default('SPOT') }}.
 
     MAX_RETRY and AVAILABILITY env vars will not be set. They should default to 3 and 'SPOT'
     based on config in deployment file
