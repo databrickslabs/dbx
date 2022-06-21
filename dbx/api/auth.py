@@ -39,8 +39,7 @@ class AuthConfigProvider:
                     "Provided environment variable configuration is not based on token authentication."
                     "Please switch to token-based authentication instead."
                 )
-            else:
-                return config
+            return config
 
     @classmethod
     def get_config(cls) -> DatabricksConfig:
@@ -53,7 +52,8 @@ class AuthConfigProvider:
                 "Please either provide host and token for environment as per Databricks CLI docs \n"
                 f"Or provide the env variable {cls.DBX_PROFILE_ENV} which points to the pre-configured profile."
             )
-        elif env_config:
+
+        if env_config:
             if profile_config:
                 dbx_echo(
                     "Both profile and host/token environment variables were provided."

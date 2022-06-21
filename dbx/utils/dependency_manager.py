@@ -1,8 +1,10 @@
-from typing import Optional, Dict, List, Union, Any
-import pkg_resources
 from pathlib import Path
-from dbx.utils.common import handle_package, get_package_file
+from typing import Optional, Dict, List, Union, Any
+
+import pkg_resources
+
 from dbx.utils import dbx_echo
+from dbx.utils.common import handle_package, get_package_file
 
 # this type alias represents a library reference, for example:
 # {"whl": "path/to/some/file"}
