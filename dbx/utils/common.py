@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import git
-from databricks_cli.configure.config import _get_api_client  # noqa
 from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 from setuptools import sandbox
