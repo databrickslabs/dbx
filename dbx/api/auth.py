@@ -23,22 +23,23 @@ class AuthConfigProvider:
             config = ProfileConfigProvider(profile).get_config()
             if not config:
                 raise Exception(f"Requested profile {profile} is not provided in ~/.databrickscfg")
-            if not config.is_valid_with_token():
-                raise Exception(
-                    f"Provided profile {profile} is not using token-based authentication."
-                    f"Please switch to token-based authentication instead."
-                )
+
+            AuthConfigProvider._verify_config_validity(config)
             return config
+
+    @staticmethod
+    def _verify_config_validity(config: DatabricksConfig):
+        if not config.is_valid_with_token:
+            raise Exception(
+                "Provided auth configuration is not based on token authentication."
+                "Please switch to token-based authentication instead."
+            )
 
     @staticmethod
     def _get_config_from_env() -> Optional[DatabricksConfig]:
         config = EnvironmentVariableConfigProvider().get_config()
         if config:
-            if not config.is_valid_with_token():
-                raise Exception(
-                    "Provided environment variable configuration is not based on token authentication."
-                    "Please switch to token-based authentication instead."
-                )
+            AuthConfigProvider._verify_config_validity(config)
             return config
 
     @classmethod
