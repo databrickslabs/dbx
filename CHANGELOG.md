@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added dev container config for VSCode and GitHub CodeSpaces
-- tests are now parallel (from 200 seconds to 50 seconds on 8-cores machine!)
+- tests are now parallel (x2 less time spent per each CI pipeline launch)
 - url-strip behaviour for old-format workspace host names (which was unsupported in Mlflow API and caused a lot of hardly explainable errors)
 
 ### Changed

@@ -1,11 +1,19 @@
 import os
+import shutil
+from pathlib import Path
 from unittest import mock
+from unittest.mock import MagicMock
 
+import git
 import pytest
+from databricks_cli.sdk import JobsService
+from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
+from dbx.utils.adjuster import path_adjustment, adjust_path
+from dbx.utils.common import get_environment_data, generate_filter_string, handle_package, get_current_branch_name
+from dbx.utils.job_listing import find_job_by_name
 from .conftest import get_path_with_relation_to_current_file
-from dbx.utils.common import get_environment_data
 
 json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")
 yaml_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-yaml-test.yaml")
@@ -157,6 +165,75 @@ def test_jinja_with_include():
     assert json_node_type == "some-node-type"
 
 
-def test_non_existent_provider():
+def test_get_environment_data():
+    result = get_environment_data("default")
+    assert result is not None
     with pytest.raises(Exception):
         _ = get_environment_data("some-non-existent-env")
+
+
+def test_get_current_branch_name_gh(mocker: MockFixture):
+    mocker.patch.dict("os.environ", {"GITHUB_REF": "refs/main"}, clear=True)
+
+    assert "main" == get_current_branch_name()
+
+
+def test_get_current_branch_name_detached():
+    repo = git.Repo(".", search_parent_directories=True)
+    repo.git.checkout("-b", "test")
+    repo.git.commit("--allow-empty", "-m", "c1")
+    repo.git.commit("--allow-empty", "-m", "c2")
+    repo.git.checkout("HEAD~1")
+    assert get_current_branch_name() is None
+
+
+def test_get_current_branch_name_no_git(temp_project: Path):
+    git_path = temp_project.absolute() / ".git"
+    shutil.rmtree(git_path)
+    assert get_current_branch_name() is None
+
+
+def test_handle_package():
+    Path("setup.py").unlink()
+    with pytest.raises(FileNotFoundError):
+        handle_package(None)
+
+
+def test_non_existent_path_adjustment():
+    with pytest.raises(FileNotFoundError):
+        path_adjustment("file://some/non-existent/file", MagicMock())
+
+
+def test_path_adjustment():
+    dbfs_path = "dbfs:/some/path"
+    _dbfs_result = adjust_path(dbfs_path, MagicMock())
+    assert dbfs_path == _dbfs_result
+
+
+def test_filter_string():
+    output = generate_filter_string(env="test", branch_name=None)
+    assert "dbx_branch_name" not in output
+
+
+def test_job_listing_duplicates():
+    duplicated_name = "some-name"
+    jobs_payload = {
+        "jobs": [
+            {
+                "settings": {
+                    "name": duplicated_name,
+                },
+                "job_id": 1,
+            },
+            {
+                "settings": {
+                    "name": duplicated_name,
+                },
+                "job_id": 2,
+            },
+        ]
+    }
+    js = JobsService(MagicMock())
+    js.list_jobs = MagicMock(return_value=jobs_payload)
+    with pytest.raises(Exception):
+        find_job_by_name(js, duplicated_name)

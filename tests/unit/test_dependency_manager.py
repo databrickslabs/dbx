@@ -93,3 +93,14 @@ def test_requirements_with_filtered_pyspark(tmp_path):
         {"pypi": {"package": "rstcheck"}},
         {"pypi": {"package": "prospector<1.7.0,>=1.3.1"}},
     ]
+
+
+def test_not_matching_conditions(tmp_path, capsys):
+
+    dm = DependencyManager(no_rebuild=True, global_no_package=True, requirements_file=None)
+
+    reference = {"deployment_config": {"no_package": False}}
+
+    dm.process_dependencies(reference)
+    captured = capsys.readouterr()
+    assert "--no-package option is set to true" in captured.out

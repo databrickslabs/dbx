@@ -77,7 +77,7 @@ def handle_package(rebuild_arg):
     else:
         dbx_echo("Re-building package")
         if not Path("setup.py").exists():
-            raise Exception(
+            raise FileNotFoundError(
                 "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild"
             )
         sandbox.run_setup("setup.py", ["-q", "clean", "bdist_wheel"])

@@ -21,10 +21,7 @@ class _AbstractConfigReader(ABC):
 
     @abstractmethod
     def _read_file(self) -> Dict[str, Any]:
-        pass
-
-    def _get_file_extensions(self) -> List[str]:
-        return self._path.suffixes
+        """"""
 
 
 class _YamlConfigReader(_AbstractConfigReader):
