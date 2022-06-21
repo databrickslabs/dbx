@@ -21,9 +21,7 @@ def test_auth_profile_positive(mocker: MockFixture):
     mocker.patch.object(
         ProfileConfigProvider,
         "get_config",
-        MagicMock(
-            return_value=expected_config
-        ),
+        MagicMock(return_value=expected_config),
     )
     returned_config = AuthConfigProvider.get_config()
     assert expected_config.host == returned_config.host
@@ -31,35 +29,40 @@ def test_auth_profile_positive(mocker: MockFixture):
 
 
 def test_auth_env_positive(mocker: MockFixture):
-    expected_config = DatabricksConfig(host="https://some-other-host", token="dbapiAAABBB", username=None,
-                                       password=None)
-    mocker.patch.dict("os.environ", {
-        "DATABRICKS_HOST": expected_config.host,
-        "DATABRICKS_TOKEN": expected_config.token
-    }, clear=True)
+    expected_config = DatabricksConfig(
+        host="https://some-other-host", token="dbapiAAABBB", username=None, password=None
+    )
+    mocker.patch.dict(
+        "os.environ", {"DATABRICKS_HOST": expected_config.host, "DATABRICKS_TOKEN": expected_config.token}, clear=True
+    )
     returned_config = AuthConfigProvider.get_config()
     assert expected_config.host == returned_config.host
     assert expected_config.token == returned_config.token
 
 
 def test_auth_both(mocker: MockFixture):
-    expected_env_config = DatabricksConfig(host="https://some-env-based-host", token="dbapiAAABBB", username=None,
-                                           password=None)
+    expected_env_config = DatabricksConfig(
+        host="https://some-env-based-host", token="dbapiAAABBB", username=None, password=None
+    )
     profile_name = "test-existent-profile"
     mocker.patch.object(
         ProfileConfigProvider,
         "get_config",
         MagicMock(
-            return_value=DatabricksConfig(host="https://some-profile-host", token="dbapiAAABBB", username=None,
-                                          password=None)
+            return_value=DatabricksConfig(
+                host="https://some-profile-host", token="dbapiAAABBB", username=None, password=None
+            )
         ),
     )
-    mocker.patch.dict("os.environ", {
-        "DATABRICKS_HOST": expected_env_config.host,
-        "DATABRICKS_TOKEN": expected_env_config.token,
-        AuthConfigProvider.DBX_PROFILE_ENV: profile_name
-
-    }, clear=True)
+    mocker.patch.dict(
+        "os.environ",
+        {
+            "DATABRICKS_HOST": expected_env_config.host,
+            "DATABRICKS_TOKEN": expected_env_config.token,
+            AuthConfigProvider.DBX_PROFILE_ENV: profile_name,
+        },
+        clear=True,
+    )
     returned_config = AuthConfigProvider.get_config()
     assert expected_env_config.host == returned_config.host
     assert expected_env_config.token == returned_config.token
