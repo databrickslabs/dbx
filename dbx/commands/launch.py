@@ -127,7 +127,7 @@ def launch(
         override_parameters = parse_multiple(parameters)
         prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
 
-    filter_string = generate_filter_string(environment)
+    filter_string = generate_filter_string(environment, branch_name)
 
     run_info = _find_deployment_run(filter_string, additional_tags, as_run_submit, environment)
 
@@ -192,7 +192,7 @@ def launch(
 def _find_deployment_run(
     filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
 ) -> Dict[str, Any]:
-    runs = mlflow.search_runs(filter_string=filter_string, order_by=["start_time DESC"])
+    runs = mlflow.search_runs(filter_string=filter_string)
 
     filter_conditions = []
 

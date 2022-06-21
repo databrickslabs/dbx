@@ -36,14 +36,13 @@ def prepare_environment(env_name: str) -> ApiClient:
     return DatabricksClientProvider.get_v2_client()
 
 
-def generate_filter_string(env: str) -> str:
+def generate_filter_string(env: str, branch_name: Optional[str]) -> str:
     general_filters = [
         f"tags.dbx_environment = '{env}'",
         "tags.dbx_status = 'SUCCESS'",
         "tags.dbx_action_type = 'deploy'",
     ]
 
-    branch_name = get_current_branch_name()
     if branch_name:
         general_filters.append(f"tags.dbx_branch_name = '{branch_name}'")
 

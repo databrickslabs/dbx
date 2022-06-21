@@ -157,6 +157,7 @@ def execute(
         task_props: List[Any] = job_payload.get("spark_python_task").get("parameters", [])
 
         if task_props:
+
             def adjustment_callback(p: Any):
                 return adjust_path(p, file_uploader)
 
