@@ -15,12 +15,12 @@
             "node_type_id": "some-node-type",
             "aws_attributes": {
             "first_on_demand": 0,
-            "availability": "{{ AVAILABILITY | default('SPOT') }}"
+            "availability": "{{ env['AVAILABILITY'] | default('SPOT') }}"
             },
             "num_workers": 2
         },
         "libraries": [],
-        "max_retries": "{{ MAX_RETRY | default(3) }}",
+        "max_retries": "{{ env['MAX_RETRY'] | default(3) }}",
         "spark_python_task": {
             "python_file": "file://tests/deployment-configs/placeholder_1.py"
             }
