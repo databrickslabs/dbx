@@ -9,6 +9,7 @@ rst2pdf==0.99
 wheel
 path
 pytest
+pytest-mock==3.7.0
 pytest-asyncio
 pytest-cov
 pytest-timeout
