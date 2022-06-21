@@ -1,8 +1,11 @@
 import os
 from unittest import mock
 
+import pytest
+
 from dbx.api.config_reader import ConfigReader
 from .conftest import get_path_with_relation_to_current_file
+from dbx.utils.common import get_environment_data
 
 json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")
 yaml_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-yaml-test.yaml")
@@ -152,3 +155,8 @@ def test_jinja_with_include():
     json_node_type = json_default_envs.get("jobs")[0].get("new_cluster").get("node_type_id")
 
     assert json_node_type == "some-node-type"
+
+
+def test_non_existent_provider():
+    with pytest.raises(Exception):
+        _ = get_environment_data("some-non-existent-env")

@@ -12,7 +12,7 @@ exclude = '''
 '''
 
 [tool.pytest.ini_options]
-addopts = "-s -p no:warnings --timeout=3600 --ignore-glob='dbx/templates/*'"
+addopts = "-s -p no:warnings --timeout=3600 --ignore-glob='dbx/templates/*' -n auto"
 log_cli = 1
 log_cli_level = "INFO"
 log_cli_format = "[pytest][%(asctime)s][%(levelname)s][%(module)s][%(funcName)s] %(message)s"
