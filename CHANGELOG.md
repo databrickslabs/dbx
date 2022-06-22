@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-DD
 
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [0.6.0] - 2022-06-22
+
 ### Added
 
 - Added dev container config for VSCode and GitHub CodeSpaces
@@ -35,18 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recognition of `--branch-name` argument for `dbx launch`
 - Path resolution for Jinja2 templates
 
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
-
 ## [0.5.0] - 2022-06-01
 
 ### Added
 
-- YAML Example for deploying multi task python job
-- YAML Example for deploying multi task scala job
+- YAML Example for deploying multi-task Python job
+- YAML Example for deploying multi-task Scala job
 - Support including jinja templates from subpaths of the current working directory
 - Add `--path` and `--checkout` options to the `dbx init`
 - Change the format of the `python_basic` to use pytest
