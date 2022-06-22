@@ -180,6 +180,8 @@ def test_get_current_branch_name_gh(mocker: MockFixture):
 
 def test_get_current_branch_name_detached():
     repo = git.Repo(".", search_parent_directories=True)
+    repo.git.config("user.email", "test@user.com")
+    repo.git.config("user.name", "Test User")
     repo.git.checkout("-b", "test")
     repo.git.commit("--allow-empty", "-m", "c1")
     repo.git.commit("--allow-empty", "-m", "c2")
@@ -187,9 +189,10 @@ def test_get_current_branch_name_detached():
     assert get_current_branch_name() is None
 
 
-def test_get_current_branch_name_no_git(temp_project: Path):
+def test_get_current_branch_name_no_git(mocker, temp_project: Path):
     git_path = temp_project.absolute() / ".git"
     shutil.rmtree(git_path)
+    mocker.patch.dict("os.environ", {}, clear=True)
     assert get_current_branch_name() is None
 
 
