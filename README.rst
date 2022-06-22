@@ -19,7 +19,8 @@ DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databrick
     :target: https://pypi.org/project/dbx/
     :alt: Latest Python Release
 
-.. |build| image:: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml/badge.svg?branch=master
+.. |build| image:: https://img.shields.io/github/workflow/status/databrickslabs/dbx/build/main?style=for-the-badge
+    :alt: GitHub Workflow Status (branch)
     :target: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml
 
 .. |codecov| image:: https://codecov.io/gh/databrickslabs/dbx/branch/main/graph/badge.svg?token=S7ADH3W2E3
