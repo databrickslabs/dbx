@@ -8,7 +8,7 @@ from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
 from dbx.commands.deploy import deploy
-from dbx.commands.launch import launch, _load_dbx_file, _define_payload_key
+from dbx.commands.launch import launch, _load_dbx_file, _define_payload_key, _trace_run, _cancel_run
 from dbx.utils.json import JsonUtils
 from .conftest import invoke_cli_runner, extract_function_name
 
@@ -35,6 +35,31 @@ def prepare_job_service_mock(mocker: MockFixture, job_name):
         ]
     }
     mocker.patch.object(JobsService, "list_jobs", MagicMock(return_value=jobs_payload))
+
+
+def prepare_tracing_mock(mocker: MockFixture, final_result_state: str):
+    mocker.patch.object(
+        JobsService,
+        "get_run",
+        MagicMock(
+            side_effect=[
+                {
+                    "run_id": "1",
+                    "run_page_url": "http://some",
+                    "state": {"state_message": "RUNNING", "result_state": None},
+                },
+                {
+                    "run_id": "1",
+                    "run_page_url": "http://some",
+                    "state": {
+                        "state_message": "RUNNING",
+                        "life_cycle_state": "TERMINATED",
+                        "result_state": final_result_state,
+                    },
+                },
+            ]
+        ),
+    )
 
 
 def test_smoke_launch(
@@ -124,33 +149,47 @@ def test_launch_with_trace(
 ):
     _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
     prepare_job_service_mock(mocker, _chosen_job)
-
-    mocker.patch.object(
-        JobsService,
-        "get_run",
-        MagicMock(
-            side_effect=[
-                {
-                    "run_id": "1",
-                    "run_page_url": "http://some",
-                    "state": {"state_message": "RUNNING", "result_state": None},
-                },
-                {
-                    "run_id": "1",
-                    "run_page_url": "http://some",
-                    "state": {"state_message": "RUNNING", "result_state": None},
-                },
-                {
-                    "run_id": "1",
-                    "run_page_url": "http://some",
-                    "state": {"state_message": "RUNNING", "life_cycle_state": "TERMINATED", "result_state": "SUCCESS"},
-                },
-            ]
-        ),
-    )
-
+    prepare_tracing_mock(mocker, "SUCCESS")
     launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"])
     assert launch_result.exit_code == 0
+
+
+def test_launch_with_trace_failed(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
+    prepare_job_service_mock(mocker, _chosen_job)
+    prepare_tracing_mock(mocker, "ERROR")
+    launch_result = invoke_cli_runner(
+        launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"], expected_error=True
+    )
+    assert "Tracked run failed during execution" in str(launch_result.exception)
+
+
+def test_launch_with_trace_and_kill_on_sigterm(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
+    prepare_job_service_mock(mocker, _chosen_job)
+    prepare_tracing_mock(mocker, "SUCCESS")
+    launch_result = invoke_cli_runner(
+        launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace", "--kill-on-sigterm"]
+    )
+    assert launch_result.exit_code == 0
+
+
+def test_launch_with_trace_and_kill_on_sigterm_with_interruption(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
+    prepare_job_service_mock(mocker, _chosen_job)
+    mocker.patch(extract_function_name(_trace_run), MagicMock(side_effect=[KeyboardInterrupt("stopped!")])),
+    cancel_run_mock = mocker.patch(extract_function_name(_cancel_run))
+    launch_result = invoke_cli_runner(
+        launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace", "--kill-on-sigterm"]
+    )
+    assert launch_result.exit_code == 0
+    cancel_run_mock.assert_called_once()
 
 
 # @patch(
