@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All tests are now based on pytest
 - Full support for env variables in Jinja-based deployment configs
 - Documentation improvements for Jinja-based templates
+- Now package builds are performed with `pip` by default
 
 ### Fixed
 
