@@ -1,11 +1,13 @@
 import os
+import shlex
+import subprocess
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import git
 from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
-from setuptools import sandbox
 
 from dbx.api.auth import AuthConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
@@ -80,7 +82,7 @@ def handle_package(rebuild_arg):
             raise FileNotFoundError(
                 "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild"
             )
-        sandbox.run_setup("setup.py", ["-q", "clean", "bdist_wheel"])
+        subprocess.check_call([sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary"))
         dbx_echo("Package re-build finished")
 
 

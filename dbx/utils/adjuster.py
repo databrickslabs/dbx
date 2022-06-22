@@ -29,7 +29,7 @@ def adjust_job_definitions(
         adjustable_references = []
 
         if "tasks" in job:
-            dbx_echo("Tasks section found in the job definition, job will be deployed as a multitask job")
+            dbx_echo(f"Tasks section found in the job {job['name']}, job will be deployed as a multitask job")
             adjustable_references += job["tasks"]
             job_clusters = job.get("job_clusters", [])
             for jc_reference in job_clusters:
@@ -37,7 +37,7 @@ def adjust_job_definitions(
                 policy_name_processor.process(cluster_definition)
                 new_cluster_processor.process(cluster_definition)
         else:
-            dbx_echo("Tasks section not found in the job definition, job will be deployed as a single-task job")
+            dbx_echo(f"Tasks section not found in the job {job['name']}, job will be deployed as a single-task job")
             adjustable_references.append(job)
 
         for workload_reference in adjustable_references:
