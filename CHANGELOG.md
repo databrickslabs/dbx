@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.6.1] - 2022-06-22
+
+- Fix import issues in `dbx.api.storage` package
+
 ## [0.6.0] - 2022-06-22
 
 ### Added
