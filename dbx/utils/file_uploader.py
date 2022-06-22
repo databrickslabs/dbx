@@ -24,8 +24,10 @@ class MlflowFileUploader:
     @staticmethod
     @retry(tries=3, delay=1, backoff=0.3)
     def _upload_file(file_path: pathlib.Path):
+        dbx_echo(f"Uploading file {file_path}")
         posix_path = pathlib.PurePosixPath(file_path.as_posix())
         parent = str(posix_path.parent) if str(posix_path.parent) != "." else None
+        dbx_echo(f"Uploading file {file_path} - done")
         mlflow.log_artifact(str(file_path), parent)
 
     def _verify_fuse_support(self):
@@ -40,7 +42,6 @@ class MlflowFileUploader:
             self._verify_fuse_support()
 
         if local_path in self._uploaded_files:
-            dbx_echo("File is already uploaded, returning it's path to the definition")
             remote_path = self._uploaded_files[local_path]
         else:
             self._upload_file(local_path)

@@ -1,6 +1,6 @@
 import os
 from typing import Optional
-
+from functools import cache
 from databricks_cli.configure.provider import DatabricksConfig, ProfileConfigProvider, EnvironmentVariableConfigProvider
 
 from dbx.utils import dbx_echo
@@ -9,17 +9,16 @@ from dbx.utils import dbx_echo
 class AuthConfigProvider:
     DBX_PROFILE_ENV = "DBX_CLI_PROFILE"
 
-    @staticmethod
-    def _get_config_from_profile(profile_env_variable: str) -> Optional[DatabricksConfig]:
-        profile = os.environ.get(profile_env_variable)
+    @classmethod
+    def _get_config_from_profile(cls) -> Optional[DatabricksConfig]:
+        profile = cls._get_profile_name()
         if not profile:
             dbx_echo(
-                f"Environment variable {profile_env_variable} is not provided."
+                f"Environment variable {cls.DBX_PROFILE_ENV} is not provided."
                 f"Looking for host and token environment variables..."
             )
             return None
         else:
-            dbx_echo(f"Environment variable {profile_env_variable} is provided, verifying the profile")
             config = ProfileConfigProvider(profile).get_config()
             if not config:
                 raise Exception(f"Requested profile {profile} is not provided in ~/.databrickscfg")
@@ -43,8 +42,13 @@ class AuthConfigProvider:
             return config
 
     @classmethod
+    def _get_profile_name(cls) -> str:
+        return os.environ.get(cls.DBX_PROFILE_ENV)
+
+    @classmethod
+    @cache
     def get_config(cls) -> DatabricksConfig:
-        profile_config = cls._get_config_from_profile(cls.DBX_PROFILE_ENV)
+        profile_config = cls._get_config_from_profile()
         env_config = cls._get_config_from_env()
 
         if not profile_config and not env_config:
@@ -60,8 +64,8 @@ class AuthConfigProvider:
                     "Both profile and host/token environment variables were provided."
                     "dbx prioritises the host/token environment variables"
                 )
-            dbx_echo("host/token environment variables will be used")
+            dbx_echo("Host/token environment variables will be used")
             return env_config
         else:
-            dbx_echo(f"profile with name {cls.DBX_PROFILE_ENV} will be used")
+            dbx_echo(f"Profile {cls._get_profile_name()} will be used")
             return profile_config

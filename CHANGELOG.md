@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - url-strip behaviour for old-format workspace host names (which was unsupported in Mlflow API and caused a lot of hardly explainable errors)
 
 ### Changed
+
 - Docs fixed in terms of allowed versions
 - Non-strict path adjustment policy has been deleted from code and docs
 - Dropped support for environment variables in plain JSON/YAML files
