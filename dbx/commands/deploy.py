@@ -234,14 +234,6 @@ def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[Lis
     deployment["jobs"] = _preprocess_jobs(deployment["jobs"], requested_jobs)
 
 
-def _preprocess_files(files: Dict[str, Any]):
-    for key, file_path_str in files.items():
-        file_path = Path(file_path_str)
-        if not file_path.exists():
-            raise FileNotFoundError(f"File path ({file_path}) does not exist")
-        files[key] = file_path
-
-
 def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:
     job_names = [job["name"] for job in jobs]
     if requested_jobs:

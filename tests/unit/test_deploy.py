@@ -5,13 +5,13 @@ from unittest.mock import Mock
 import mlflow
 import pytest
 import yaml
-from databricks_cli.sdk import JobsService
+from databricks_cli.sdk import JobsService, ApiClient
 from requests import HTTPError
 
 from dbx.api.config_reader import ConfigReader
 from dbx.api.configure import EnvironmentInfo, ConfigurationManager
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
-from dbx.commands.deploy import deploy, _update_job, _log_dbx_file  # noqa
+from dbx.commands.deploy import deploy, _update_job, _log_dbx_file, _create_job, _preprocess_jobs  # noqa
 from dbx.utils.json import JsonUtils
 from .conftest import invoke_cli_runner, get_path_with_relation_to_current_file
 
@@ -161,6 +161,18 @@ def test_smoke_update_job_negative():
     js.reset_job.side_effect = Mock(side_effect=HTTPError())
     with pytest.raises(HTTPError):
         _update_job(js, "aa-bbb-ccc-111", {"name": 1})
+
+
+def test_create_job_with_error():
+    client = Mock(ApiClient)
+    client.perform_query.side_effect = Mock(side_effect=HTTPError())
+    with pytest.raises(HTTPError):
+        _create_job(client, {"name": "some-job"})
+
+
+def test_preprocess_jobs():
+    with pytest.raises(Exception):
+        _preprocess_jobs([], ["some-job-name"])
 
 
 def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
