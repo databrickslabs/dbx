@@ -1,6 +1,6 @@
 import os
 from typing import Optional
-from functools import cache
+from functools import lru_cache
 from databricks_cli.configure.provider import DatabricksConfig, ProfileConfigProvider, EnvironmentVariableConfigProvider
 
 from dbx.utils import dbx_echo
@@ -46,7 +46,7 @@ class AuthConfigProvider:
         return os.environ.get(cls.DBX_PROFILE_ENV)
 
     @classmethod
-    @cache
+    @lru_cache(maxsize=None)
     def get_config(cls) -> DatabricksConfig:
         profile_config = cls._get_config_from_profile()
         env_config = cls._get_config_from_env()
