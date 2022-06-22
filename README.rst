@@ -1,6 +1,3 @@
-
-
-
 dbx by Databricks Labs
 ======================
 
@@ -25,7 +22,7 @@ DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databrick
 .. |build| image:: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml/badge.svg?branch=master
     :target: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml
 
-.. |codecov| image:: https://codecov.io/gh/databrickslabs/dbx/branch/master/graph/badge.svg?token=S7ADH3W2E3
+.. |codecov| image:: https://codecov.io/gh/databrickslabs/dbx/branch/main/graph/badge.svg?token=S7ADH3W2E3
     :target: https://codecov.io/gh/databrickslabs/dbx
 
 .. |lgtm-alerts| image:: https://img.shields.io/lgtm/alerts/g/databrickslabs/dbx.svg?logo=lgtm&logoWidth=18
