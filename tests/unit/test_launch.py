@@ -103,6 +103,48 @@ def test_launch_run_submit(
     assert launch_result.exit_code == 0
 
 
+def test_launch_not_found(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+    _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
+    launch_result = invoke_cli_runner(
+        launch, ["--job", _chosen_job] + ["--tags", "cake=cheesecake"], expected_error=True
+    )
+    assert "please verify tag existence in the UI" in str(launch_result.exception)
+
+
+def test_launch_with_trace(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
+    prepare_job_service_mock(mocker, _chosen_job)
+
+    mocker.patch.object(
+        JobsService,
+        "get_run",
+        MagicMock(
+            side_effect=[
+                {
+                    "run_id": "1",
+                    "run_page_url": "http://some",
+                    "state": {"state_message": "RUNNING", "result_state": None},
+                },
+                {
+                    "run_id": "1",
+                    "run_page_url": "http://some",
+                    "state": {"state_message": "RUNNING", "result_state": None},
+                },
+                {
+                    "run_id": "1",
+                    "run_page_url": "http://some",
+                    "state": {"state_message": "RUNNING", "life_cycle_state": "TERMINATED", "result_state": "SUCCESS"},
+                },
+            ]
+        ),
+    )
+
+    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"])
+    assert launch_result.exit_code == 0
+
+
 # @patch(
 #     "databricks_cli.configure.provider.ProfileConfigProvider.get_config",
 #     return_value=test_dbx_config,
@@ -323,15 +365,7 @@ def test_launch_run_submit(
 # @patch("databricks_cli.jobs.api.JobsService.run_now", return_value={"run_id": "1"})
 # @patch(
 #     "databricks_cli.jobs.api.JobsService.get_run",
-#     side_effect=[
-#         {"run_id": "1", "run_page_url": "http://some", "state": {"state_message": "RUNNING", "result_state": None}},
-#         {"run_id": "1", "run_page_url": "http://some", "state": {"state_message": "RUNNING", "result_state": None}},
-#         {
-#             "run_id": "1",
-#             "run_page_url": "http://some",
-#             "state": {"state_message": "RUNNING", "life_cycle_state": "TERMINATED", "result_state": "SUCCESS"},
-#         },
-#     ],
+
 # )
 # def test_trace_runs(self, *_):
 #     with self.project_dir:
