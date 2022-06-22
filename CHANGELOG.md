@@ -28,10 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation improvements for Jinja-based templates
 - Now package builds are performed with `pip` by default
 
+
 ### Fixed
 
 - Parsing of `requirements.txt` has been improved to properly handle comments in requirements files
 - Recognition of `--branch-name` argument for `dbx launch`
+- Path resolution for Jinja2 templates
 
 ----
 > Unreleased changes must be tracked above this line.
