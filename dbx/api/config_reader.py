@@ -41,8 +41,12 @@ class _Jinja2ConfigReader(_AbstractConfigReader):
         super().__init__(path)
 
     def _read_file(self) -> Dict[str, Any]:
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(self._path.parent))
-        rendered = env.get_template(self._path.name).render(env=os.environ)
+        abs_parent_path = self._path.parent.absolute()
+        file_name = self._path.name
+        dbx_echo(f"Reading file as a Jinja2 template")
+        dbx_echo(f"The following path will be used for the jinja loader: {abs_parent_path} with file {file_name}")
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(abs_parent_path))
+        rendered = env.get_template(file_name).render(env=os.environ)
         if self._ext == ".json":
             return json.loads(rendered)
         elif self._ext in [".yml", ".yaml"]:

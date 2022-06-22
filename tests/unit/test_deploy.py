@@ -196,3 +196,13 @@ def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v
     deploy_result = invoke_cli_runner(deploy)
 
     assert deploy_result.exit_code == 0
+
+
+def test_jinja_custom_path(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project: Path):
+    samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
+    nested_config_dir = samples_path / "nested-configs"
+    shutil.copytree(nested_config_dir, temp_project.parent / "configs")
+    (temp_project / "conf" / "deployment.yml").unlink()
+    shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
+    deploy_result = invoke_cli_runner(deploy, ["--deployment-file", "../configs/09-jinja-include.json.j2"])
+    assert deploy_result.exit_code == 0
