@@ -13,14 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added dev container config for VSCode and GitHub CodeSpaces
+- tests are now parallel (x2 less time spent per each CI pipeline launch)
+- url-strip behaviour for old-format workspace host names (which was unsupported in Mlflow API and caused a lot of hardly explainable errors)
 
 ### Changed
+
 - Docs fixed in terms of allowed versions
 - Non-strict path adjustment policy has been deleted from code and docs
+- Dropped support for environment variables in plain JSON/YAML files
+- Refactored code for reading configurations
+- Drop support for `ruamel.yaml` in favor of standard `pyyaml`
+- All tests are now based on pytest
+- Full support for env variables in Jinja-based deployment configs
+- Documentation improvements for Jinja-based templates
+- Now package builds are performed with `pip` by default
 
 ### Fixed
 
 - Parsing of `requirements.txt` has been improved to properly handle comments in requirements files
+- Recognition of `--branch-name` argument for `dbx launch`
 
 ----
 > Unreleased changes must be tracked above this line.

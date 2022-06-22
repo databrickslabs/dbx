@@ -1,9 +1,10 @@
-import pathlib
+from pathlib import Path
 from typing import Optional, Dict, List, Union, Any
+
 import pkg_resources
 
-from dbx.utils.common import handle_package, get_package_file
 from dbx.utils import dbx_echo
+from dbx.utils.common import handle_package, get_package_file
 
 # this type alias represents a library reference, for example:
 # {"whl": "path/to/some/file"}
@@ -18,7 +19,7 @@ class DependencyManager:
     This class manages dependency references in the job or task deployment.
     """
 
-    def __init__(self, global_no_package: bool, no_rebuild: bool, requirements_file: Optional[str]):
+    def __init__(self, global_no_package: bool, no_rebuild: bool, requirements_file: Optional[Path]):
         self._global_no_package = global_no_package
         self._no_rebuild = no_rebuild
         self._core_package_reference: Optional[LibraryReference] = self._get_package_requirement()
@@ -37,18 +38,17 @@ class DependencyManager:
 
         return output_packages
 
-    def _get_requirements_from_file(self, requirements_file: Optional[str]) -> List[LibraryReference]:
+    def _get_requirements_from_file(self, requirements_file: Optional[Path]) -> List[LibraryReference]:
         if not requirements_file:
             dbx_echo("No requirements file was provided")
             return []
         else:
-            requirements_path = pathlib.Path(requirements_file)
 
-            if not requirements_path.exists():
+            if not requirements_file.exists():
                 dbx_echo("Requirements file was not found")
                 return []
             else:
-                with requirements_path.open(encoding="utf-8") as requirements_txt:
+                with requirements_file.open(encoding="utf-8") as requirements_txt:
                     requirements_content = pkg_resources.parse_requirements(requirements_txt)
                     filtered_libraries = self._delete_managed_libraries(requirements_content)
                     requirements_payload = [{"pypi": {"package": str(req)}} for req in filtered_libraries]

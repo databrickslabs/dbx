@@ -8,7 +8,7 @@ from dbx.commands.sync import dbfs, repo, get_user_name, get_source_base_name
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
 
-from tests.unit.utils import invoke_cli_runner
+from tests.unit.conftest import invoke_cli_runner
 
 from .utils import temporary_directory, pushd
 
