@@ -12,13 +12,13 @@ custom:
 
 environments:
   default:
-    - name: "notebook-remote"
+    - name: "notebook-from-remote"
       job_clusters:
         - job_cluster_key: "default"
           <<: *basic-static-cluster
       git_source:
-        git_url: https://github.com/renardeinside/notebook-remote-source.git
-        git_provider: gitHub
+        git_url: https://some-git-provider.com/some/remote/repo.git
+        git_provider: "git-provider-name"
         git_branch: "main"
       tasks:
         - task_key: "notebook-remote"
