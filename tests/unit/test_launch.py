@@ -111,6 +111,20 @@ def test_launch_not_found(temp_project: Path, mlflow_file_uploader, mock_dbx_fil
     assert "please verify tag existence in the UI" in str(launch_result.exception)
 
 
+def test_launch_run_submit_not_fo(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+    _chosen_job = deploy_and_get_job_name()
+    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--as-run-submit"], expected_error=True)
+    assert "please verify tag existence in the UI" in str(launch_result.exception)
+
+
+def test_launch_empty_runs(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+    _chosen_job = deploy_and_get_job_name(["--files-only", "--tags", "cake=strudel"])
+    launch_result = invoke_cli_runner(
+        launch, ["--job", _chosen_job] + ["--as-run-submit", "--tags", "cake=cheesecake"], expected_error=True
+    )
+    assert "No deployments provided per given set of filters" in str(launch_result.exception)
+
+
 def test_launch_with_trace(
     mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
 ):
