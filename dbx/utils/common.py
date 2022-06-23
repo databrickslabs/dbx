@@ -9,7 +9,7 @@ import git
 from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
 
-from dbx.api.auth import AuthConfigProvider
+from dbx.api.auth import ProfileEnvConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
@@ -23,11 +23,11 @@ def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
 
 
 def transfer_profile_name(info: EnvironmentInfo):
-    if not os.environ.get(AuthConfigProvider.DBX_PROFILE_ENV):
+    if not os.environ.get(ProfileEnvConfigProvider.DBX_PROFILE_ENV):
         dbx_echo("Using profile provided from the project file")
-        os.environ[AuthConfigProvider.DBX_PROFILE_ENV] = info.profile
+        os.environ[ProfileEnvConfigProvider.DBX_PROFILE_ENV] = info.profile
     else:
-        dbx_echo(f"Using profile provided via the env variable {AuthConfigProvider.DBX_PROFILE_ENV}")
+        dbx_echo(f"Using profile provided via the env variable {ProfileEnvConfigProvider.DBX_PROFILE_ENV}")
 
 
 def prepare_environment(env_name: str) -> ApiClient:
