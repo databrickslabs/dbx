@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
-## [0.6.2] - 2022-06-23
+## [0.6.2] - 2022-06-24
 
 - Fix auth ordering (now env-variables based auth has priority across any other auth methods)
 
