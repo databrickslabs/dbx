@@ -18,9 +18,8 @@ class ProfileEnvConfigProvider(DatabricksConfigProvider):
     def __init__(self):
         self.profile = self._get_profile_name()
 
-    @classmethod
-    def get_config(cls) -> Optional[DatabricksConfig]:
-        profile = cls._get_profile_name()
+    def get_config(self) -> Optional[DatabricksConfig]:
+        profile = self._get_profile_name()
         _config = None if not profile else ProfileConfigProvider(profile).get_config()
         return _config
 
