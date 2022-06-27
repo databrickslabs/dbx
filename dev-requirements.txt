@@ -9,7 +9,7 @@ rst2pdf==0.99
 wheel
 path
 pytest
-pytest-mock==3.7.0
+pytest-mock==3.8.1
 pytest-xdist[psutil]
 pytest-asyncio
 pytest-cov
