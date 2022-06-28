@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.6.3] - 2022-06-28
+
+### Added
+
+- Module-based interface for launching commands in Azure Pipelines
+
+### Changed
+
+- All invocations in Azure Pipelines template are now module-based (`python -m ...`)
+
+
 ## [0.6.2] - 2022-06-24
 
 - Fix auth ordering (now env-variables based auth has priority across any other auth methods)
