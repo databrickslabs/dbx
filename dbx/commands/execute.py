@@ -9,7 +9,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.api.config_reader import ConfigReader
 from dbx.api.driver_client import RichExecutionContextClient
-from dbx.server.client import FileServerClient
+from dbx.driver_server.client import FileServerClient
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     prepare_environment,
@@ -103,7 +103,7 @@ def execute(
     fs_client = FileServerClient(workspace_id=ec_client.get_workspace_id(), cluster_id=cluster_id)
 
     server_info = fs_client.get_server_info()
-    driver_path_prefix = PosixPath(server_info["root_path"]) / ec_client.get_context_id()
+    driver_path_prefix = PosixPath(server_info.temp_storage.driver_path) / ec_client.get_context_id()
 
     files_to_upload = [package_file]
 

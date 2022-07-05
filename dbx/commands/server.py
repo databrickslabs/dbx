@@ -1,6 +1,6 @@
 import click
 import uvicorn
-from dbx.server.server import app, APP_HOST, APP_PORT
+from dbx.driver_server.server import app, APP_HOST, APP_PORT
 
 
 @click.group(help="dbx driver server commands")

@@ -1,10 +1,11 @@
 from pathlib import Path
-from typing import List, Dict
+from typing import List
 
 from httpx import Client, BasicAuth, codes
 
 from dbx.api.auth import AuthConfigProvider
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
+from dbx.driver_server.models import ServerInfo
 
 
 class FileServerClient:
@@ -22,14 +23,14 @@ class FileServerClient:
     def build_uri(host: str, workspace_id: str, cluster_id: str, port: int):
         return f"{host}/driver-proxy-api/o/{workspace_id}/{cluster_id}/{port}"
 
-    def get_server_info(self) -> Dict[str, str]:
+    def get_server_info(self) -> ServerInfo:
         response = self._client.get("/info")
-        if not (response.status_code == codes.OK and response.json().get("status") == "working"):
+        if not response.status_code == codes.OK:
             raise Exception(
                 "dbx server is not launched on the driver machine."
                 "Please start the server accordingly to the dbx docs."
             )
-        return response.json()
+        return ServerInfo(**response.json())
 
     def upload_files(self, context_id: str, files: List[Path]):
         method_path = "files"
