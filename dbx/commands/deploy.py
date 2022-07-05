@@ -74,7 +74,6 @@ from dbx.utils.job_listing import find_job_by_name
               Both :code:`--jobs` and :code:`--job` cannot be provided.
               """,
 )
-@click.option("--requirements-file", required=False, type=click.Path(path_type=Path), default=Path("requirements.txt"))
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
@@ -115,7 +114,6 @@ def deploy(
     deployment_file: Optional[Path],
     job: Optional[str],
     jobs: Optional[str],
-    requirements_file: Optional[Path],
     tags: List[str],
     environment: str,
     no_rebuild: bool,
@@ -148,7 +146,7 @@ def deploy(
 
     _preprocess_deployment(deployment, requested_jobs)
 
-    dependency_manager = DependencyManager(no_package, no_rebuild, requirements_file)
+    dependency_manager = DependencyManager(no_package, no_rebuild)
 
     with mlflow.start_run() as deployment_run:
 

@@ -1,25 +1,22 @@
 import time
-from pathlib import Path
-from typing import Any, List, Optional
+from pathlib import Path, PosixPath
+from typing import Optional
 
 import click
-import mlflow
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.api.client_provider import ApiV1Client
 from dbx.api.config_reader import ConfigReader
-from dbx.api.context import LocalContextManager
+from dbx.api.driver_client import RichExecutionContextClient
+from dbx.server.client import FileServerClient
 from dbx.utils import dbx_echo
-from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
     prepare_environment,
-    handle_package,
     get_package_file,
     _preprocess_cluster_args,
+    handle_package,
 )
-from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.options import environment_option
 
 
@@ -57,14 +54,7 @@ from dbx.utils.options import environment_option
     "--deployment-file",
     required=False,
     type=click.Path(path_type=Path),
-    help="Path to deployment file in one of these formats: [json, yaml]",
-)
-@click.option("--requirements-file", required=False, type=click.Path(path_type=Path), default=Path("requirements.txt"))
-@click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
-@click.option(
-    "--no-package",
-    is_flag=True,
-    help="Do not add package reference into the job description",
+    help="Path to deployment file.",
 )
 @environment_option
 @debug_option
@@ -74,9 +64,6 @@ def execute(
     cluster_name: str,
     job: str,
     deployment_file: Optional[Path],
-    requirements_file: Path,
-    no_package: bool,
-    no_rebuild: bool,
 ):
     api_client = prepare_environment(environment)
 
@@ -84,12 +71,11 @@ def execute(
 
     dbx_echo(f"Executing job: {job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
-    handle_package(no_rebuild)
+    handle_package()
+    package_file = get_package_file()
 
     config_reader = ConfigReader(deployment_file)
-
     deployment = config_reader.get_environment(environment)
-
     _verify_deployment(deployment, environment, deployment_file)
 
     found_jobs = [j for j in deployment["jobs"] if j["name"] == job]
@@ -99,6 +85,9 @@ def execute(
 
     job_payload = found_jobs[0]
 
+    if "tasks" in job_payload:
+        raise NotImplementedError("Running jobs with tasks is currently not supported in dbx.")
+
     entrypoint_file = job_payload.get("spark_python_task").get("python_file").replace("file://", "")
 
     if not entrypoint_file:
@@ -107,77 +96,36 @@ def execute(
         )
 
     cluster_service = ClusterService(api_client)
-
     dbx_echo("Preparing interactive cluster to accept jobs")
     awake_cluster(cluster_service, cluster_id)
 
-    v1_client = ApiV1Client(api_client)
-    context_id = get_context_id(v1_client, cluster_id, "python")
+    ec_client = RichExecutionContextClient(api_client, cluster_id)
+    fs_client = FileServerClient(workspace_id=ec_client.get_workspace_id(), cluster_id=cluster_id)
 
-    with mlflow.start_run() as execution_run:
+    server_info = fs_client.get_server_info()
+    driver_path_prefix = PosixPath(server_info["root_path"]) / ec_client.get_context_id()
 
-        artifact_base_uri = execution_run.info.artifact_uri
-        file_uploader = MlflowFileUploader(artifact_base_uri)
+    files_to_upload = [package_file]
 
-        if requirements_file.exists():
+    task_parameters = job_payload.get("spark_python_task").get("parameters", [])
 
-            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_file, as_fuse=True)
+    for idx, parameter in enumerate(task_parameters):
+        if parameter.startswith("file:fuse://"):
+            formatted_local_path = Path(parameter.replace("file:fuse://", ""))
+            files_to_upload.append(formatted_local_path)
+            task_parameters[idx] = driver_path_prefix / formatted_local_path.name
 
-            installation_command = f"%pip install -U -r {localized_requirements_path}"
+    fs_client.upload_files(files=files_to_upload, context_id=ec_client.get_context_id())
 
-            dbx_echo("Installing provided requirements")
-            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
-            dbx_echo("Provided requirements installed")
-        else:
-            dbx_echo(
-                f"Requirements file {requirements_file} is not provided"
-                + ", following the execution without any additional packages"
-            )
+    if package_file:
+        dbx_echo("Installing core package requirements")
+        ec_client.install_package(driver_path_prefix / package_file.name)
+        dbx_echo("Installing core package requirements - done")
 
-        if not no_package:
-            package_file = get_package_file()
+    ec_client.setup_arguments(task_parameters)
 
-            if not package_file:
-                raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
-
-            localized_package_path = file_uploader.upload_and_provide_path(package_file, as_fuse=True)
-
-            dbx_echo("Installing package")
-            installation_command = f"%pip install --force-reinstall {localized_package_path}"
-            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
-            dbx_echo("Package installation finished")
-        else:
-            dbx_echo("Package was disabled via --no-package, only the code from entrypoint will be used")
-
-        tags = {"dbx_action_type": "execute", "dbx_environment": environment}
-
-        mlflow.set_tags(tags)
-
-        dbx_echo("Processing parameters")
-        task_props: List[Any] = job_payload.get("spark_python_task").get("parameters", [])
-
-        if task_props:
-
-            def adjustment_callback(p: Any):
-                return adjust_path(p, file_uploader)
-
-            walk_content(adjustment_callback, task_props)
-
-        task_props = ["python"] + task_props
-
-        parameters_command = f"""
-        import sys
-        sys.argv = {task_props}
-        """
-
-        execute_command(v1_client, cluster_id, context_id, parameters_command, verbose=False)
-
-        dbx_echo("Processing parameters - done")
-
-        dbx_echo("Starting entrypoint file execution")
-
-        execute_command(v1_client, cluster_id, context_id, Path(entrypoint_file).read_text(encoding="utf-8"))
-        dbx_echo("Command execution finished")
+    dbx_echo("Starting entrypoint file execution")
+    ec_client.execute_file(Path(entrypoint_file))
 
 
 def _verify_deployment(deployment, environment, deployment_file):
@@ -189,85 +137,6 @@ def _verify_deployment(deployment, environment, deployment_file):
     env_jobs = deployment.get("jobs")
     if not env_jobs:
         raise RuntimeError(f"No jobs section found in environment {environment}, please check the deployment file")
-
-
-def wait_for_command_execution(v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str):
-    finished = False
-    payload = {
-        "clusterId": cluster_id,
-        "contextId": context_id,
-        "commandId": command_id,
-    }
-    while not finished:
-        try:
-            result = v1_client.get_command_status(payload)
-            status = result.get("status")
-            if status in ["Finished", "Cancelled", "Error"]:
-                return result
-            else:
-                time.sleep(5)
-        except KeyboardInterrupt:
-            v1_client.cancel_command(payload)
-
-
-def execute_command(v1_client: ApiV1Client, cluster_id: str, context_id: str, command: str, verbose=True):
-    payload = {
-        "language": "python",
-        "clusterId": cluster_id,
-        "contextId": context_id,
-        "command": command,
-    }
-    command_execution_data = v1_client.execute_command(payload)
-    command_id = command_execution_data["id"]
-    execution_result = wait_for_command_execution(v1_client, cluster_id, context_id, command_id)
-    if execution_result["status"] == "Cancelled":
-        dbx_echo("Command cancelled")
-    else:
-        final_result = execution_result["results"]["resultType"]
-        if final_result == "error":
-            dbx_echo("Execution failed, please follow the given error")
-            raise RuntimeError(
-                f"Command execution failed. " f'Cluster error cause: {execution_result["results"]["cause"]}'
-            )
-
-        if verbose:
-            dbx_echo("Command successfully executed")
-            print(execution_result["results"]["data"])
-
-        return execution_result["results"]["data"]
-
-
-def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: str):
-    if not context_id:
-        return False
-    else:
-        payload = {"clusterId": cluster_id, "contextId": context_id}
-        resp = v1_client.get_context_status(payload)
-        if not resp:
-            return False
-        elif resp.get("status"):
-            return resp["status"] == "Running"
-
-
-def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
-    dbx_echo("Preparing execution context")
-    lock_context_id = LocalContextManager.get_context()
-
-    if _is_context_available(v1_client, cluster_id, lock_context_id):
-        dbx_echo("Existing context is active, using it")
-        return lock_context_id
-    else:
-        dbx_echo("Existing context is not active, creating a new one")
-        context_id = create_context(v1_client, cluster_id, language)
-        LocalContextManager.set_context(context_id)
-        dbx_echo("New context prepared, ready to use it")
-        return context_id
-
-
-def create_context(v1_client: ApiV1Client, cluster_id: str, language: str):
-    payload = {"language": language, "clusterId": cluster_id}
-    response = v1_client.create_context(payload)
-    return response["id"]
 
 
 def awake_cluster(cluster_service: ClusterService, cluster_id):

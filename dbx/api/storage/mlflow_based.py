@@ -18,7 +18,7 @@ class MlflowStorageConfigurationManager:
     DATABRICKS_TOKEN_ENV: str = "DATABRICKS_TOKEN"
 
     @staticmethod
-    def _strip_url(url: str) -> str:
+    def strip_url(url: str) -> str:
         """
         Mlflow API requires url to be stripped, e.g.
         {scheme}://{netloc}/some-stuff/ shall be transformed to {scheme}://{netloc}
@@ -31,7 +31,7 @@ class MlflowStorageConfigurationManager:
     @classmethod
     def _setup_tracking_uri(cls):
         config = AuthConfigProvider.get_config()
-        os.environ[cls.DATABRICKS_HOST_ENV] = cls._strip_url(config.host)
+        os.environ[cls.DATABRICKS_HOST_ENV] = cls.strip_url(config.host)
         os.environ[cls.DATABRICKS_TOKEN_ENV] = config.token
         mlflow.set_tracking_uri(DATABRICKS_MLFLOW_URI)
 

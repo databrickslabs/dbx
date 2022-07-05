@@ -73,7 +73,7 @@ def get_package_file() -> Optional[Path]:
         return None
 
 
-def handle_package(rebuild_arg):
+def handle_package(rebuild_arg: Optional[bool] = False):
     if rebuild_arg:
         dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
     else:

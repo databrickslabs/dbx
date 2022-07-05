@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [X.Y.Z] - YYYY-MM-DD
 
+## Changed
+- `lock.json` file has been moved to the user home directory (`$HOME/.dbx/lock.json`)
+- `lock.json` has been removed from the git repository filters
+- `--requirements-file` functionality has been removed. Please follow packaging instruction in docs to properly package your dependency definitions.
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.

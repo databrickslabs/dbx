@@ -27,8 +27,5 @@ htmlcov/*
 # MacOS
 .DS_Store
 
-# Databricks eXtensions
-.dbx/lock.json
-
 # local mlflow files
 mlruns/

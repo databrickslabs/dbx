@@ -4,7 +4,6 @@ import pkg_resources
 
 DBX_PATH = Path(".dbx")
 INFO_FILE_PATH = DBX_PATH / "project.json"
-LOCK_FILE_PATH = DBX_PATH / "lock.json"
 
 DATABRICKS_MLFLOW_URI = "databricks"
 PROJECTS_RELATIVE_PATH = "templates/projects"

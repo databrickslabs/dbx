@@ -1,20 +1,19 @@
-import json
-import pathlib
+from pathlib import Path
 from typing import Optional
 
-from dbx.constants import LOCK_FILE_PATH
+from dbx.utils.json import JsonUtils
 
 
 class LocalContextManager:
-    context_file_path: pathlib.Path = LOCK_FILE_PATH
+    context_file_path: Path = Path.home() / ".dbx" / "lock.json"
 
     @classmethod
     def set_context(cls, context_id: str) -> None:
-        cls.context_file_path.write_text(json.dumps({"context_id": context_id}), encoding="utf-8")
+        JsonUtils.write(cls.context_file_path, {"context_id": context_id})
 
     @classmethod
     def get_context(cls) -> Optional[str]:
         if cls.context_file_path.exists():
-            return json.loads(cls.context_file_path.read_text(encoding="utf-8")).get("context_id")
+            return JsonUtils.read(cls.context_file_path).get("context_id")
         else:
             return None

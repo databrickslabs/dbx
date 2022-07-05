@@ -19,11 +19,10 @@ class DependencyManager:
     This class manages dependency references in the job or task deployment.
     """
 
-    def __init__(self, global_no_package: bool, no_rebuild: bool, requirements_file: Optional[Path]):
+    def __init__(self, global_no_package: bool, no_rebuild: bool):
         self._global_no_package = global_no_package
         self._no_rebuild = no_rebuild
         self._core_package_reference: Optional[LibraryReference] = self._get_package_requirement()
-        self._requirements_references: List[LibraryReference] = self._get_requirements_from_file(requirements_file)
 
     @staticmethod
     def _delete_managed_libraries(packages: List[pkg_resources.Requirement]) -> List[pkg_resources.Requirement]:
@@ -84,8 +83,6 @@ class DependencyManager:
                 "but task or job level deployment config is set to false. "
                 "Global-level property will take priority."
             )
-
-        reference["libraries"] = reference.get("libraries", []) + self._requirements_references
 
         if not no_package_reference:
             reference["libraries"] += [self._core_package_reference]

@@ -12,6 +12,7 @@ setup(
     name="{{cookiecutter.project_slug}}",
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
+    install_requires=["pyyaml", "scikit-learn", "pandas"],
     entry_points = {
         "console_scripts": [
             "etl = {{cookiecutter.project_slug}}.workloads.sample_etl_job:entrypoint",

@@ -8,6 +8,7 @@ from dbx.commands.launch import launch
 from dbx.commands.datafactory import datafactory
 from dbx.commands.init import init
 from dbx.commands.sync import sync
+from dbx.commands.server import server
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -23,6 +24,7 @@ cli.add_command(execute, name="execute")
 cli.add_command(datafactory, name="datafactory")
 cli.add_command(init, name="init")
 cli.add_command(sync, name="sync")
+cli.add_command(server, name="server")
 
 if __name__ == "__main__":
     cli()
