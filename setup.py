@@ -32,7 +32,7 @@ if sys.platform.startswith("win32"):
 
 setup(
     name="dbx",
-    python_requires=">=3.8",
+    python_requires=">=3.7",
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
     install_requires=INSTALL_REQUIRES,

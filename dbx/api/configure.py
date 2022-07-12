@@ -14,7 +14,7 @@ class EnvironmentInfo:
     def __init__(self, profile: str, workspace_dir: Optional[str] = None, artifact_location: Optional[str] = None):
         self.profile = profile
         self.workspace_dir = f"/Shared/dbx/projects/{self._current_path_name}" if not workspace_dir else workspace_dir
-        self.artifact_location = f"dbfs:/dbx/{self._current_path_name}" if not artifact_location else artifact_location
+        self.artifact_location = f"/dbfs/dbx/{self._current_path_name}" if not artifact_location else artifact_location
 
     def as_dict(self) -> Dict[str, str]:
         return {
