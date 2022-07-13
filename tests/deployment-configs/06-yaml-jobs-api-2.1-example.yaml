@@ -10,7 +10,6 @@ custom:
 
 environments:
   default:
-    strict_path_adjustment_policy: true
     jobs:
       - name: "dbx_jobs_v21_test"
         job_clusters:

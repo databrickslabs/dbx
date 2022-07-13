@@ -1,6 +1,5 @@
 environments:
   <environment-name>:
-    strict_path_adjustment_policy: true
     jobs:
       - name": "some-job-with-permissions"
         ## this section shall have a permissions key

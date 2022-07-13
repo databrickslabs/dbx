@@ -1,6 +1,5 @@
 environments:
   default:
-    strict_path_adjustment_policy: true
     jobs:
       - name: "your-job-name"
         new_cluster:

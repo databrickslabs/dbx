@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from databricks_cli.sdk import ApiClient
 
 from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import FileUploader
+from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import WorkloadPropertiesProcessor, NewClusterPropertiesProcessor, PolicyNameProcessor
 
@@ -12,7 +12,7 @@ from dbx.utils.named_properties import WorkloadPropertiesProcessor, NewClusterPr
 def adjust_job_definitions(
     jobs: List[Dict[str, Any]],
     dependency_manager: DependencyManager,
-    file_uploader: FileUploader,
+    file_uploader: MlflowFileUploader,
     api_client: ApiClient,
 ):
     def adjustment_callback(p: Any):
@@ -29,7 +29,7 @@ def adjust_job_definitions(
         adjustable_references = []
 
         if "tasks" in job:
-            dbx_echo("Tasks section found in the job definition, job will be deployed as a multitask job")
+            dbx_echo(f"Tasks section found in the job {job['name']}, job will be deployed as a multitask job")
             adjustable_references += job["tasks"]
             job_clusters = job.get("job_clusters", [])
             for jc_reference in job_clusters:
@@ -37,7 +37,7 @@ def adjust_job_definitions(
                 policy_name_processor.process(cluster_definition)
                 new_cluster_processor.process(cluster_definition)
         else:
-            dbx_echo("Tasks section not found in the job definition, job will be deployed as a single-task job")
+            dbx_echo(f"Tasks section not found in the job {job['name']}, job will be deployed as a single-task job")
             adjustable_references.append(job)
 
         for workload_reference in adjustable_references:
@@ -65,7 +65,7 @@ def walk_content(func, content, parent=None, index=None):
         parent[index] = func(content)
 
 
-def _strict_path_adjustment(candidate: str, file_uploader: FileUploader) -> str:
+def path_adjustment(candidate: str, file_uploader: MlflowFileUploader) -> str:
     if candidate.startswith("file:"):
         fuse_flag = candidate.startswith("file:fuse:")
         replace_string = "file:fuse://" if fuse_flag else "file://"
@@ -73,9 +73,7 @@ def _strict_path_adjustment(candidate: str, file_uploader: FileUploader) -> str:
 
         if not local_path.exists():
             raise FileNotFoundError(
-                f"""
-            Path {candidate} is referenced in the deployment configuration, but is non-existent.
-            """
+                f"Path {candidate} is referenced in the deployment configuration, but is non-existent."
             )
 
         adjusted_path = file_uploader.upload_and_provide_path(local_path, as_fuse=fuse_flag)
@@ -86,37 +84,13 @@ def _strict_path_adjustment(candidate: str, file_uploader: FileUploader) -> str:
         return candidate
 
 
-def _non_strict_path_adjustment(candidate: str, file_uploader: FileUploader) -> str:
-    file_path = pathlib.Path(candidate)
-
-    # this is a fix for pathlib behaviour related to WinError
-    # in case if we pass incorrect or unsupported string, for example local[*] on Win we receive a OSError
-    try:
-        local_file_exists = file_path.exists()
-    except OSError:
-        local_file_exists = False
-
-    if candidate == "":
-        return candidate
-    elif local_file_exists:
-        adjusted_path = file_uploader.upload_and_provide_path(file_path)
-        return adjusted_path
-    else:
-        return candidate
-
-
-def adjust_path(candidate, file_uploader: FileUploader):
+def adjust_path(candidate, file_uploader: MlflowFileUploader):
     if isinstance(candidate, str):
         # path already adjusted or points to another dbfs object - pass it
         if candidate.startswith("dbfs") or candidate.startswith("/dbfs"):
             return candidate
         else:
-
-            if file_uploader.is_strict:
-                adjusted_path = _strict_path_adjustment(candidate, file_uploader)
-            else:
-                adjusted_path = _non_strict_path_adjustment(candidate, file_uploader)
-
+            adjusted_path = path_adjustment(candidate, file_uploader)
             return adjusted_path
     else:
         return candidate

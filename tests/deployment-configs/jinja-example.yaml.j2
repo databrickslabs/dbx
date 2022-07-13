@@ -2,8 +2,8 @@ environments:
   default:
     jobs:
       - name: "your-job-name"
-        timeout_seconds: {{ TIMEOUT }}
-        {% if (ENVIRONMENT == "production") %}
+        timeout_seconds: {{ env['TIMEOUT'] }}
+        {% if (env['ENVIRONMENT'] == "production") %}
         email_notifications:
           on_failure:
             - "presetEmail@test.com"
@@ -14,13 +14,13 @@ environments:
           node_type_id: "some-node-type"
           aws_attributes:
             first_on_demand: 0
-            availability: {{ AVAILABILITY | default("SPOT") }}
+            availability: {{ env['AVAILABILITY'] | default("SPOT") }}
           num_workers: 2
         libraries: []
-        {% if (ENVIRONMENT == "production") %}
-        max_retries: {{ MAX_RETRY | default(-1) }}
+        {% if (env['ENVIRONMENT'] == "production") %}
+        max_retries: {{ env['MAX_RETRY'] | default(-1) }}
         {% else %}
-        max_retries: {{ MAX_RETRY | default(3) }}
+        max_retries: {{ env['MAX_RETRY'] | default(3) }}
         {% endif %}
         spark_python_task:
-          python_file: "tests/deployment-configs/placeholder_1.py"
+          python_file: "file://tests/deployment-configs/placeholder_1.py"

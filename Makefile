@@ -148,7 +148,7 @@ install-dev: ## Install dev dependencies.
 	@echo ""
 	@echo "${YELLOW}Install Dev dependencies.${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pip install -r dev-requirements.txt
+	$(PYTHON) -m pip install -e ".[dev]"
 
 post-install-info: ## Just some post installation info.
 	@echo ""

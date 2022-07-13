@@ -1,0 +1,29 @@
+# Custom section is used to store configurations that might be repetative.
+# Please read YAML documentation for details on how to use substitutions and anchors.
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "9.1.x-cpu-ml-scala2.12"
+
+  basic-static-cluster: &basic-static-cluster
+    new_cluster:
+      <<: *basic-cluster-props
+      num_workers: 1
+      node_type_id: "some-node-type-id"
+
+environments:
+  default:
+    - name: "notebook-from-remote"
+      job_clusters:
+        - job_cluster_key: "default"
+          <<: *basic-static-cluster
+      git_source:
+        git_url: https://some-git-provider.com/some/remote/repo.git
+        git_provider: "git-provider-name"
+        git_branch: "main"
+      tasks:
+        - task_key: "notebook-remote"
+          notebook_task:
+            notebook_path: "notebooks/sample_notebook"
+          deployment_config:
+            no_package: true # we omit using package since code will be shipped directly from the Repo
+          job_cluster_key: "default"

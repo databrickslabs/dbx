@@ -12,4 +12,4 @@ class JsonUtils:
 
     @staticmethod
     def write(file_path: Path, content: JsonContent):
-        file_path.write_text(json.dumps(content), encoding="utf-8")
+        file_path.write_text(json.dumps(content, indent=4), encoding="utf-8")

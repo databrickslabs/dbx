@@ -16,7 +16,8 @@ INSTALL_REQUIRES = [
     "azure-identity>=1.7.1",
     "azure-mgmt-datafactory>=2.2.0",
     "azure-mgmt-subscription>=3.0.0",
-    "ruamel.yaml>=0.17.10",
+    "pyyaml>=6.0",
+    "pydantic>=1.9.1",
     "cryptography>=3.3.1,<38.0.0",
     "emoji>=1.6.1",
     "cookiecutter>=1.7.2",
@@ -29,12 +30,40 @@ INSTALL_REQUIRES = [
 if sys.platform.startswith("win32"):
     INSTALL_REQUIRES.append("pywin32==227")
 
+DEV_REQUIREMENTS = [
+    "setuptools",
+    "sphinx",
+    "sphinx_rtd_theme",
+    "sphinx-autobuild==2021.3.14",
+    "sphinx-click",
+    "sphinx-tabs",
+    "cookiecutter",
+    "rst2pdf==0.99",
+    "wheel",
+    "path",
+    "pytest",
+    "pytest-mock==3.8.2",
+    "pytest-xdist[psutil]",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-timeout",
+    "pytest-clarity",
+    "pandas",
+    "gitpython",
+    "tqdm",
+    "rstcheck",
+    "prospector>=1.3.1,<1.7.0",
+    "black",
+    "MarkupSafe>=2.0.0rc2",
+]
+
 setup(
     name="dbx",
     python_requires=">=3.8",
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
     install_requires=INSTALL_REQUIRES,
+    extras_require={"dev": DEV_REQUIREMENTS},
     entry_points="""
         [console_scripts]
         dbx=dbx.cli:cli
