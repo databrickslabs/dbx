@@ -1,5 +1,6 @@
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -86,7 +87,8 @@ def handle_package(rebuild_arg):
         dist_path = Path("dist")
         if dist_path.exists():
             dbx_echo("dist folder already exists, cleaning it before build")
-            dist_path.unlink()
+            for _file in dist_path.glob("*.whl"):
+                _file.unlink()
 
         subprocess.check_call([sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary"))
         dbx_echo("Package re-build finished")
