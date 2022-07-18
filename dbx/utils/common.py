@@ -82,6 +82,12 @@ def handle_package(rebuild_arg):
             raise FileNotFoundError(
                 "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild"
             )
+
+        dist_path = Path("dist")
+        if dist_path.exists():
+            dbx_echo("dist folder already exists, cleaning it before build")
+            dist_path.unlink()
+
         subprocess.check_call([sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary"))
         dbx_echo("Package re-build finished")
 
