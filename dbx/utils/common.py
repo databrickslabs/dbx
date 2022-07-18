@@ -89,7 +89,7 @@ def handle_package(rebuild_arg):
             for _file in dist_path.glob("*.whl"):
                 _file.unlink()
 
-        subprocess.check_call([sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary"))
+        subprocess.check_call([sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary --no-deps"))
         dbx_echo("Package re-build finished")
 
 
