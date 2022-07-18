@@ -1,5 +1,6 @@
-from setuptools import find_packages, setup
 import sys
+
+from setuptools import find_packages, setup
 
 from dbx import __version__
 
@@ -41,6 +42,7 @@ DEV_REQUIREMENTS = [
     "rst2pdf==0.99",
     "wheel",
     "path",
+    "pre-commit",
     "pytest",
     "pytest-mock==3.8.2",
     "pytest-xdist[psutil]",
