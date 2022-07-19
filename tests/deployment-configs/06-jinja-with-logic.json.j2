@@ -4,7 +4,7 @@
         {
         "name": "your-job-name",
         "timeout_seconds": "100",
-        {% if (ENVIRONMENT.lower() == "production") %}
+        {% if (env['ENVIRONMENT'].lower() == "production") %}
         "email_notifications": {
             "on_failure": [
                 "presetEmail@test.com",
@@ -22,13 +22,13 @@
             "num_workers": 2
         },
         "libraries": [],
-        {% if (ENVIRONMENT.lower() == "production") %}
-        "max_retries": {{ MAX_RETRY | default(-1) }},
+        {% if (env['ENVIRONMENT'].lower() == "production") %}
+        "max_retries": {{ env['MAX_RETRY'] | default(-1) }},
         {% else %}
-         "max_retries": {{ MAX_RETRY | default(3) }},
+         "max_retries": {{ env['MAX_RETRY'] | default(3) }},
         {% endif %}
         "spark_python_task": {
-            "python_file": "tests/deployment-configs/placeholder_1.py"
+            "python_file": "file://tests/deployment-configs/placeholder_1.py"
             }
         }]
     }

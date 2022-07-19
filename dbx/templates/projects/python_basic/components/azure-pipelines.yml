@@ -35,20 +35,19 @@ stages:
 
     - script: |
         python -m pip install --upgrade pip
-        pip install -r unit-requirements.txt
-        pip install -e .
+        python -m pip install -e ".[dev]"
       displayName: 'Install dependencies'
 
     - script: |
-        pytest tests/unit --junitxml=test-unit.xml
+        python -m pytest tests/unit --junitxml=test-unit.xml
       displayName: 'Run Unit tests'
 
     - script: |
-        dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
+        python -m dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
       displayName: 'Deploy integration test'
 
     - script: |
-        dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
+        python -m dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
       displayName: 'Launch integration on test'
 
     - task: PublishTestResults@2
@@ -85,16 +84,15 @@ stages:
 
       - script: |
           python -m pip install --upgrade pip
-          pip install -r unit-requirements.txt
-          pip install -e .
+          python -m pip install -e ".[dev]"
         displayName: 'Install dependencies'
 
       - script: |
-          pytest tests/unit --junitxml=test-unit.xml
+          python -m pytest tests/unit --junitxml=test-unit.xml
         displayName: 'Run Unit tests'
 
       - script: |
-          dbx deploy --job={{project_name}}-sample-etl-2.0
+          python -m dbx deploy --job={{project_name}}-sample-etl-2.0
         displayName: 'Deploy the job'
 
       - task: PublishTestResults@2

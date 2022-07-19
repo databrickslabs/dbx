@@ -27,7 +27,6 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
     jinja2_support
     packaging_and_build
     path_adjustment
-    environment_variables
     named_properties
     generic_devops
     templates_pointer

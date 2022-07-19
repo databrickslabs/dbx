@@ -8,10 +8,28 @@ Please follow the `entry_points` documentation for more details on how to config
 from setuptools import find_packages, setup
 from {{cookiecutter.project_slug}} import __version__
 
+PACKAGE_REQUIREMENTS = ["PyYAML"]
+
+DEV_REQUIREMENTS = [
+    "setuptools",
+    "wheel",
+    "pyspark",
+    "pyyaml",
+    "pytest",
+    "pytest-cov",
+    "dbx",
+    "mlflow",
+    "delta-spark",
+    "scikit-learn",
+    "pandas"
+]
+
 setup(
     name="{{cookiecutter.project_slug}}",
     packages=find_packages(exclude=["tests", "tests.*"]),
     setup_requires=["wheel"],
+    install_requires=PACKAGE_REQUIREMENTS,
+    extras_require={"dev": DEV_REQUIREMENTS},
     entry_points = {
         "console_scripts": [
             "etl = {{cookiecutter.project_slug}}.workloads.sample_etl_job:entrypoint",

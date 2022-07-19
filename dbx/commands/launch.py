@@ -1,6 +1,6 @@
-import base64
-import json
+import tempfile
 import time
+from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 from typing import List
 
@@ -8,21 +8,22 @@ import click
 import mlflow
 import pandas as pd
 from databricks_cli.configure.config import debug_option
-from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ConfigurationManager
+from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
     prepare_environment,
     parse_multiple,
     get_current_branch_name,
 )
-from dbx.utils import dbx_echo
-from dbx.utils.options import environment_option
 from dbx.utils.job_listing import find_job_by_name
+from dbx.utils.json import JsonUtils
+from dbx.utils.options import environment_option
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
@@ -142,22 +143,28 @@ def launch(
         override_parameters = parse_multiple(parameters)
         prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
 
-    filter_string = generate_filter_string(environment)
+    filter_string = generate_filter_string(environment, branch_name)
 
     run_info = _find_deployment_run(filter_string, additional_tags, as_run_submit, environment)
 
     deployment_run_id = run_info["run_id"]
 
-    with mlflow.start_run(run_id=deployment_run_id) as deployment_run:
+    with mlflow.start_run(run_id=deployment_run_id):
 
         with mlflow.start_run(nested=True):
-            artifact_base_uri = deployment_run.info.artifact_uri
 
             if not as_run_submit:
-                run_launcher = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, prepared_parameters)
+                run_launcher = RunNowLauncher(
+                    job=job, api_client=api_client, existing_runs=existing_runs, prepared_parameters=prepared_parameters
+                )
             else:
                 run_launcher = RunSubmitLauncher(
-                    job, api_client, artifact_base_uri, existing_runs, prepared_parameters, environment
+                    job=job,
+                    api_client=api_client,
+                    existing_runs=existing_runs,
+                    prepared_parameters=prepared_parameters,
+                    deployment_run_id=deployment_run_id,
+                    environment=environment,
                 )
 
             run_data, job_id = run_launcher.launch()
@@ -208,7 +215,7 @@ def launch(
 def _find_deployment_run(
     filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
 ) -> Dict[str, Any]:
-    runs = mlflow.search_runs(filter_string=filter_string, order_by=["start_time DESC"])
+    runs = mlflow.search_runs(filter_string=filter_string)
 
     filter_conditions = []
 
@@ -278,14 +285,14 @@ class RunSubmitLauncher:
         self,
         job: str,
         api_client: ApiClient,
-        artifact_base_uri: str,
+        deployment_run_id: str,
         existing_runs: str,
         prepared_parameters: Any,
         environment: str,
     ):
+        self.run_id = deployment_run_id
         self.job = job
         self.api_client = api_client
-        self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
         self.prepared_parameters = prepared_parameters
         self.environment = environment
@@ -293,9 +300,7 @@ class RunSubmitLauncher:
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run submit API")
 
-        env_spec = _load_dbx_file(self.api_client, self.artifact_base_uri, "deployment-result.json").get(
-            self.environment
-        )
+        env_spec = _load_dbx_file(self.run_id, "deployment-result.json").get(self.environment)
 
         if not env_spec:
             raise Exception(f"No job definitions found for environment {self.environment}")
@@ -318,12 +323,9 @@ class RunSubmitLauncher:
 
 
 class RunNowLauncher:
-    def __init__(
-        self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any
-    ):
+    def __init__(self, job: str, api_client: ApiClient, existing_runs: str, prepared_parameters: Any):
         self.job = job
         self.api_client = api_client
-        self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
         self.prepared_parameters = prepared_parameters
 
@@ -394,13 +396,12 @@ def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
     _wait_run(api_client, run_data)
 
 
-def _load_dbx_file(api_client: ApiClient, artifact_base_uri: str, name: str) -> Dict[Any, Any]:
-    dbfs_service = DbfsService(api_client)
-    dbx_deployments = f"{artifact_base_uri}/.dbx/{name}"
-    raw_config_payload = dbfs_service.read(dbx_deployments)["data"]
-    payload = base64.b64decode(raw_config_payload).decode("utf-8")
-    deployments = json.loads(payload)
-    return deployments
+def _load_dbx_file(run_id: str, file_name: str) -> Dict[Any, Any]:
+    client = MlflowClient()
+    with tempfile.TemporaryDirectory() as tmp:
+        dbx_file_path = f".dbx/{file_name}"
+        client.download_artifacts(run_id, dbx_file_path, tmp)
+        return JsonUtils.read(Path(tmp) / dbx_file_path)
 
 
 def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:

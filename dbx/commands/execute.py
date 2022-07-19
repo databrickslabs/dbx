@@ -1,5 +1,5 @@
-import pathlib
 import time
+from pathlib import Path
 from typing import Any, List, Optional
 
 import click
@@ -8,19 +8,18 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.commands.deploy import finalize_deployment_file_path
+from dbx.api.client_provider import ApiV1Client
+from dbx.api.config_reader import ConfigReader
+from dbx.api.context import LocalContextManager
+from dbx.utils import dbx_echo
 from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
     prepare_environment,
-    get_deployment_config,
     handle_package,
     get_package_file,
     _preprocess_cluster_args,
 )
-from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import FileUploader
-from dbx.utils.v1_client import ApiV1Client
-from dbx.api.context import LocalContextManager
+from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.options import environment_option
 
 
@@ -57,10 +56,16 @@ from dbx.utils.options import environment_option
 @click.option(
     "--deployment-file",
     required=False,
-    type=str,
+    type=click.Path(path_type=Path),
     help="Path to deployment file in one of these formats: [json, yaml]",
 )
-@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+@click.option(
+    "--requirements-file",
+    required=False,
+    type=click.Path(path_type=Path),
+    default=Path("requirements.txt"),
+    help="[DEPRECATED]",
+)
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
@@ -74,8 +79,8 @@ def execute(
     cluster_id: str,
     cluster_name: str,
     job: str,
-    deployment_file: Optional[str],
-    requirements_file: str,
+    deployment_file: Optional[Path],
+    requirements_file: Path,
     no_package: bool,
     no_rebuild: bool,
 ):
@@ -87,10 +92,9 @@ def execute(
 
     handle_package(no_rebuild)
 
-    deployment_file = finalize_deployment_file_path(deployment_file)
+    config_reader = ConfigReader(deployment_file)
 
-    deployment = get_deployment_config(deployment_file).get_environment(environment)
-    is_strict = deployment.get("strict_path_adjustment_policy", False)
+    deployment = config_reader.get_environment(environment)
 
     _verify_deployment(deployment, environment, deployment_file)
 
@@ -101,13 +105,12 @@ def execute(
 
     job_payload = found_jobs[0]
 
-    entrypoint_file = job_payload.get("spark_python_task").get("python_file")
+    entrypoint_file = job_payload.get("spark_python_task").get("python_file").replace("file://", "")
 
     if not entrypoint_file:
         raise FileNotFoundError(
             f"No entrypoint file provided in job {job}. " f"Please add one under spark_python_task.python_file section"
         )
-    entrypoint_file = entrypoint_file if not is_strict else entrypoint_file.replace("file://", "")
 
     cluster_service = ClusterService(api_client)
 
@@ -120,12 +123,11 @@ def execute(
     with mlflow.start_run() as execution_run:
 
         artifact_base_uri = execution_run.info.artifact_uri
-        file_uploader = FileUploader(artifact_base_uri, is_strict)
+        file_uploader = MlflowFileUploader(artifact_base_uri)
 
-        requirements_fp = pathlib.Path(requirements_file)
-        if requirements_fp.exists():
+        if requirements_file.exists():
 
-            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_fp, as_fuse=True)
+            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_file, as_fuse=True)
 
             installation_command = f"%pip install -U -r {localized_requirements_path}"
 
@@ -134,7 +136,7 @@ def execute(
             dbx_echo("Provided requirements installed")
         else:
             dbx_echo(
-                f"Requirements file {requirements_fp} is not provided"
+                f"Requirements file {requirements_file} is not provided"
                 + ", following the execution without any additional packages"
             )
 
@@ -180,7 +182,7 @@ def execute(
 
         dbx_echo("Starting entrypoint file execution")
 
-        execute_command(v1_client, cluster_id, context_id, pathlib.Path(entrypoint_file).read_text(encoding="utf-8"))
+        execute_command(v1_client, cluster_id, context_id, Path(entrypoint_file).read_text(encoding="utf-8"))
         dbx_echo("Command execution finished")
 
 
@@ -255,7 +257,7 @@ def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: s
 
 def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     dbx_echo("Preparing execution context")
-    lock_context_id = LocalContextManager().get_context()
+    lock_context_id = LocalContextManager.get_context()
 
     if _is_context_available(v1_client, cluster_id, lock_context_id):
         dbx_echo("Existing context is active, using it")
@@ -263,7 +265,7 @@ def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
     else:
         dbx_echo("Existing context is not active, creating a new one")
         context_id = create_context(v1_client, cluster_id, language)
-        LocalContextManager().set_context(context_id)
+        LocalContextManager.set_context(context_id)
         dbx_echo("New context prepared, ready to use it")
         return context_id
 

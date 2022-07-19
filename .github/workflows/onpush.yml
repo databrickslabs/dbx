@@ -30,19 +30,16 @@ jobs:
         id: cache
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/dev-requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ hashFiles('**/dev-requirements.txt') }}
+            ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
             ${{ runner.os }}-pip-
 
       - name: Install pip
         run: python -m pip install --upgrade pip
 
-      - name: Install dependencies
-        run: pip install -U -r dev-requirements.txt
-
-      - name: Install package
-        run: python setup.py install
+      - name: Install package and dependencies
+        run: pip install -U -e ".[dev]"
 
       - name: Lint
         run: |
@@ -53,7 +50,7 @@ jobs:
       - name: Run unit tests
         run: |
           git config --global init.defaultBranch main # to avoid verbose deprecation messages in CI pipeline
-          pytest tests/unit --cov dbx
+          pytest tests/unit --cov dbx -n auto
 
 
       - name: Publish test coverage

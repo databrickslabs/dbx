@@ -1,5 +1,5 @@
 import json
-import pathlib
+from pathlib import Path
 import shutil
 import tempfile
 from typing import Dict, Any, Union, Optional
@@ -13,16 +13,15 @@ from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
+from dbx.api.config_reader import ConfigReader
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.common import (
     prepare_environment,
     parse_multiple,
     get_current_branch_name,
-    get_deployment_config,
-    # noqa
 )
 from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import FileUploader
+from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.options import environment_option
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.job_listing import find_job_by_name
@@ -45,7 +44,7 @@ from dbx.utils.job_listing import find_job_by_name
        | :code:`[.json, .yaml, .yml, .j2]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
-    5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
+    5. [DEPRECATED]If :option:`--requirements-file` is provided, all requirements will be added to job definition
     6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
     7. If the job with given name exists, it will be updated, if not - created
     8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
@@ -55,7 +54,7 @@ from dbx.utils.job_listing import find_job_by_name
 @click.option(
     "--deployment-file",
     required=False,
-    type=str,
+    type=click.Path(path_type=Path),
     help="Path to deployment file in one of these formats: [json, yaml]",
 )
 @click.option(
@@ -75,7 +74,13 @@ from dbx.utils.job_listing import find_job_by_name
               Both :code:`--jobs` and :code:`--job` cannot be provided.
               """,
 )
-@click.option("--requirements-file", required=False, type=str, default="requirements.txt")
+@click.option(
+    "--requirements-file",
+    required=False,
+    type=click.Path(path_type=Path),
+    default=Path("requirements.txt"),
+    help="[DEPRECATED]",
+)
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
@@ -113,10 +118,10 @@ from dbx.utils.job_listing import find_job_by_name
 @debug_option
 @environment_option
 def deploy(
-    deployment_file: Optional[str],
+    deployment_file: Optional[Path],
     job: Optional[str],
     jobs: Optional[str],
-    requirements_file: str,
+    requirements_file: Optional[Path],
     tags: List[str],
     environment: str,
     no_rebuild: bool,
@@ -133,31 +138,28 @@ def deploy(
     if not branch_name:
         branch_name = get_current_branch_name()
 
-    deployment_file = finalize_deployment_file_path(deployment_file)
+    config_reader = ConfigReader(deployment_file)
 
-    deployment_file_config = get_deployment_config(deployment_file)
-    deployment = deployment_file_config.get_environment(environment)
+    deployment = config_reader.get_environment(environment)
 
     if not deployment:
         raise NameError(
             f"""
         Requested environment {environment} is non-existent in the deployment file {deployment_file}.
-        Available environments are: {deployment_file_config.get_all_environment_names()}
+        Available environments are: {config_reader.get_all_environment_names()}
         """
         )
-
-    is_strict = deployment.get("strict_path_adjustment_policy", False)
 
     requested_jobs = _define_deployable_jobs(job, jobs)
 
     _preprocess_deployment(deployment, requested_jobs)
 
-    dependency_manager = DependencyManager(no_package, no_rebuild, is_strict, requirements_file)
+    dependency_manager = DependencyManager(no_package, no_rebuild, requirements_file)
 
     with mlflow.start_run() as deployment_run:
 
         artifact_base_uri = deployment_run.info.artifact_uri
-        _file_uploader = FileUploader(artifact_base_uri, is_strict)
+        _file_uploader = MlflowFileUploader(artifact_base_uri)
 
         adjust_job_definitions(deployment["jobs"], dependency_manager, _file_uploader, api_client)
 
@@ -200,7 +202,7 @@ def deploy(
 
         if write_specs_to_file:
             dbx_echo("Writing final job specifications into file")
-            specs_file = pathlib.Path(write_specs_to_file)
+            specs_file = Path(write_specs_to_file)
 
             if specs_file.exists():
                 specs_file.unlink()
@@ -211,7 +213,7 @@ def deploy(
 def _log_dbx_file(content: Dict[Any, Any], name: str):
     temp_dir = tempfile.mkdtemp()
     serialized_data = json.dumps(content, indent=4)
-    temp_path = pathlib.Path(temp_dir, name)
+    temp_path = Path(temp_dir, name)
     temp_path.write_text(serialized_data, encoding="utf-8")
     mlflow.log_artifact(str(temp_path), ".dbx")
     shutil.rmtree(temp_dir)
@@ -231,53 +233,11 @@ def _define_deployable_jobs(job: str, jobs: str) -> Optional[List[str]]:
     return requested_jobs
 
 
-def finalize_deployment_file_path(deployment_file: Optional[str]) -> str:
-    if deployment_file:
-        file_extension = deployment_file.split(".").pop()
-
-        if file_extension == "j2":
-            file_extension = deployment_file.split(".")[-2]
-        if file_extension not in ["json", "yaml", "yml"]:
-            raise Exception(
-                "Deployment file should have one of these extensions:"
-                '[".json", ".yaml", ".yml", "json.j2", "yaml.j2", "yml.j2"]'
-            )
-
-        if not pathlib.Path(deployment_file).exists():
-            raise Exception(f"Deployment file ({deployment_file}) does not exist")
-
-        dbx_echo(f"Using the provided deployment file {deployment_file}")
-
-        return deployment_file
-
-    else:
-        potential_extensions = ["json", "yml", "yaml", "json.j2", "yaml.j2", "yml.j2"]
-
-        for ext in potential_extensions:
-            candidate = pathlib.Path(f"conf/deployment.{ext}")
-            if candidate.exists():
-                dbx_echo(f"Auto-discovery found deployment file {candidate}")
-                return str(candidate)
-
-        raise Exception(
-            "Auto-discovery was unable to find any deployment file in the conf directory. "
-            "Please provide file name via --deployment-file option"
-        )
-
-
 def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
     if "jobs" not in deployment:
         raise Exception("No jobs provided for deployment")
 
     deployment["jobs"] = _preprocess_jobs(deployment["jobs"], requested_jobs)
-
-
-def _preprocess_files(files: Dict[str, Any]):
-    for key, file_path_str in files.items():
-        file_path = pathlib.Path(file_path_str)
-        if not file_path.exists():
-            raise FileNotFoundError(f"File path ({file_path}) does not exist")
-        files[key] = file_path
 
 
 def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:

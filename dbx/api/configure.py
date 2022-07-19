@@ -1,9 +1,9 @@
-import json
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional, Dict, Any
 
 from dbx.constants import INFO_FILE_PATH
+from dbx.utils.json import JsonUtils
 
 
 class EnvironmentInfo:
@@ -27,15 +27,15 @@ class EnvironmentInfo:
 class EnvironmentDataManager(ABC):
     @abstractmethod
     def create(self, name: str, environment_info: EnvironmentInfo):
-        pass
+        """"""
 
     @abstractmethod
     def update(self, name: str, environment_info: EnvironmentInfo):
-        pass
+        """"""
 
     @abstractmethod
     def get(self, name: str) -> Optional[EnvironmentInfo]:
-        pass
+        """"""
 
     def create_or_update(self, name: str, environment_info: EnvironmentInfo):
         if self.get(name):
@@ -55,15 +55,15 @@ class JsonFileBasedManager(EnvironmentDataManager):
         if not self._file.exists():
             return {}
         else:
-            _raw: Dict = json.loads(self._file.read_text(encoding="utf-8")).get("environments", {})
+            _raw: Dict = JsonUtils.read(self._file).get("environments", {})
             _typed = {name: EnvironmentInfo(**value) for name, value in _raw.items()}
             return _typed
 
     @_file_content.setter
     def _file_content(self, content: Dict[str, EnvironmentInfo]):
         _untyped: Dict[str, Any] = {name: value.as_dict() for name, value in content.items()}
-        _jsonified = json.dumps({"environments": _untyped}, indent=4)
-        self._file.write_text(_jsonified, encoding="utf-8")
+        with_environments = {"environments": _untyped}
+        JsonUtils.write(self._file, with_environments)
 
     def update(self, name: str, environment_info: EnvironmentInfo):
         # for file-based manager it's the same logic

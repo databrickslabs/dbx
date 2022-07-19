@@ -47,7 +47,6 @@ The clean project structure, without any CI-related files will look like this:
     │   │   └── sample_test.py
     │   └── unit
     │       └── sample_test.py
-    └── unit-requirements.txt
 
 Here are some comments about this structure:
 
@@ -127,17 +126,11 @@ Local development environment
 
     cd <project_name>
 
-* Install dependencies for local development:
-
-.. code-block::
-
-    pip install -r unit-requirements.txt
-
 * Install package in development mode, so your IDE can provide you all required introspection:
 
 .. code-block::
 
-    pip install -e .
+    pip install -e ".[dev]"
 
 At this stage, you have the following:
 
