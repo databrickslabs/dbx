@@ -17,10 +17,9 @@ conda activate {{cookiecutter.project_slug}}
 conda install -c conda-forge openjdk
 ```
 
-3. Install unit requirements for local development and the project package in a developer mode:
+3. Install project in a dev mode (this will also install dev requirements):
 ```bash
-pip install -r unit-requirements.txt
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 ## Running unit tests

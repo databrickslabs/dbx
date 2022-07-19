@@ -35,8 +35,7 @@ stages:
 
     - script: |
         python -m pip install --upgrade pip
-        python -m pip install -r unit-requirements.txt
-        python -m pip install -e .
+        python -m pip install -e ".[dev]"
       displayName: 'Install dependencies'
 
     - script: |
@@ -85,8 +84,7 @@ stages:
 
       - script: |
           python -m pip install --upgrade pip
-          python -m pip install -r unit-requirements.txt
-          python -m pip install -e .
+          python -m pip install -e ".[dev]"
         displayName: 'Install dependencies'
 
       - script: |

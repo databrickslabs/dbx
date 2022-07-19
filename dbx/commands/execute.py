@@ -59,7 +59,13 @@ from dbx.utils.options import environment_option
     type=click.Path(path_type=Path),
     help="Path to deployment file in one of these formats: [json, yaml]",
 )
-@click.option("--requirements-file", required=False, type=click.Path(path_type=Path), default=Path("requirements.txt"))
+@click.option(
+    "--requirements-file",
+    required=False,
+    type=click.Path(path_type=Path),
+    default=Path("requirements.txt"),
+    help="[DEPRECATED]",
+)
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
