@@ -14,6 +14,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ConfigurationManager
+from dbx.api.log_provider import LogProvider
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
@@ -24,6 +25,7 @@ from dbx.utils.common import (
 from dbx.utils.job_listing import find_job_by_name
 from dbx.utils.json import JsonUtils
 from dbx.utils.options import environment_option
+from dbx.utils.output_wrapper import OutputWrapper
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
@@ -101,17 +103,18 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
               If not provided or empty, dbx will try to detect the branch name.""",
 )
 @click.option(
-    "--job-run-log-level",
-    type=click.Choice(["all", "error", "none"]),
-    default="none",
+    "--console-log-level",
+    type=click.Choice(["all", "error"]),
+    default=None,
     help="""
-        Parameters to output job run log
+        If provided, adds job logs to the console output of the launch command.
+        Please note that log output is only supported for Jobs created via V2.1 API.
+        For jobs created without tasks section logs won't be printed.
 
         Options behaviour:
 
         * :code:`all` will output all job run logs
         * :code:`error` will output job run error logs only
-        * :code:`none` will not output any job run logs
         """,
 )
 @environment_option
@@ -127,7 +130,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
-    job_run_log_level: Optional[str],
+    console_log_level: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -177,20 +180,27 @@ def launch(
                 if kill_on_sigterm:
                     dbx_echo("Click Ctrl+C to stop the run")
                     try:
-                        dbx_status, job_run_status = _trace_run(api_client, run_data)
+                        dbx_status, final_run_state = _trace_run(api_client, run_data)
                     except KeyboardInterrupt:
                         dbx_status = "CANCELLED"
                         dbx_echo("Cancelling the run gracefully")
                         _cancel_run(api_client, run_data)
                         dbx_echo("Run cancelled successfully")
                 else:
-                    dbx_status, job_run_status = _trace_run(api_client, run_data)
+                    dbx_status, final_run_state = _trace_run(api_client, run_data)
+
+                dbx_echo("Launch command finished")
+
+                if console_log_level:
+                    log_provider = LogProvider(jobs_service, final_run_state)
+                    with OutputWrapper():
+                        log_provider.provide(console_log_level)
 
                 if dbx_status == "ERROR":
-                    _get_run_log(jobs_service, job_run_status, job_run_log_level)
-                    raise Exception("Tracked run failed during execution. Please check Databricks UI for run logs")
-                dbx_echo("Launch command finished")
-                _get_run_log(jobs_service, job_run_status, job_run_log_level)
+                    raise Exception(
+                        "Tracked run failed during execution. "
+                        "Please check the status and logs of the run for details."
+                    )
             else:
                 dbx_status = "NOT_TRACKED"
                 dbx_echo(
@@ -440,19 +450,3 @@ def _get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str
     jobs_service = JobsService(api_client)
     run_status = jobs_service.get_run(run_data["run_id"])
     return run_status
-
-
-def _get_run_log(jobs_service, job_run_status: Dict[str, Any], job_run_log_level):
-
-    if job_run_log_level == "all":
-        for task in job_run_status["tasks"]:
-            output = jobs_service.get_run_output(task["run_id"])
-            dbx_echo(
-                f"logs for {task['task_key']} run_id {task['run_id']} \n log {output.get('logs', None)}\n"
-                f"error message {output.get('error', None)}"
-            )
-
-    if job_run_log_level == "error":
-        for task in job_run_status["tasks"]:
-            output = jobs_service.get_run_output(task["run_id"])
-            dbx_echo(f"logs for {task['task_key']} run_id {task['run_id']} \nerror message {output.get('error', None)}")
