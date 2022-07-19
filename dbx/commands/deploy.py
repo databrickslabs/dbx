@@ -44,7 +44,7 @@ from dbx.utils.job_listing import find_job_by_name
        | :code:`[.json, .yaml, .yml, .j2]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
-    5. If :option:`--requirements-file` is provided, all requirements will be added to job definition
+    5. [DEPRECATED]If :option:`--requirements-file` is provided, all requirements will be added to job definition
     6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
     7. If the job with given name exists, it will be updated, if not - created
     8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
@@ -74,7 +74,13 @@ from dbx.utils.job_listing import find_job_by_name
               Both :code:`--jobs` and :code:`--job` cannot be provided.
               """,
 )
-@click.option("--requirements-file", required=False, type=click.Path(path_type=Path), default=Path("requirements.txt"))
+@click.option(
+    "--requirements-file",
+    required=False,
+    type=click.Path(path_type=Path),
+    default=Path("requirements.txt"),
+    help="[DEPRECATED]",
+)
 @click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
 @click.option(
     "--no-package",
