@@ -33,7 +33,7 @@ jobs:
 
       - name: Install dependencies and project in dev mode
         run: |
-          pip install -r unit-requirements.txt
+          pip install -e ".[dev]"
 
       - name: Deploy the job
         run: |

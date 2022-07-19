@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `dist` directory cleanup before core package build
 
+## Changed
+
+- Separate `unit-requirements.txt` file has been deleted from the template
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
