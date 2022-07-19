@@ -4,7 +4,3 @@ repos:
     hooks:
       - id: black
         language_version: python3.9
-  - repo: https://github.com/PyCQA/prospector
-    rev: 1.6.0
-    hooks:
-      - id: prospector
