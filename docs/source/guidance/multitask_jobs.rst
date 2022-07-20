@@ -14,12 +14,12 @@ Sample multitask jobs based on Jobs API 2.0
 
    .. tab:: JSON
 
-      .. literalinclude:: ../../tests/deployment-configs/03-multitask-job.json
+      .. literalinclude:: ../../../tests/deployment-configs/03-multitask-job.json
          :language: JSON
 
    .. tab:: YAML
 
-      .. literalinclude:: ../../tests/deployment-configs/03-multitask-job.yaml
+      .. literalinclude:: ../../../tests/deployment-configs/03-multitask-job.yaml
          :language: yaml
 
 Sample multitask jobs based on Jobs API 2.1
@@ -36,10 +36,10 @@ If you would like to enable this API, please do one of the following:
 
    .. tab:: JSON
 
-      .. literalinclude:: ../../tests/deployment-configs/06-json-jobs-api-2.1-example.json
+      .. literalinclude:: ../../../tests/deployment-configs/06-json-jobs-api-2.1-example.json
          :language: JSON
 
    .. tab:: YAML
 
-      .. literalinclude:: ../../tests/deployment-configs/06-yaml-jobs-api-2.1-example.yaml
+      .. literalinclude:: ../../../tests/deployment-configs/06-yaml-jobs-api-2.1-example.yaml
          :language: yaml

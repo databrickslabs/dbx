@@ -19,12 +19,12 @@ Here are some examples in JSON and YAML:
 
    .. tab:: JSON
 
-      .. literalinclude:: ../../tests/deployment-configs/05-json-with-named-properties.json
+      .. literalinclude:: ../../../tests/deployment-configs/05-json-with-named-properties.json
          :language: JSON
 
    .. tab:: YAML
 
-      .. literalinclude:: ../../tests/deployment-configs/05-yaml-with-named-properties.yaml
+      .. literalinclude:: ../../../tests/deployment-configs/05-yaml-with-named-properties.yaml
          :language: YAML
 
 

@@ -1,4 +1,4 @@
-from {{cookiecutter.project_slug}}.common import Workload
+from {{cookiecutter.project_slug}}.common import Task
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
@@ -8,7 +8,7 @@ import pandas as pd
 import mlflow.sklearn
 import mlflow
 
-class SampleMLJob(Workload):
+class SampleMLTask(Task):
     TARGET_COLUMN: str = "MedHouseVal"
 
     def _read_data(self) -> pd.DataFrame:
@@ -47,5 +47,9 @@ class SampleMLJob(Workload):
 
 
 def entrypoint():  # pragma: no cover
-    job = SampleMLJob()
-    job.launch()
+    task = SampleMLTask()
+    task.launch()
+
+# if you're using spark_python_task, you'll need the __main__ block to start the code execution
+if __name__ == '__main__':
+    entrypoint()

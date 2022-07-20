@@ -68,13 +68,10 @@ The :code:`--deployment-file` option also allows you to use multiple different d
 
     Yaml is supported by dbx where as with Jsonnet, you are responsible for generating the json file through Jsonnet compilation process.
 
-.. note::
-
-    :code:`dbx` supports passing environment variables into both JSON and YAML based deployment files. Please read more about this functionality :doc:`here <environment_variables>`.
 
 .. note::
 
-    Since version 0.4.1 :code:`dbx` :doc:`supports Jinja2 <jinja2_support>` rendering for JSON and YAML based configurations.
+    Since version 0.4.1 :code:`dbx` :doc:`supports Jinja2 <features/jinja2_support>` rendering for JSON and YAML based configurations.
 
 
 JSON

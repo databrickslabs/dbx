@@ -1,9 +1,9 @@
-from {{cookiecutter.project_slug}}.common import Workload
+from {{cookiecutter.project_slug}}.common import Task
 from sklearn.datasets import fetch_california_housing
 import pandas as pd
 
 
-class SampleETLJob(Workload):
+class SampleETLTask(Task):
     def _write_data(self):
         db = self.conf["output"].get("database", "default")
         table = self.conf["output"]["table"]
@@ -20,8 +20,8 @@ class SampleETLJob(Workload):
 
 
 def entrypoint():  # pragma: no cover
-    job = SampleETLJob()
-    job.launch()
+    task = SampleETLTask()
+    task.launch()
 
 # if you're using spark_python_task, you'll need the __main__ block to start the code execution
 if __name__ == '__main__':
