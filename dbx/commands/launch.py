@@ -25,7 +25,6 @@ from dbx.utils.common import (
 from dbx.utils.job_listing import find_job_by_name
 from dbx.utils.json import JsonUtils
 from dbx.utils.options import environment_option
-from dbx.utils.output_wrapper import OutputWrapper
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
@@ -103,18 +102,19 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
               If not provided or empty, dbx will try to detect the branch name.""",
 )
 @click.option(
-    "--console-log-level",
-    type=click.Choice(["all", "error"]),
+    "--output-to-console",
+    type=click.Choice(["stdout", "stderr"]),
     default=None,
     help="""
-        If provided, adds job logs to the console output of the launch command.
-        Please note that log output is only supported for Jobs created via V2.1 API.
-        For jobs created without tasks section logs won't be printed.
+        If provided, adds run output to the console output of the launch command.
+        Please note that this option is only supported for Jobs V2.X+.
+        For jobs created without tasks section output won't be printed.
+        If not provided, run output will be omitted.
 
         Options behaviour:
 
-        * :code:`all` will output all job run logs
-        * :code:`error` will output job run error logs only
+        * :code:`stdout` will add stdout and stderr to the console output
+        * :code:`stderr` will add only stderr to the console output
         """,
 )
 @environment_option
@@ -130,7 +130,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
-    console_log_level: Optional[str],
+    output_to_console: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -191,10 +191,10 @@ def launch(
 
                 dbx_echo("Launch command finished")
 
-                if console_log_level:
+                if output_to_console:
                     log_provider = LogProvider(jobs_service, final_run_state)
-                    with OutputWrapper():
-                        log_provider.provide(console_log_level)
+                    dbx_echo(f"Run output provisioning requested with level {output_to_console}")
+                    log_provider.provide(output_to_console)
 
                 if dbx_status == "ERROR":
                     raise Exception(
