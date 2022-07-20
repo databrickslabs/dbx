@@ -14,7 +14,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ConfigurationManager
-from dbx.api.log_provider import LogProvider
+from dbx.api.output_provider import OutputProvider
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
@@ -102,7 +102,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
               If not provided or empty, dbx will try to detect the branch name.""",
 )
 @click.option(
-    "--output-to-console",
+    "--include-output",
     type=click.Choice(["stdout", "stderr"]),
     default=None,
     help="""
@@ -130,7 +130,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
-    output_to_console: Optional[str],
+    include_output: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -191,10 +191,10 @@ def launch(
 
                 dbx_echo("Launch command finished")
 
-                if output_to_console:
-                    log_provider = LogProvider(jobs_service, final_run_state)
-                    dbx_echo(f"Run output provisioning requested with level {output_to_console}")
-                    log_provider.provide(output_to_console)
+                if include_output:
+                    log_provider = OutputProvider(jobs_service, final_run_state)
+                    dbx_echo(f"Run output provisioning requested with level {include_output}")
+                    log_provider.provide(include_output)
 
                 if dbx_status == "ERROR":
                     raise Exception(

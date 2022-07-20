@@ -5,24 +5,23 @@ from databricks_cli.sdk import JobsService
 from dbx.utils import dbx_echo
 
 
-class LogProvider:
+class OutputProvider:
     def __init__(self, js: JobsService, final_state: Dict[str, Any]):
         self._js = js
         self._final_state = final_state
 
     @staticmethod
     def _print_by_key(output: Dict[str, Any], key: str):
-        logs = output.get(key)
-        if logs:
-            for line in logs.split("\n"):
-                dbx_echo(line)
+        logs = output.get(key, "")
+        for line in logs.split("\n"):
+            dbx_echo(line)
 
     @staticmethod
     def _wrap_message(msg):
         return "-" * 20 + f" {msg} " + "-" * 20
 
     def provide(self, output_level: str):
-        tasks: List[Any] = self._final_state.get("tasks")
+        tasks: List[Any] = self._final_state.get("tasks", [])
         tasks.sort(key=lambda el: el["run_id"])  # sort is in-place function,
 
         if not tasks:

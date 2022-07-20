@@ -10,7 +10,7 @@ def test_jobs(spark: SparkSession, tmp_path: Path):
     common_config = {"database": "default", "table": "sklearn_housing"}
     test_etl_config = {"output": common_config}
     etl_job = SampleETLJob(spark, test_etl_config)
-    etl_job.launch()
+    etl_job.launch(,
     table_name = f"{test_etl_config['output']['database']}.{test_etl_config['output']['table']}"
     _count = spark.table(table_name).count()
     assert _count > 0
@@ -22,7 +22,7 @@ def test_jobs(spark: SparkSession, tmp_path: Path):
         "experiment": "/Shared/{{cookiecutter.project_name}}/sample_experiment"
     }
     ml_job = SampleMLJob(spark, test_ml_config)
-    ml_job.launch()
+    ml_job.launch(,
     experiment = mlflow.get_experiment_by_name(test_ml_config['experiment'])
     assert experiment is not None
     runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
