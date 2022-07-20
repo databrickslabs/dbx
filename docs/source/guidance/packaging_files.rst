@@ -28,12 +28,12 @@ Imagine having the following project structure:
 
     .
     ├── <package-name>
-    │   ├── __init__.py
-    │   └── resources
-    │       ├── raw
-    │       │   └── username.csv
-    │       └── sql
-    │           └── create_table.sql
+    │       ├── __init__.py
+    │       └── resources
+    │           ├── raw
+    │           │   └── username.csv
+    │           └── sql
+    │               └── create_table.sql
     ├── setup.py
 
 It's a good practice to keep all arbitrary files in a separate directory (in this case it's located in :code:`<package-name>/resources`.
