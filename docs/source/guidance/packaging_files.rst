@@ -69,5 +69,5 @@ To access the referenced files, do the following in Python:
         "<package-name>", "resources/sql/create_table.sql"
     )
 
-The provided paths can be used to locally read these files for any purpose (e.g. reading them via :code:`pandas`).
+The provided paths can be used to locally read these files for any purpose.
 
