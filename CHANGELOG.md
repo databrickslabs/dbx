@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
 ## [X.Y.Z] - YYYY-MM-DD
+## Changed
+
+- Rename `workloads` to `tasks` in the Python package template
 
 ## Added
 
 - Switch to include run stderr and stdout output to the console output
+- Docs describing how-to for Python packaging
 
 ----
 > Unreleased changes must be tracked above this line.

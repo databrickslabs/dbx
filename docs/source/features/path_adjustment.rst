@@ -19,11 +19,11 @@ Please find more examples on path resolution below:
 
    .. tab:: JSON
 
-      .. literalinclude:: ../../tests/deployment-configs/04-path-adjustment-policy.json
+      .. literalinclude:: ../../../tests/deployment-configs/04-path-adjustment-policy.json
          :language: JSON
 
    .. tab:: YAML
 
-      .. literalinclude:: ../../tests/deployment-configs/04-path-adjustment-policy.yaml
+      .. literalinclude:: ../../../tests/deployment-configs/04-path-adjustment-policy.yaml
          :language: yaml
 

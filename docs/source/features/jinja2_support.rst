@@ -18,12 +18,12 @@ Please find examples on how to use Jinja2 templates below:
 
    .. tab:: deployment.json.j2
 
-      .. literalinclude:: ../../tests/deployment-configs/jinja-example.json.j2
+      .. literalinclude:: ../../../tests/deployment-configs/jinja-example.json.j2
          :language: jinja
 
    .. tab:: deployment.yml.j2
 
-      .. literalinclude:: ../../tests/deployment-configs/jinja-example.yaml.j2
+      .. literalinclude:: ../../../tests/deployment-configs/jinja-example.yaml.j2
          :language: yaml+jinja
 
 Support for includes
@@ -33,12 +33,12 @@ Jinja2-based templates also support :code:`include` clause which allows you to r
 
 For example, your main deployment file can look like this:
 
-.. literalinclude:: ../../tests/deployment-configs/nested-configs/09-jinja-include.json.j2
+.. literalinclude:: ../../../tests/deployment-configs/nested-configs/09-jinja-include.json.j2
          :language: jinja
 
 And in the :code:`includes` folder you can provide the cluster configuration component:
 
-.. literalinclude:: ../../tests/deployment-configs/nested-configs/includes/cluster-test.json.j2
+.. literalinclude:: ../../../tests/deployment-configs/nested-configs/includes/cluster-test.json.j2
          :language: jinja
 
 
@@ -53,10 +53,10 @@ This allows you to parametrize the deployment and make it more flexible for CI p
 
    .. tab:: JSON
 
-      .. literalinclude:: ../../tests/deployment-configs/04-jinja-with-env-vars.json.j2
+      .. literalinclude:: ../../../tests/deployment-configs/04-jinja-with-env-vars.json.j2
          :language: jinja
 
    .. tab:: YAML
 
-      .. literalinclude:: ../../tests/deployment-configs/04-jinja-with-env-vars.yaml.j2
+      .. literalinclude:: ../../../tests/deployment-configs/04-jinja-with-env-vars.yaml.j2
          :language: yaml+jinja

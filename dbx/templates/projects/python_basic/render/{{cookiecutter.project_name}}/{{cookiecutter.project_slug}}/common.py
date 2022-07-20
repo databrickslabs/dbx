@@ -23,7 +23,7 @@ def get_dbutils(
         return None
 
 
-class Workload(ABC):
+class Task(ABC):
     """
     This is an abstract class that provides handy interfaces to implement workloads (e.g. jobs or job tasks).
     Create a child from this class and implement the abstract launch method.

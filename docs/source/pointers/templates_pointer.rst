@@ -10,5 +10,6 @@ The list of supported languages and frameworks is described below. We warmly wel
 
 .. toctree::
     :maxdepth: 1
+    :glob:
 
-    templates/python_basic.rst
+    ../templates/*

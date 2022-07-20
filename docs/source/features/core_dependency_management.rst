@@ -8,7 +8,7 @@ Building the project package
 By default, :code:`dbx` is heavily oriented towards Python-based projects that could be compiled into a .whl file.
 To simplify this functionality during deployment, dbx will automatically create a .whl file in the :code:`dist/` folder during the :code:`dbx deploy` command.
 
-However, in some cases there is no need to build the Python-based .whl file. Such cases might be:
+However, in some cases there is no need to build the Python-based wheel file. Such cases might be:
 
 * You're not using Python in your project (e.g. your project is written in Scala or Java)
 * You're only using notebooks
@@ -63,12 +63,12 @@ In such cases, you can do one of the following:
 
    .. tab:: JSON
 
-      .. literalinclude:: ../../tests/deployment-configs/07-json-packaging-example.json
+      .. literalinclude:: ../../../tests/deployment-configs/07-json-packaging-example.json
          :language: JSON
 
    .. tab:: YAML
 
-      .. literalinclude:: ../../tests/deployment-configs/07-yaml-packaging-example.yaml
+      .. literalinclude:: ../../../tests/deployment-configs/07-yaml-packaging-example.yaml
          :language: YAML
 
 As per examples above - it's possible to provide a per-job or per-task deployment properties in the :code:`deployment_config` section.

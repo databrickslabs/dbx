@@ -7,4 +7,4 @@ If you're looking for some ready-to-use examples, please check out the list belo
     :maxdepth: 1
     :glob:
 
-    examples/*
+    ../examples/*

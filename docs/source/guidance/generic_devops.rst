@@ -78,5 +78,5 @@ Basic CI/CD architecture
 
 Combining all of the above, here is a generic CI/CD architecture that can be applied for some projects:
 
-.. image:: _static/cicd_arch.png
+.. image:: ../_static/cicd_arch.png
 
