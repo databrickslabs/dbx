@@ -144,6 +144,15 @@ def test_launch_empty_runs(temp_project: Path, mlflow_file_uploader, mock_dbx_fi
     assert "No deployments provided per given set of filters" in str(launch_result.exception)
 
 
+def test_launch_with_output(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--include-output=stdout"])
+    assert launch_result.exit_code == 0
+
+
 def test_launch_with_trace(
     mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
 ):

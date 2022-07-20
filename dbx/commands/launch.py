@@ -14,6 +14,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ConfigurationManager
+from dbx.api.output_provider import OutputProvider
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
@@ -100,6 +101,22 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     help="""The name of the current branch.
               If not provided or empty, dbx will try to detect the branch name.""",
 )
+@click.option(
+    "--include-output",
+    type=click.Choice(["stdout", "stderr"]),
+    default=None,
+    help="""
+        If provided, adds run output to the console output of the launch command.
+        Please note that this option is only supported for Jobs V2.X+.
+        For jobs created without tasks section output won't be printed.
+        If not provided, run output will be omitted.
+
+        Options behaviour:
+
+        * :code:`stdout` will add stdout and stderr to the console output
+        * :code:`stderr` will add only stderr to the console output
+        """,
+)
 @environment_option
 @debug_option
 def launch(
@@ -113,6 +130,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
+    include_output: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -162,19 +180,27 @@ def launch(
                 if kill_on_sigterm:
                     dbx_echo("Click Ctrl+C to stop the run")
                     try:
-                        dbx_status = _trace_run(api_client, run_data)
+                        dbx_status, final_run_state = _trace_run(api_client, run_data)
                     except KeyboardInterrupt:
                         dbx_status = "CANCELLED"
                         dbx_echo("Cancelling the run gracefully")
                         _cancel_run(api_client, run_data)
                         dbx_echo("Run cancelled successfully")
                 else:
-                    dbx_status = _trace_run(api_client, run_data)
+                    dbx_status, final_run_state = _trace_run(api_client, run_data)
 
-                if dbx_status == "ERROR":
-                    raise Exception("Tracked run failed during execution. Please check Databricks UI for run logs")
                 dbx_echo("Launch command finished")
 
+                if include_output:
+                    log_provider = OutputProvider(jobs_service, final_run_state)
+                    dbx_echo(f"Run output provisioning requested with level {include_output}")
+                    log_provider.provide(include_output)
+
+                if dbx_status == "ERROR":
+                    raise Exception(
+                        "Tracked run failed during execution. "
+                        "Please check the status and logs of the run for details."
+                    )
             else:
                 dbx_status = "NOT_TRACKED"
                 dbx_echo(
@@ -410,14 +436,14 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]
             return status
 
 
-def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
+def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> [str, Dict[str, Any]]:
     final_status = _wait_run(api_client, run_data)
     result_state = final_status["state"].get("result_state", None)
     if result_state == "SUCCESS":
         dbx_echo("Job run finished successfully")
-        return "SUCCESS"
+        return "SUCCESS", final_status
     else:
-        return "ERROR"
+        return "ERROR", final_status
 
 
 def _get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:

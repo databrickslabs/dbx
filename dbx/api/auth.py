@@ -36,6 +36,10 @@ class AuthConfigProvider:
                 "Provided configuration is not based on token authentication."
                 "Please switch to token-based authentication instead."
             )
+        if not (config.host.startswith("https://") or config.host.startswith("http://")):
+            raise Exception(
+                "Provided host value doesn't start with https:// or http:// \n Please check the host configuration."
+            )
 
     @staticmethod
     def _get_config_from_env() -> Optional[DatabricksConfig]:
