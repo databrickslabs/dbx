@@ -128,7 +128,7 @@ def execute(
     else:
         if "tasks" in job_payload:
             raise Exception(
-                "You're trying to execute a multitask job without passing the task name \n"
+                "You're trying to execute a multitask job without passing the task name. "
                 "Please provide the task name via --task parameter"
             )
         _payload = job_payload

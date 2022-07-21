@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
 ## [X.Y.Z] - YYYY-MM-DD
+
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [0.6.6] - 2022-07-21
+
 ## Changed
 
 - Rename `workloads` to `tasks` in the Python package template
@@ -20,12 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docs describing how-to for Python packaging
 - New option for Jinja-based deployment parameter passing from a YAML file (`--jinja-variables-file`)
 - Support for multitask jobs in `dbx execute`
-
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 ## [0.6.5] - 2022-07-19
 
