@@ -54,6 +54,12 @@ from dbx.utils.options import environment_option
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @click.option("--job", required=True, type=str, help="Job name to be executed")
 @click.option(
+    "--task",
+    required=False,
+    type=str,
+    help="Task name (task_key field) inside the job to be executed. Required if the --job is a multitask job.",
+)
+@click.option(
     "--deployment-file",
     required=False,
     type=click.Path(path_type=Path),
@@ -79,6 +85,7 @@ def execute(
     cluster_id: str,
     cluster_name: str,
     job: str,
+    task: Optional[str],
     deployment_file: Optional[Path],
     requirements_file: Path,
     no_package: bool,
@@ -105,11 +112,33 @@ def execute(
 
     job_payload = found_jobs[0]
 
-    entrypoint_file = job_payload.get("spark_python_task").get("python_file").replace("file://", "")
+    if task:
+        _tasks = job_payload.get("tasks", [])
+        found_tasks = [t for t in _tasks if t.get("task_key") == task]
+
+        if not found_tasks:
+            raise Exception(f"Task {task} not found in the definition of job {job}")
+
+        if len(found_tasks) > 1:
+            raise Exception(f"Task keys are not unique, more then one task found for job {job} with task name {task}")
+
+        _task = found_tasks[0]
+
+        _payload = _task
+    else:
+        if "tasks" in job_payload:
+            raise Exception(
+                "You're trying to execute a multitask job without passing the task name \n"
+                "Please provide the task name via --task parameter"
+            )
+        _payload = job_payload
+
+    entrypoint_file = _payload.get("spark_python_task").get("python_file").replace("file://", "")
 
     if not entrypoint_file:
         raise FileNotFoundError(
-            f"No entrypoint file provided in job {job}. " f"Please add one under spark_python_task.python_file section"
+            f"No entrypoint file provided in job {job}, or the job is not a spark_python_task. \n"
+            "Currently, only spark_python_task jobs and tasks are supported for dbx execute."
         )
 
     cluster_service = ClusterService(api_client)
@@ -160,7 +189,7 @@ def execute(
         mlflow.set_tags(tags)
 
         dbx_echo("Processing parameters")
-        task_props: List[Any] = job_payload.get("spark_python_task").get("parameters", [])
+        task_props: List[Any] = _payload.get("spark_python_task").get("parameters", [])
 
         if task_props:
 

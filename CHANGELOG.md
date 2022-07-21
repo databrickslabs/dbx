@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Option (`--include-output`) to include run stderr and stdout output to the console output
 - Docs describing how-to for Python packaging
 - New option for Jinja-based deployment parameter passing from a YAML file (`--jinja-variables-file`)
+- Support for multitask jobs in `dbx execute`
 
 ----
 > Unreleased changes must be tracked above this line.
