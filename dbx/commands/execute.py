@@ -53,6 +53,7 @@ from dbx.utils.options import environment_option
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @click.option("--job", required=True, type=str, help="Job name to be executed")
+@click.option("--task", required=False, type=str, help="Task name inside the job to be executed")
 @click.option(
     "--deployment-file",
     required=False,
@@ -79,6 +80,7 @@ def execute(
     cluster_id: str,
     cluster_name: str,
     job: str,
+    task: Optional[str],
     deployment_file: Optional[Path],
     requirements_file: Path,
     no_package: bool,
@@ -105,7 +107,23 @@ def execute(
 
     job_payload = found_jobs[0]
 
-    entrypoint_file = job_payload.get("spark_python_task").get("python_file").replace("file://", "")
+    if task:
+        _tasks = job_payload.get("tasks", [])
+        found_tasks = [t for t in _tasks if t.get("task_key") == task]
+
+        if not found_tasks:
+            raise Exception(f"Task {task} not found in the definition of job {job}")
+
+        if len(found_tasks) > 1:
+            raise Exception(f"Task keys are not unique, more then one task found for job {job} with task name {task}")
+
+        _task = found_tasks[0]
+
+        _payload = _task
+    else:
+        _payload = job_payload
+
+    entrypoint_file = _payload.get("spark_python_task").get("python_file").replace("file://", "")
 
     if not entrypoint_file:
         raise FileNotFoundError(
@@ -160,7 +178,7 @@ def execute(
         mlflow.set_tags(tags)
 
         dbx_echo("Processing parameters")
-        task_props: List[Any] = job_payload.get("spark_python_task").get("parameters", [])
+        task_props: List[Any] = _payload.get("spark_python_task").get("parameters", [])
 
         if task_props:
 
