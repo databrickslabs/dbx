@@ -53,7 +53,12 @@ from dbx.utils.options import environment_option
 @click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
 @click.option("--cluster-name", required=False, type=str, help="Cluster name.")
 @click.option("--job", required=True, type=str, help="Job name to be executed")
-@click.option("--task", required=False, type=str, help="Task name inside the job to be executed")
+@click.option(
+    "--task",
+    required=False,
+    type=str,
+    help="Task name (task_key field) inside the job to be executed. Required if the --job is a multitask job.",
+)
 @click.option(
     "--deployment-file",
     required=False,
@@ -121,13 +126,19 @@ def execute(
 
         _payload = _task
     else:
+        if "tasks" in job_payload:
+            raise Exception(
+                "You're trying to execute a multitask job without passing the task name \n"
+                "Please provide the task name via --task parameter"
+            )
         _payload = job_payload
 
     entrypoint_file = _payload.get("spark_python_task").get("python_file").replace("file://", "")
 
     if not entrypoint_file:
         raise FileNotFoundError(
-            f"No entrypoint file provided in job {job}. " f"Please add one under spark_python_task.python_file section"
+            f"No entrypoint file provided in job {job}, or the job is not a spark_python_task. \n"
+            "Currently, only spark_python_task jobs and tasks are supported for dbx execute."
         )
 
     cluster_service = ClusterService(api_client)

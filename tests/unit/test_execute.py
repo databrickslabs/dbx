@@ -74,7 +74,7 @@ def test_smoke_execute_task(
                 "--job",
                 f"{temp_project.name}-sample-multitask",
                 "--task",
-                "etl"
+                "etl",
             ],
         )
 
