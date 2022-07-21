@@ -1,4 +1,4 @@
-Jinja2 Support: Environment variables, logic and loops
+Jinja2 Support: variables, logic and loops
 ======================================================
 
 Basic template support
@@ -60,3 +60,33 @@ This allows you to parametrize the deployment and make it more flexible for CI p
 
       .. literalinclude:: ../../../tests/deployment-configs/04-jinja-with-env-vars.yaml.j2
          :language: yaml+jinja
+
+
+Variable file
+-------------
+
+Since version 0.6.6 :code:`dbx` supports an option (:code:`--jinja-variables-file`) to pass variables from a file to the Jinja-based deployment file.
+Variables shall be stored in a file in YAML format which contains variables that are to be used from the inside of the main Jinja definition.
+
+Consider the following variables file:
+
+.. literalinclude:: ../../../tests/deployment-configs/jinja-vars/jinja-template-variables-file.yaml
+    :language: jinja
+
+Variables from this file can be referenced when file path is passed as an option to :code:`dbx deploy`.
+
+Referencing is done by using special :code:`var["VAR_NAME"]` syntax:
+
+.. tabs::
+
+   .. tab:: JSON
+
+      .. literalinclude:: ../../../tests/deployment-configs/jinja-vars/09-jinja-with-custom-vars.json.j2
+         :language: jinja
+
+   .. tab:: YAML
+
+      .. literalinclude:: ../../../tests/deployment-configs/jinja-vars/09-jinja-with-custom-vars.yaml.j2
+         :language: yaml+jinja
+
+Variables can also be combined with environment variables mentioned above.

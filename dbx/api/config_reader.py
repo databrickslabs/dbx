@@ -36,9 +36,14 @@ class _JsonConfigReader(_AbstractConfigReader):
 
 
 class _Jinja2ConfigReader(_AbstractConfigReader):
-    def __init__(self, path: Path, ext: str):
+    def __init__(self, path: Path, ext: str, jinja_vars_file: Optional[Path]):
         self._ext = ext
+        self._jinja_vars_file = jinja_vars_file
         super().__init__(path)
+
+    @staticmethod
+    def _read_vars_file(file_path: Path) -> Dict[str, Any]:
+        return yaml.load(file_path.read_text(encoding="utf-8"), yaml.SafeLoader)
 
     def _read_file(self) -> Dict[str, Any]:
         abs_parent_path = self._path.parent.absolute()
@@ -46,7 +51,8 @@ class _Jinja2ConfigReader(_AbstractConfigReader):
         dbx_echo("Reading file as a Jinja2 template")
         dbx_echo(f"The following path will be used for the jinja loader: {abs_parent_path} with file {file_name}")
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(abs_parent_path))
-        rendered = env.get_template(file_name).render(env=os.environ)
+        _var = {} if not self._jinja_vars_file else self._read_vars_file(self._jinja_vars_file)
+        rendered = env.get_template(file_name).render(env=os.environ, var=_var)
         if self._ext == ".json":
             return json.loads(rendered)
         elif self._ext in [".yml", ".yaml"]:
@@ -60,7 +66,8 @@ class ConfigReader:
     If a new reader is introduced, it shall be used via the :code:`_define_reader` method.
     """
 
-    def __init__(self, path: Optional[Path] = None):
+    def __init__(self, path: Optional[Path] = None, jinja_vars_file: Optional[Path] = None):
+        self._jinja_vars_file = jinja_vars_file
         self._path = self._verify_deployment_file(path) if path else self._find_deployment_file()
         self._reader = self._define_reader()
 
@@ -100,8 +107,13 @@ class ConfigReader:
     def _define_reader(self) -> _AbstractConfigReader:
         if len(self._path.suffixes) > 1:
             if self._path.suffixes[0] in [".json", ".yaml", ".yml"] and self._path.suffixes[1] == ".j2":
-                return _Jinja2ConfigReader(self._path, ext=self._path.suffixes[0])
+                return _Jinja2ConfigReader(
+                    self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file
+                )
         else:
+            if self._jinja_vars_file:
+                raise Exception("Jinja variables file is provided, but the deployment file is not based on Jinja.")
+
             if self._path.suffixes[0] == ".json":
                 return _JsonConfigReader(self._path)
             elif self._path.suffixes[0] in [".yaml", ".yml"]:
