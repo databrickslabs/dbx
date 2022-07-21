@@ -238,7 +238,9 @@ def launch(
 
             if not as_run_submit:
                 run_launcher = RunNowLauncher(
-                    job=job, api_client=api_client, existing_runs=existing_runs, prepared_parameters=prepared_parameters
+                    job=job, api_client=api_client, existing_runs=existing_runs,
+                    prepared_parameters=prepared_parameters,
+                    job_output_log_level=job_output_log_level
                 )
             else:
                 run_launcher = RunSubmitLauncher(
@@ -405,7 +407,7 @@ class RunSubmitLauncher:
 
 
 class RunNowLauncher:
-    def __init__(self, job: str, api_client: ApiClient, existing_runs: str, prepared_parameters: Any):
+    def __init__(self, job: str, api_client: ApiClient, existing_runs: str, prepared_parameters: Any, job_output_log_level: Any):
         self.job = job
         self.api_client = api_client
         self.existing_runs = existing_runs
