@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+
 ## [X.Y.Z] - YYYY-MM-DD
 
 ----
@@ -15,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > When releasing, Copy the changelog to below this line, with proper version and date.
 > And empty the **[Unreleased]** section above.
 ----
+
+## [0.6.7] - 2022-07-21
+
+## Fixed
+
+- Task naming and references in the Python template
+- Small typo in Python template
 
 ## [0.6.6] - 2022-07-21
 

@@ -46,6 +46,14 @@ For an integration test on interactive cluster, use the following command:
 dbx execute --cluster-name=<name of interactive cluster> --job=<name of the job to test>
 ```
 
+To execute a task inside multitask job, use the following command:
+```
+dbx execute \
+    --cluster-name=<name of interactive cluster> \
+    --job=<name of the job to test> \
+    --task=<task-key-from-job-definition>
+```
+
 For a test on an automated job cluster, deploy the job files and then launch:
 ```
 dbx deploy --jobs=<name of the job to test> --files-only
