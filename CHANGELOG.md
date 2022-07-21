@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 
 - Rename `workloads` to `tasks` in the Python package template
+- Documentation structure has been refactored
 
 ## Added
 
-- Switch to include run stderr and stdout output to the console output
+- Option (`--include-output`) to include run stderr and stdout output to the console output
 - Docs describing how-to for Python packaging
+- New option for Jinja-based deployment parameter passing from a YAML file (`--jinja-variables-file`)
 
 ----
 > Unreleased changes must be tracked above this line.

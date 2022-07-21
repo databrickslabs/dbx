@@ -1,0 +1,31 @@
+{
+    "default": {
+    "jobs": [
+        {
+        "name": "your-job-name",
+        "timeout_seconds": {{ var["TIMEOUT"] }},
+        "email_notifications": {
+            "on_failure": [
+                {% for email in var["ON_FAILURE_EMAILS"] %}
+                    "{{ email | lower }}"
+                {{ "," if not loop.last }}
+                {% endfor %}
+            ]
+        },
+        "new_cluster": {
+            "spark_version": "7.3.x-cpu-ml-scala2.12",
+            "node_type_id": "some-node-type",
+            "aws_attributes": {
+            "first_on_demand": 0,
+            "availability": "{{ var["AVAILABILITY"] | default('SPOT') }}"
+            },
+            "num_workers": 2
+        },
+        "libraries": [],
+        "max_retries": {{ var["MAX_RETRY"] | default(3) }},
+        "spark_python_task": {
+            "python_file": "tests/deployment-configs/placeholder_1.py"
+            }
+        }]
+    }
+}

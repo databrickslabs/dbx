@@ -14,6 +14,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
 from dbx.api.config_reader import ConfigReader
+from dbx.callbacks import verify_jinja_variables_file
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.common import (
     prepare_environment,
@@ -44,7 +45,7 @@ from dbx.utils.job_listing import find_job_by_name
        | :code:`[.json, .yaml, .yml, .j2]` are all valid file types.
     3. Per each job defined in the :option:`--jobs`, all local file references will be checked
     4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
-    5. [DEPRECATED]If :option:`--requirements-file` is provided, all requirements will be added to job definition
+    5. [DEPRECATED] If :option:`--requirements-file` is provided, all requirements will be added to job definition
     6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
     7. If the job with given name exists, it will be updated, if not - created
     8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
@@ -56,6 +57,7 @@ from dbx.utils.job_listing import find_job_by_name
     required=False,
     type=click.Path(path_type=Path),
     help="Path to deployment file in one of these formats: [json, yaml]",
+    is_eager=True,
 )
 @click.option(
     "--job",
@@ -115,6 +117,17 @@ from dbx.utils.job_listing import find_job_by_name
     help="""The name of the current branch.
               If not provided or empty, dbx will try to detect the branch name.""",
 )
+@click.option(
+    "--jinja-variables-file",
+    type=click.Path(path_type=Path),
+    default=None,
+    required=False,
+    help="""
+        Path to a file with variables for Jinja template. Only works when Jinja-based deployment file is used.
+        Read more about this functionality in the Jinja2 support doc.
+        """,
+    callback=verify_jinja_variables_file,
+)
 @debug_option
 @environment_option
 def deploy(
@@ -129,6 +142,7 @@ def deploy(
     files_only: bool,
     write_specs_to_file: Optional[str],
     branch_name: Optional[str],
+    jinja_variables_file: Optional[Path],
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 
@@ -138,7 +152,7 @@ def deploy(
     if not branch_name:
         branch_name = get_current_branch_name()
 
-    config_reader = ConfigReader(deployment_file)
+    config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
     deployment = config_reader.get_environment(environment)
 

@@ -1,0 +1,4 @@
+TIMEOUT: 12000
+ON_FAILURE_EMAILS:
+  - example@dbx.com
+  - presetEmail@test.com
