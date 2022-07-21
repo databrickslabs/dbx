@@ -15,7 +15,7 @@
                 "libraries": [],
                 "max_retries": 0,
                 "spark_python_task": {
-                    "python_file": "tests/deployment-configs/placeholder_1.py"
+                    "python_file": "file://tests/deployment-configs/placeholder_1.py"
                 }
             }
         ]

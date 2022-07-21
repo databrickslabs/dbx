@@ -12,10 +12,11 @@ SHELL=/bin/bash
 
 
 ##############################################################################
-PYTHON_VERSION=3.7.5
+PYTHON_VERSION=3.8.13
 VENV_NAME=.venv
 VENV_DIR=${VENV_NAME}
 PYTHON=${VENV_DIR}/bin/python
+RSTCHECK=${VENV_DIR}/bin/rstcheck
 SPHINX_AUTOBUILD=${VENV_DIR}/bin/sphinx-autobuild
 SPHINX_BUILD=${VENV_DIR}/bin/sphinx-build
 ##############################################################################
@@ -147,7 +148,8 @@ install-dev: ## Install dev dependencies.
 	@echo ""
 	@echo "${YELLOW}Install Dev dependencies.${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pip install -r dev-requirements.txt
+	$(PYTHON) -m pip install -e ".[dev]"
+	pre-commit install
 
 post-install-info: ## Just some post installation info.
 	@echo ""
@@ -175,22 +177,20 @@ lint: ## Run the lint and checks
 	@echo "${YELLOW}Linting code:${NORMAL}"
 	@make helper-line
 	$(PYTHON) -m prospector --profile prospector.yaml
-	$(PYTHON) -m rstcheck README.rst
+	$(RSTCHECK) README.rst
 	@make check
 
 check: ## Run black checks
 	@echo ""
 	@echo "${YELLOW}Check code with black:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m black --check ./dbx
-	$(PYTHON) -m black --check ./tests
+	$(PYTHON) -m black --check .
 
 fix: ## fix the code with black formatter.
 	@echo ""
 	@echo "${YELLOW}Fixing code with black:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m black ./dbx
-	$(PYTHON) -m black ./tests
+	$(PYTHON) -m black .
 
 ##############################################################################
 

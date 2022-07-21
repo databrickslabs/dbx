@@ -13,7 +13,6 @@ custom:
 
 environments:
   default:
-    strict_path_adjustment_policy: true
     jobs:
       - name: "dbx-mtj-sample"
         job_clusters:

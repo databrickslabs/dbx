@@ -1,0 +1,103 @@
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "your-spark-version"
+    node_type_id: "your-node-type-id"
+    spark_conf:
+      spark.databricks.delta.preview.enabled: 'true'
+    instance_pool_name: <enter pool name>
+    driver_instance_pool_name: <enter pool name>
+    runtime_engine: STANDARD
+    init_scripts:
+      - dbfs:
+        destination: dbfs:/<enter your path>
+
+  basic-auto-scale-props: &basic-auto-scale-props
+    autoscale:
+    min_workers: 2
+    max_workers: 4
+
+  basic-static-cluster: &basic-static-cluster
+    new_cluster:
+    <<: *basic-cluster-props
+    num_workers: 2
+    requirements: file://requirements.txt
+
+  basic-autoscale-cluster: &basic-autoscale-cluster
+    new_cluster:
+    <<: # merge these two maps and place them here.
+      - *basic-cluster-props
+      - *basic-auto-scale-props
+
+environments:
+  default:
+    jobs:
+      - name: "your-job-name"
+
+        email_notifications:
+          on_start: [ "user@email.com" ]
+          on_success: [ "user@email.com" ]
+          on_failure: [ "user@email.com" ]
+          no_alert_for_skipped_runs: false
+
+        #http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html
+        schedule:
+        quartz_cron_expression: "00 25 03 * * ?"
+        timezone_id: "UTC"
+        pause_status: "PAUSED"
+
+        tags:
+          your-key: "your-value"
+          your-key1: "your-value1"
+
+        format: MULTI_TASK
+
+        permissions:
+          access_control_list:
+            - user_name: "user@email.com"
+              permission_level: "IS_OWNER"
+            #- group_name: "your-group-name"
+            #permission_level: "CAN_VIEW"
+            #- user_name: "user2@databricks.com"
+            #permission_level: "CAN_VIEW"
+            #- user_name: "user3@databricks.com"
+            #permission_level: "CAN_VIEW"
+
+        job_clusters:
+          - job_cluster_key: "basic-cluster"
+              <<: *basic-static-cluster
+          - job_cluster_key: "basic-autoscale-cluster"
+              <<: *basic-autoscale-cluster
+
+        tasks:
+          - task_key: "your-task-01"
+            job_cluster_key: "basic-cluster"
+            max_retries: 1
+            spark_python_task:
+              python_file: "file://sample_project/jobs/your-file-01.py"
+
+            min_retry_interval_millis: 900000
+            retry_on_timeout: false
+            timeout_seconds: 0
+            email_notifications:
+              on_start:
+                - user@email.com
+              on_success:
+                - user@email.com
+              on_failure:
+                - user1@email.com
+                - user2@email.com
+
+          - task_key: "your-task-02"
+            job_cluster_key: "basic-cluster"
+            spark_python_task:
+              python_file: "file://sample_project/jobs/your-file-02.py"
+            depends_on:
+              - task_key: "your-task-01"
+
+          - task_key: "your-task-02"
+
+            job_cluster_key: "basic-cluster"
+            notebook_task:
+              notebook_path: "/Repos/some/project/notebook"
+            depends_on:
+              - task_key: "your-task-01"

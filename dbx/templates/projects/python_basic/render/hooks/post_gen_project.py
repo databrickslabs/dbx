@@ -5,7 +5,7 @@ from typing import Callable, Dict, Optional, Any
 from jinja2 import Environment, FileSystemLoader
 
 from dbx.commands.configure import configure
-from dbx.utils.common import TEMPLATE_ROOT_PATH
+from dbx.constants import TEMPLATE_ROOT_PATH
 
 DBX_TEMPLATE_NAME = "python_basic"
 COMPONENTS_PATH = TEMPLATE_ROOT_PATH / DBX_TEMPLATE_NAME / "components"
@@ -70,6 +70,9 @@ class PostProcessor:
 
         elif CICD_TOOL == "GitLab":
             NamedTemplate(env, ".gitlab-ci.yml").render_and_write(parameters=PostProcessor.TEMPLATE_PARAMETERS)
+
+        elif CICD_TOOL == "None":
+            print("CI/CD tool argument was set to None, no CI configuration would be provided")
 
     @staticmethod
     def process_cloud_component(env: Environment):

@@ -32,21 +32,20 @@ jobs:
 
       - name: Install dependencies and project in dev mode
         run: |
-          pip install -r unit-requirements.txt
-          pip install -e .
+          pip install -e ".[dev]"
 
       - name: Run unit tests
         run: |
           echo "Launching unit tests"
           pytest tests/unit
 
-      - name: Deploy integration test
+      - name: Jobless deployment (files only upload)
         run: |
-          dbx deploy --jobs={{project_name}}-sample-integration-test --files-only
+          dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
 
-      - name: Run integration test
+      - name: Run the job in a jobless fashion
         run: |
-          dbx launch --job={{project_name}}-sample-integration-test --as-run-submit --trace
+          dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
 
 
 

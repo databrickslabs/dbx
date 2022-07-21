@@ -33,11 +33,11 @@ jobs:
 
       - name: Install dependencies and project in dev mode
         run: |
-          pip install -r unit-requirements.txt
+          pip install -e ".[dev]"
 
       - name: Deploy the job
         run: |
-          dbx deploy --jobs={{project_name}}-sample
+          dbx deploy --job={{project_name}}-sample-etl-2.0
 
       - name: Create Release
         id: create_release

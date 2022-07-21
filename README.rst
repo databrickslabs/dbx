@@ -1,6 +1,3 @@
-
-
-
 dbx by Databricks Labs
 ======================
 
@@ -14,31 +11,30 @@ DataBricks CLI eXtensions - aka :code:`dbx` is a CLI tool for advanced Databrick
 
 |docs| |pypi| |build| |codecov| |lgtm-alerts| |lgtm-code-quality| |downloads| |black|
 
-.. |docs| image:: https://readthedocs.org/projects/dbx/badge/?version=latest
+.. |docs| image:: https://img.shields.io/readthedocs/dbx?style=for-the-badge
     :target: https://dbx.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. |pypi| image:: https://img.shields.io/pypi/v/dbx.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/dbx?color=green&style=for-the-badge
     :target: https://pypi.org/project/dbx/
     :alt: Latest Python Release
 
-.. |build| image:: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml/badge.svg?branch=master
+.. |build| image:: https://img.shields.io/github/workflow/status/databrickslabs/dbx/build/main?style=for-the-badge
+    :alt: GitHub Workflow Status (branch)
     :target: https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml
 
-.. |codecov| image:: https://codecov.io/gh/databrickslabs/dbx/branch/master/graph/badge.svg?token=S7ADH3W2E3
+.. |codecov| image:: https://img.shields.io/codecov/c/github/databrickslabs/dbx?style=for-the-badge&token=S7ADH3W2E3
     :target: https://codecov.io/gh/databrickslabs/dbx
 
-.. |lgtm-alerts| image:: https://img.shields.io/lgtm/alerts/g/databrickslabs/dbx.svg?logo=lgtm&logoWidth=18
+.. |lgtm-alerts| image:: https://img.shields.io/lgtm/alerts/github/databrickslabs/dbx?style=for-the-badge
     :target: https://lgtm.com/projects/g/databrickslabs/dbx/alerts
 
-.. |lgtm-code-quality| image:: https://img.shields.io/lgtm/grade/python/g/databrickslabs/dbx.svg?logo=lgtm&logoWidth=18
+.. |lgtm-code-quality| image:: https://img.shields.io/lgtm/grade/python/github/databrickslabs/dbx?style=for-the-badge
     :target: https://lgtm.com/projects/g/databrickslabs/dbx/context:python
 
-.. |downloads| image:: https://pepy.tech/badge/dbx
-    :target: https://pepy.tech/project/dbx
-    :alt: Total Downloads
+.. |downloads| image:: https://img.shields.io/pypi/dm/dbx?style=for-the-badge
 
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge
     :target: https://github.com/psf/black
     :alt: We use black for formatting
 
@@ -94,8 +90,23 @@ Differences from other tools
 Limitations
 -----------
 
-* Python > 3.6
-* :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X and only for Python-based projects.
+* Development:
+
+    * | :code:`dbx` currently doesn't provide interactive debugging capabilities.
+      | If you want to use interactive debugging, you can use `Databricks Connect <https://docs.databricks.com/dev-tools/databricks-connect.html>`_ + :code:`dbx` for deployment operations.
+    * :code:`dbx execute` only supports Python-based projects which use local files (Notebooks or Repos are not supported in :code:`dbx execute`).
+    * :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X or higher.
+
+* General:
+
+    * :code:`dbx` doesn't support `Delta Live Tables <https://databricks.com/product/delta-live-tables>`_ at the moment.
+    * | :code:`host` in your profile configuration in :code:`~/.databrickscfg` shall only consist of two parts: :code:`{scheme}://netlog`, e.g. :code:`https://some-host.cloud.databricks.com`.
+      | Strings like :code:`https://some-host.cloud.databricks.com/?o=XXXX#` are not supported. As a symptom if this you might the the error below:
+
+.. code-block::
+
+    raise MlflowException("%s. Response body: '%s'" % (base_msg, response.text))
+    mlflow.exceptions.MlflowException: API request to endpoint was successful but the response body was not in a valid JSON format.
 
 Versioning
 ----------

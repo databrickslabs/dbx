@@ -10,7 +10,6 @@ custom:
 
 environments:
   default:
-    strict_path_adjustment_policy: true
     jobs:
       - name: "dbx_jobs_v21_test"
         job_clusters:
@@ -34,5 +33,5 @@ environments:
               - task_key: "second-task"
             spark_python_task:
               python_file: "file://some/entrypoint.py"
-              parameters: ["--conf-file", "file:fuse://conf/test/sample.yml"]
+              parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
 

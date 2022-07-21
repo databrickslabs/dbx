@@ -3,10 +3,10 @@
     "jobs": [
         {
         "name": "your-job-name",
-        "timeout_seconds": "{{ TIMEOUT }}",
+        "timeout_seconds": "{{ env['TIMEOUT'] }}",
         "email_notifications": {
             "on_failure": [
-                    "{{ ALERT_EMAIL | lower }}",
+                    "{{ env['ALERT_EMAIL'] | lower }}",
                     "presetEmail@test.com"
             ]
         },
@@ -15,14 +15,14 @@
             "node_type_id": "some-node-type",
             "aws_attributes": {
             "first_on_demand": 0,
-            "availability": "{{ AVAILABILITY | default('SPOT') }}"
+            "availability": "{{ env['AVAILABILITY'] | default('SPOT') }}"
             },
             "num_workers": 2
         },
         "libraries": [],
-        "max_retries": "{{ MAX_RETRY | default(3) }}",
+        "max_retries": "{{ env['MAX_RETRY'] | default(3) }}",
         "spark_python_task": {
-            "python_file": "tests/deployment-configs/placeholder_1.py"
+            "python_file": "file://tests/deployment-configs/placeholder_1.py"
             }
         }]
     }

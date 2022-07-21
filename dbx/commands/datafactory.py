@@ -22,7 +22,11 @@ from databricks_cli.configure.config import debug_option
 from databricks_cli.configure.provider import DatabricksConfig
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.utils.common import dbx_echo, read_json, environment_option, get_environment_data, pick_config
+from dbx.api.auth import AuthConfigProvider
+from dbx.utils import dbx_echo
+from dbx.utils.common import get_environment_data, transfer_profile_name
+from dbx.utils.json import JsonUtils
+from dbx.utils.options import environment_option
 
 
 def filter_environment_credential_warning(record):
@@ -101,15 +105,17 @@ class DatafactoryReflector:
 
     def _get_config(self) -> DatabricksConfig:
         environment_data = get_environment_data(self.environment)
-        _, config = pick_config(environment_data)
+        transfer_profile_name(environment_data)
+        config = AuthConfigProvider.get_config()
         return config
 
     @staticmethod
     def _read_specs(specs_file, environment: str) -> List[Dict[str, Any]]:
-        if not Path(specs_file).exists():
+        specs_file = Path(specs_file)
+        if not specs_file.exists():
             raise FileNotFoundError(f"Specs file {specs_file} not found")
 
-        specs = read_json(specs_file).get(environment)
+        specs = JsonUtils.read(specs_file).get(environment)
 
         if not specs:
             raise Exception(f"Environment {environment} not found in specs file {specs_file}")

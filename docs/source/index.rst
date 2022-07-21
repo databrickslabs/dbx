@@ -15,19 +15,10 @@ Follow the :ref:`quickstart` to install the package and create the first sample 
 
 .. toctree::
     :maxdepth: 3
+    :glob:
 
     README
     quickstart
     cli
-    orchestration
-    permissions
-    run_submit
-    properties_propagation
-    multitask_jobs
-    jinja2_support
-    packaging_and_build
-    path_adjustment
-    environment_variables
-    named_properties
-    templates_pointer
-    generic_devops
+    pointers/*
+

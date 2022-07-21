@@ -1,7 +1,0 @@
-setuptools
-wheel
-pyspark==3.1.2
-pyyaml
-pytest
-pytest-cov
-dbx

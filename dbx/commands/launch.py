@@ -1,6 +1,6 @@
-import base64
-import json
+import tempfile
 import time
+from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 from typing import List
 
@@ -8,21 +8,23 @@ import click
 import mlflow
 import pandas as pd
 from databricks_cli.configure.config import debug_option
-from databricks_cli.dbfs.api import DbfsService
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
 from databricks_cli.utils import CONTEXT_SETTINGS
+from mlflow.tracking import MlflowClient
 
+from dbx.api.configure import ConfigurationManager
+from dbx.api.output_provider import OutputProvider
+from dbx.utils import dbx_echo
 from dbx.utils.common import (
-    dbx_echo,
     generate_filter_string,
     prepare_environment,
-    environment_option,
     parse_multiple,
-    InfoFile,
     get_current_branch_name,
 )
 from dbx.utils.job_listing import find_job_by_name
+from dbx.utils.json import JsonUtils
+from dbx.utils.options import environment_option
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
@@ -99,6 +101,22 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
     help="""The name of the current branch.
               If not provided or empty, dbx will try to detect the branch name.""",
 )
+@click.option(
+    "--include-output",
+    type=click.Choice(["stdout", "stderr"]),
+    default=None,
+    help="""
+        If provided, adds run output to the console output of the launch command.
+        Please note that this option is only supported for Jobs V2.X+.
+        For jobs created without tasks section output won't be printed.
+        If not provided, run output will be omitted.
+
+        Options behaviour:
+
+        * :code:`stdout` will add stdout and stderr to the console output
+        * :code:`stderr` will add only stderr to the console output
+        """,
+)
 @environment_option
 @debug_option
 def launch(
@@ -112,6 +130,7 @@ def launch(
     parameters: List[str],
     parameters_raw: Optional[str],
     branch_name: Optional[str],
+    include_output: Optional[str],
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -127,22 +146,28 @@ def launch(
         override_parameters = parse_multiple(parameters)
         prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
 
-    filter_string = generate_filter_string(environment)
+    filter_string = generate_filter_string(environment, branch_name)
 
     run_info = _find_deployment_run(filter_string, additional_tags, as_run_submit, environment)
 
     deployment_run_id = run_info["run_id"]
 
-    with mlflow.start_run(run_id=deployment_run_id) as deployment_run:
+    with mlflow.start_run(run_id=deployment_run_id):
 
         with mlflow.start_run(nested=True):
-            artifact_base_uri = deployment_run.info.artifact_uri
 
             if not as_run_submit:
-                run_launcher = RunNowLauncher(job, api_client, artifact_base_uri, existing_runs, prepared_parameters)
+                run_launcher = RunNowLauncher(
+                    job=job, api_client=api_client, existing_runs=existing_runs, prepared_parameters=prepared_parameters
+                )
             else:
                 run_launcher = RunSubmitLauncher(
-                    job, api_client, artifact_base_uri, existing_runs, prepared_parameters, environment
+                    job=job,
+                    api_client=api_client,
+                    existing_runs=existing_runs,
+                    prepared_parameters=prepared_parameters,
+                    deployment_run_id=deployment_run_id,
+                    environment=environment,
                 )
 
             run_data, job_id = run_launcher.launch()
@@ -155,19 +180,27 @@ def launch(
                 if kill_on_sigterm:
                     dbx_echo("Click Ctrl+C to stop the run")
                     try:
-                        dbx_status = _trace_run(api_client, run_data)
+                        dbx_status, final_run_state = _trace_run(api_client, run_data)
                     except KeyboardInterrupt:
                         dbx_status = "CANCELLED"
                         dbx_echo("Cancelling the run gracefully")
                         _cancel_run(api_client, run_data)
                         dbx_echo("Run cancelled successfully")
                 else:
-                    dbx_status = _trace_run(api_client, run_data)
+                    dbx_status, final_run_state = _trace_run(api_client, run_data)
 
-                if dbx_status == "ERROR":
-                    raise Exception("Tracked run failed during execution. Please check Databricks UI for run logs")
                 dbx_echo("Launch command finished")
 
+                if include_output:
+                    log_provider = OutputProvider(jobs_service, final_run_state)
+                    dbx_echo(f"Run output provisioning requested with level {include_output}")
+                    log_provider.provide(include_output)
+
+                if dbx_status == "ERROR":
+                    raise Exception(
+                        "Tracked run failed during execution. "
+                        "Please check the status and logs of the run for details."
+                    )
             else:
                 dbx_status = "NOT_TRACKED"
                 dbx_echo(
@@ -192,7 +225,7 @@ def launch(
 def _find_deployment_run(
     filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
 ) -> Dict[str, Any]:
-    runs = mlflow.search_runs(filter_string=filter_string, order_by=["start_time DESC"])
+    runs = mlflow.search_runs(filter_string=filter_string)
 
     filter_conditions = []
 
@@ -241,7 +274,7 @@ def _find_deployment_run(
             With file-based deployments (dbx_deployment_type='files_only')."""
             )
 
-        experiment_location = InfoFile.get("environments").get(environment).get("workspace_dir")
+        experiment_location = ConfigurationManager().get(environment).workspace_dir
         exception_string = (
             exception_string
             + f"""
@@ -262,14 +295,14 @@ class RunSubmitLauncher:
         self,
         job: str,
         api_client: ApiClient,
-        artifact_base_uri: str,
+        deployment_run_id: str,
         existing_runs: str,
         prepared_parameters: Any,
         environment: str,
     ):
+        self.run_id = deployment_run_id
         self.job = job
         self.api_client = api_client
-        self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
         self.prepared_parameters = prepared_parameters
         self.environment = environment
@@ -277,9 +310,7 @@ class RunSubmitLauncher:
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run submit API")
 
-        env_spec = _load_dbx_file(self.api_client, self.artifact_base_uri, "deployment-result.json").get(
-            self.environment
-        )
+        env_spec = _load_dbx_file(self.run_id, "deployment-result.json").get(self.environment)
 
         if not env_spec:
             raise Exception(f"No job definitions found for environment {self.environment}")
@@ -302,12 +333,9 @@ class RunSubmitLauncher:
 
 
 class RunNowLauncher:
-    def __init__(
-        self, job: str, api_client: ApiClient, artifact_base_uri: str, existing_runs: str, prepared_parameters: Any
-    ):
+    def __init__(self, job: str, api_client: ApiClient, existing_runs: str, prepared_parameters: Any):
         self.job = job
         self.api_client = api_client
-        self.artifact_base_uri = artifact_base_uri
         self.existing_runs = existing_runs
         self.prepared_parameters = prepared_parameters
 
@@ -378,13 +406,12 @@ def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
     _wait_run(api_client, run_data)
 
 
-def _load_dbx_file(api_client: ApiClient, artifact_base_uri: str, name: str) -> Dict[Any, Any]:
-    dbfs_service = DbfsService(api_client)
-    dbx_deployments = f"{artifact_base_uri}/.dbx/{name}"
-    raw_config_payload = dbfs_service.read(dbx_deployments)["data"]
-    payload = base64.b64decode(raw_config_payload).decode("utf-8")
-    deployments = json.loads(payload)
-    return deployments
+def _load_dbx_file(run_id: str, file_name: str) -> Dict[Any, Any]:
+    client = MlflowClient()
+    with tempfile.TemporaryDirectory() as tmp:
+        dbx_file_path = f".dbx/{file_name}"
+        client.download_artifacts(run_id, dbx_file_path, tmp)
+        return JsonUtils.read(Path(tmp) / dbx_file_path)
 
 
 def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -409,14 +436,14 @@ def _wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]
             return status
 
 
-def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> str:
+def _trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> [str, Dict[str, Any]]:
     final_status = _wait_run(api_client, run_data)
     result_state = final_status["state"].get("result_state", None)
     if result_state == "SUCCESS":
         dbx_echo("Job run finished successfully")
-        return "SUCCESS"
+        return "SUCCESS", final_status
     else:
-        return "ERROR"
+        return "ERROR", final_status
 
 
 def _get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:

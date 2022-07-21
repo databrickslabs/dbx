@@ -8,12 +8,106 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] - YYYY-MM-DD
+## [X.Y.Z] - YYYY-MM-DD
+## Changed
+
+- Rename `workloads` to `tasks` in the Python package template
+
+## Added
+
+- Switch to include run stderr and stdout output to the console output
+- Docs describing how-to for Python packaging
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
 > And empty the **[Unreleased]** section above.
 ----
+
+## [0.6.5] - 2022-07-19
+
+## Fixed
+
+- Local build command now produces only one file in the `dist` folder
+
+## Added
+
+- Add `dist` directory cleanup before core package build
+- Add `--job-run-log-level` option to `dbx launch` to retrieve log after trace run
+
+## Changed
+
+- Separate `unit-requirements.txt` file has been deleted from the template
+
+## [0.6.4] - 2022-07-01
+
+## Fixed
+
+- `RunSubmit` based launch when cloud storage is used as an artifact location
+
+
+## [0.6.3] - 2022-06-28
+
+### Added
+
+- Module-based interface for launching commands in Azure Pipelines
+
+### Changed
+
+- All invocations in Azure Pipelines template are now module-based (`python -m ...`)
+
+
+## [0.6.2] - 2022-06-24
+
+- Fix auth ordering (now env-variables based auth has priority across any other auth methods)
+
+
+## [0.6.1] - 2022-06-22
+
+- Fix import issues in `dbx.api.storage` package
+
+## [0.6.0] - 2022-06-22
+
+### Added
+
+- Added dev container config for VSCode and GitHub CodeSpaces
+- tests are now parallel (x2 less time spent per each CI pipeline launch)
+- url-strip behaviour for old-format workspace host names (which was unsupported in Mlflow API and caused a lot of hardly explainable errors)
+
+### Changed
+
+- Docs fixed in terms of allowed versions
+- Non-strict path adjustment policy has been deleted from code and docs
+- Dropped support for environment variables in plain JSON/YAML files
+- Refactored code for reading configurations
+- Drop support for `ruamel.yaml` in favor of standard `pyyaml`
+- All tests are now based on pytest
+- Full support for env variables in Jinja-based deployment configs
+- Documentation improvements for Jinja-based templates
+- Now package builds are performed with `pip` by default
+
+
+### Fixed
+
+- Parsing of `requirements.txt` has been improved to properly handle comments in requirements files
+- Recognition of `--branch-name` argument for `dbx launch`
+- Path resolution for Jinja2 templates
+
+## [0.5.0] - 2022-06-01
+
+### Added
+
+- YAML Example for deploying multi-task Python job
+- YAML Example for deploying multi-task Scala job
+- Support including jinja templates from subpaths of the current working directory
+- Add `--path` and `--checkout` options to the `dbx init`
+- Change the format of the `python_basic` to use pytest
+- Add `sync repo` and `sync dbfs` commands for syncing local files to Databricks and watching for changes.
+
+### Changed
+
+- Refactor the configuration code
+- Refactor the JSON-related code
 
 ## [0.4.1] - 2022-03-01
 
