@@ -1,5 +1,5 @@
-from {{cookiecutter.project_slug}}.tasks.sample_etl_job import SampleETLTask
-from {{cookiecutter.project_slug}}.tasks.sample_ml_job import SampleMLTask
+from {{cookiecutter.project_slug}}.tasks.sample_etl_task import SampleETLTask
+from {{cookiecutter.project_slug}}.tasks.sample_ml_task import SampleMLTask
 from pyspark.sql import SparkSession
 from pathlib import Path
 import mlflow
