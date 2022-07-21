@@ -16,6 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.6.5] - 2022-07-19
+
+## Fixed
+
+- Local build command now produces only one file in the `dist` folder
+
+## Added
+
+- Add `dist` directory cleanup before core package build
+
+## Changed
+
+- Separate `unit-requirements.txt` file has been deleted from the template
+
 ## [0.6.4] - 2022-07-01
 
 ## Fixed

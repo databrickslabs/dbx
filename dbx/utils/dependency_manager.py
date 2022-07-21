@@ -70,7 +70,7 @@ class DependencyManager:
             else:
                 dbx_echo(
                     "Package file was not found! "
-                    "Please check your /dist/ folder if you expect to use package-based imports"
+                    "Please check your dist folder if you expect to use package-based imports"
                 )
                 return None
 
