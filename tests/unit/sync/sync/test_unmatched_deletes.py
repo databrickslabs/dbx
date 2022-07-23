@@ -32,8 +32,9 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
     with temporary_directory() as source, temporary_directory() as state_dir:
 
         def create_syncer(*, include_patterns=None, exclude_patterns=None):
-            matcher = create_path_matcher(source=source, include_patterns=include_patterns,
-                                          exclude_dirs=exclude_patterns)
+            matcher = create_path_matcher(
+                source=source, include_patterns=include_patterns, exclude_dirs=exclude_patterns
+            )
             syncer_opts = dict(
                 client=client,
                 source=source,
