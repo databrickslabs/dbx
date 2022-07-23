@@ -110,7 +110,7 @@ class RemoteSyncer:
         self.is_first_sync = True
         self.tempdir = TemporaryDirectory().name  # noqa
         self.matcher = matcher
-        self.snapshot_path = os.path.join(state_dir, get_snapshot_name(client))
+        self.snapshot_path = Path(state_dir) / get_snapshot_name(client)
         self.last_snapshot = None
         self.delete_unmatched_option = delete_unmatched_option
 

@@ -165,7 +165,7 @@ def filtered_listdir(matcher: PathMatcher, root: str):
         str: file/directory entries
     """
     for entry in os.scandir(root):
-        entry_name = os.path.join(root, entry if isinstance(entry, str) else entry.name)
+        entry_name = Path(root) / (entry if isinstance(entry, str) else entry.name)
         # Some paths are definitely ignored due to an ignore spec.  These should not be traversed.
         if not matcher.should_ignore(entry_name, is_directory=os.path.isdir(entry_name)):
             yield entry
