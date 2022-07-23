@@ -90,8 +90,6 @@ class RemoteSyncer:
         source: str,
         dry_run: bool,
         matcher: PathMatcher,
-        includes: List[str],
-        excludes: List[str],
         full_sync: bool = False,
         max_parallel: int = 4,
         max_parallel_puts: int = 10,
@@ -102,8 +100,6 @@ class RemoteSyncer:
         # be the same directory the tool is run from, but you can specify a different source directory.
         state_dir = Path(source) / Path(state_dir)
 
-        self.includes = includes
-        self.excludes = excludes
         self.client = client
         self.source = source
         self.state_dir = state_dir

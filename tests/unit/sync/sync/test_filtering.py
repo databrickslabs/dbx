@@ -21,19 +21,6 @@ def test_include():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        includes = ["foo"]
-        excludes = None
-        matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
-        syncer = RemoteSyncer(
-            client=client,
-            source=source,
-            dry_run=False,
-            includes=includes,
-            excludes=excludes,
-            full_sync=False,
-            state_dir=state_dir,
-            matcher=matcher,
-        )
 
         # create a dir and file to sync
         (Path(source) / "foo").mkdir()
@@ -43,6 +30,18 @@ def test_include():
         (Path(source) / "baz").touch()
         (Path(source) / "bar").mkdir()
         (Path(source) / "bar" / "baz").touch()
+
+        include_dirs = ["foo"]
+        exclude_dirs = None
+        matcher = create_path_matcher(source=source, include_dirs=include_dirs, exclude_dirs=exclude_dirs)
+        syncer = RemoteSyncer(
+            client=client,
+            source=source,
+            dry_run=False,
+            full_sync=False,
+            state_dir=state_dir,
+            matcher=matcher,
+        )
 
         parent = AsyncMock()
         parent.attach_mock(client, "client")
@@ -73,19 +72,6 @@ def test_default_ignore_git():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        includes = None
-        excludes = None
-        matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
-        syncer = RemoteSyncer(
-            client=client,
-            source=source,
-            dry_run=False,
-            includes=includes,
-            excludes=excludes,
-            full_sync=False,
-            state_dir=state_dir,
-            matcher=matcher,
-        )
 
         # create a dir and file to sync
         (Path(source) / "foo").mkdir()
@@ -94,6 +80,16 @@ def test_default_ignore_git():
         # and some dirs and files that should be ignored
         (Path(source) / ".git").mkdir()
         (Path(source) / ".git" / "foo").touch()
+
+        matcher = create_path_matcher(source=source)
+        syncer = RemoteSyncer(
+            client=client,
+            source=source,
+            dry_run=False,
+            full_sync=False,
+            state_dir=state_dir,
+            matcher=matcher,
+        )
 
         parent = AsyncMock()
         parent.attach_mock(client, "client")
@@ -124,19 +120,6 @@ def test_exclude():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        includes = None
-        excludes = ["baz"]
-        matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
-        syncer = RemoteSyncer(
-            client=client,
-            source=source,
-            dry_run=False,
-            includes=includes,
-            excludes=excludes,
-            full_sync=False,
-            state_dir=state_dir,
-            matcher=matcher,
-        )
 
         # create a dir and file to sync
         (Path(source) / "foo").mkdir()
@@ -145,6 +128,17 @@ def test_exclude():
         # and some dirs and files that should be ignored
         (Path(source) / "baz").mkdir()
         (Path(source) / "baz" / "bar").touch()
+
+        exclude_dirs = ["baz"]
+        matcher = create_path_matcher(source=source, exclude_dirs=exclude_dirs)
+        syncer = RemoteSyncer(
+            client=client,
+            source=source,
+            dry_run=False,
+            full_sync=False,
+            state_dir=state_dir,
+            matcher=matcher,
+        )
 
         parent = AsyncMock()
         parent.attach_mock(client, "client")
@@ -176,19 +170,6 @@ def test_include_deeply_nested():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        includes = ["foo/bar/baz"]
-        excludes = None
-        matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
-        syncer = RemoteSyncer(
-            client=client,
-            source=source,
-            dry_run=False,
-            includes=includes,
-            excludes=excludes,
-            full_sync=False,
-            state_dir=state_dir,
-            matcher=matcher,
-        )
 
         # create a dir and file to sync
         (Path(source) / "foo").mkdir()
@@ -200,6 +181,17 @@ def test_include_deeply_nested():
         (Path(source) / "baz").touch()
         (Path(source) / "bar").mkdir()
         (Path(source) / "bar" / "baz").touch()
+
+        include_dirs = ["foo/bar/baz"]
+        matcher = create_path_matcher(source=source, include_dirs=include_dirs)
+        syncer = RemoteSyncer(
+            client=client,
+            source=source,
+            dry_run=False,
+            full_sync=False,
+            state_dir=state_dir,
+            matcher=matcher,
+        )
 
         parent = AsyncMock()
         parent.attach_mock(client, "client")

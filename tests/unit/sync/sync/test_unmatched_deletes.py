@@ -31,14 +31,13 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
 
-        def create_syncer(*, includes=None, excludes=None):
-            matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
+        def create_syncer(*, include_patterns=None, exclude_patterns=None):
+            matcher = create_path_matcher(source=source, include_patterns=include_patterns,
+                                          exclude_dirs=exclude_patterns)
             syncer_opts = dict(
                 client=client,
                 source=source,
                 dry_run=False,
-                includes=includes,
-                excludes=excludes,
                 full_sync=False,
                 state_dir=state_dir,
                 matcher=matcher,
@@ -54,7 +53,7 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
 
             return RemoteSyncer(**syncer_opts)
 
-        syncer = create_syncer(includes=["foo"])
+        syncer = create_syncer(include_patterns=["foo"])
 
         # initially no files
         op_count = syncer.incremental_copy()
@@ -83,7 +82,7 @@ def test_unmatched_delete_confirm_yes(mock_click, confirm_delete, use_option):
         assert client.put.call_count == 1
 
         # recreate syncer with different includes, which would result in foo being deleted
-        syncer = create_syncer(includes=["bar"])
+        syncer = create_syncer(include_patterns=["bar"])
 
         # confirm that we want to delete the files
         mock_click.confirm.return_value = confirm_delete

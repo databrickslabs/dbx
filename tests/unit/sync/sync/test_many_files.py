@@ -20,13 +20,11 @@ def test_syncing_many_files():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -146,13 +144,11 @@ def test_syncing_many_flat_dirs():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -241,13 +237,11 @@ def test_syncing_many_nested_dirs():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
