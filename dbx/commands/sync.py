@@ -136,16 +136,14 @@ def create_path_matcher(
     force_include_patterns.extend(subdirs_to_patterns(source, force_include_dirs))
 
     gitignore_path = Path(source) / ".gitignore"
-    if use_gitignore and os.path.exists(gitignore_path):
+    if use_gitignore and gitignore_path.exists():
         dbx_echo(f"Ignoring patterns from {gitignore_path}")
-        with open(gitignore_path, encoding="utf-8") as f:
-            exclude_patterns.extend([line.strip() for line in f.readlines()])
+        exclude_patterns.extend(gitignore_path.read_text(encoding="utf-8").splitlines())
 
     syncinclude_path = Path(source) / ".syncinclude"
-    if not include_patterns and os.path.exists(syncinclude_path):
+    if not include_patterns and syncinclude_path.exists():
         dbx_echo(f"Including patterns from {syncinclude_path}")
-        with open(syncinclude_path, encoding="utf-8") as f:
-            include_patterns.extend([line.strip() for line in f.readlines()])
+        include_patterns.extend(syncinclude_path.read_text(encoding="utf-8").splitlines())
 
     exclude_patterns.extend(DEFAULT_IGNORES)
 
@@ -235,7 +233,7 @@ def subdirs_to_patterns(source: str, subdirs: List[str]) -> List[str]:
     patterns = []
     for subdir in subdirs:
         full_subdir = Path(source) / subdir
-        if not os.path.exists(full_subdir):
+        if not full_subdir.exists():
             raise click.BadArgumentUsage(f"Path {full_subdir} does not exist")
         subdir = Path(subdir).as_posix()
         patterns.append(f"/{subdir}/")

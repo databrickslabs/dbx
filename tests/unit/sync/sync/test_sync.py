@@ -65,7 +65,7 @@ def test_state_dir_creation():
             matcher=matcher,
         )
 
-        assert os.path.exists(state_dir)
+        assert state_dir.exists()
 
 
 def test_single_file_put_and_delete():

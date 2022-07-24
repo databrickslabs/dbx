@@ -114,7 +114,7 @@ class RemoteSyncer:
         self.last_snapshot = None
         self.delete_unmatched_option = delete_unmatched_option
 
-        if not os.path.exists(state_dir):
+        if not state_dir.exists():
             os.makedirs(state_dir)
 
         if self.dry_run:
@@ -423,11 +423,11 @@ class RemoteSyncer:
 
         if self.is_first_sync:
             if self.full_sync:
-                if not self.dry_run and os.path.exists(self.snapshot_path):
+                if not self.dry_run and self.snapshot_path.exists():
                     os.remove(self.snapshot_path)
                 self.last_snapshot = EmptyDirectorySnapshot()
             else:
-                if os.path.exists(self.snapshot_path):
+                if self.snapshot_path.exists():
                     dbx_echo(f"Restoring sync snapshot from {self.snapshot_path}")
                     with open(self.snapshot_path, "rb") as f:
                         try:
