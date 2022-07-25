@@ -89,6 +89,10 @@ class PathMatcher:
 
         path = self._clean_relative_path(path, is_directory=is_directory)
 
+        # We certaintly will not ignore something that we've forced to be included.
+        if self.force_include_spec is not None and self.force_include_spec.match_file(path):
+            return False
+
         # If there is an ignore spec, then we'll ignore any paths that match.
         if self.ignore_spec is not None:
             return self.ignore_spec.match_file(path)
@@ -149,7 +153,7 @@ class PathMatcher:
 
 
 def filtered_listdir(matcher: PathMatcher, root: str):
-    """A wrapper around os.scandir that filters out paths that should be ignored according to rules in the
+    """A wrapper around os.scandir that filters out paths that should definitely be ignored according to rules in the
     given matcher.  Enabling this filtering makes the traversal more efficient.
 
     To, apply a partial to pass in the matcher:

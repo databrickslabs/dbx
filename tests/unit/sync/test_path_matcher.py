@@ -1,10 +1,11 @@
 import os
+from os import DirEntry
 from pathlib import Path
 
 import pytest
 
 from dbx.commands.sync import create_path_matcher
-from dbx.sync.path_matcher import PathMatcher
+from dbx.sync.path_matcher import PathMatcher, filtered_listdir
 
 from .utils import temporary_directory
 
@@ -318,3 +319,72 @@ def test_nonexistent_file():
 
         with pytest.raises(ValueError):
             matcher.match(f"{tempdir}/bar/", is_directory=False)
+
+
+def test_filtered_listdir_no_rules():
+    """
+    Tests that with no rules, it lists everything.
+    """
+    with temporary_directory() as tempdir:
+        tempdir = Path(tempdir)
+
+        matcher = PathMatcher(tempdir)
+
+        (tempdir / "foo").mkdir()
+        (tempdir / "baz").touch()
+
+        # Only files/directories in the root are listed (this is not a traversal)
+        assert sorted(de.name for de in list(filtered_listdir(matcher, tempdir))) == ["baz", "foo"]
+
+
+def test_filtered_listdir_includes():
+    """
+    Tests that with no rules, it lists everything.
+    """
+    with temporary_directory() as tempdir:
+        tempdir = Path(tempdir)
+
+        matcher = PathMatcher(tempdir, includes=["foo", "baz"])
+
+        (tempdir / "foo").mkdir()
+        (tempdir / "bar").mkdir()
+        (tempdir / "baz").touch()
+
+        # filtered_listdir only excludes files/directories when they appear in ignores, because without traversing
+        # the entire tree it's impossible to know if some descendent will be included
+        assert sorted(de.name for de in list(filtered_listdir(matcher, tempdir))) == ["bar", "baz", "foo"]
+
+
+def test_filtered_listdir_ignores():
+    """
+    Tests that with no rules, it lists everything.
+    """
+    with temporary_directory() as tempdir:
+        tempdir = Path(tempdir)
+
+        matcher = PathMatcher(tempdir, ignores=["f*"])
+
+        (tempdir / "foo").mkdir()
+        (tempdir / "bar").mkdir()
+        (tempdir / "baz").mkdir()
+
+        # Only files/directories in the root are listed (this is not a traversal)
+        assert sorted(de.name for de in list(filtered_listdir(matcher, tempdir))) == ["bar", "baz"]
+
+
+def test_filtered_listdir_ignores_force_includes():
+    """
+    Tests that with no rules, it lists everything.
+    """
+    with temporary_directory() as tempdir:
+        tempdir = Path(tempdir)
+
+        matcher = PathMatcher(tempdir, ignores=["f*"], force_includes=["foo"])
+
+        (tempdir / "far").mkdir()
+        (tempdir / "foo").mkdir()
+        (tempdir / "bar").mkdir()
+        (tempdir / "baz").mkdir()
+
+        # Only files/directories in the root are listed (this is not a traversal)
+        assert sorted(de.name for de in list(filtered_listdir(matcher, tempdir))) == ["bar", "baz", "foo"]
