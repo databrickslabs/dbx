@@ -8,9 +8,8 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
-from dbx.api.client_provider import ApiV1Client
 from dbx.api.config_reader import ConfigReader
-from dbx.api.context import LocalContextManager
+from dbx.api.context import RichExecutionContextClient
 from dbx.utils import dbx_echo
 from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
@@ -78,6 +77,12 @@ from dbx.utils.options import environment_option
     is_flag=True,
     help="Do not add package reference into the job description",
 )
+@click.option(
+    "--upload-via-context",
+    is_flag=True,
+    default=False,
+    help="Upload files via execution context",
+)
 @environment_option
 @debug_option
 def execute(
@@ -90,6 +95,7 @@ def execute(
     requirements_file: Path,
     no_package: bool,
     no_rebuild: bool,
+    upload_via_context: bool
 ):
     api_client = prepare_environment(environment)
 
@@ -146,8 +152,7 @@ def execute(
     dbx_echo("Preparing interactive cluster to accept jobs")
     awake_cluster(cluster_service, cluster_id)
 
-    v1_client = ApiV1Client(api_client)
-    context_id = get_context_id(v1_client, cluster_id, "python")
+    context_client = RichExecutionContextClient(api_client, cluster_id)
 
     with mlflow.start_run() as execution_run:
 
@@ -157,11 +162,10 @@ def execute(
         if requirements_file.exists():
 
             localized_requirements_path = file_uploader.upload_and_provide_path(requirements_file, as_fuse=True)
-
             installation_command = f"%pip install -U -r {localized_requirements_path}"
 
             dbx_echo("Installing provided requirements")
-            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+            context_client.client.execute_command(installation_command, verbose=False)
             dbx_echo("Provided requirements installed")
         else:
             dbx_echo(
@@ -178,8 +182,7 @@ def execute(
             localized_package_path = file_uploader.upload_and_provide_path(package_file, as_fuse=True)
 
             dbx_echo("Installing package")
-            installation_command = f"%pip install --force-reinstall {localized_package_path}"
-            execute_command(v1_client, cluster_id, context_id, installation_command, verbose=False)
+            context_client.install_package(Path(localized_package_path))
             dbx_echo("Package installation finished")
         else:
             dbx_echo("Package was disabled via --no-package, only the code from entrypoint will be used")
@@ -192,26 +195,18 @@ def execute(
         task_props: List[Any] = _payload.get("spark_python_task").get("parameters", [])
 
         if task_props:
-
             def adjustment_callback(p: Any):
                 return adjust_path(p, file_uploader)
 
             walk_content(adjustment_callback, task_props)
 
-        task_props = ["python"] + task_props
-
-        parameters_command = f"""
-        import sys
-        sys.argv = {task_props}
-        """
-
-        execute_command(v1_client, cluster_id, context_id, parameters_command, verbose=False)
+        context_client.setup_arguments(task_props)
 
         dbx_echo("Processing parameters - done")
 
         dbx_echo("Starting entrypoint file execution")
 
-        execute_command(v1_client, cluster_id, context_id, Path(entrypoint_file).read_text(encoding="utf-8"))
+        context_client.execute_file(entrypoint_file)
         dbx_echo("Command execution finished")
 
 
@@ -224,85 +219,6 @@ def _verify_deployment(deployment, environment, deployment_file):
     env_jobs = deployment.get("jobs")
     if not env_jobs:
         raise RuntimeError(f"No jobs section found in environment {environment}, please check the deployment file")
-
-
-def wait_for_command_execution(v1_client: ApiV1Client, cluster_id: str, context_id: str, command_id: str):
-    finished = False
-    payload = {
-        "clusterId": cluster_id,
-        "contextId": context_id,
-        "commandId": command_id,
-    }
-    while not finished:
-        try:
-            result = v1_client.get_command_status(payload)
-            status = result.get("status")
-            if status in ["Finished", "Cancelled", "Error"]:
-                return result
-            else:
-                time.sleep(5)
-        except KeyboardInterrupt:
-            v1_client.cancel_command(payload)
-
-
-def execute_command(v1_client: ApiV1Client, cluster_id: str, context_id: str, command: str, verbose=True):
-    payload = {
-        "language": "python",
-        "clusterId": cluster_id,
-        "contextId": context_id,
-        "command": command,
-    }
-    command_execution_data = v1_client.execute_command(payload)
-    command_id = command_execution_data["id"]
-    execution_result = wait_for_command_execution(v1_client, cluster_id, context_id, command_id)
-    if execution_result["status"] == "Cancelled":
-        dbx_echo("Command cancelled")
-    else:
-        final_result = execution_result["results"]["resultType"]
-        if final_result == "error":
-            dbx_echo("Execution failed, please follow the given error")
-            raise RuntimeError(
-                f"Command execution failed. " f'Cluster error cause: {execution_result["results"]["cause"]}'
-            )
-
-        if verbose:
-            dbx_echo("Command successfully executed")
-            print(execution_result["results"]["data"])
-
-        return execution_result["results"]["data"]
-
-
-def _is_context_available(v1_client: ApiV1Client, cluster_id: str, context_id: str):
-    if not context_id:
-        return False
-    else:
-        payload = {"clusterId": cluster_id, "contextId": context_id}
-        resp = v1_client.get_context_status(payload)
-        if not resp:
-            return False
-        elif resp.get("status"):
-            return resp["status"] == "Running"
-
-
-def get_context_id(v1_client: ApiV1Client, cluster_id: str, language: str):
-    dbx_echo("Preparing execution context")
-    lock_context_id = LocalContextManager.get_context()
-
-    if _is_context_available(v1_client, cluster_id, lock_context_id):
-        dbx_echo("Existing context is active, using it")
-        return lock_context_id
-    else:
-        dbx_echo("Existing context is not active, creating a new one")
-        context_id = create_context(v1_client, cluster_id, language)
-        LocalContextManager.set_context(context_id)
-        dbx_echo("New context prepared, ready to use it")
-        return context_id
-
-
-def create_context(v1_client: ApiV1Client, cluster_id: str, language: str):
-    payload = {"language": language, "clusterId": cluster_id}
-    response = v1_client.create_context(payload)
-    return response["id"]
 
 
 def awake_cluster(cluster_service: ClusterService, cluster_id):
