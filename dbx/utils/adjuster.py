@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from databricks_cli.sdk import ApiClient
 
 from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import MlflowFileUploader
+from dbx.utils.file_uploader import MlflowFileUploader, AbstractFileUploader
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import WorkloadPropertiesProcessor, NewClusterPropertiesProcessor, PolicyNameProcessor
 
@@ -65,7 +65,7 @@ def walk_content(func, content, parent=None, index=None):
         parent[index] = func(content)
 
 
-def path_adjustment(candidate: str, file_uploader: MlflowFileUploader) -> str:
+def path_adjustment(candidate: str, file_uploader: AbstractFileUploader) -> str:
     if candidate.startswith("file:"):
         fuse_flag = candidate.startswith("file:fuse:")
         replace_string = "file:fuse://" if fuse_flag else "file://"
@@ -84,7 +84,7 @@ def path_adjustment(candidate: str, file_uploader: MlflowFileUploader) -> str:
         return candidate
 
 
-def adjust_path(candidate, file_uploader: MlflowFileUploader):
+def adjust_path(candidate, file_uploader: AbstractFileUploader):
     if isinstance(candidate, str):
         # path already adjusted or points to another dbfs object - pass it
         if candidate.startswith("dbfs") or candidate.startswith("/dbfs"):

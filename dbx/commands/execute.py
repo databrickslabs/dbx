@@ -1,24 +1,21 @@
 import time
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Optional
 
 import click
-import mlflow
 from databricks_cli.clusters.api import ClusterService
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
+from dbx.api.execute import ExecutionController
 from dbx.utils import dbx_echo
-from dbx.utils.adjuster import walk_content, adjust_path
 from dbx.utils.common import (
     prepare_environment,
     handle_package,
-    get_package_file,
     _preprocess_cluster_args,
 )
-from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.options import environment_option
 
 
@@ -95,7 +92,7 @@ def execute(
     requirements_file: Path,
     no_package: bool,
     no_rebuild: bool,
-    upload_via_context: bool
+    upload_via_context: bool,
 ):
     api_client = prepare_environment(environment)
 
@@ -139,13 +136,19 @@ def execute(
             )
         _payload = job_payload
 
-    entrypoint_file = _payload.get("spark_python_task").get("python_file").replace("file://", "")
+    entrypoint_file_path = _payload.get("spark_python_task", {}).get("python_file")
 
-    if not entrypoint_file:
-        raise FileNotFoundError(
+    if not entrypoint_file_path:
+        raise Exception(
             f"No entrypoint file provided in job {job}, or the job is not a spark_python_task. \n"
             "Currently, only spark_python_task jobs and tasks are supported for dbx execute."
         )
+
+    entrypoint_file_path = entrypoint_file_path.replace("file://", "")
+
+    entrypoint_file = Path(entrypoint_file_path)
+    if not entrypoint_file.exists():
+        raise FileNotFoundError(f"Entrypoint file: {entrypoint_file} is provided, but doesn't exist")
 
     cluster_service = ClusterService(api_client)
 
@@ -153,61 +156,17 @@ def execute(
     awake_cluster(cluster_service, cluster_id)
 
     context_client = RichExecutionContextClient(api_client, cluster_id)
+    task_parameters = _payload.get("spark_python_task").get("parameters", [])
 
-    with mlflow.start_run() as execution_run:
-
-        artifact_base_uri = execution_run.info.artifact_uri
-        file_uploader = MlflowFileUploader(artifact_base_uri)
-
-        if requirements_file.exists():
-
-            localized_requirements_path = file_uploader.upload_and_provide_path(requirements_file, as_fuse=True)
-            installation_command = f"%pip install -U -r {localized_requirements_path}"
-
-            dbx_echo("Installing provided requirements")
-            context_client.client.execute_command(installation_command, verbose=False)
-            dbx_echo("Provided requirements installed")
-        else:
-            dbx_echo(
-                f"Requirements file {requirements_file} is not provided"
-                + ", following the execution without any additional packages"
-            )
-
-        if not no_package:
-            package_file = get_package_file()
-
-            if not package_file:
-                raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
-
-            localized_package_path = file_uploader.upload_and_provide_path(package_file, as_fuse=True)
-
-            dbx_echo("Installing package")
-            context_client.install_package(Path(localized_package_path))
-            dbx_echo("Package installation finished")
-        else:
-            dbx_echo("Package was disabled via --no-package, only the code from entrypoint will be used")
-
-        tags = {"dbx_action_type": "execute", "dbx_environment": environment}
-
-        mlflow.set_tags(tags)
-
-        dbx_echo("Processing parameters")
-        task_props: List[Any] = _payload.get("spark_python_task").get("parameters", [])
-
-        if task_props:
-            def adjustment_callback(p: Any):
-                return adjust_path(p, file_uploader)
-
-            walk_content(adjustment_callback, task_props)
-
-        context_client.setup_arguments(task_props)
-
-        dbx_echo("Processing parameters - done")
-
-        dbx_echo("Starting entrypoint file execution")
-
-        context_client.execute_file(entrypoint_file)
-        dbx_echo("Command execution finished")
+    controller_instance = ExecutionController(
+        client=context_client,
+        no_package=no_package,
+        requirements_file=requirements_file,
+        entrypoint_file=entrypoint_file,
+        task_parameters=task_parameters,
+        upload_via_context=upload_via_context,
+    )
+    controller_instance.run()
 
 
 def _verify_deployment(deployment, environment, deployment_file):

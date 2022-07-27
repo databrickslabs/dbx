@@ -1,6 +1,7 @@
 import json
 import pathlib
 import time
+from base64 import b64encode
 from pathlib import Path
 from typing import Optional, List, Any
 
@@ -118,9 +119,6 @@ class RichExecutionContextClient:
     def __init__(self, v2_client: ApiClient, cluster_id: str, language: str = "python"):
         self._client = LowLevelExecutionContextClient(v2_client, cluster_id, language)
 
-    def get_context_id(self) -> str:
-        return self._client.context_id
-
     def install_package(self, package_file: Path):
         installation_command = f"%pip install --force-reinstall {package_file.absolute()}"
         self._client.execute_command(installation_command, verbose=False)
@@ -140,3 +138,32 @@ class RichExecutionContextClient:
     @property
     def client(self):
         return self._client
+
+    def get_temp_dir(self) -> Path:
+        command = """
+        from tempfile import mkdtemp
+        print(mkdtemp())
+        """
+        return Path(self._client.execute_command(command, verbose=False))
+
+    def remove_dir(self, _dir: str):
+        command = f"""
+        import shutil
+        shutil.rmtree("{_dir}")
+        """
+        self._client.execute_command(command, verbose=False)
+
+    def upload_file(self, file: Path, prefix_dir: Path) -> Path:
+        _contents = file.read_bytes()
+        contents = b64encode(_contents)
+        command = f"""
+        from pathlib import Path
+        from base64 import b64decode
+        DBX_UPLOAD_CONTENTS = b64decode({contents})
+        file_path = Path("{prefix_dir}") / "{file}"
+        if not file_path.parent.exists():
+            file_path.parent.mkdir(parents=True)
+        file_path.write_bytes(DBX_UPLOAD_CONTENTS)
+        print(file_path)
+        """
+        return Path(self._client.execute_command(command, verbose=False))
