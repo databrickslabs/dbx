@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [X.Y.Z] - YYYY-MM-DD
 
+## Added
+
+- Additional `sync` command options (`--no-use-gitignore`, `--force-include`, etc.) for more control over what is synced.
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.

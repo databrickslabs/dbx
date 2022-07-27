@@ -20,13 +20,11 @@ def test_empty_dir():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -53,7 +51,7 @@ def test_state_dir_creation():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
 
         # define a new state dir, but don't create it
         state_dir = Path(state_dir) / "state" / "really" / "nested"
@@ -62,14 +60,12 @@ def test_state_dir_creation():
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
         )
 
-        assert os.path.exists(state_dir)
+        assert state_dir.exists()
 
 
 def test_single_file_put_and_delete():
@@ -80,13 +76,11 @@ def test_single_file_put_and_delete():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -144,13 +138,11 @@ def test_put_dir_and_file_and_delete():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -213,13 +205,11 @@ def test_single_file_put_twice():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -283,15 +273,13 @@ def test_corrupt_state():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
 
         def _create_syncer():
             return RemoteSyncer(
                 client=client,
                 source=source,
                 dry_run=False,
-                includes=None,
-                excludes=None,
                 full_sync=False,
                 state_dir=state_dir,
                 matcher=matcher,

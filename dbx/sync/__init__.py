@@ -90,8 +90,6 @@ class RemoteSyncer:
         source: str,
         dry_run: bool,
         matcher: PathMatcher,
-        includes: List[str],
-        excludes: List[str],
         full_sync: bool = False,
         max_parallel: int = 4,
         max_parallel_puts: int = 10,
@@ -102,8 +100,6 @@ class RemoteSyncer:
         # be the same directory the tool is run from, but you can specify a different source directory.
         state_dir = Path(source) / Path(state_dir)
 
-        self.includes = includes
-        self.excludes = excludes
         self.client = client
         self.source = source
         self.state_dir = state_dir
@@ -114,11 +110,11 @@ class RemoteSyncer:
         self.is_first_sync = True
         self.tempdir = TemporaryDirectory().name  # noqa
         self.matcher = matcher
-        self.snapshot_path = os.path.join(state_dir, get_snapshot_name(client))
+        self.snapshot_path = Path(state_dir) / get_snapshot_name(client)
         self.last_snapshot = None
         self.delete_unmatched_option = delete_unmatched_option
 
-        if not os.path.exists(state_dir):
+        if not state_dir.exists():
             os.makedirs(state_dir)
 
         if self.dry_run:
@@ -427,11 +423,11 @@ class RemoteSyncer:
 
         if self.is_first_sync:
             if self.full_sync:
-                if not self.dry_run and os.path.exists(self.snapshot_path):
+                if not self.dry_run and self.snapshot_path.exists():
                     os.remove(self.snapshot_path)
                 self.last_snapshot = EmptyDirectorySnapshot()
             else:
-                if os.path.exists(self.snapshot_path):
+                if self.snapshot_path.exists():
                     dbx_echo(f"Restoring sync snapshot from {self.snapshot_path}")
                     with open(self.snapshot_path, "rb") as f:
                         try:

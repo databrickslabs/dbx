@@ -14,9 +14,15 @@ from .utils import temporary_directory
 
 
 @contextmanager
-def temp_event_handler(*, ignores: List[str] = None, includes: List[str] = None, polling_interval_secs: float = None):
+def temp_event_handler(
+    *,
+    ignores: List[str] = None,
+    includes: List[str] = None,
+    force_includes: List[str] = None,
+    polling_interval_secs: float = None,
+):
     with temporary_directory() as tempdir:
-        matcher = PathMatcher(tempdir, includes=includes, ignores=ignores)
+        matcher = PathMatcher(tempdir, includes=includes, ignores=ignores, force_includes=force_includes)
         with file_watcher(
             source=tempdir, matcher=matcher, polling_interval_secs=polling_interval_secs
         ) as event_handler:
@@ -87,6 +93,36 @@ def test_event_handler_create_file_ignored():
         assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
+
+
+def test_event_handler_create_file_ignored_from_ignores():
+    """
+    Tests file_watcher can detect file creation.
+    """
+    with temp_event_handler(ignores=["f*"]) as (event_handler, tempdir):
+        (tempdir / "far").touch()
+        (tempdir / "foo").touch()
+        (tempdir / "bar").touch()
+        events = get_events(event_handler, expected=1)
+        assert len(events) == 1
+        assert isinstance(events[0], FileCreatedEvent)
+        assert events[0].src_path == os.path.join(tempdir, "bar")
+
+
+def test_event_handler_create_file_force_includes():
+    """
+    Tests file_watcher can detect file creation.
+    """
+    with temp_event_handler(ignores=["f*"], force_includes=["foo"]) as (event_handler, tempdir):
+        (tempdir / "far").touch()
+        (tempdir / "foo").touch()
+        (tempdir / "bar").touch()
+        events = get_events(event_handler, expected=1)
+        assert len(events) == 2
+        assert isinstance(events[0], FileCreatedEvent)
+        assert events[0].src_path == os.path.join(tempdir, "foo")
+        assert isinstance(events[1], FileCreatedEvent)
+        assert events[1].src_path == os.path.join(tempdir, "bar")
 
 
 def test_event_handler_create_dir():
