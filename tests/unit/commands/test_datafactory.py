@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.commands.datafactory import reflect
-from dbx.commands.deploy import deploy, _log_dbx_file
-from .conftest import invoke_cli_runner, extract_function_name
+from dbx.commands.deploy import _log_dbx_file, deploy
+from tests.unit.conftest import extract_function_name, invoke_cli_runner
 
 
 def test_datafactory_deploy(mocker, temp_project: Path, mlflow_file_uploader):
