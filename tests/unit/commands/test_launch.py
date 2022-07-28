@@ -8,9 +8,15 @@ from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
 from dbx.commands.deploy import deploy
-from dbx.commands.launch import launch, _load_dbx_file, _define_payload_key, _trace_run, _cancel_run
+from dbx.commands.launch import (
+    _cancel_run,
+    _define_payload_key,
+    _load_dbx_file,
+    _trace_run,
+    launch,
+)
 from dbx.utils.json import JsonUtils
-from .conftest import invoke_cli_runner, extract_function_name
+from tests.unit.conftest import extract_function_name, invoke_cli_runner
 
 
 def deploy_and_get_job_name(deploy_args: Optional[List[str]] = None) -> str:

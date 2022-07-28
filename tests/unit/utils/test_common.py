@@ -10,10 +10,16 @@ from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
-from dbx.utils.adjuster import path_adjustment, adjust_path
-from dbx.utils.common import get_environment_data, generate_filter_string, handle_package, get_current_branch_name
+from dbx.utils.adjuster import adjust_path, path_adjustment
+from dbx.utils.common import (
+    generate_filter_string,
+    get_current_branch_name,
+    get_environment_data,
+    handle_package,
+)
 from dbx.utils.job_listing import find_job_by_name
-from .conftest import get_path_with_relation_to_current_file
+
+from tests.unit.conftest import get_path_with_relation_to_current_file
 
 json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")
 yaml_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-yaml-test.yaml")
