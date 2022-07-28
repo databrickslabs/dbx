@@ -13,7 +13,7 @@ SHELL=/bin/bash
 
 ##############################################################################
 PYTHON_VERSION=3.8.13
-VENV_NAME=.venv
+VENV_NAME := $(shell [ -d venv ] && echo venv || echo .venv)
 VENV_DIR=${VENV_NAME}
 PYTHON=${VENV_DIR}/bin/python
 RSTCHECK=${VENV_DIR}/bin/rstcheck
