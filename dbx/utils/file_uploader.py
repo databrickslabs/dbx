@@ -75,6 +75,9 @@ class ContextBasedUploader(AbstractFileUploader):
         dbx_echo(f"File uploaded to temp location {temp_remote_file_path}")
 
     def __del__(self):
-        dbx_echo("Cleaning up the temp directory")
-        self._client.remove_dir(self._base_uri)
-        dbx_echo("Cleaning up the temp directory - done")
+        try:
+            dbx_echo("Cleaning up the temp directory")
+            self._client.remove_dir(self._base_uri)
+            dbx_echo("Cleaning up the temp directory - done")
+        except Exception as e:
+            dbx_echo(f"Cannot cleanup temp directory due to {e}")
