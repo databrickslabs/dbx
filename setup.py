@@ -42,7 +42,7 @@ DEV_REQUIREMENTS = [
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
     "rstcheck>=5.0.0,<6.0.0",
-    "prospector>=1.3.1,<1.7.0",
+    "prospector>=1.3.1,<1.8.0",
     "black>=22.3.0,<23.0.0",
     "MarkupSafe>=2.1.1,<3.0.0",
     # testing framework
