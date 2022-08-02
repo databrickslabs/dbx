@@ -14,9 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 
 - Additional `sync` command options (`--no-use-gitignore`, `--force-include`, etc.) for more control over what is synced.
-
-## Changed
-
+- Additional `init` command option `--template` was added to allow using dbx templates distributed as part of python packages.
 - Refactored the `--deployment-file` option for better modularity of the code
 
 ----
