@@ -1,4 +1,3 @@
-import tempfile
 from unittest.mock import MagicMock, patch
 
 from dbx.commands.sync import main_loop
@@ -10,16 +9,16 @@ from .utils import temporary_directory
 def test_main_loop_no_watch(remote_syncer_class_mock):
     with temporary_directory() as source:
         client = MagicMock()
+        matcher = MagicMock()
         remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
         remote_sync_mock.incremental_copy.return_value = 0
         main_loop(
             source=source,
+            matcher=matcher,
             client=client,
             full_sync=False,
             dry_run=False,
-            includes=None,
-            excludes=None,
             watch=False,
         )
 
@@ -29,25 +28,23 @@ def test_main_loop_no_watch(remote_syncer_class_mock):
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
         assert not remote_syncer_class_mock.call_args[1]["dry_run"]
-        assert not remote_syncer_class_mock.call_args[1]["includes"]
-        assert not remote_syncer_class_mock.call_args[1]["excludes"]
-        assert remote_syncer_class_mock.call_args[1]["matcher"] is not None
+        assert remote_syncer_class_mock.call_args[1]["matcher"] == matcher
 
 
 @patch("dbx.commands.sync.RemoteSyncer")
 def test_main_loop_dry_run(remote_syncer_class_mock):
     with temporary_directory() as source:
         client = MagicMock()
+        matcher = MagicMock()
         remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
         remote_sync_mock.incremental_copy.return_value = 5
         main_loop(
             source=source,
+            matcher=matcher,
             client=client,
             full_sync=False,
             dry_run=True,
-            includes=None,
-            excludes=None,
             watch=False,
         )
 
@@ -57,9 +54,7 @@ def test_main_loop_dry_run(remote_syncer_class_mock):
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
         assert remote_syncer_class_mock.call_args[1]["dry_run"]
-        assert not remote_syncer_class_mock.call_args[1]["includes"]
-        assert not remote_syncer_class_mock.call_args[1]["excludes"]
-        assert remote_syncer_class_mock.call_args[1]["matcher"] is not None
+        assert remote_syncer_class_mock.call_args[1]["matcher"] == matcher
 
 
 @patch("dbx.commands.sync.file_watcher")
@@ -67,6 +62,7 @@ def test_main_loop_dry_run(remote_syncer_class_mock):
 def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
     with temporary_directory() as source:
         client = MagicMock()
+        matcher = MagicMock()
         remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
 
@@ -83,11 +79,10 @@ def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
 
         main_loop(
             source=source,
+            matcher=matcher,
             client=client,
             full_sync=False,
             dry_run=False,
-            includes=None,
-            excludes=None,
             watch=True,
         )
 
@@ -98,9 +93,7 @@ def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
         assert not remote_syncer_class_mock.call_args[1]["dry_run"]
-        assert not remote_syncer_class_mock.call_args[1]["includes"]
-        assert not remote_syncer_class_mock.call_args[1]["excludes"]
-        assert remote_syncer_class_mock.call_args[1]["matcher"] is not None
+        assert remote_syncer_class_mock.call_args[1]["matcher"] == matcher
 
 
 @patch("dbx.commands.sync.file_watcher")
@@ -112,6 +105,7 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
 
     with temporary_directory() as source:
         client = MagicMock()
+        matcher = MagicMock()
         remote_sync_mock = MagicMock()
         remote_syncer_class_mock.return_value = remote_sync_mock
 
@@ -135,11 +129,10 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
 
         main_loop(
             source=source,
+            matcher=matcher,
             client=client,
             full_sync=False,
             dry_run=False,
-            includes=None,
-            excludes=None,
             watch=True,
             sleep_interval=0.05,
         )
@@ -151,6 +144,4 @@ def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
         assert remote_syncer_class_mock.call_args[1]["client"] == client
         assert not remote_syncer_class_mock.call_args[1]["full_sync"]
         assert not remote_syncer_class_mock.call_args[1]["dry_run"]
-        assert not remote_syncer_class_mock.call_args[1]["includes"]
-        assert not remote_syncer_class_mock.call_args[1]["excludes"]
-        assert remote_syncer_class_mock.call_args[1]["matcher"] is not None
+        assert remote_syncer_class_mock.call_args[1]["matcher"] == matcher

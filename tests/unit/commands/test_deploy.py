@@ -5,15 +5,24 @@ from unittest.mock import Mock
 import mlflow
 import pytest
 import yaml
-from databricks_cli.sdk import JobsService, ApiClient
+from databricks_cli.sdk import ApiClient, JobsService
 from requests import HTTPError
 
 from dbx.api.config_reader import ConfigReader
-from dbx.api.configure import EnvironmentInfo, ConfigurationManager
+from dbx.api.configure import ConfigurationManager, EnvironmentInfo
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
-from dbx.commands.deploy import deploy, _update_job, _log_dbx_file, _create_job, _preprocess_jobs  # noqa
+from dbx.commands.deploy import (  # noqa
+    _create_job,
+    _log_dbx_file,
+    _preprocess_jobs,
+    _update_job,
+    deploy,
+)
 from dbx.utils.json import JsonUtils
-from .conftest import invoke_cli_runner, get_path_with_relation_to_current_file
+from tests.unit.conftest import (
+    get_path_with_relation_to_current_file,
+    invoke_cli_runner,
+)
 
 
 def test_deploy_smoke_default(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):

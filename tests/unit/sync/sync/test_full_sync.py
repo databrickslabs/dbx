@@ -19,13 +19,11 @@ def test_initial_full_sync():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=True,
             state_dir=state_dir,
             matcher=matcher,
@@ -71,13 +69,11 @@ def test_full_sync_after_initial_sync():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -118,8 +114,6 @@ def test_full_sync_after_initial_sync():
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -136,8 +130,6 @@ def test_full_sync_after_initial_sync():
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=True,
             state_dir=state_dir,
             matcher=matcher,
@@ -165,13 +157,11 @@ def test_dry_run_full_sync_after_initial_sync():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -212,8 +202,6 @@ def test_dry_run_full_sync_after_initial_sync():
             client=client,
             source=source,
             dry_run=True,
-            includes=None,
-            excludes=None,
             full_sync=True,
             state_dir=state_dir,
             matcher=matcher,

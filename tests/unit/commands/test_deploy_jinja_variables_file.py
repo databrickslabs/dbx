@@ -4,7 +4,10 @@ from pathlib import Path
 
 from dbx.api.config_reader import ConfigReader
 from dbx.commands.deploy import deploy
-from .conftest import invoke_cli_runner, get_path_with_relation_to_current_file
+from tests.unit.conftest import (
+    get_path_with_relation_to_current_file,
+    invoke_cli_runner,
+)
 
 
 def test_incorrect_file_name(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):

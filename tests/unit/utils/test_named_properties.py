@@ -9,7 +9,7 @@ from dbx.api.config_reader import ConfigReader
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
-from .conftest import get_path_with_relation_to_current_file
+from tests.unit.conftest import get_path_with_relation_to_current_file
 
 samples_root_path = get_path_with_relation_to_current_file("../deployment-configs/")
 

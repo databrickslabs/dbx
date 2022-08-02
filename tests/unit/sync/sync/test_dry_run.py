@@ -17,13 +17,11 @@ def test_single_file_put():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=True,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -54,13 +52,11 @@ def test_mkdir_put():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=True,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -92,15 +88,13 @@ def test_delete():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
 
         # first syncer does not do dry run
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=False,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -131,8 +125,6 @@ def test_delete():
             client=client,
             source=source,
             dry_run=True,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,
@@ -156,13 +148,11 @@ def test_single_file_put_twice():
     client.name = "test"
     client.base_path = "/test"
     with temporary_directory() as source, temporary_directory() as state_dir:
-        matcher = create_path_matcher(source=source, includes=None, excludes=None)
+        matcher = create_path_matcher(source=source)
         syncer = RemoteSyncer(
             client=client,
             source=source,
             dry_run=True,
-            includes=None,
-            excludes=None,
             full_sync=False,
             state_dir=state_dir,
             matcher=matcher,

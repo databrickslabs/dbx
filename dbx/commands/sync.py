@@ -94,48 +94,71 @@ def sync():
     pass  # pragma: no cover
 
 
-def create_path_matcher(*, source: str, includes: List[str], excludes: List[str]) -> PathMatcher:
+def create_path_matcher(
+    *,
+    source: str,
+    include_dirs: List[str] = None,
+    exclude_dirs: List[str] = None,
+    include_patterns: List[str] = None,
+    exclude_patterns: List[str] = None,
+    force_include_dirs: List[str] = None,
+    force_include_patterns: List[str] = None,
+    use_gitignore: bool = True,
+) -> PathMatcher:
     """Set up a pattern matcher that is used to ignores changes to files we don't want synced.
 
     Args:
         source (str): root directory includes and excludes are relative to
-        includes (List[str]): Patterns to include.
-        excludes (List[str]): Patterns to exclude.
+        include_dirs (List[str]): Directories to include.
+        exclude_dirs (List[str]): Directories to exclude.
+        include_patterns (List[str]): Patterns to include.
+        exclude_patterns (List[str]): Patterns to exclude.
+        force_include_dirs (List[str]): Directories to include, even if they would otherwise be ignored due to
+                                        exclude dirs/patterns.
+        force_include_patterns (List[str]): Patterns to include, even if they would otherwise be ignored due to
+                                        exclude dirs/patterns.
+        use_gitignore (bool): Whether to use a .gitignore file, if it exists, to populate the list of exclude patterns,
+                              in addition to any other exclude patterns that may be provided.
 
     Returns:
         PathMatcher: matcher for matching files
     """
 
-    ignores = list(DEFAULT_IGNORES)
+    include_dirs = list(include_dirs) if include_dirs else []
+    exclude_dirs = list(exclude_dirs) if exclude_dirs else []
+    include_patterns = list(include_patterns) if include_patterns else []
+    exclude_patterns = list(exclude_patterns) if exclude_patterns else []
+    force_include_dirs = list(force_include_dirs) if force_include_dirs else []
+    force_include_patterns = list(force_include_patterns) if force_include_patterns else []
 
-    gitignore_path = os.path.join(source, ".gitignore")
-    if os.path.exists(gitignore_path):
+    include_patterns.extend(subdirs_to_patterns(source, include_dirs))
+    exclude_patterns.extend(subdirs_to_patterns(source, exclude_dirs))
+    force_include_patterns.extend(subdirs_to_patterns(source, force_include_dirs))
+
+    gitignore_path = Path(source) / ".gitignore"
+    if use_gitignore and gitignore_path.exists():
         dbx_echo(f"Ignoring patterns from {gitignore_path}")
-        with open(gitignore_path, encoding="utf-8") as f:
-            ignores.extend(f.readlines())
+        exclude_patterns.extend(gitignore_path.read_text(encoding="utf-8").splitlines())
 
-    if not includes:
-        includes = []
-        syncinclude_path = os.path.join(source, ".syncinclude")
-        if os.path.exists(syncinclude_path):
-            dbx_echo(f"Including patterns from {syncinclude_path}")
-            with open(syncinclude_path, encoding="utf-8") as f:
-                includes.extend(f.readlines())
+    syncinclude_path = Path(source) / ".syncinclude"
+    if not include_patterns and syncinclude_path.exists():
+        dbx_echo(f"Including patterns from {syncinclude_path}")
+        include_patterns.extend(syncinclude_path.read_text(encoding="utf-8").splitlines())
 
-    if excludes:
-        ignores.extend(excludes)
+    exclude_patterns.extend(DEFAULT_IGNORES)
 
-    return PathMatcher(root_dir=source, ignores=ignores, includes=includes)
+    return PathMatcher(
+        root_dir=source, ignores=exclude_patterns, includes=include_patterns, force_includes=force_include_patterns
+    )
 
 
 def main_loop(
     *,
     source: str,
+    matcher: PathMatcher,
     client: BaseClient,
     full_sync: bool,
     dry_run: bool,
-    includes: List[str],
-    excludes: List[str],
     watch: bool,
     sleep_interval: float = 0.25,
     polling_interval_secs: float = None,
@@ -146,13 +169,9 @@ def main_loop(
     an incremental sync whenever changes are detected.
     """
 
-    matcher = create_path_matcher(source=source, includes=includes, excludes=excludes)
-
     syncer = RemoteSyncer(
         client=client,
         source=source,
-        includes=includes,
-        excludes=excludes,
         dry_run=dry_run,
         full_sync=full_sync,
         matcher=matcher,
@@ -213,8 +232,8 @@ def subdirs_to_patterns(source: str, subdirs: List[str]) -> List[str]:
     """
     patterns = []
     for subdir in subdirs:
-        full_subdir = os.path.join(source, subdir)
-        if not os.path.exists(full_subdir):
+        full_subdir = Path(source) / subdir
+        if not full_subdir.exists():
             raise click.BadArgumentUsage(f"Path {full_subdir} does not exist")
         subdir = Path(subdir).as_posix()
         patterns.append(f"/{subdir}/")
@@ -312,6 +331,27 @@ def common_options(f):
         """,
     )(f)
     f = click.option(
+        "--force-include",
+        "-fi",
+        "force_include_dirs",
+        multiple=True,
+        type=str,
+        required=False,
+        help="""A directory to sync, relative to the source directory.  This directory must exist.
+        When this option is used, no files or directories will be synced unless specifically included
+        by this or other include options.
+
+        Unlike `--include`, this will sync a directory regardless of files/directories that are excluded from
+        syncing.  This can be useful when, for example, the `.gitignore` lists a directory that you want to have
+        synced.  The patterns in the `.gitignore` are used by default to exclude files/directories from syncing.
+
+        For example:
+
+        * :code:`-i foo` will sync a directory `foo` directly under the source directory
+        * :code:`-i foo/bar` will sync a directory `foo/bar` directly under the source directory
+        """,
+    )(f)
+    f = click.option(
         "--exclude",
         "-e",
         "exclude_dirs",
@@ -348,6 +388,19 @@ def common_options(f):
         You may also store a list of patterns inside a :code:`.syncinclude` file under the source path.
         Patterns in this file will be used as the default patterns to include.  This essentially behaves
         as the opposite of a `gitignore <https://git-scm.com/docs/gitignore>`_ file, but with the same format.
+        """,
+    )(f)
+    f = click.option(
+        "--force-include-pattern",
+        "-fip",
+        "force_include_patterns",
+        multiple=True,
+        type=str,
+        required=False,
+        help="""A pattern specifying files and/or directories to sync, relative to the source directory, regardless
+        of whether these files and/or directories would otherwise be excluded.
+
+        See documentation of `--include-pattern` for usage.
         """,
     )(f)
     f = click.option(
@@ -400,6 +453,12 @@ def common_options(f):
         type=float,
         help="Use file system polling instead of file system events and set the polling interval (in seconds)",
     )(f)
+    f = click.option(
+        "--use-gitignore/--no-use-gitignore",
+        is_flag=True,
+        default=True,
+        help="""Controls whether the .gitignore is used to automatically exclude file/directories from syncing.""",
+    )(f)
     return f
 
 
@@ -440,13 +499,16 @@ def dbfs(
     full_sync: bool,
     dry_run: bool,
     include_dirs: List[str],
+    force_include_dirs: List[str],
     dest_path: str,
     exclude_dirs: List[str],
     profile: str,
     watch: bool,
     polling_interval_secs: float,
     include_patterns: List[str],
+    force_include_patterns: List[str],
     exclude_patterns: List[str],
+    use_gitignore: bool,
     delete_unmatched_option: DeleteUnmatchedOption,
 ):
     """
@@ -462,11 +524,16 @@ def dbfs(
 
     source = handle_source(source)
 
-    include_patterns = list(include_patterns) or []
-    exclude_patterns = list(exclude_patterns) or []
-
-    include_patterns.extend(subdirs_to_patterns(source, include_dirs))
-    exclude_patterns.extend(subdirs_to_patterns(source, exclude_dirs))
+    matcher = create_path_matcher(
+        source=source,
+        include_dirs=include_dirs,
+        exclude_dirs=exclude_dirs,
+        include_patterns=include_patterns,
+        exclude_patterns=exclude_patterns,
+        use_gitignore=use_gitignore,
+        force_include_dirs=force_include_dirs,
+        force_include_patterns=force_include_patterns,
+    )
 
     # To make the tool easier to use, pick a reasonable destination path under /tmp if one is not specified that is
     # highly unlikely to overwrite anything important.
@@ -495,11 +562,10 @@ def dbfs(
 
     main_loop(
         source=source,
+        matcher=matcher,
         client=client,
         full_sync=full_sync,
         dry_run=dry_run,
-        includes=include_patterns,
-        excludes=exclude_patterns,
         watch=watch,
         polling_interval_secs=polling_interval_secs,
         delete_unmatched_option=delete_unmatched_option,
@@ -539,13 +605,16 @@ def repo(
     full_sync: bool,
     dry_run: bool,
     include_dirs: List[str],
+    force_include_dirs: List[str],
     dest_repo: str,
     exclude_dirs: List[str],
     profile: str,
     watch: bool,
     polling_interval_secs: float,
     include_patterns: List[str],
+    force_include_patterns: List[str],
     exclude_patterns: List[str],
+    use_gitignore: bool,
     delete_unmatched_option: DeleteUnmatchedOption,
 ):
     """
@@ -570,21 +639,25 @@ def repo(
 
     source = handle_source(source)
 
-    include_patterns = list(include_patterns) or []
-    exclude_patterns = list(exclude_patterns) or []
-
-    include_patterns.extend(subdirs_to_patterns(source, include_dirs))
-    exclude_patterns.extend(subdirs_to_patterns(source, exclude_dirs))
+    matcher = create_path_matcher(
+        source=source,
+        include_dirs=include_dirs,
+        exclude_dirs=exclude_dirs,
+        include_patterns=include_patterns,
+        exclude_patterns=exclude_patterns,
+        use_gitignore=use_gitignore,
+        force_include_dirs=force_include_dirs,
+        force_include_patterns=force_include_patterns,
+    )
 
     client = ReposClient(user=user_name, repo_name=dest_repo, config=config)
 
     main_loop(
         source=source,
+        matcher=matcher,
         client=client,
         full_sync=full_sync,
         dry_run=dry_run,
-        includes=include_patterns,
-        excludes=exclude_patterns,
         watch=watch,
         polling_interval_secs=polling_interval_secs,
         delete_unmatched_option=delete_unmatched_option,

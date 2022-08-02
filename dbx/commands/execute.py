@@ -16,7 +16,7 @@ from dbx.utils.common import (
     handle_package,
     _preprocess_cluster_args,
 )
-from dbx.utils.options import environment_option
+from dbx.utils.options import environment_option, deployment_file_option
 
 
 @click.command(
@@ -56,12 +56,6 @@ from dbx.utils.options import environment_option
     help="Task name (task_key field) inside the job to be executed. Required if the --job is a multitask job.",
 )
 @click.option(
-    "--deployment-file",
-    required=False,
-    type=click.Path(path_type=Path),
-    help="Path to deployment file in one of these formats: [json, yaml]",
-)
-@click.option(
     "--requirements-file",
     required=False,
     type=click.Path(path_type=Path),
@@ -82,6 +76,7 @@ from dbx.utils.options import environment_option
 )
 @environment_option
 @debug_option
+@deployment_file_option
 def execute(
     environment: str,
     cluster_id: str,
@@ -143,12 +138,6 @@ def execute(
             f"No entrypoint file provided in job {job}, or the job is not a spark_python_task. \n"
             "Currently, only spark_python_task jobs and tasks are supported for dbx execute."
         )
-
-    entrypoint_file_path = entrypoint_file_path.replace("file://", "")
-
-    entrypoint_file = Path(entrypoint_file_path)
-    if not entrypoint_file.exists():
-        raise FileNotFoundError(f"Entrypoint file: {entrypoint_file} is provided, but doesn't exist")
 
     cluster_service = ClusterService(api_client)
 

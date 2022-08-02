@@ -1,8 +1,9 @@
-from dbx.commands.configure import configure
-from dbx.utils.common import ConfigurationManager
-from dbx.constants import INFO_FILE_PATH
 from pathlib import Path
-from .conftest import invoke_cli_runner
+
+from dbx.commands.configure import configure
+from dbx.constants import INFO_FILE_PATH
+from dbx.utils.common import ConfigurationManager
+from tests.unit.conftest import invoke_cli_runner
 
 
 def test_configure_default(temp_project) -> None:

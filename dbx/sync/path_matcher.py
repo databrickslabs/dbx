@@ -30,7 +30,14 @@ class PathMatcher:
     Both ignores and includes can be specified together, where ignores take precedence.
     """
 
-    def __init__(self, root_dir: Union[str, Path], *, ignores: List[str] = None, includes: List[str] = None):
+    def __init__(
+        self,
+        root_dir: Union[str, Path],
+        *,
+        ignores: List[str] = None,
+        includes: List[str] = None,
+        force_includes: List[str] = None,
+    ):
         """Initialize
 
         Args:
@@ -39,10 +46,18 @@ class PathMatcher:
                                            ignored by default.
             includes (List[str], optional): patterns to include. Defaults to None, which means everything will be
                                             included, unless otherwise ignored.
+            force_includes (List[str], optional): patterns to include, even if they would otherwise be ignored.
+                                                  Defaults to None, which means nothing will be forced to be included.
         """
 
         self.root_dir = path_as_posix(root_dir)
+        self.includes = includes
+        self.force_includes = force_includes
+        self.ignores = ignores
         self.include_spec = pathspec.PathSpec.from_lines("gitwildmatch", includes) if includes else None
+        self.force_include_spec = (
+            pathspec.PathSpec.from_lines("gitwildmatch", force_includes) if force_includes else None
+        )
         self.ignore_spec = pathspec.PathSpec.from_lines("gitwildmatch", ignores) if ignores else None
 
     def _clean_relative_path(self, path: str, *, is_directory: bool) -> str:
@@ -73,6 +88,10 @@ class PathMatcher:
         path = path_as_posix(path)
 
         path = self._clean_relative_path(path, is_directory=is_directory)
+
+        # We certaintly will not ignore something that we've forced to be included.
+        if self.force_include_spec is not None and self.force_include_spec.match_file(path):
+            return False
 
         # If there is an ignore spec, then we'll ignore any paths that match.
         if self.ignore_spec is not None:
@@ -114,6 +133,11 @@ class PathMatcher:
 
         path = self._clean_relative_path(path, is_directory=is_directory)
 
+        # If there is a force include spec, then we'll return True if it matches, even if it would have otherwise
+        # been ignored below.
+        if self.force_include_spec is not None and self.force_include_spec.match_file(path):
+            return True
+
         # If there is an ignore spec, then we'll ignore any paths that match, regardless of the include spec.
         if self.ignore_spec is not None:
             should_ignore = self.ignore_spec.match_file(path)
@@ -129,7 +153,7 @@ class PathMatcher:
 
 
 def filtered_listdir(matcher: PathMatcher, root: str):
-    """A wrapper around os.scandir that filters out paths that should be ignored according to rules in the
+    """A wrapper around os.scandir that filters out paths that should definitely be ignored according to rules in the
     given matcher.  Enabling this filtering makes the traversal more efficient.
 
     To, apply a partial to pass in the matcher:
@@ -145,7 +169,7 @@ def filtered_listdir(matcher: PathMatcher, root: str):
         str: file/directory entries
     """
     for entry in os.scandir(root):
-        entry_name = os.path.join(root, entry if isinstance(entry, str) else entry.name)
+        entry_name = Path(root) / (entry if isinstance(entry, str) else entry.name)
         # Some paths are definitely ignored due to an ignore spec.  These should not be traversed.
         if not matcher.should_ignore(entry_name, is_directory=os.path.isdir(entry_name)):
             yield entry

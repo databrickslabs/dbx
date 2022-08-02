@@ -3,7 +3,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import List
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch
 
 from watchdog.events import DirCreatedEvent, FileCreatedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent
 
@@ -14,9 +14,15 @@ from .utils import temporary_directory
 
 
 @contextmanager
-def temp_event_handler(*, ignores: List[str] = None, includes: List[str] = None, polling_interval_secs: float = None):
+def temp_event_handler(
+    *,
+    ignores: List[str] = None,
+    includes: List[str] = None,
+    force_includes: List[str] = None,
+    polling_interval_secs: float = None,
+):
     with temporary_directory() as tempdir:
-        matcher = PathMatcher(tempdir, includes=includes, ignores=ignores)
+        matcher = PathMatcher(tempdir, includes=includes, ignores=ignores, force_includes=force_includes)
         with file_watcher(
             source=tempdir, matcher=matcher, polling_interval_secs=polling_interval_secs
         ) as event_handler:
@@ -26,14 +32,20 @@ def temp_event_handler(*, ignores: List[str] = None, includes: List[str] = None,
 def get_events(event_handler: CollectingEventHandler, expected: int, *, timeout_seconds: int = 5):
     start_time = time.monotonic()
     all_events = []
-    while time.monotonic() < start_time + 5:
+    while time.monotonic() < start_time + timeout_seconds:
         events = event_handler.get_events()
         if events:
             all_events.extend(events)
-            if len(all_events) >= expected:
+            if len(all_events) == expected:
                 return all_events
+            # Allow the assertion below to fail the test
+            elif len(all_events) > expected:
+                break
         time.sleep(0.05)
-    assert False, "Failed to collect the expected number of events"
+    assert False, (
+        f"Failed to collect the expected number of events.  "
+        f"Expected {expected}, but got {len(all_events)}: {all_events}"
+    )
 
 
 def test_event_handler_create_file():
@@ -43,7 +55,6 @@ def test_event_handler_create_file():
     with temp_event_handler(includes=["foo"]) as (event_handler, tempdir):
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
 
@@ -55,7 +66,6 @@ def test_event_handler_create_file_polling():
     with temp_event_handler(includes=["foo"], polling_interval_secs=0.5) as (event_handler, tempdir):
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
 
@@ -71,7 +81,6 @@ def test_event_handler_create_file_polling_fabllack(observer_mock):
     with temp_event_handler(includes=["foo"]) as (event_handler, tempdir):
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
 
@@ -84,9 +93,36 @@ def test_event_handler_create_file_ignored():
         (tempdir / "bar").touch()
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
+
+
+def test_event_handler_create_file_ignored_from_ignores():
+    """
+    Tests file_watcher can detect file creation.
+    """
+    with temp_event_handler(ignores=["f*"]) as (event_handler, tempdir):
+        (tempdir / "far").touch()
+        (tempdir / "foo").touch()
+        (tempdir / "bar").touch()
+        events = get_events(event_handler, expected=1)
+        assert isinstance(events[0], FileCreatedEvent)
+        assert events[0].src_path == os.path.join(tempdir, "bar")
+
+
+def test_event_handler_create_file_force_includes():
+    """
+    Tests file_watcher can detect file creation.
+    """
+    with temp_event_handler(ignores=["f*"], force_includes=["foo"]) as (event_handler, tempdir):
+        (tempdir / "far").touch()
+        (tempdir / "foo").touch()
+        (tempdir / "bar").touch()
+        events = get_events(event_handler, expected=2)
+        assert isinstance(events[0], FileCreatedEvent)
+        assert events[0].src_path == os.path.join(tempdir, "foo")
+        assert isinstance(events[1], FileCreatedEvent)
+        assert events[1].src_path == os.path.join(tempdir, "bar")
 
 
 def test_event_handler_create_dir():
@@ -96,7 +132,6 @@ def test_event_handler_create_dir():
     with temp_event_handler(includes=["foo"]) as (event_handler, tempdir):
         (tempdir / "foo").mkdir()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], DirCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
 
@@ -109,7 +144,6 @@ def test_event_handler_create_dir_ignored():
         (tempdir / "bar").mkdir()
         (tempdir / "foo").mkdir()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], DirCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
 
@@ -122,7 +156,6 @@ def test_event_handler_delete_file():
         (tempdir / "foo").touch()
         os.remove(tempdir / "foo")
         events = get_events(event_handler, expected=2)
-        assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileDeletedEvent)
@@ -138,7 +171,6 @@ def test_event_handler_delete_file_ignored():
         os.remove(tempdir / "bar")
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
 
@@ -151,7 +183,6 @@ def test_event_handler_modify_file():
         (tempdir / "foo").touch()
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=2)
-        assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileModifiedEvent)
@@ -168,7 +199,6 @@ def test_event_handler_modify_file_ignored():
         (tempdir / "foo").touch()
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=2)
-        assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileModifiedEvent)
@@ -183,7 +213,6 @@ def test_event_handler_move_file():
         (tempdir / "foo").touch()
         os.rename(tempdir / "foo", tempdir / "foo2")
         events = get_events(event_handler, expected=2)
-        assert len(events) == 2
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
         assert isinstance(events[1], FileMovedEvent)
@@ -199,7 +228,6 @@ def test_event_handler_move_file_ignored():
         os.rename(tempdir / "bar", tempdir / "bar2")
         (tempdir / "foo").touch()
         events = get_events(event_handler, expected=1)
-        assert len(events) == 1
         assert isinstance(events[0], FileCreatedEvent)
         assert events[0].src_path == os.path.join(tempdir, "foo")
 

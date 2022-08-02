@@ -13,7 +13,7 @@ SHELL=/bin/bash
 
 ##############################################################################
 PYTHON_VERSION=3.8.13
-VENV_NAME=.venv
+VENV_NAME := $(shell [ -d venv ] && echo venv || echo .venv)
 VENV_DIR=${VENV_NAME}
 PYTHON=${VENV_DIR}/bin/python
 RSTCHECK=${VENV_DIR}/bin/rstcheck
@@ -198,13 +198,13 @@ test: ## Run the tests. (option): file=tests/path/to/file.py
 	@echo ""
 	@echo "${YELLOW}Running tests:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pytest -vv --cov dbx $(file)
+	$(PYTHON) -m pytest -vv --cov dbx $(file) -n auto
 
 test-with-html-report: ## Run all tests with html reporter.
 	@echo ""
 	@echo "${YELLOW}Testing with html report:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pytest --cov dbx --cov-report html -s
+	$(PYTHON) -m pytest --cov dbx -n auto --cov-report html -s
 
 ##############################################################################
 
