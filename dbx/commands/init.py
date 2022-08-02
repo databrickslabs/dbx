@@ -1,11 +1,11 @@
 from typing import List, Optional
+from pathlib import Path
 
 import click
 import pkg_resources
 from cookiecutter.main import cookiecutter
 from databricks_cli.configure.config import debug_option
 from databricks_cli.utils import CONTEXT_SETTINGS
-from pathlib import Path
 
 from dbx.utils import dbx_echo
 from dbx.constants import TEMPLATE_CHOICES, TEMPLATE_ROOT_PATH
@@ -38,7 +38,8 @@ DEFAULT_TEMPLATE = "python_basic"
 @click.option(
     "--package",
     required=False,
-    help="""Python package containing external template used to kickoff the project. Cannot be used together with :code:`--template` option.""",
+    help="""Python package containing external template used to kickoff the project.
+    Cannot be used together with :code:`--template` option.""",
 )
 @click.option(
     "--checkout",
@@ -73,7 +74,8 @@ def init(
     if sum([bool(template), bool(package), bool(path)]) > 1:
         raise Exception(
             "Only one option among  --template, --path and --package is supported."
-            "Please choose either built-in template or python package containing dbx template or external path to cookiecutter template!"
+            "Please choose either built-in template or python package containing dbx template "
+            "or external path to cookiecutter template!"
         )
     if not path and not package and template is None:
         template = DEFAULT_TEMPLATE
