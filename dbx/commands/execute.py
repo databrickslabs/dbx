@@ -20,7 +20,7 @@ from dbx.utils.common import (
     _preprocess_cluster_args,
 )
 from dbx.utils.file_uploader import MlflowFileUploader
-from dbx.utils.options import environment_option
+from dbx.utils.options import environment_option, deployment_file_option
 
 
 @click.command(
@@ -60,12 +60,6 @@ from dbx.utils.options import environment_option
     help="Task name (task_key field) inside the job to be executed. Required if the --job is a multitask job.",
 )
 @click.option(
-    "--deployment-file",
-    required=False,
-    type=click.Path(path_type=Path),
-    help="Path to deployment file in one of these formats: [json, yaml]",
-)
-@click.option(
     "--requirements-file",
     required=False,
     type=click.Path(path_type=Path),
@@ -80,6 +74,7 @@ from dbx.utils.options import environment_option
 )
 @environment_option
 @debug_option
+@deployment_file_option
 def execute(
     environment: str,
     cluster_id: str,

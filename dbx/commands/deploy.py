@@ -23,7 +23,7 @@ from dbx.utils.common import (
 )
 from dbx.utils import dbx_echo
 from dbx.utils.file_uploader import MlflowFileUploader
-from dbx.utils.options import environment_option
+from dbx.utils.options import environment_option, deployment_file_option
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.job_listing import find_job_by_name
 
@@ -51,13 +51,6 @@ from dbx.utils.job_listing import find_job_by_name
     8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
        | For example, this option can look like this: :code:`--write-specs-to-file=.dbx/deployment-result.json`.
     """,
-)
-@click.option(
-    "--deployment-file",
-    required=False,
-    type=click.Path(path_type=Path),
-    help="Path to deployment file in one of these formats: [json, yaml]",
-    is_eager=True,
 )
 @click.option(
     "--job",
@@ -130,6 +123,7 @@ from dbx.utils.job_listing import find_job_by_name
 )
 @debug_option
 @environment_option
+@deployment_file_option
 def deploy(
     deployment_file: Optional[Path],
     job: Optional[str],
