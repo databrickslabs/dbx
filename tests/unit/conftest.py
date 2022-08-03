@@ -122,7 +122,7 @@ def mlflow_file_uploader(mocker, mlflow_fixture):
     real_adjuster = adjust_path
 
     def fake_adjuster(candidate: str, file_uploader: MlflowFileUploader) -> str:
-        if str(candidate).startswith(file_uploader._artifact_uri):
+        if str(candidate).startswith(file_uploader._base_uri):
             return candidate
         else:
             adjusted = real_adjuster(candidate, file_uploader)

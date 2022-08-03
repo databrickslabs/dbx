@@ -14,7 +14,7 @@ def test_uploader(_):
 
     for artifact_uri in TEST_ARTIFACT_PATHS:
         for local_path in local_paths:
-            uploader = MlflowFileUploader(artifact_uri=artifact_uri)
+            uploader = MlflowFileUploader(base_uri=artifact_uri)
             resulting_path = uploader.upload_and_provide_path(local_path)
             expected_path = "/".join([artifact_uri, str(local_path.as_posix())])
             assert expected_path == resulting_path
@@ -24,7 +24,7 @@ def test_uploader(_):
 def test_fuse_support(_):
     local_path = Path("/some/local/file")
     for artifact_uri in TEST_ARTIFACT_PATHS:
-        uploader = MlflowFileUploader(artifact_uri=artifact_uri)
+        uploader = MlflowFileUploader(base_uri=artifact_uri)
 
         if not artifact_uri.startswith("dbfs:/"):
             with pytest.raises(Exception):
