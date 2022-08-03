@@ -131,13 +131,15 @@ def execute(
             )
         _payload = job_payload
 
-    entrypoint_file_path = _payload.get("spark_python_task", {}).get("python_file")
+    entrypoint_file = _payload.get("spark_python_task", {}).get("python_file")
 
-    if not entrypoint_file_path:
+    if not entrypoint_file:
         raise Exception(
             f"No entrypoint file provided in job {job}, or the job is not a spark_python_task. \n"
             "Currently, only spark_python_task jobs and tasks are supported for dbx execute."
         )
+
+    entrypoint_file_path = Path(entrypoint_file.replace("file://", ""))
 
     cluster_service = ClusterService(api_client)
 
@@ -151,7 +153,7 @@ def execute(
         client=context_client,
         no_package=no_package,
         requirements_file=requirements_file,
-        entrypoint_file=entrypoint_file,
+        entrypoint_file=entrypoint_file_path,
         task_parameters=task_parameters,
         upload_via_context=upload_via_context,
     )

@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional, List, Any
 
@@ -11,7 +10,7 @@ from dbx.utils.common import get_package_file
 from dbx.utils.file_uploader import MlflowFileUploader, ContextBasedUploader
 
 
-class AbstractExecutionController(ABC):
+class ExecutionController:
     def __init__(
         self,
         client: RichExecutionContextClient,
@@ -20,7 +19,6 @@ class AbstractExecutionController(ABC):
         upload_via_context: bool,
         requirements_file: Optional[Path],
         task_parameters: Optional[List[str]],
-        **kwargs,
     ):
         self._client = client
         self._requirements_file = requirements_file
@@ -29,25 +27,18 @@ class AbstractExecutionController(ABC):
         self._entrypoint_file = entrypoint_file
         self._upload_via_context = upload_via_context
 
-    @abstractmethod
-    def install_requirements_file(self):
-        """"""
+        self._run = None
 
-    @abstractmethod
-    def install_package(self):
-        """"""
+        if not self._upload_via_context:
+            self._run = mlflow.start_run()
+            self._file_uploader = MlflowFileUploader(self._run.info.artifact_uri)
+        else:
+            self._file_uploader = ContextBasedUploader(self._client)
 
     def execute_entrypoint_file(self):
         dbx_echo("Starting entrypoint file execution")
         self._client.execute_file(self._entrypoint_file)
         dbx_echo("Command execution finished")
-
-    @abstractmethod
-    def preprocess_task_parameters(self):
-        """"""
-
-    def postprocess(self):
-        pass
 
     def run(self):
         self.install_requirements_file()
@@ -56,17 +47,8 @@ class AbstractExecutionController(ABC):
         if self._task_parameters:
             self.preprocess_task_parameters()
         self.execute_entrypoint_file()
-        self.postprocess()
-
-
-class ExecutionController(AbstractExecutionController):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if not self._upload_via_context:
-            self._run = mlflow.start_run()
-            self._file_uploader = MlflowFileUploader(self._run.info.artifact_uri)
-        else:
-            self._file_uploader = ContextBasedUploader(self._client)
+        if self._run:
+            mlflow.end_run()
 
     def install_requirements_file(self):
         if self._requirements_file.exists():
@@ -97,6 +79,3 @@ class ExecutionController(AbstractExecutionController):
 
         self._client.setup_arguments(self._task_parameters)
         dbx_echo("Processing task parameters - done")
-
-    def postprocess(self):
-        mlflow.end_run()

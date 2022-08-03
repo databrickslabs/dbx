@@ -9,13 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
 
-## [X.Y.Z] - YYYY-MM-DD
+## [0.6.9] - 2022-08-03
 
 ## Added
 
 - Additional `sync` command options (`--no-use-gitignore`, `--force-include`, etc.) for more control over what is synced.
 - Additional `init` command option `--template` was added to allow using dbx templates distributed as part of python packages.
 - Refactored the `--deployment-file` option for better modularity of the code
+- Add upload via context for `dbx execute`
 
 ----
 > Unreleased changes must be tracked above this line.
