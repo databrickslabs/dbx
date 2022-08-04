@@ -1,5 +1,4 @@
 import json
-import pathlib
 import time
 from base64 import b64encode
 from pathlib import Path
@@ -13,7 +12,7 @@ from dbx.utils import dbx_echo
 
 
 class LocalContextManager:
-    context_file_path: pathlib.Path = LOCK_FILE_PATH
+    context_file_path: Path = LOCK_FILE_PATH
 
     @classmethod
     def set_context(cls, context_id: str) -> None:

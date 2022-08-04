@@ -32,12 +32,11 @@ class AbstractFileUploader(ABC):
         if local_file_path in self._uploaded_files:
             remote_path = self._uploaded_files[local_file_path]
         else:
+            dbx_echo(f"Uploading local file {local_file_path}")
             self._upload_file(local_file_path)
             remote_path = "/".join([self._base_uri, str(local_file_path.as_posix())])
             self._uploaded_files[local_file_path] = remote_path
-            dbx_echo(f"Fine upload finished \n"
-                     f"\t Local file {local_file_path} \n"
-                     f"\t Uploaded to remote: {remote_path} \n")
+            dbx_echo(f"Uploading local file {local_file_path} - done")
 
         remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
@@ -66,8 +65,7 @@ class ContextBasedUploader(AbstractFileUploader):
         dbx_echo("Skipping the FUSE check since context-based uploader is used")
 
     def _upload_file(self, local_file_path: Path):
-        temp_remote_file_path = self._client.upload_file(local_file_path, self._base_uri)
-        dbx_echo(f"File uploaded to temp location {temp_remote_file_path}")
+        self._client.upload_file(local_file_path, self._base_uri)
 
     def __del__(self):
         try:
