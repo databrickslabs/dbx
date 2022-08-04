@@ -35,7 +35,9 @@ class AbstractFileUploader(ABC):
             self._upload_file(local_file_path)
             remote_path = "/".join([self._base_uri, str(local_file_path.as_posix())])
             self._uploaded_files[local_file_path] = remote_path
-            print(f"Local file {local_file_path} has been uploaded to remote {remote_path}")
+            dbx_echo(f"Fine upload finished \n"
+                     f"\t Local file {local_file_path} \n"
+                     f"\t Uploaded to remote: {remote_path} \n")
 
         remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
