@@ -52,6 +52,10 @@ jobs:
           git config --global init.defaultBranch main # to avoid verbose deprecation messages in CI pipeline
           pytest tests/unit --cov dbx -n auto
 
+      - name: Run acceptance tests
+        run: |
+          python -m dbx --help
+          python -c "import dbx; print(dbx.__version__)"
 
       - name: Publish test coverage
         if: startsWith(matrix.os,'ubuntu')
