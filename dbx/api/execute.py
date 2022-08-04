@@ -53,7 +53,7 @@ class ExecutionController:
         if self._task.task_type == TaskType.spark_python_task:
             self.preprocess_task_parameters(self._task.spark_python_task.parameters)
             self.execute_entrypoint_file(self._task.spark_python_task.python_file)
-        elif self._task.spark_python_task == TaskType.python_wheel_task:
+        elif self._task.task_type == TaskType.python_wheel_task:
             self.preprocess_task_parameters(self._task.python_wheel_task.parameters)
             self.execute_entrypoint(self._task.python_wheel_task)
 
