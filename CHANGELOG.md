@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
-## [X.Y.Z] - YYYY-MM-DD
+## [0.6.10] - 2022-08-04
 
 ## Added
 - Added support for `python_wheel_task` in `dbx execute`
