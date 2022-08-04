@@ -5,7 +5,6 @@ from typing import Optional, Dict
 import mlflow
 from retry import retry
 
-from dbx.api.configure import ConfigurationManager
 from dbx.api.context import RichExecutionContextClient
 from dbx.utils import dbx_echo
 

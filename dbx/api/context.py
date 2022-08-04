@@ -168,7 +168,7 @@ class RichExecutionContextClient:
         from pathlib import Path
         from base64 import b64decode
         DBX_UPLOAD_CONTENTS = b64decode({contents})
-        file_path = Path("{prefix_dir}") / "{file.name}"
+        file_path = Path("{prefix_dir}") / "{file.as_posix()}"
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True)
         file_path.write_bytes(DBX_UPLOAD_CONTENTS)
