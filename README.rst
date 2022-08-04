@@ -95,7 +95,7 @@ Limitations
   * | :code:`dbx` currently doesn't provide interactive debugging capabilities.
     | If you want to use interactive debugging, you can use `Databricks Connect <https://docs.databricks.com/dev-tools/databricks-connect.html>`_ + :code:`dbx` for deployment operations.
 
-  * :code:`dbx execute` only supports Python-based projects which use :code:`spark_python_task` (Notebooks or Repos are not supported in :code:`dbx execute`).
+  * :code:`dbx execute` only supports Python-based projects which use :code:`spark_python_task` or :code:`python_wheel_task`. Notebooks or Repos are not supported in :code:`dbx execute`.
 
   * :code:`dbx execute` can only be used on clusters with Databricks ML Runtime 7.X or higher.
 
