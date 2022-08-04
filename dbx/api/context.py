@@ -1,5 +1,4 @@
 import json
-import pathlib
 import time
 from base64 import b64encode
 from pathlib import Path
@@ -13,7 +12,7 @@ from dbx.utils import dbx_echo
 
 
 class LocalContextManager:
-    context_file_path: pathlib.Path = LOCK_FILE_PATH
+    context_file_path: Path = LOCK_FILE_PATH
 
     @classmethod
     def set_context(cls, context_id: str) -> None:
@@ -119,8 +118,8 @@ class RichExecutionContextClient:
     def __init__(self, v2_client: ApiClient, cluster_id: str, language: str = "python"):
         self._client = LowLevelExecutionContextClient(v2_client, cluster_id, language)
 
-    def install_package(self, package_file: Path):
-        installation_command = f"%pip install --force-reinstall {package_file.absolute()}"
+    def install_package(self, package_file: str):
+        installation_command = f"%pip install --force-reinstall {package_file}"
         self._client.execute_command(installation_command, verbose=False)
 
     def setup_arguments(self, arguments: List[Any]):
@@ -147,12 +146,12 @@ class RichExecutionContextClient:
     def client(self):
         return self._client
 
-    def get_temp_dir(self) -> Path:
+    def get_temp_dir(self) -> str:
         command = """
         from tempfile import mkdtemp
         print(mkdtemp())
         """
-        return Path(self._client.execute_command(command, verbose=False))
+        return self._client.execute_command(command, verbose=False)
 
     def remove_dir(self, _dir: str):
         command = f"""
@@ -161,17 +160,17 @@ class RichExecutionContextClient:
         """
         self._client.execute_command(command, verbose=False)
 
-    def upload_file(self, file: Path, prefix_dir: Path) -> Path:
+    def upload_file(self, file: Path, prefix_dir: str) -> str:
         _contents = file.read_bytes()
         contents = b64encode(_contents)
         command = f"""
         from pathlib import Path
         from base64 import b64decode
         DBX_UPLOAD_CONTENTS = b64decode({contents})
-        file_path = Path("{prefix_dir}") / "{file}"
+        file_path = Path("{prefix_dir}") / "{file.as_posix()}"
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True)
         file_path.write_bytes(DBX_UPLOAD_CONTENTS)
         print(file_path)
         """
-        return Path(self._client.execute_command(command, verbose=False))
+        return self._client.execute_command(command, verbose=False)

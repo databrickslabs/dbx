@@ -53,11 +53,11 @@ class JsonFileBasedManager(EnvironmentDataManager):
     @property
     def _file_content(self) -> Dict[str, EnvironmentInfo]:
         if not self._file.exists():
-            return {}
-        else:
-            _raw: Dict = JsonUtils.read(self._file).get("environments", {})
-            _typed = {name: EnvironmentInfo(**value) for name, value in _raw.items()}
-            return _typed
+            raise FileNotFoundError(f"dbx project file not found at absolute path {self._file.absolute()}")
+
+        _raw: Dict = JsonUtils.read(self._file).get("environments", {})
+        _typed = {name: EnvironmentInfo(**value) for name, value in _raw.items()}
+        return _typed
 
     @_file_content.setter
     def _file_content(self, content: Dict[str, EnvironmentInfo]):
@@ -73,9 +73,18 @@ class JsonFileBasedManager(EnvironmentDataManager):
         return self._file_content.get(name)
 
     def create(self, name: str, environment_info: EnvironmentInfo):
-        _new = self._file_content.copy()
-        _new.update({name: environment_info})
-        self._file_content = _new
+        if self._file.exists():
+            _new = self._file_content.copy()
+            _new.update({name: environment_info})
+            self._file_content = _new
+        else:
+            self._file_content = {name: environment_info}
+
+    def create_or_update(self, name: str, environment_info: EnvironmentInfo):
+        if self._file.exists() and self.get(name):
+            self.update(name, environment_info)
+        else:
+            self.create(name, environment_info)
 
 
 class ConfigurationManager:
