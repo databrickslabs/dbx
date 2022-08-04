@@ -135,6 +135,14 @@ class RichExecutionContextClient:
         content = file_path.read_text(encoding="utf-8")
         self._client.execute_command(content, verbose=True)
 
+    def execute_entry_point(self, package_name: str, entry_point: str):
+        command = f"""
+        import pkg_resources
+        _func = pkg_resources.load_entry_point("{package_name}", "console_scripts", "{entry_point}")
+        _func()
+        """
+        self._client.execute_command(command)
+
     @property
     def client(self):
         return self._client
