@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [X.Y.Z] - YYYY-MM-DD
+
+- Added support for `python_wheel_task` in `dbx execute`
+
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
 
 ## [0.6.9] - 2022-08-03
 
@@ -18,11 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored the `--deployment-file` option for better modularity of the code
 - Add upload via context for `dbx execute`
 
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 ## [0.6.8] - 2022-07-21
 

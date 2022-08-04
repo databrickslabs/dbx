@@ -10,6 +10,7 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
+from dbx.models.task import Task
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     prepare_environment,
@@ -131,15 +132,7 @@ def execute(
             )
         _payload = job_payload
 
-    entrypoint_file = _payload.get("spark_python_task", {}).get("python_file")
-
-    if not entrypoint_file:
-        raise Exception(
-            f"No entrypoint file provided in job {job}, or the job is not a spark_python_task. \n"
-            "Currently, only spark_python_task jobs and tasks are supported for dbx execute."
-        )
-
-    entrypoint_file_path = Path(entrypoint_file.replace("file://", ""))
+    task = Task(**_payload)
 
     cluster_service = ClusterService(api_client)
 
@@ -147,14 +140,12 @@ def execute(
     awake_cluster(cluster_service, cluster_id)
 
     context_client = RichExecutionContextClient(api_client, cluster_id)
-    task_parameters = _payload.get("spark_python_task").get("parameters", [])
 
     controller_instance = ExecutionController(
         client=context_client,
         no_package=no_package,
         requirements_file=requirements_file,
-        entrypoint_file=entrypoint_file_path,
-        task_parameters=task_parameters,
+        task=task,
         upload_via_context=upload_via_context,
     )
     controller_instance.run()
