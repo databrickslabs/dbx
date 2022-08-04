@@ -35,6 +35,7 @@ class AbstractFileUploader(ABC):
             self._upload_file(local_file_path)
             remote_path = "/".join([self._base_uri, str(local_file_path.as_posix())])
             self._uploaded_files[local_file_path] = remote_path
+            print(f"Local file {local_file_path} has been uploaded to remote {remote_path}")
 
         remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
@@ -48,10 +49,8 @@ class MlflowFileUploader(AbstractFileUploader):
     @staticmethod
     @retry(tries=3, delay=1, backoff=0.3)
     def _upload_file(file_path: Path):
-        dbx_echo(f"Uploading file {file_path}")
         posix_path = PurePosixPath(file_path.as_posix())
         parent = str(posix_path.parent) if str(posix_path.parent) != "." else None
-        dbx_echo(f"Uploading file {file_path} - done")
         mlflow.log_artifact(str(file_path), parent)
 
 
