@@ -54,10 +54,10 @@ class JsonFileBasedManager(EnvironmentDataManager):
     def _file_content(self) -> Dict[str, EnvironmentInfo]:
         if not self._file.exists():
             raise FileNotFoundError(f"dbx project file not found at absolute path {self._file.absolute()}")
-        else:
-            _raw: Dict = JsonUtils.read(self._file).get("environments", {})
-            _typed = {name: EnvironmentInfo(**value) for name, value in _raw.items()}
-            return _typed
+
+        _raw: Dict = JsonUtils.read(self._file).get("environments", {})
+        _typed = {name: EnvironmentInfo(**value) for name, value in _raw.items()}
+        return _typed
 
     @_file_content.setter
     def _file_content(self, content: Dict[str, EnvironmentInfo]):

@@ -2,7 +2,7 @@ import json
 import pathlib
 import time
 from base64 import b64encode
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Optional, List, Any
 
 from databricks_cli.sdk import ApiClient
@@ -162,7 +162,7 @@ class RichExecutionContextClient:
         self._client.execute_command(command, verbose=False)
 
     def upload_file(self, file: str, prefix_dir: str) -> Path:
-        _contents = file.read_bytes()
+        _contents = Path(file).read_bytes()
         contents = b64encode(_contents)
         command = f"""
         from pathlib import Path
