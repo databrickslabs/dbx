@@ -36,15 +36,11 @@ The clean project structure, without any CI-related files will look like this:
     ├── sample_project
     │   ├── __init__.py # <- this is the root folder of your Python package
     │   ├── common.py # <- this file contains a generic class called Job, which provides you all necessary tools, such as Spark and DBUtils
-    │   └── jobs
+    │   └── tasks
     │       ├── __init__.py
-    │       └── sample
-    │           ├── __init__.py
-    │           └── entrypoint.py
+    │       └── sample_task.py
     ├── setup.py
     ├── tests
-    │   ├── integration
-    │   │   └── sample_test.py
     │   └── unit
     │       └── sample_test.py
 
@@ -114,11 +110,11 @@ Local development environment
     conda create -n <your-environment-name> python=3.7.5
     conda activate <your-environment-name>
 
-* If you would like to be able to run local unit tests, you'll need JDK. If you don't have one, it can be installed via:
+* If you would like to be able to run local unit tests, you'll need JDK. If you don't have one, it can be installed, for example, via :code:`conda` :
 
 .. code-block::
 
-    conda install -c anaconda "openjdk=8.0.152"
+    conda install -c conda-forge openjdk
 
 * Move the shell to the project directory:
 
@@ -142,8 +138,8 @@ Running local tests and writing code
 
 Now, you can open the project in your IDE. Don't forget to point the IDE to the given conda environment name for a full code introspection.
 
-Take a look at the code sample in the :code:`<project_name>/jobs/sample/entrypoint.py`.
-This entrypoint file contains an example of an implemented job, based on the abstract :code:`Job` name.
+Take a look at the code sample in the :code:`<project_name>/tasks/sample_etl_task.py`.
+This entrypoint file contains an example of an implemented job, based on the abstract :code:`Task` name.
 You can see that a configuration object, named :code:`self.conf` referenced in this job - these parameters will be provided from a :code:`conf/test/sample.yml` file during Databricks run.
 In the local test, you can override this configuration - please find examples in :code:`tests/unit/sample_test.py`.
 

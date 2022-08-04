@@ -60,7 +60,7 @@ dbx deploy --jobs=<name of the job to test> --files-only
 dbx launch --job=<name of the job to test> --as-run-submit --trace
 ```
 
-Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/run_submit.html), so you won't affect existing job definitions.
+Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/guidance/run_submit.html), so you won't affect existing job definitions.
 
 ## Interactive execution and development on Databricks clusters
 
@@ -79,16 +79,13 @@ Multiple users also can use the same cluster for development. Libraries will be 
 
 To start working with your notebooks from a Repos, do the following steps:
 
-1. Add your git provider token to your user settings
+1. Add your git provider token to your user settings in Databricks
 2. Add your repository to Repos. This could be done via UI, or via CLI command below:
 ```bash
 databricks repos create --url <your repo URL> --provider <your-provider>
 ```
 This command will create your personal repository under `/Repos/<username>/{{cookiecutter.project_slug}}`.
-3. To set up the CI/CD pipeline with the notebook, create a separate `Staging` repo:
-```bash
-databricks repos create --url <your repo URL> --provider <your-provider> --path /Repos/Staging/{{cookiecutter.project_slug}}
-```
+3. Use `git_source` in your job definition as described [here](https://dbx.readthedocs.io/en/latest/examples/notebook_remote.html)
 
 ## CI/CD pipeline settings
 
