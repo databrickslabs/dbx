@@ -161,17 +161,17 @@ class RichExecutionContextClient:
         """
         self._client.execute_command(command, verbose=False)
 
-    def upload_file(self, file: str, prefix_dir: str) -> Path:
-        _contents = Path(file).read_bytes()
+    def upload_file(self, file: Path, prefix_dir: str) -> str:
+        _contents = file.read_bytes()
         contents = b64encode(_contents)
         command = f"""
         from pathlib import Path
         from base64 import b64decode
         DBX_UPLOAD_CONTENTS = b64decode({contents})
-        file_path = Path("{prefix_dir}") / "{file}"
+        file_path = Path("{prefix_dir}") / "{file.name}"
         if not file_path.parent.exists():
             file_path.parent.mkdir(parents=True)
         file_path.write_bytes(DBX_UPLOAD_CONTENTS)
         print(file_path)
         """
-        return Path(self._client.execute_command(command, verbose=False))
+        return self._client.execute_command(command, verbose=False)

@@ -71,7 +71,7 @@ class ContextBasedUploader(AbstractFileUploader):
         return mlflow.get_experiment_by_name(info.workspace_dir).experiment_id
 
     def _upload_file(self, local_file_path: Path):
-        temp_remote_file_path = self._client.upload_file(local_file_path.as_posix(), self._base_uri)
+        temp_remote_file_path = self._client.upload_file(local_file_path, self._base_uri)
         dbx_echo(f"File uploaded to temp location {temp_remote_file_path}")
 
     def __del__(self):
