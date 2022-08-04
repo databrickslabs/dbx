@@ -76,7 +76,7 @@ class ExecutionController:
             raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
         dbx_echo("Installing package")
         driver_package_path = self._file_uploader.upload_and_provide_path(package_file, as_fuse=True)
-        self._client.install_package(Path(driver_package_path))
+        self._client.install_package(driver_package_path)
         dbx_echo("Package installation finished")
 
     def preprocess_task_parameters(self, parameters: List[str]):

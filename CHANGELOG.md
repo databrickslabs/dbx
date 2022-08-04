@@ -10,7 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [X.Y.Z] - YYYY-MM-DD
 
+## Added
 - Added support for `python_wheel_task` in `dbx execute`
+
+## Fixed
+- Error in case when `.dbx/project.json` is non-existent
+- Error in case when `environment` is not provided in the project file
+- Path usage when `--upload-via-context` on win platform
 
 ----
 > Unreleased changes must be tracked above this line.
