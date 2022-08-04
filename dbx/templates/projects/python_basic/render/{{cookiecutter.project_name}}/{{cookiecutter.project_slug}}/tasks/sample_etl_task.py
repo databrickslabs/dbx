@@ -18,7 +18,7 @@ class SampleETLTask(Task):
         self._write_data()
         self.logger.info("Sample ETL job finished!")
 
-
+# if you're using python_wheel_task, you'll need the entrypoint function to be used in setup.py
 def entrypoint():  # pragma: no cover
     task = SampleETLTask()
     task.launch()

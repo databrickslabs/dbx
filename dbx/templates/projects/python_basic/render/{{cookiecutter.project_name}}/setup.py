@@ -32,8 +32,8 @@ setup(
     extras_require={"dev": DEV_REQUIREMENTS},
     entry_points = {
         "console_scripts": [
-            "etl = {{cookiecutter.project_slug}}.tasks.sample_etl_job:entrypoint",
-            "ml = {{cookiecutter.project_slug}}.tasks.sample_ml_job:entrypoint"
+            "etl = {{cookiecutter.project_slug}}.tasks.sample_etl_task:entrypoint",
+            "ml = {{cookiecutter.project_slug}}.tasks.sample_ml_task:entrypoint"
     ]},
     version=__version__,
     description="",

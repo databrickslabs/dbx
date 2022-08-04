@@ -40,12 +40,12 @@ class SampleMLTask(Task):
         mlflow.log_metric("r2", r2_result)
 
     def launch(self):
-        self.logger.info("Launching sample ETL job")
+        self.logger.info("Launching sample ML task")
         mlflow.set_experiment(self.conf["experiment"])
         self._train_model()
-        self.logger.info("Sample ETL job finished!")
+        self.logger.info("Sample ML task finished")
 
-
+# if you're using python_wheel_task, you'll need the entrypoint function to be used in setup.py
 def entrypoint():  # pragma: no cover
     task = SampleMLTask()
     task.launch()
