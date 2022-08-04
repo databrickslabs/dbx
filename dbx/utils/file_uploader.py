@@ -65,11 +65,6 @@ class ContextBasedUploader(AbstractFileUploader):
     def _verify_fuse_support(self):
         dbx_echo("Skipping the FUSE check since context-based uploader is used")
 
-    @staticmethod
-    def _get_current_experiment_id(env_name: str) -> str:
-        info = ConfigurationManager().get(env_name)
-        return mlflow.get_experiment_by_name(info.workspace_dir).experiment_id
-
     def _upload_file(self, local_file_path: Path):
         temp_remote_file_path = self._client.upload_file(local_file_path, self._base_uri)
         dbx_echo(f"File uploaded to temp location {temp_remote_file_path}")
