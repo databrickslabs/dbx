@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [0.6.11] - 2022-08-09
+
+## Fixed
+- Callback issue in `--jinja-variables-file` for `dbx deploy`
+
+
 ## [0.6.10] - 2022-08-04
 
 ## Added
@@ -17,12 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error in case when `.dbx/project.json` is non-existent
 - Error in case when `environment` is not provided in the project file
 - Path usage when `--upload-via-context` on win platform
-
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 ## [0.6.9] - 2022-08-03
 
