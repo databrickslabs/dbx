@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [X.Y.Z] - YYYY-MM-DD
+
+## Fixed
+- Support `jobs_api_version` values provided by config in `ApiClient` construction
 
 ----
 > Unreleased changes must be tracked above this line.
