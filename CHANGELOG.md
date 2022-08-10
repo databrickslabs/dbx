@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `--jinja-variables-file` for `dbx execute`
 
+## Fixed
+- Support `jobs_api_version` values provided by config in `ApiClient` construction
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.
