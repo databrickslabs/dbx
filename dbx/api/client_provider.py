@@ -51,6 +51,7 @@ class DatabricksClientProvider:
         _client = ApiClient(
             host=config.host,
             token=config.token,
+            jobs_api_version=config.jobs_api_version
             verify=verify,
             command_name="cicdtemplates-",
         )
