@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
-from logging import Logger
 from typing import Dict, Any
 import yaml
 import pathlib
@@ -86,7 +85,7 @@ class Task(ABC):
         config = yaml.safe_load(pathlib.Path(conf_file).read_text())
         return config
 
-    def _prepare_logger(self) -> Logger:
+    def _prepare_logger(self):
         log4j_logger = self.spark._jvm.org.apache.log4j  # noqa
         return log4j_logger.LogManager.getLogger(self.__class__.__name__)
 

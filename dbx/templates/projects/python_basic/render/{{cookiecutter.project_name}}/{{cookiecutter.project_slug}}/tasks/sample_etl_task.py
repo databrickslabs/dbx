@@ -14,9 +14,9 @@ class SampleETLTask(Task):
         self.logger.info("Dataset successfully written")
 
     def launch(self):
-        self.logger.info("Launching sample ETL job")
+        self.logger.info("Launching sample ETL task")
         self._write_data()
-        self.logger.info("Sample ETL job finished!")
+        self.logger.info("Sample ETL task finished!")
 
 # if you're using python_wheel_task, you'll need the entrypoint function to be used in setup.py
 def entrypoint():  # pragma: no cover

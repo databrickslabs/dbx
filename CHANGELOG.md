@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 - Support `jobs_api_version` values provided by config in `ApiClient` construction
+- References and wording in the Python template
 
 ----
 > Unreleased changes must be tracked above this line.
