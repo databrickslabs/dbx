@@ -1,7 +1,7 @@
 import json
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 from typing import Dict, Any, Union, Optional
 from typing import List
 
@@ -14,18 +14,17 @@ from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
 from dbx.api.config_reader import ConfigReader
-from dbx.callbacks import verify_jinja_variables_file
+from dbx.utils import dbx_echo
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.common import (
     prepare_environment,
     parse_multiple,
     get_current_branch_name,
 )
-from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import MlflowFileUploader
-from dbx.utils.options import environment_option, deployment_file_option
 from dbx.utils.dependency_manager import DependencyManager
+from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.job_listing import find_job_by_name
+from dbx.utils.options import environment_option, deployment_file_option, jinja_variables_file_option
 
 
 @click.command(
@@ -110,17 +109,7 @@ from dbx.utils.job_listing import find_job_by_name
     help="""The name of the current branch.
               If not provided or empty, dbx will try to detect the branch name.""",
 )
-@click.option(
-    "--jinja-variables-file",
-    type=click.Path(path_type=Path),
-    default=None,
-    required=False,
-    help="""
-        Path to a file with variables for Jinja template. Only works when Jinja-based deployment file is used.
-        Read more about this functionality in the Jinja2 support doc.
-        """,
-    callback=verify_jinja_variables_file,
-)
+@jinja_variables_file_option
 @debug_option
 @environment_option
 @deployment_file_option
