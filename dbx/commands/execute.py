@@ -17,7 +17,7 @@ from dbx.utils.common import (
     handle_package,
     _preprocess_cluster_args,
 )
-from dbx.utils.options import environment_option, deployment_file_option
+from dbx.utils.options import environment_option, deployment_file_option, jinja_variables_file_option
 
 
 @click.command(
@@ -78,6 +78,7 @@ from dbx.utils.options import environment_option, deployment_file_option
 @environment_option
 @debug_option
 @deployment_file_option
+@jinja_variables_file_option
 def execute(
     environment: str,
     cluster_id: str,
@@ -89,6 +90,7 @@ def execute(
     no_package: bool,
     no_rebuild: bool,
     upload_via_context: bool,
+    jinja_variables_file: Optional[Path],
 ):
     api_client = prepare_environment(environment)
 
@@ -98,7 +100,7 @@ def execute(
 
     handle_package(no_rebuild)
 
-    config_reader = ConfigReader(deployment_file)
+    config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
     deployment = config_reader.get_environment(environment)
 

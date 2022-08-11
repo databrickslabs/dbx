@@ -3,6 +3,8 @@ from pathlib import Path
 import click
 from databricks_cli.configure.provider import DEFAULT_SECTION
 
+from dbx.callbacks import verify_jinja_variables_file
+
 
 def environment_option(f):
     return click.option(
@@ -32,4 +34,18 @@ def deployment_file_option(f):
         type=click.Path(path_type=Path),
         help="Path to deployment file.",
         is_eager=True,
+    )(f)
+
+
+def jinja_variables_file_option(f):
+    return click.option(
+        "--jinja-variables-file",
+        type=click.Path(path_type=Path),
+        default=None,
+        required=False,
+        help="""
+        Path to a file with variables for Jinja template. Only works when Jinja-based deployment file is used.
+        Read more about this functionality in the Jinja2 support doc.
+        """,
+        callback=verify_jinja_variables_file,
     )(f)
