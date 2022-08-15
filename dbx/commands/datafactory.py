@@ -6,7 +6,7 @@ import typer
 
 from dbx.api.datafactory import DatafactoryReflector
 from dbx.utils import dbx_echo
-from dbx.utils.options import ENVIRONMENT_OPTION
+from dbx.options import ENVIRONMENT_OPTION
 
 
 def filter_environment_credential_warning(record):

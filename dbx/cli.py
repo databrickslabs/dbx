@@ -1,25 +1,15 @@
-# import click
-# from databricks_cli.utils import CONTEXT_SETTINGS
-#
-# from dbx.commands.configure import configure
-# from dbx.commands.deploy import deploy
-# from dbx.commands.execute import execute
-# from dbx.commands.launch import launch
-# from dbx.commands.datafactory import datafactory
-# from dbx.commands.init import init
-# from dbx.commands.sync import sync
+from typer import Typer
 
-import typer
-
-from dbx.commands.version import version_entrypoint
-from dbx.utils._typer import add_callback
 from dbx.commands.configure import configure
 from dbx.commands.datafactory import datafactory_app
 from dbx.commands.deploy import deploy
+from dbx.commands.version import version_entrypoint
+from dbx.commands.execute import execute
+from dbx.commands.init import init
 
-app = typer.Typer(rich_markup_mode="rich")
+app = Typer(rich_markup_mode="rich")
 
-add_callback(app, version_entrypoint)
+app.callback()(version_entrypoint)
 
 app.command(
     short_help=":wrench: Configures project environment in the current folder.",
@@ -75,6 +65,43 @@ app.command(
     8. If [bold]--write-specs-to-file[/bold] is provided, writes the final workload definition into a given file.
     """,
 )(deploy)
+
+app.command(
+    short_help=":fire: Executes chosen workload on the interactive cluster.",
+    help="""
+    :fire: Executes chosen workload on the interactive cluster.
+
+    This command is very suitable to interactively execute your code on the interactive clusters.
+
+    .. warning::
+
+        There are some limitations for :code:`dbx execute`:
+
+        * Only clusters which support :code:`%pip` magic can work with execute.
+        * Currently, only Python-based execution is supported.
+
+    The following set of actions will be done during execution:
+
+    1. If interactive cluster is stopped, it will be automatically started
+    2. Package will be rebuilt from the source (can be disabled via :option:`--no-rebuild`)
+    3. Job configuration will be taken from deployment file for given environment
+    4. All referenced will be uploaded to the MLflow experiment
+    5. | Code will be executed in a separate context. Other users can work with the same package
+       | on the same cluster without any limitations or overlapping.
+    6. Execution results will be printed out in the shell. If result was an error, command will have error exit code.
+
+    """,
+)(execute)
+
+app.command(
+    short_help=":gem: Generates new project from the template",
+    help="""
+    :gem: Generates new project from the template
+
+    Launching this command without :code:`--template-parameters` argument
+    will open cookiecutter dialogue to enter the required parameters.
+    """,
+)(init)
 
 # cli.add_command(configure, name="configure")
 # cli.add_command(deploy, name="deploy")

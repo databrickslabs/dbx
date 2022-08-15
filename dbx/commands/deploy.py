@@ -22,16 +22,21 @@ from dbx.utils.common import (
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.job_listing import find_job_by_name
-from dbx.utils.options import DEPLOYMENT_FILE_OPTION, ENVIRONMENT_OPTION, JINJA_VARIABLES_FILE_OPTION
+from dbx.options import (
+    DEPLOYMENT_FILE_OPTION,
+    ENVIRONMENT_OPTION,
+    JINJA_VARIABLES_FILE_OPTION,
+    REQUIREMENTS_FILE_OPTION,
+    NO_REBUILD_OPTION,
+    NO_PACKAGE_OPTION,
+)
 
 
 def deploy(
     deployment_file: Path = DEPLOYMENT_FILE_OPTION,
     job: Optional[str] = typer.Option(None, "--job", help="[red]This option is deprecated[/red]"),
     jobs: Optional[str] = typer.Option(None, "--jobs", help="[red]This option is deprecated[/red]"),
-    requirements_file: Optional[Path] = typer.Option(
-        Path("requirements.txt"), help="[red]This option is deprecated[/red]"
-    ),
+    requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
     tags: Optional[List[str]] = typer.Option(
         None,
         "--tags",
@@ -42,10 +47,8 @@ def deploy(
               Option might be repeated multiple times: [bold]--tags tag1=value1 --tags tag2=value2[/bold]""",
     ),
     environment: str = ENVIRONMENT_OPTION,
-    no_rebuild: bool = typer.Option(False, "--no-rebuild", is_flag=True, help="Disable package rebuild"),
-    no_package: bool = typer.Option(
-        False, "--no-package", is_flag=True, help="Do not add package reference into the job description"
-    ),
+    no_rebuild: bool = NO_REBUILD_OPTION,
+    no_package: bool = NO_PACKAGE_OPTION,
     files_only: bool = typer.Option(False, "--files-only", is_flag=True, help="[red]This option is deprecated[/red]"),
     write_specs_to_file: Optional[Path] = typer.Option(
         None,

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import typer
 from databricks_cli.configure.provider import DEFAULT_SECTION
 
@@ -27,4 +29,11 @@ JINJA_VARIABLES_FILE_OPTION = typer.Option(
         :information_source: Read more about this functionality in the Jinja2 support doc.
         """,
     exists=True,
+)
+
+REQUIREMENTS_FILE_OPTION = typer.Option(Path("requirements.txt"), help="[red]This option is deprecated[/red]")
+
+NO_REBUILD_OPTION = typer.Option(False, "--no-rebuild", is_flag=True, help="Disable package rebuild")
+NO_PACKAGE_OPTION = typer.Option(
+    False, "--no-package", is_flag=True, help="Do not add package reference into the job description"
 )

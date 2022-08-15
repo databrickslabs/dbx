@@ -24,7 +24,7 @@ from dbx.utils.common import (
 )
 from dbx.utils.job_listing import find_job_by_name
 from dbx.utils.json import JsonUtils
-from dbx.utils.options import environment_option
+from dbx.options import environment_option
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
