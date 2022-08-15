@@ -285,8 +285,7 @@ class RunNowLauncher:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 _cancel_run(self.api_client, run)
 
-        else:
-            run_data = jobs_service.run_now(job_id)
+        run_data = jobs_service.run_now(job_id)
 
         return run_data, job_id
 
