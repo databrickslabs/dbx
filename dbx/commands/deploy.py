@@ -35,8 +35,11 @@ def deploy(
     tags: Optional[List[str]] = typer.Option(
         None,
         "--tags",
-        help="""Additional tags for deployment in format (tag_name=tag_value).
-              Option might be repeated multiple times.""",
+        help="""Additional tags for deployment.
+
+              Example: [bold]--tags tag1=value1[/bold].
+
+              Option might be repeated multiple times: [bold]--tags tag1=value1 --tags tag2=value2[/bold]""",
     ),
     environment: str = ENVIRONMENT_OPTION,
     no_rebuild: bool = typer.Option(False, "--no-rebuild", is_flag=True, help="Disable package rebuild"),

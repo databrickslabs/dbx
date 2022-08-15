@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import typer
 from databricks_cli.configure.provider import DEFAULT_SECTION
 
@@ -22,8 +20,11 @@ JINJA_VARIABLES_FILE_OPTION = typer.Option(
     None,
     "--jinja-variables-file",
     help="""
-        Path to a file with variables for Jinja template. Only works when Jinja-based deployment file is used.
-        Read more about this functionality in the Jinja2 support doc.
+        Path to a file with variables for Jinja template.
+
+        Only works when Jinja-based deployment file is used.
+
+        :information_source: Read more about this functionality in the Jinja2 support doc.
         """,
     exists=True,
 )

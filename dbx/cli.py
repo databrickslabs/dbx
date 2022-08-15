@@ -44,22 +44,38 @@ app.command(
 
     During the deployment, following actions will be performed:
 
-    1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
-    2. | Deployment configuration will be taken for a given environment (see :option:`-e` for details)
-       | from the deployment file, defined in  :option:`--deployment-file`.
-       | You can specify the deployment file in either JSON or YAML or Jinja-based JSON or YAML.
-       | :code:`[.json, .yaml, .yml, .j2]` are all valid file types.
-    3. Per each job defined in the :option:`--jobs`, all local file references will be checked
-    4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
-    5. [DEPRECATED] If :option:`--requirements-file` is provided, all requirements will be added to job definition
-    6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
-    7. If the job with given name exists, it will be updated, if not - created
-    8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
-       | For example, this option can look like this: :code:`--write-specs-to-file=.dbx/deployment-result.json`.
+    1. Python package will be built and stored in [bold]dist[/bold] folder.
+       This behaviour can be disabled via [bold]--no-rebuild[/bold] option.
+    2. Deployment configuration will be taken
+       from the deployment file, defined in [bold]--deployment-file[/bold].
+       You can specify the deployment file in either JSON or YAML or Jinja-based JSON or YAML.
+       [bold][.json, .yaml, .yml, .j2][/bold] are all valid file types.
+       If file is not provided, auto-discovery will try to find it in [bold]conf[/bold] directory.
+    3. From the provided deployment file, the environment specified in option [bold]--environment[/bold] will be chosen.
+    4. For this environment, the chosen set of workloads will be deployed.
+
+       :warning: If you're using [bold]--jobs[/bold] or [bold]--job[/bold]
+       please note that they're [red bold]deprecated[/red bold].
+
+       There are 3 options to choose the deployable workloads:
+       - Option #1: single name    [bold]dbx deploy workload-name[/bold]
+       - Option #2: multiple names [bold]dbx deploy workload-name-1,workload-name-2[/bold]
+       - Option #3: deploy all     [bold]dbx deploy --all[/bold]
+
+
+    4. Any file references specified in the deployment file will be resolved.
+       These files will be uploaded to the [bold]artifact_location[/bold] specified
+       for the environment in [red].dbx/project.json[/red].
+    5. If option [bold]--requirements-file[/bold] is provided, all requirements will be added to workload definition.
+       [red bold]Please note that this option is deprecated[/red bold].
+    6. Project wheel file will be added to the workload dependencies.
+       This behaviour can be disabled via [bold]--no-package[/bold].
+    7. If option [bold]--assets-only[/bold] or a deprecated [bold]--files-only[/bold] is provided,
+       then assets will be uploaded to the [bold]artifact_location[/bold], but the job object won't be created/updated.
+    8. If [bold]--write-specs-to-file[/bold] is provided, writes the final workload definition into a given file.
     """,
 )(deploy)
-#
-#
+
 # cli.add_command(configure, name="configure")
 # cli.add_command(deploy, name="deploy")
 # cli.add_command(launch, name="launch")
