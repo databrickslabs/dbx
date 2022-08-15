@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Any
+from typing import Any, Callable
 
 import click
 import emoji

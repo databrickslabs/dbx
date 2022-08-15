@@ -9,7 +9,7 @@ with open("README.rst", "r", encoding="utf-8") as fh:
 
 INSTALL_REQUIRES = [
     "databricks-cli>=0.16.4",
-    "click>=7.1.2",
+    "typer[all]==0.6.1",
     "retry>=0.9.2",
     "requests>=2.24.0",
     "mlflow>=1.26.1",
@@ -62,10 +62,7 @@ setup(
     setup_requires=["wheel>=0.37.1,<0.38"],
     install_requires=INSTALL_REQUIRES,
     extras_require={"dev": DEV_REQUIREMENTS},
-    entry_points="""
-        [console_scripts]
-        dbx=dbx.cli:cli
-    """,
+    entry_points={"console_scripts": ["dbx=dbx.cli:app"]},
     long_description=long_description,
     long_description_content_type="text/x-rst",
     include_package_data=True,
