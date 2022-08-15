@@ -1,4 +1,5 @@
 import datetime as dt
+from pathlib import Path
 from typing import Any, Callable
 
 import click
@@ -13,3 +14,7 @@ def dbx_echo(message: Any):
     # this is a fix for unicode error on some platforms as per https://github.com/databrickslabs/dbx/issues/121
     except UnicodeEncodeError:
         click.echo(formatted_message)
+
+
+def current_folder_name() -> str:
+    return Path(".").absolute().name

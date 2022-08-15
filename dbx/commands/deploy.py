@@ -5,12 +5,10 @@ from pathlib import Path
 from typing import Dict, Any, Union, Optional
 from typing import List
 
-import click
 import mlflow
-from databricks_cli.configure.config import debug_option
+import typer
 from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
-from databricks_cli.utils import CONTEXT_SETTINGS
 from requests.exceptions import HTTPError
 
 from dbx.api.config_reader import ConfigReader
@@ -24,108 +22,44 @@ from dbx.utils.common import (
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.job_listing import find_job_by_name
-from dbx.utils.options import environment_option, deployment_file_option, jinja_variables_file_option
+from dbx.utils.options import DEPLOYMENT_FILE_OPTION, ENVIRONMENT_OPTION, JINJA_VARIABLES_FILE_OPTION
 
 
-@click.command(
-    context_settings=CONTEXT_SETTINGS,
-    short_help="""Deploy project to artifact storage.""",
-    help="""Deploy project to artifact storage.
-
-    This command takes the project in current folder (file :code:`.dbx/project.json` shall exist)
-    and performs deployment to the given environment.
-
-    During the deployment, following actions will be performed:
-
-    1. Python package will be built and stored in :code:`dist/*` folder (can be disabled via :option:`--no-rebuild`)
-    2. | Deployment configuration will be taken for a given environment (see :option:`-e` for details)
-       | from the deployment file, defined in  :option:`--deployment-file`.
-       | You can specify the deployment file in either JSON or YAML or Jinja-based JSON or YAML.
-       | :code:`[.json, .yaml, .yml, .j2]` are all valid file types.
-    3. Per each job defined in the :option:`--jobs`, all local file references will be checked
-    4. Any found file references will be uploaded to MLflow as artifacts of current deployment run
-    5. [DEPRECATED] If :option:`--requirements-file` is provided, all requirements will be added to job definition
-    6. Wheel file location will be added to the :code:`libraries`. Can be disabled with :option:`--no-package`.
-    7. If the job with given name exists, it will be updated, if not - created
-    8. | If :option:`--write-specs-to-file` is provided, writes final job spec into a given file.
-       | For example, this option can look like this: :code:`--write-specs-to-file=.dbx/deployment-result.json`.
-    """,
-)
-@click.option(
-    "--job",
-    required=False,
-    type=str,
-    help="""Deploy a single job by it's name.
-              Both :code:`--jobs` and :code:`--job` cannot be provided.
-              """,
-)
-@click.option(
-    "--jobs",
-    required=False,
-    type=str,
-    help="""Comma-separated list of job names to be deployed.
-              If not provided, all jobs from the deployment file will be deployed.
-              Both :code:`--jobs` and :code:`--job` cannot be provided.
-              """,
-)
-@click.option(
-    "--requirements-file",
-    required=False,
-    type=click.Path(path_type=Path),
-    default=Path("requirements.txt"),
-    help="[DEPRECATED]",
-)
-@click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
-@click.option(
-    "--no-package",
-    is_flag=True,
-    help="Do not add package reference into the job description",
-)
-@click.option(
-    "--files-only",
-    is_flag=True,
-    help="Do not create jobs, only deploy files.",
-)
-@click.option(
-    "--tags",
-    multiple=True,
-    type=str,
-    help="""Additional tags for deployment in format (tag_name=tag_value).
-              Option might be repeated multiple times.""",
-)
-@click.option(
-    "--write-specs-to-file",
-    type=str,
-    default=None,
-    help="""Writes final job definitions into a given local file.
-              Helpful when final representation of a deployed job is needed for other integrations.
-              Please note that output file will be overwritten if it exists.""",
-)
-@click.option(
-    "--branch-name",
-    type=str,
-    default=None,
-    required=False,
-    help="""The name of the current branch.
-              If not provided or empty, dbx will try to detect the branch name.""",
-)
-@jinja_variables_file_option
-@debug_option
-@environment_option
-@deployment_file_option
 def deploy(
-    deployment_file: Optional[Path],
-    job: Optional[str],
-    jobs: Optional[str],
-    requirements_file: Optional[Path],
-    tags: List[str],
-    environment: str,
-    no_rebuild: bool,
-    no_package: bool,
-    files_only: bool,
-    write_specs_to_file: Optional[str],
-    branch_name: Optional[str],
-    jinja_variables_file: Optional[Path],
+    deployment_file: Path = DEPLOYMENT_FILE_OPTION,
+    job: Optional[str] = typer.Option(None, "--job", help="[red]This option is deprecated[/red]"),
+    jobs: Optional[str] = typer.Option(None, "--jobs", help="[red]This option is deprecated[/red]"),
+    requirements_file: Optional[Path] = typer.Option(
+        Path("requirements.txt"), help="[red]This option is deprecated[/red]"
+    ),
+    tags: Optional[List[str]] = typer.Option(
+        None,
+        "--tags",
+        help="""Additional tags for deployment in format (tag_name=tag_value).
+              Option might be repeated multiple times.""",
+    ),
+    environment: str = ENVIRONMENT_OPTION,
+    no_rebuild: bool = typer.Option(False, "--no-rebuild", is_flag=True, help="Disable package rebuild"),
+    no_package: bool = typer.Option(
+        False, "--no-package", is_flag=True, help="Do not add package reference into the job description"
+    ),
+    files_only: bool = typer.Option(False, "--files-only", is_flag=True, help="[red]This option is deprecated[/red]"),
+    write_specs_to_file: Optional[Path] = typer.Option(
+        None,
+        help="""Writes final job definitions into a given local file.
+
+              Helpful when final representation of a deployed job is needed for other integrations.
+
+              [bold red]Please note that output file will be overwritten if it exists.[/bold red]""",
+        writable=True,
+    ),
+    branch_name: Optional[str] = typer.Option(
+        None,
+        "--branch-name",
+        help="""The name of the current branch.
+              If not provided or empty, dbx will try to detect the branch name.""",
+    ),
+    jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 

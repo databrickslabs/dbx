@@ -7,14 +7,10 @@ from dbx.utils.json import JsonUtils
 
 
 class EnvironmentInfo:
-    @property
-    def _current_path_name(self) -> str:
-        return Path(".").absolute().name
-
-    def __init__(self, profile: str, workspace_dir: Optional[str] = None, artifact_location: Optional[str] = None):
+    def __init__(self, profile: str, workspace_dir: str, artifact_location: str):
         self.profile = profile
-        self.workspace_dir = f"/Shared/dbx/projects/{self._current_path_name}" if not workspace_dir else workspace_dir
-        self.artifact_location = f"dbfs:/dbx/{self._current_path_name}" if not artifact_location else artifact_location
+        self.workspace_dir = workspace_dir
+        self.artifact_location = artifact_location
 
     def as_dict(self) -> Dict[str, str]:
         return {

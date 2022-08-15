@@ -71,39 +71,6 @@ class ConfigReader:
         self._path = self._verify_deployment_file(path) if path else self._find_deployment_file()
         self._reader = self._define_reader()
 
-    @staticmethod
-    def _verify_deployment_file(candidate: Path) -> Path:
-        file_extension = candidate.suffixes[-1]
-
-        if file_extension == ".j2":
-            file_extension = candidate.suffixes[-2]
-        if file_extension not in [".json", ".yaml", ".yml"]:
-            raise Exception(
-                "Deployment file should have one of these extensions:"
-                '[".json", ".yaml", ".yml", "json.j2", "yaml.j2", "yml.j2"]'
-            )
-
-        if not candidate.exists():
-            raise Exception(f"Deployment file {candidate} does not exist")
-
-        dbx_echo(f"Using the provided deployment file {candidate}")
-        return candidate
-
-    @staticmethod
-    def _find_deployment_file() -> Path:
-        potential_extensions = ["json", "yml", "yaml", "json.j2", "yaml.j2", "yml.j2"]
-
-        for ext in potential_extensions:
-            candidate = Path(f"conf/deployment.{ext}")
-            if candidate.exists():
-                dbx_echo(f"Auto-discovery found deployment file {candidate}")
-                return candidate
-
-        raise Exception(
-            "Auto-discovery was unable to find any deployment file in the conf directory. "
-            "Please provide file name via --deployment-file option"
-        )
-
     def _define_reader(self) -> _AbstractConfigReader:
         if len(self._path.suffixes) > 1:
             if self._path.suffixes[0] in [".json", ".yaml", ".yml"] and self._path.suffixes[1] == ".j2":

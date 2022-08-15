@@ -1,14 +1,9 @@
 import typer
-from dbx import __version__
+
+from dbx.callbacks import version_callback
 
 
-def version_callback(value: bool):
-    if value:
-        typer.echo(f"DataBricks eXtensions aka dbx, version ~> {__version__}")
-        raise typer.Exit()
-
-
-def main(
+def version_entrypoint(
     version: bool = typer.Option(None, "--version", callback=version_callback, is_eager=True),
 ):
     pass
