@@ -25,7 +25,7 @@ We encourage you to use :code:`dbx` both for local development and CI/CD pipelin
     For Azure-based environments, you can also consider using `AAD-based authentication <https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/aad/>`_.
     For local development, please use the Databricks CLI profiles - it's very convenient for cases when you're working with multiple environments.
 
-.. click:: dbx.cli:cli
+.. click:: dbx.cli:typer_click_object
     :prog: dbx
     :nested: full
 

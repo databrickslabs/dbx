@@ -14,6 +14,7 @@ from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.utils import dbx_echo
+from rich.console import Console
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
@@ -91,11 +92,14 @@ def handle_package(rebuild_arg):
             for _file in dist_path.glob("*.whl"):
                 _file.unlink()
 
-        subprocess.check_call(
-            [sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary --no-deps"),
-            stdout=subprocess.PIPE,
-        )
-        dbx_echo("Package re-build finished")
+        console = Console()
+
+        with console.status("Building the package :hammer:", spinner="dots"):
+            subprocess.check_call(
+                [sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary --no-deps"),
+                stdout=subprocess.PIPE,
+            )
+        dbx_echo(":white_check_mark: Package re-build finished")
 
 
 def get_current_branch_name() -> Optional[str]:
