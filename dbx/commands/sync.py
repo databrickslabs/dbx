@@ -6,11 +6,11 @@ from typing import List
 import click
 from databricks_cli.configure.provider import DatabricksConfig
 
+from dbx.sync import DeleteUnmatchedOption, RemoteSyncer
 from dbx.sync.clients import BaseClient, DBFSClient, ReposClient, get_user
 from dbx.sync.config import get_databricks_config
 from dbx.sync.event_handler import file_watcher
 from dbx.sync.path_matcher import PathMatcher
-from dbx.sync import DeleteUnmatchedOption, RemoteSyncer
 from dbx.utils import dbx_echo
 
 # Patterns for files that are ignored by default.  There don't seem to be any reasonable scenarios where someone

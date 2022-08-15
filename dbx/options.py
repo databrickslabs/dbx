@@ -29,7 +29,7 @@ JINJA_VARIABLES_FILE_OPTION = typer.Option(
         :information_source: Read more about this functionality in the Jinja2 support doc.
         """,
     exists=True,
-    callback=verify_jinja_variables_file
+    callback=verify_jinja_variables_file,
 )
 
 REQUIREMENTS_FILE_OPTION = typer.Option(Path("requirements.txt"), help="[red]This option is deprecated[/red]")

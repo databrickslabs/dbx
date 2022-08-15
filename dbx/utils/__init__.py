@@ -1,6 +1,6 @@
 import datetime as dt
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import click
 import emoji

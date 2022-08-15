@@ -14,7 +14,6 @@ import click
 from watchdog.utils.dirsnapshot import DirectorySnapshot, EmptyDirectorySnapshot
 
 from dbx.utils import dbx_echo
-
 from .clients import BaseClient
 from .constants import DBX_SYNC_DIR
 from .path_matcher import PathMatcher, filtered_listdir

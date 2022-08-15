@@ -12,16 +12,6 @@ from databricks_cli.sdk.api_client import ApiClient
 from requests.exceptions import HTTPError
 
 from dbx.api.config_reader import ConfigReader
-from dbx.utils import dbx_echo
-from dbx.utils.adjuster import adjust_job_definitions
-from dbx.utils.common import (
-    prepare_environment,
-    parse_multiple,
-    get_current_branch_name,
-)
-from dbx.utils.dependency_manager import DependencyManager
-from dbx.utils.file_uploader import MlflowFileUploader
-from dbx.utils.job_listing import find_job_by_name
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -32,6 +22,16 @@ from dbx.options import (
     TAGS_OPTION,
     BRANCH_NAME_OPTION,
 )
+from dbx.utils import dbx_echo
+from dbx.utils.adjuster import adjust_job_definitions
+from dbx.utils.common import (
+    prepare_environment,
+    parse_multiple,
+    get_current_branch_name,
+)
+from dbx.utils.dependency_manager import DependencyManager
+from dbx.utils.file_uploader import MlflowFileUploader
+from dbx.utils.job_listing import find_job_by_name
 
 
 def deploy(

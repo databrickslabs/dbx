@@ -1,8 +1,8 @@
 import typer
 
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
-from dbx.utils import dbx_echo, current_folder_name
 from dbx.options import ENVIRONMENT_OPTION, PROFILE_OPTION
+from dbx.utils import dbx_echo, current_folder_name
 
 
 def configure(

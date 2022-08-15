@@ -100,7 +100,9 @@ def test_incorrect_location(tmp_path):
 
 def test_non_existent_env(mock_api_v2_client):
     env_name = "configured-but-not-provided"
-    ConfigurationManager().create_or_update(env_name, EnvironmentInfo("test", workspace_dir="/Shared/dbx/test", artifact_location="dbfs:/dbx/test"))
+    ConfigurationManager().create_or_update(
+        env_name, EnvironmentInfo("test", workspace_dir="/Shared/dbx/test", artifact_location="dbfs:/dbx/test")
+    )
     deploy_result = invoke_cli_runner(["deploy", "--environment", env_name], expected_error=True)
     assert isinstance(deploy_result.exception, NameError)
     assert "non-existent in the deployment file" in str(deploy_result.exception)

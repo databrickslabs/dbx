@@ -18,8 +18,8 @@ from typing import Dict, Any
 
 from databricks_cli.sdk import ApiClient, InstancePoolService, PolicyService
 
-from dbx.utils.common import _preprocess_cluster_args
 from dbx.utils import dbx_echo
+from dbx.utils.common import _preprocess_cluster_args
 from dbx.utils.policy_parser import PolicyParser
 
 
