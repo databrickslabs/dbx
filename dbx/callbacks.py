@@ -8,7 +8,7 @@ from rich import print
 from dbx import __version__
 
 
-def verify_jinja_variables_file(_, value: Optional[Path]):
+def verify_jinja_variables_file(_, value: Optional[Path]) -> Optional[Path]:
     if value:
         if value.suffix not in [".yaml", ".yml"]:
             raise Exception("Jinja variables file shall be provided in yaml or yml format")

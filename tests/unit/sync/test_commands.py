@@ -4,10 +4,10 @@ from unittest.mock import patch, call, MagicMock
 import click
 import pytest
 
-from dbx.commands.sync import get_user_name, get_source_base_name, DEFAULT_IGNORES
+from dbx.commands.sync import dbfs, repo, get_user_name, get_source_base_name, DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
-from tests.unit.conftest import invoke_cli_runner
+from .conftest import invoke_cli_runner
 from .utils import temporary_directory, pushd
 
 
@@ -32,12 +32,7 @@ def test_get_source_base_name():
 @patch("dbx.commands.sync.main_loop")
 def test_repo_no_opts(mock_get_config, mock_main_loop):
     # some options are required
-    res = invoke_cli_runner(
-        [
-            "sync repo",
-        ],
-        expected_error=True,
-    )
+    res = invoke_cli_runner(repo, [], expected_error=True)
     assert "Missing option" in res.output
 
 
@@ -50,7 +45,7 @@ def test_repo_basic_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_config.return_value = config
         mock_get_user_name.return_value = "me"
 
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -83,7 +78,7 @@ def test_repo_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_config.return_value = config
         mock_get_user_name.return_value = None
 
-        res = invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo"], expected_error=True)
+        res = invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -99,7 +94,7 @@ def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--dry-run"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "--dry-run"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -132,7 +127,7 @@ def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_config.return_value = config
         mock_get_user_name.return_value = "me"
 
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "--polling-interval", "2"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "--polling-interval", "2"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -167,7 +162,7 @@ def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -201,7 +196,7 @@ def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_n
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fi", "foo"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-fi", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -235,7 +230,7 @@ def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ip", "foo/*.py"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-ip", "foo/*.py"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -269,7 +264,7 @@ def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_us
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fip", "foo/*.py"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-fip", "foo/*.py"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -303,7 +298,7 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-e", "foo"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-e", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -337,7 +332,7 @@ def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ep", "foo/**/*.py"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-ep", "foo/**/*.py"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -371,9 +366,7 @@ def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop, mock_get_u
 
         config = MagicMock()
         mock_get_config.return_value = config
-        res = invoke_cli_runner(
-            ["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"], expected_error=True
-        )
+        res = invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -391,7 +384,7 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_nam
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-d", "the-repo", "-u", "me"])
+        invoke_cli_runner(repo, ["-d", "the-repo", "-u", "me"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -425,7 +418,7 @@ def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop, mock_get_u
 
         config = MagicMock()
         mock_get_config.return_value = config
-        res = invoke_cli_runner(["sync repo", "-d", "the-repo", "-u", "me"], expected_error=True)
+        res = invoke_cli_runner(repo, ["-d", "the-repo", "-u", "me"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -442,7 +435,7 @@ def test_repo_allow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_u
         config = MagicMock()
         mock_get_config.return_value = config
 
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--allow-delete-unmatched"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "--allow-delete-unmatched"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -472,7 +465,7 @@ def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_ge
         config = MagicMock()
         mock_get_config.return_value = config
 
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--disallow-delete-unmatched"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "--disallow-delete-unmatched"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -508,7 +501,7 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(["sync dbfs"])
+        invoke_cli_runner(dbfs, [])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -542,7 +535,7 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(["sync dbfs", "--polling-interval", "3"])
+        invoke_cli_runner(dbfs, ["--polling-interval", "3"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -577,7 +570,7 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(["sync dbfs", "--dry-run"])
+        invoke_cli_runner(dbfs, ["--dry-run"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -608,7 +601,7 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(["sync dbfs", "-s", tempdir, "-d", "/foo/bar"])
+        invoke_cli_runner(dbfs, ["-s", tempdir, "-d", "/foo/bar"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -641,7 +634,7 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_config.return_value = config
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(["sync dbfs", "-u", "someone"])
+        invoke_cli_runner(dbfs, ["-u", "someone"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -673,7 +666,7 @@ def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = None
 
         # we can run with no options as long as the source and user can be automatically inferred
-        res = invoke_cli_runner(["sync dbfs"], expected_error=True)
+        res = invoke_cli_runner(dbfs, [], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -692,7 +685,7 @@ def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        res = invoke_cli_runner(["sync dbfs", "-d", "/"], expected_error=True)
+        res = invoke_cli_runner(dbfs, ["-d", "/"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -715,7 +708,7 @@ def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name)
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -754,7 +747,7 @@ def test_repo_no_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_na
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(["sync repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo", "--no-use-gitignore"])
+        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo", "--no-use-gitignore"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1

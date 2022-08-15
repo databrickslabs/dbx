@@ -32,7 +32,8 @@ def test_smoke_execute(
     ):
         execute_result = invoke_cli_runner(
             [
-                "execute" "--deployment-file",
+                "execute",
+                "--deployment-file",
                 "conf/deployment.yml",
                 "--environment",
                 "default",

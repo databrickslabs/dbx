@@ -23,7 +23,8 @@ def test_datafactory_deploy(mocker, temp_project: Path, mlflow_file_uploader):
     with patch("dbx.commands.datafactory.DatafactoryReflector", autospec=True):
         reflection_result = invoke_cli_runner(
             [
-                "datafactory reflect",
+                "datafactory",
+                "reflect",
                 "--environment",
                 "default",
                 "--specs-file",
