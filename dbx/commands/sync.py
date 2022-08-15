@@ -26,7 +26,7 @@ def validate_allow_unmatched(ctx, param, value):  # noqa
     return DeleteUnmatchedOption.DISALLOW_DELETE_UNMATCHED
 
 
-@click.group()
+@click.group(short_help=":arrows_counterclockwise: Sync local files to Databricks and watch for changes")
 def sync():
     """
     Sync local files to Databricks and watch for changes, with support for syncing to either a path

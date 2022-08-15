@@ -29,6 +29,8 @@ from dbx.options import (
     REQUIREMENTS_FILE_OPTION,
     NO_REBUILD_OPTION,
     NO_PACKAGE_OPTION,
+    TAGS_OPTION,
+    BRANCH_NAME_OPTION,
 )
 
 
@@ -37,15 +39,7 @@ def deploy(
     job: Optional[str] = typer.Option(None, "--job", help="[red]This option is deprecated[/red]"),
     jobs: Optional[str] = typer.Option(None, "--jobs", help="[red]This option is deprecated[/red]"),
     requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
-    tags: Optional[List[str]] = typer.Option(
-        None,
-        "--tags",
-        help="""Additional tags for deployment.
-
-              Example: [bold]--tags tag1=value1[/bold].
-
-              Option might be repeated multiple times: [bold]--tags tag1=value1 --tags tag2=value2[/bold]""",
-    ),
+    tags: Optional[List[str]] = TAGS_OPTION,
     environment: str = ENVIRONMENT_OPTION,
     no_rebuild: bool = NO_REBUILD_OPTION,
     no_package: bool = NO_PACKAGE_OPTION,
@@ -59,12 +53,7 @@ def deploy(
               [bold red]Please note that output file will be overwritten if it exists.[/bold red]""",
         writable=True,
     ),
-    branch_name: Optional[str] = typer.Option(
-        None,
-        "--branch-name",
-        help="""The name of the current branch.
-              If not provided or empty, dbx will try to detect the branch name.""",
-    ),
+    branch_name: Optional[str] = BRANCH_NAME_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")

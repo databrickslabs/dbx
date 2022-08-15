@@ -1,4 +1,4 @@
-from typer import Typer
+import typer
 
 from dbx.commands.configure import configure
 from dbx.commands.datafactory import datafactory_app
@@ -6,8 +6,10 @@ from dbx.commands.deploy import deploy
 from dbx.commands.version import version_entrypoint
 from dbx.commands.execute import execute
 from dbx.commands.init import init
+from dbx.commands.launch import launch
+from dbx.commands.sync import sync
 
-app = Typer(rich_markup_mode="rich")
+app = typer.Typer(rich_markup_mode="rich")
 
 app.callback()(version_entrypoint)
 
@@ -103,13 +105,23 @@ app.command(
     """,
 )(init)
 
-# cli.add_command(configure, name="configure")
-# cli.add_command(deploy, name="deploy")
-# cli.add_command(launch, name="launch")
-# cli.add_command(execute, name="execute")
-# cli.add_command(datafactory, name="datafactory")
-# cli.add_command(init, name="init")
-# cli.add_command(sync, name="sync")
-#
-# if __name__ == "__main__":
-#     cli()
+app.command(
+    short_help=":rocket: Launch the workload on a job cluster",
+    help="""
+    :rocket: Launch the workload on a job cluster
+
+    This command will launch the given workload by it's name on a given environment.
+
+    .. note::
+        Workloads shall be deployed prior to be launched
+
+    """,
+)(launch)
+
+typer_click_object = typer.main.get_command(app)
+
+typer_click_object.add_command(sync, "sync")
+
+
+def entrypoint():
+    typer_click_object()

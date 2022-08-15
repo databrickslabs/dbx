@@ -63,7 +63,7 @@ setup(
     setup_requires=["wheel>=0.37.1,<0.38"],
     install_requires=INSTALL_REQUIRES,
     extras_require={"dev": DEV_REQUIREMENTS},
-    entry_points={"console_scripts": ["dbx=dbx.cli:app"]},
+    entry_points={"console_scripts": ["dbx=dbx.cli:entrypoint"]},
     long_description=long_description,
     long_description_content_type="text/x-rst",
     include_package_data=True,

@@ -4,17 +4,16 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 from typing import List
 
-import click
 import mlflow
 import pandas as pd
-from databricks_cli.configure.config import debug_option
+import typer
 from databricks_cli.jobs.api import JobsService
 from databricks_cli.sdk.api_client import ApiClient
-from databricks_cli.utils import CONTEXT_SETTINGS
 from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
+from dbx.options import ENVIRONMENT_OPTION, TAGS_OPTION, BRANCH_NAME_OPTION
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
@@ -24,37 +23,25 @@ from dbx.utils.common import (
 )
 from dbx.utils.job_listing import find_job_by_name
 from dbx.utils.json import JsonUtils
-from dbx.options import environment_option
 
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "spark_submit_task"]
 
 
-@click.command(
-    context_settings=CONTEXT_SETTINGS,
-    short_help="Launch the job by it's name on the given environment.",
-    help="""
-    Finds the job deployment and launches it on a automated or interactive cluster.
-
-    This command will launch the given job by it's name on a given environment.
-
-    .. note::
-        Job shall be deployed prior to be launched.
-
-    """,
-)
-@click.option("--job", required=True, type=str, help="Job name.")
-@click.option("--trace", is_flag=True, help="Trace the job until it finishes.")
-@click.option(
-    "--kill-on-sigterm",
-    is_flag=True,
-    help="If provided, kills the job on SIGTERM (Ctrl+C) signal",
-)
-@click.option(
-    "--existing-runs",
-    type=click.Choice(["wait", "cancel", "pass"]),
-    default="pass",
-    help="""
+def launch(
+    environment: str = ENVIRONMENT_OPTION,
+    job: str = typer.Option(..., "--job", help="[red]This option is deprecated[/red]"),
+    trace: bool = typer.Option(False, "--trace", help="Trace the workload until it finishes.", is_flag=True),
+    kill_on_sigterm: bool = typer.Option(
+        False,
+        "--kill-on-sigterm",
+        is_flag=True,
+        help="If provided, kills the job on SIGTERM (Ctrl+C) signal",
+    ),
+    existing_runs: str = typer.Option(
+        "pass",
+        "--existing-runs",
+        help="""
         Strategy to handle existing active job runs.
 
         Options behaviour:
@@ -63,49 +50,14 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
         * :code:`cancel` will cancel all existing job runs
         * :code:`pass` will simply pass the check and try to launch the job directly
         """,
-)
-@click.option("--as-run-submit", is_flag=True, help="Run the job as run submit.")
-@click.option(
-    "--tags",
-    multiple=True,
-    type=str,
-    help="""Additional tags to search for the latest deployment.
-              Format: (:code:`--tags="tag_name=tag_value"`).
-              Option might be repeated multiple times.""",
-)
-@click.option(
-    "--parameters",
-    multiple=True,
-    type=str,
-    help="""Parameters of the job. \n
-            If provided, default job arguments will be overridden.
-            Format: (:code:`--parameters="parameter1=value1"`).
-            Option might be repeated multiple times.""",
-)
-@click.option(
-    "--parameters-raw",
-    type=str,
-    help="""Parameters of the job as a raw string. \n
-            If provided, default job arguments will be overridden.
-            If provided, :code:`--parameters` argument will be ignored.
-            Example command:
-            :code:`dbx launch --job="my-job-name" --parameters-raw='{"key1": "value1", "key2": 2}'`.
-            Please note that no parameters preprocessing will be done.
-            """,
-)
-@click.option(
-    "--branch-name",
-    type=str,
-    default=None,
-    required=False,
-    help="""The name of the current branch.
-              If not provided or empty, dbx will try to detect the branch name.""",
-)
-@click.option(
-    "--include-output",
-    type=click.Choice(["stdout", "stderr"]),
-    default=None,
-    help="""
+    ),
+    as_run_submit: bool = typer.Option(False, "--as-run-submit", is_flag=True, help="Run the job as run submit."),
+    tags: Optional[List[str]] = TAGS_OPTION,
+    branch_name: Optional[str] = BRANCH_NAME_OPTION,
+    include_output: Optional[str] = typer.Option(
+        None,
+        "--include-output",
+        help="""
         If provided, adds run output to the console output of the launch command.
         Please note that this option is only supported for Jobs V2.X+.
         For jobs created without tasks section output won't be printed.
@@ -116,21 +68,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
         * :code:`stdout` will add stdout and stderr to the console output
         * :code:`stderr` will add only stderr to the console output
         """,
-)
-@environment_option
-@debug_option
-def launch(
-    environment: str,
-    job: str,
-    trace: bool,
-    kill_on_sigterm: bool,
-    existing_runs: str,
-    as_run_submit: bool,
-    tags: List[str],
-    parameters: List[str],
-    parameters_raw: Optional[str],
-    branch_name: Optional[str],
-    include_output: Optional[str],
+    ),
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
@@ -139,12 +77,6 @@ def launch(
 
     if not branch_name:
         branch_name = get_current_branch_name()
-
-    if parameters_raw:
-        prepared_parameters = parameters_raw
-    else:
-        override_parameters = parse_multiple(parameters)
-        prepared_parameters = sum([[k, v] for k, v in override_parameters.items()], [])
 
     filter_string = generate_filter_string(environment, branch_name)
 
@@ -157,15 +89,12 @@ def launch(
         with mlflow.start_run(nested=True):
 
             if not as_run_submit:
-                run_launcher = RunNowLauncher(
-                    job=job, api_client=api_client, existing_runs=existing_runs, prepared_parameters=prepared_parameters
-                )
+                run_launcher = RunNowLauncher(job=job, api_client=api_client, existing_runs=existing_runs)
             else:
                 run_launcher = RunSubmitLauncher(
                     job=job,
                     api_client=api_client,
                     existing_runs=existing_runs,
-                    prepared_parameters=prepared_parameters,
                     deployment_run_id=deployment_run_id,
                     environment=environment,
                 )
@@ -297,14 +226,12 @@ class RunSubmitLauncher:
         api_client: ApiClient,
         deployment_run_id: str,
         existing_runs: str,
-        prepared_parameters: Any,
         environment: str,
     ):
         self.run_id = deployment_run_id
         self.job = job
         self.api_client = api_client
         self.existing_runs = existing_runs
-        self.prepared_parameters = prepared_parameters
         self.environment = environment
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
@@ -324,20 +251,15 @@ class RunSubmitLauncher:
 
         job_spec: Dict[str, Any] = found_jobs[0]
 
-        if self.prepared_parameters:
-            task_key = [k for k in job_spec.keys() if k in POSSIBLE_TASK_KEYS][0]
-            job_spec[task_key]["parameters"] = self.prepared_parameters
-
         run_data = _submit_run(self.api_client, job_spec)
         return run_data, None
 
 
 class RunNowLauncher:
-    def __init__(self, job: str, api_client: ApiClient, existing_runs: str, prepared_parameters: Any):
+    def __init__(self, job: str, api_client: ApiClient, existing_runs: str):
         self.job = job
         self.api_client = api_client
         self.existing_runs = existing_runs
-        self.prepared_parameters = prepared_parameters
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
@@ -362,18 +284,6 @@ class RunNowLauncher:
             if self.existing_runs == "cancel":
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 _cancel_run(self.api_client, run)
-
-        if self.prepared_parameters:
-            dbx_echo(f"Default launch parameters are overridden with the following: {self.prepared_parameters}")
-            # we don't do a null-check here since the job existence will be already done during listing above.
-            job_settings = job_data.get("settings")
-
-            # here we define the job type to correctly pass parameters
-            extra_payload_key = _define_payload_key(job_settings)
-
-            extra_payload = {extra_payload_key: self.prepared_parameters}
-
-            run_data = jobs_service.run_now(job_id, **extra_payload)
 
         else:
             run_data = jobs_service.run_now(job_id)

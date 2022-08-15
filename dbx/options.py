@@ -37,3 +37,20 @@ NO_REBUILD_OPTION = typer.Option(False, "--no-rebuild", is_flag=True, help="Disa
 NO_PACKAGE_OPTION = typer.Option(
     False, "--no-package", is_flag=True, help="Do not add package reference into the job description"
 )
+
+TAGS_OPTION = typer.Option(
+    None,
+    "--tags",
+    help="""Additional tags for deployment.
+
+              Example: [bold]--tags tag1=value1[/bold].
+
+              Option might be repeated multiple times: [bold]--tags tag1=value1 --tags tag2=value2[/bold]""",
+)
+
+BRANCH_NAME_OPTION = typer.Option(
+    None,
+    "--branch-name",
+    help="""The name of the current branch.
+              If not provided or empty, dbx will try to detect the branch name.""",
+)
