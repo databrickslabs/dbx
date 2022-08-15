@@ -124,7 +124,7 @@ def deploy(
         _log_dbx_file(deployment_spec, "deployment-result.json")
 
         mlflow.set_tags(deployment_tags)
-        dbx_echo(f"Deployment for environment {environment} finished successfully :sparkles:")
+        dbx_echo(f":sparkles: Deployment for environment {environment} finished successfully")
 
         if write_specs_to_file:
             dbx_echo("Writing final job specifications into file")
