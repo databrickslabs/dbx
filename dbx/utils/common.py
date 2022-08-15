@@ -8,13 +8,13 @@ from typing import Dict, List, Optional
 import git
 from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
+from rich.console import Console
 
 from dbx.api.auth import ProfileEnvConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.utils import dbx_echo
-from rich.console import Console
 
 
 def parse_multiple(multiple_argument: List[str]) -> Dict[str, str]:
