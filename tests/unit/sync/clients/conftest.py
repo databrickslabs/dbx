@@ -1,9 +1,8 @@
 import os
-import tempfile
-from tests.unit.sync.utils import mocked_props
 
 import pytest
 
+from tests.unit.sync.utils import mocked_props
 from tests.unit.sync.utils import temporary_directory
 
 

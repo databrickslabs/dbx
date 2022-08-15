@@ -66,9 +66,9 @@ class ConfigReader:
     If a new reader is introduced, it shall be used via the :code:`_define_reader` method.
     """
 
-    def __init__(self, path: Optional[Path] = None, jinja_vars_file: Optional[Path] = None):
+    def __init__(self, path: Path, jinja_vars_file: Optional[Path] = None):
         self._jinja_vars_file = jinja_vars_file
-        self._path = self._verify_deployment_file(path) if path else self._find_deployment_file()
+        self._path = path
         self._reader = self._define_reader()
 
     def _define_reader(self) -> _AbstractConfigReader:

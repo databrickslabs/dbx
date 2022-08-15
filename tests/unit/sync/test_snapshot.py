@@ -4,9 +4,8 @@ from pathlib import Path
 
 from watchdog.utils.dirsnapshot import DirectorySnapshot
 
-from dbx.sync.snapshot import compute_snapshot_diff
 from dbx.sync import get_relative_path
-
+from dbx.sync.snapshot import compute_snapshot_diff
 from .utils import temporary_directory
 
 

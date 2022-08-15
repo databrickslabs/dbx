@@ -1,5 +1,6 @@
-from pathlib import Path
 import textwrap
+from pathlib import Path
+
 from dbx.utils.dependency_manager import DependencyManager
 
 

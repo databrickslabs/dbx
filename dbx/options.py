@@ -3,7 +3,7 @@ from pathlib import Path
 import typer
 from databricks_cli.configure.provider import DEFAULT_SECTION
 
-from dbx.callbacks import debug_callback, deployment_file_callback
+from dbx.callbacks import debug_callback, deployment_file_callback, verify_jinja_variables_file
 
 ENVIRONMENT_OPTION = typer.Option("default", "--environment", "-e", help="Environment name.")
 
@@ -29,6 +29,7 @@ JINJA_VARIABLES_FILE_OPTION = typer.Option(
         :information_source: Read more about this functionality in the Jinja2 support doc.
         """,
     exists=True,
+    callback=verify_jinja_variables_file
 )
 
 REQUIREMENTS_FILE_OPTION = typer.Option(Path("requirements.txt"), help="[red]This option is deprecated[/red]")

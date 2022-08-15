@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from dbx.commands.configure import configure
 from dbx.constants import INFO_FILE_PATH
 from dbx.utils.common import ConfigurationManager
 from tests.unit.conftest import invoke_cli_runner
@@ -9,8 +8,7 @@ from tests.unit.conftest import invoke_cli_runner
 def test_configure_default(temp_project) -> None:
     Path(INFO_FILE_PATH).unlink()
     first_result = invoke_cli_runner(
-        configure,
-        ["--environment", "test", "--profile", temp_project.name],
+        ["configure", "--environment", "test", "--profile", temp_project.name],
     )
     assert first_result.exit_code == 0
     env = ConfigurationManager().get("test")
@@ -23,8 +21,8 @@ def test_configure_default(temp_project) -> None:
 def test_configure_custom_location(temp_project: Path):
     ws_dir = "/Shared/dbx/projects/%s" % temp_project.name
     first_result = invoke_cli_runner(
-        configure,
         [
+            "configure",
             "--environment",
             "test",
             "--profile",
@@ -47,8 +45,8 @@ def test_configure_custom_location(temp_project: Path):
 def test_config_update(temp_project: Path):
     ws_dir = "/Shared/dbx/projects/%s" % temp_project.name
     invoke_cli_runner(
-        configure,
         [
+            "configure",
             "--environment",
             "test",
             "--profile",
@@ -60,8 +58,8 @@ def test_config_update(temp_project: Path):
 
     new_ws_dir = ws_dir + "/updated"
     invoke_cli_runner(
-        configure,
         [
+            "configure",
             "--environment",
             "test",
             "--profile",

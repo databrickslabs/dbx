@@ -8,7 +8,7 @@ from rich import print
 from dbx import __version__
 
 
-def verify_jinja_variables_file(_, __, value: Optional[Path]):
+def verify_jinja_variables_file(_, value: Optional[Path]):
     if value:
         if value.suffix not in [".yaml", ".yml"]:
             raise Exception("Jinja variables file shall be provided in yaml or yml format")
@@ -33,10 +33,11 @@ def deployment_file_callback(_, value: Optional[str]) -> Path:
                 _candidate = candidate
                 break
 
-        raise FileNotFoundError(
-            "Auto-discovery was unable to find any deployment file in the conf directory. "
-            "Please provide file name via --deployment-file option"
-        )
+        if not _candidate:
+            raise FileNotFoundError(
+                "Auto-discovery was unable to find any deployment file in the conf directory. "
+                "Please provide file name via --deployment-file option"
+            )
 
     print(f":ok: Deployment file {_candidate} exists and will be used for deployment")
     return _candidate

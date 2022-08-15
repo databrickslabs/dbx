@@ -91,7 +91,7 @@ class PostProcessor:
     @staticmethod
     def process():
 
-        configure.callback(
+        configure(
             environment="default", workspace_dir=WORKSPACE_DIR, artifact_location=ARTIFACT_LOCATION, profile=PROFILE
         )
 

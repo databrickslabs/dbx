@@ -3,7 +3,6 @@ import shutil
 from pathlib import Path
 
 from dbx.api.config_reader import ConfigReader
-from dbx.commands.deploy import deploy
 from tests.unit.conftest import (
     get_path_with_relation_to_current_file,
     invoke_cli_runner,
@@ -11,12 +10,14 @@ from tests.unit.conftest import (
 
 
 def test_incorrect_file_name(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
-    deploy_result = invoke_cli_runner(deploy, ["--jinja-variables-file", "some-file.py"], expected_error=True)
+    deploy_result = invoke_cli_runner(["deploy", "--jinja-variables-file", "some-file.py"], expected_error=True)
     assert "Jinja variables file shall be provided" in str(deploy_result.exception)
 
 
 def test_non_existent_file(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
-    deploy_result = invoke_cli_runner(deploy, ["--jinja-variables-file", "some-non-existent.yml"], expected_error=True)
+    deploy_result = invoke_cli_runner(
+        ["deploy", "--jinja-variables-file", "some-non-existent.yml"], expected_error=True
+    )
     assert "file is non-existent" in str(deploy_result.exception)
 
 

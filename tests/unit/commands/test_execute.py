@@ -31,9 +31,8 @@ def test_smoke_execute(
         },
     ):
         execute_result = invoke_cli_runner(
-            execute,
             [
-                "--deployment-file",
+                "execute" "--deployment-file",
                 "conf/deployment.yml",
                 "--environment",
                 "default",
@@ -63,8 +62,8 @@ def test_smoke_execute_spark_python_task(
         },
     ):
         execute_result = invoke_cli_runner(
-            execute,
             [
+                "execute",
                 "--deployment-file",
                 "conf/deployment.yml",
                 "--environment",
@@ -97,8 +96,8 @@ def test_smoke_execute_python_wheel_task(
         },
     ):
         execute_result = invoke_cli_runner(
-            execute,
             [
+                "execute",
                 "--deployment-file",
                 "conf/deployment.yml",
                 "--environment",

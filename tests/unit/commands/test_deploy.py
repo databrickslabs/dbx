@@ -26,14 +26,14 @@ from tests.unit.conftest import (
 
 
 def test_deploy_smoke_default(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
-    deploy_result = invoke_cli_runner(deploy)
+    deploy_result = invoke_cli_runner("deploy")
     assert deploy_result.exit_code == 0
 
 
 def test_deploy_files_only_smoke_default(
     temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
 ):
-    deploy_result = invoke_cli_runner(deploy, ["--files-only"])
+    deploy_result = invoke_cli_runner(["deploy", "--files-only"])
     assert deploy_result.exit_code == 0
 
 
@@ -46,8 +46,8 @@ def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock
         shutil.copy(samples_path / "placeholder_2.py", Path("./placeholder_2.py"))
 
         deploy_result = invoke_cli_runner(
-            deploy,
             [
+                "deploy",
                 "--environment",
                 "default",
                 "--deployment-file",
@@ -71,8 +71,8 @@ def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload,
         shutil.copy(samples_path / "placeholder_2.py", Path("./placeholder_2.py"))
 
         deploy_result = invoke_cli_runner(
-            deploy,
             [
+                "deploy",
                 "--environment",
                 "default",
                 "--deployment-file",
@@ -91,7 +91,7 @@ def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload,
 
 
 def test_incorrect_location(tmp_path):
-    _info = EnvironmentInfo("test", artifact_location=tmp_path.as_uri())
+    _info = EnvironmentInfo("test", artifact_location=tmp_path.as_uri(), workspace_dir=f"/Shared/dbx/{tmp_path.name}")
     MlflowStorageConfigurationManager._setup_experiment(_info)
     _wrong_info = EnvironmentInfo("test", workspace_dir=_info.workspace_dir, artifact_location=tmp_path.parent.as_uri())
     with pytest.raises(Exception):
@@ -100,18 +100,17 @@ def test_incorrect_location(tmp_path):
 
 def test_non_existent_env(mock_api_v2_client):
     env_name = "configured-but-not-provided"
-    ConfigurationManager().create_or_update(env_name, EnvironmentInfo("test"))
-    deploy_result = invoke_cli_runner(deploy, ["--environment", env_name], expected_error=True)
+    ConfigurationManager().create_or_update(env_name, EnvironmentInfo("test", workspace_dir="/Shared/dbx/test", artifact_location="dbfs:/dbx/test"))
+    deploy_result = invoke_cli_runner(["deploy", "--environment", env_name], expected_error=True)
     assert isinstance(deploy_result.exception, NameError)
     assert "non-existent in the deployment file" in str(deploy_result.exception)
 
 
 def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
     result_file = ".dbx/deployment-result.json"
-    _chosen = [j["name"] for j in ConfigReader().get_environment("default")["jobs"]][:2]
+    _chosen = [j["name"] for j in ConfigReader(Path("conf/deployment.yml")).get_environment("default")["jobs"]][:2]
     deploy_result = invoke_cli_runner(
-        deploy,
-        ["--environment", "default", "--jobs", ",".join(_chosen), "--write-specs-to-file", result_file],
+        ["deploy", "--environment", "default", "--jobs", ",".join(_chosen), "--write-specs-to-file", result_file],
     )
     assert deploy_result.exit_code == 0
     _content = JsonUtils.read(Path(result_file))
@@ -120,10 +119,10 @@ def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, moc
 
 def test_negative_both_arguments(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
     result_file = ".dbx/deployment-result.json"
-    _chosen = [j["name"] for j in ConfigReader().get_environment("default")["jobs"]][:2]
+    _chosen = [j["name"] for j in ConfigReader(Path("conf/deployment.yml")).get_environment("default")["jobs"]][:2]
     deploy_result = invoke_cli_runner(
-        deploy,
         [
+            "deploy",
             "--environment",
             "default",
             "--job",
@@ -143,8 +142,8 @@ def test_deploy_with_requirements_and_branch(mlflow_file_uploader, mock_dbx_file
     Path("runtime_requirements.txt").write_text(sample_requirements)
 
     deploy_result = invoke_cli_runner(
-        deploy,
         [
+            "deploy",
             "--requirements-file",
             "runtime_requirements.txt",
             "--branch-name",
@@ -202,7 +201,7 @@ def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v
 
     deployment_file.write_text(yaml.safe_dump(deploy_content))
 
-    deploy_result = invoke_cli_runner(deploy)
+    deploy_result = invoke_cli_runner("deploy")
 
     assert deploy_result.exit_code == 0
 
@@ -213,5 +212,5 @@ def test_jinja_custom_path(mlflow_file_uploader, mock_dbx_file_upload, mock_api_
     shutil.copytree(nested_config_dir, temp_project.parent / "configs")
     (temp_project / "conf" / "deployment.yml").unlink()
     shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
-    deploy_result = invoke_cli_runner(deploy, ["--deployment-file", "../configs/09-jinja-include.json.j2"])
+    deploy_result = invoke_cli_runner(["deploy", "--deployment-file", "../configs/09-jinja-include.json.j2"])
     assert deploy_result.exit_code == 0

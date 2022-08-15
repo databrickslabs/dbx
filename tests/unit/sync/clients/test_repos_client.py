@@ -1,10 +1,10 @@
 import asyncio
-from tests.unit.sync.utils import create_async_with_result
 from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 import pytest
 
 from dbx.sync.clients import ClientError, ReposClient
+from tests.unit.sync.utils import create_async_with_result
 from tests.unit.sync.utils import mocked_props, is_repos_user_agent
 
 
