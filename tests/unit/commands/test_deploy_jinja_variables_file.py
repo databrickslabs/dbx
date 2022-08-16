@@ -21,7 +21,7 @@ def test_non_existent_file(temp_project: Path, mlflow_file_uploader, mock_dbx_fi
     assert "file is non-existent" in str(deploy_result.exception)
 
 
-def test_jinja_vars_file(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project: Path):
+def test_jinja_vars_file_api(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project: Path):
     jinja_vars_dir = get_path_with_relation_to_current_file("../deployment-configs/jinja-vars/")
     project_config_dir = temp_project / "conf"
     vars_file = Path("./conf/jinja-template-variables-file.yaml")
@@ -35,3 +35,28 @@ def test_jinja_vars_file(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2
     # check if all definitions are same
     for _def in definitions:
         assert _def == definitions[0]
+
+
+def test_jinja_vars_file_cli(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project: Path):
+    deployment_file_name = "09-jinja-with-custom-vars.yaml.j2"
+    vars_file_name = "jinja-template-variables-file.yaml"
+    project_config_dir = temp_project / "conf"
+
+    src_vars_file = get_path_with_relation_to_current_file(f"../deployment-configs/jinja-vars/{vars_file_name}")
+    dst_vars_file = project_config_dir / vars_file_name
+
+    src_deployment_file = get_path_with_relation_to_current_file(
+        f"../deployment-configs/jinja-vars/{deployment_file_name}"
+    )
+    dst_deployment_file = project_config_dir / deployment_file_name
+
+    shutil.rmtree(project_config_dir)
+    project_config_dir.mkdir()
+    shutil.copy(src_vars_file, dst_vars_file)
+    shutil.copy(src_deployment_file, dst_deployment_file)
+
+    deploy_result = invoke_cli_runner(
+        ["deploy", f"--deployment-file", str(dst_deployment_file), "--jinja-variables-file", str(dst_vars_file)]
+    )
+
+    assert deploy_result.exit_code == 0
