@@ -37,8 +37,8 @@ from dbx.utils.job_listing import find_job_by_name
 
 def deploy(
     deployment_file: Path = DEPLOYMENT_FILE_OPTION,
-    job: Optional[str] = typer.Option(None, "--job", help="[red]This option is deprecated[/red]"),
-    jobs: Optional[str] = typer.Option(None, "--jobs", help="[red]This option is deprecated[/red]"),
+    job: Optional[str] = typer.Option(None, "--job", help="[red]This option is deprecated[/red]", show_default=False),
+    jobs: Optional[str] = typer.Option(None, "--jobs", help="[red]This option is deprecated[/red]", show_default=False),
     requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
     tags: Optional[List[str]] = TAGS_OPTION,
     environment: str = ENVIRONMENT_OPTION,

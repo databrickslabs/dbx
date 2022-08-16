@@ -31,7 +31,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
 
 def launch(
     environment: str = ENVIRONMENT_OPTION,
-    job: str = typer.Option(..., "--job", help="[red]This option is deprecated[/red]"),
+    job: str = typer.Option(..., "--job", help="[red]This option is deprecated[/red]", show_default=False),
     trace: bool = typer.Option(False, "--trace", help="Trace the workload until it finishes.", is_flag=True),
     kill_on_sigterm: bool = typer.Option(
         False,

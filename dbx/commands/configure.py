@@ -11,9 +11,13 @@ def configure(
         f"/Shared/dbx/projects/{current_folder_name()}",
         "--workspace-dir",
         help="Workspace directory for MLflow experiment.",
+        show_default=False,
     ),
     artifact_location: str = typer.Option(
-        f"dbfs:/dbx/{current_folder_name()}", "--artifact-location", help="Artifact location in DBFS"
+        f"dbfs:/dbx/{current_folder_name()}",
+        "--artifact-location",
+        help="Artifact location in DBFS or in the cloud storage",
+        show_default=False,
     ),
     profile: str = PROFILE_OPTION,
 ):
