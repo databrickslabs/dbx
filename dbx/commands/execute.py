@@ -2,95 +2,53 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import click
+import typer
 from databricks_cli.clusters.api import ClusterService
-from databricks_cli.configure.config import debug_option
-from databricks_cli.utils import CONTEXT_SETTINGS
 
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
 from dbx.models.task import Task
+from dbx.options import (
+    DEPLOYMENT_FILE_OPTION,
+    ENVIRONMENT_OPTION,
+    REQUIREMENTS_FILE_OPTION,
+    NO_REBUILD_OPTION,
+    NO_PACKAGE_OPTION,
+    JINJA_VARIABLES_FILE_OPTION,
+    DEBUG_OPTION,
+)
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     prepare_environment,
     handle_package,
     _preprocess_cluster_args,
 )
-from dbx.utils.options import environment_option, deployment_file_option, jinja_variables_file_option
 
 
-@click.command(
-    context_settings=CONTEXT_SETTINGS,
-    short_help="Executes given job on the interactive cluster.",
-    help="""
-    Executes given job on the interactive cluster.
-
-    This command is very suitable to interactively execute your code on the interactive clusters.
-
-    .. warning::
-
-        There are some limitations for :code:`dbx execute`:
-
-        * Only clusters which support :code:`%pip` magic can work with execute.
-        * Currently, only Python-based execution is supported.
-
-    The following set of actions will be done during execution:
-
-    1. If interactive cluster is stopped, it will be automatically started
-    2. Package will be rebuilt from the source (can be disabled via :option:`--no-rebuild`)
-    3. Job configuration will be taken from deployment file for given environment
-    4. All referenced will be uploaded to the MLflow experiment
-    5. | Code will be executed in a separate context. Other users can work with the same package
-       | on the same cluster without any limitations or overlapping.
-    6. Execution results will be printed out in the shell. If result was an error, command will have error exit code.
-
-    """,
-)
-@click.option("--cluster-id", required=False, type=str, help="Cluster ID.")
-@click.option("--cluster-name", required=False, type=str, help="Cluster name.")
-@click.option("--job", required=True, type=str, help="Job name to be executed")
-@click.option(
-    "--task",
-    required=False,
-    type=str,
-    help="Task name (task_key field) inside the job to be executed. Required if the --job is a multitask job.",
-)
-@click.option(
-    "--requirements-file",
-    required=False,
-    type=click.Path(path_type=Path),
-    default=Path("requirements.txt"),
-    help="[DEPRECATED]",
-)
-@click.option("--no-rebuild", is_flag=True, help="Disable package rebuild")
-@click.option(
-    "--no-package",
-    is_flag=True,
-    help="Do not add package reference into the job description",
-)
-@click.option(
-    "--upload-via-context",
-    is_flag=True,
-    default=False,
-    help="Upload files via execution context",
-)
-@environment_option
-@debug_option
-@deployment_file_option
-@jinja_variables_file_option
 def execute(
-    environment: str,
-    cluster_id: str,
-    cluster_name: str,
-    job: str,
-    task: Optional[str],
-    deployment_file: Optional[Path],
-    requirements_file: Path,
-    no_package: bool,
-    no_rebuild: bool,
-    upload_via_context: bool,
-    jinja_variables_file: Optional[Path],
+    environment: str = ENVIRONMENT_OPTION,
+    cluster_id: Optional[str] = typer.Option(None, "--cluster-id", help="Cluster ID."),
+    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", help="Cluster name."),
+    job: str = typer.Option(..., "--job", help="[red]This option is deprecated[/red]"),
+    task: Optional[str] = typer.Option(
+        None,
+        "--task",
+        help="""Task name (task_key field) inside the job to be executed.
+             [red bold]Required if the --job is a multitask job[/red bold].""",
+    ),
+    deployment_file: Path = DEPLOYMENT_FILE_OPTION,
+    requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
+    no_rebuild: bool = NO_REBUILD_OPTION,
+    no_package: bool = NO_PACKAGE_OPTION,
+    upload_via_context: bool = typer.Option(
+        False,
+        "--upload-via-context",
+        is_flag=True,
+        help="Upload files via execution context",
+    ),
+    jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
+    debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     api_client = prepare_environment(environment)
 

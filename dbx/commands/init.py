@@ -1,75 +1,49 @@
-from typing import List, Optional
 from pathlib import Path
+from typing import List, Optional
 
-import click
 import pkg_resources
+import typer
 from cookiecutter.main import cookiecutter
-from databricks_cli.configure.config import debug_option
-from databricks_cli.utils import CONTEXT_SETTINGS
 
+from dbx.constants import TEMPLATE_ROOT_PATH
 from dbx.utils import dbx_echo
-from dbx.constants import TEMPLATE_CHOICES, TEMPLATE_ROOT_PATH
 
 DEFAULT_TEMPLATE = "python_basic"
 
 
-@click.command(
-    context_settings=CONTEXT_SETTINGS,
-    short_help="Generates new project from the template",
-    help="""
-    Generates new project from the template
-
-    Launching this command without :code:`--template-parameters` argument
-    will open cookiecutter dialogue to enter the required parameters.
-    """,
-)
-@click.option(
-    "--template",
-    required=False,
-    type=click.Choice(TEMPLATE_CHOICES, case_sensitive=True),
-    help="""Built-in dbx template used to kickoff the project.""",
-    default=None,
-)
-@click.option(
-    "--path",
-    required=False,
-    help="""External template used to kickoff the project. Cannot be used together with :code:`--template` option.""",
-)
-@click.option(
-    "--package",
-    required=False,
-    help="""Python package containing external template used to kickoff the project.
-    Cannot be used together with :code:`--template` option.""",
-)
-@click.option(
-    "--checkout",
-    required=False,
-    help="""Checkout argument for cookiecutter. Used only if :code:`--path` is used.""",
-    default=None,
-)
-@click.option(
-    "--parameters",
-    "-p",
-    multiple=True,
-    type=str,
-    help="""Additional parameters for project creation in the format of parameter=value, for example:
-
-    .. code-block:
-
-        dbx init --p project_name=some-name -p cloud=some_cloud
-
-    """,
-    default=None,
-)
-@click.option("--no-input", type=bool, required=False, is_flag=True)
-@debug_option
 def init(
-    template: Optional[str],
-    path: Optional[str],
-    package: Optional[str],
-    checkout: Optional[str],
-    parameters: Optional[List[str]],
-    no_input: bool = False,
+    template: Optional[str] = typer.Option(
+        None, "--template", help="Built-in dbx template used to kickoff the project."
+    ),
+    path: Optional[str] = typer.Option(
+        None,
+        "--path",
+        help="""
+            External template used to kickoff the project.
+            Cannot be used together with [bold]--template[/bold] option.""",
+    ),
+    package: Optional[str] = typer.Option(
+        None,
+        "--package",
+        help="""
+            Python package containing external template used to kickoff the project.
+            Cannot be used together with [bold]--template[/bold] option.""",
+    ),
+    checkout: Optional[str] = typer.Option(
+        None,
+        "--checkout",
+        help="""Checkout argument for cookiecutter. Used only if [bold]--path[/bold] is used.""",
+    ),
+    parameters: Optional[List[str]] = typer.Option(
+        None,
+        "--parameters",
+        "-p",
+        help="""
+            Additional parameters for project creation.
+            Example: [bold]dbx init --p project_name=some-name -p cloud=some_cloud[/bold]
+            """,
+    ),
+    no_input: bool = typer.Option(False, "--no-input", is_flag=True),
 ):
     if sum([bool(template), bool(package), bool(path)]) > 1:
         raise Exception(

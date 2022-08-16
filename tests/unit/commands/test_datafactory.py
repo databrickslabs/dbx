@@ -2,8 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from dbx.api.client_provider import DatabricksClientProvider
-from dbx.commands.datafactory import reflect
-from dbx.commands.deploy import _log_dbx_file, deploy
+from dbx.commands.deploy import _log_dbx_file
 from tests.unit.conftest import extract_function_name, invoke_cli_runner
 
 
@@ -12,8 +11,8 @@ def test_datafactory_deploy(mocker, temp_project: Path, mlflow_file_uploader):
     func = _log_dbx_file
     mocker.patch(extract_function_name(func), MagicMock())
     deploy_result = invoke_cli_runner(
-        deploy,
         [
+            "deploy",
             "--write-specs-to-file",
             ".dbx/deployment-result.json",
         ],
@@ -23,8 +22,9 @@ def test_datafactory_deploy(mocker, temp_project: Path, mlflow_file_uploader):
 
     with patch("dbx.commands.datafactory.DatafactoryReflector", autospec=True):
         reflection_result = invoke_cli_runner(
-            reflect,
             [
+                "datafactory",
+                "reflect",
                 "--environment",
                 "default",
                 "--specs-file",

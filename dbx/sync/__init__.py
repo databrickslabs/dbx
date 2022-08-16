@@ -14,17 +14,16 @@ import click
 from watchdog.utils.dirsnapshot import DirectorySnapshot, EmptyDirectorySnapshot
 
 from dbx.utils import dbx_echo
-
 from .clients import BaseClient
 from .constants import DBX_SYNC_DIR
 from .path_matcher import PathMatcher, filtered_listdir
 from .snapshot import SnapshotDiff, compute_snapshot_diff
 
 
-class DeleteUnmatchedOption(Enum):
-    ALLOW_DELETE_UNMATCHED = 1
-    DISALLOW_DELETE_UNMATCHED = 2
-    UNSPECIFIED_DELETE_UNMATCHED = 3
+class DeleteUnmatchedOption(str, Enum):
+    ALLOW_DELETE_UNMATCHED = "allow-delete-unmatched"
+    DISALLOW_DELETE_UNMATCHED = "disallow-delete-unmatched"
+    UNSPECIFIED_DELETE_UNMATCHED = "unspecified-delete-unmatched"
 
 
 def is_dir_ancestor(possible_ancestor: str, path: str) -> str:
@@ -230,7 +229,7 @@ class RemoteSyncer:
 
     async def _apply_snapshot_diff(self, diff: SnapshotDiff) -> int:
         connector = aiohttp.TCPConnector(limit=self.max_parallel)
-        async with aiohttp.ClientSession(connector=connector) as session:
+        async with aiohttp.ClientSession(connector=connector, trust_env=True) as session:
             op_count = 0
 
             # Collects directories deleted while applying this diff.  Since we perform recursive deletes, we can

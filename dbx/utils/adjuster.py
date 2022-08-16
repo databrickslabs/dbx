@@ -4,8 +4,8 @@ from typing import List, Dict, Any
 from databricks_cli.sdk import ApiClient
 
 from dbx.utils import dbx_echo
-from dbx.utils.file_uploader import MlflowFileUploader, AbstractFileUploader
 from dbx.utils.dependency_manager import DependencyManager
+from dbx.utils.file_uploader import MlflowFileUploader, AbstractFileUploader
 from dbx.utils.named_properties import WorkloadPropertiesProcessor, NewClusterPropertiesProcessor, PolicyNameProcessor
 
 

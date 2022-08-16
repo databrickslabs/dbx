@@ -11,3 +11,7 @@ PROJECTS_RELATIVE_PATH = "templates/projects"
 
 TEMPLATE_CHOICES = pkg_resources.resource_listdir("dbx", PROJECTS_RELATIVE_PATH)
 TEMPLATE_ROOT_PATH = Path(pkg_resources.resource_filename("dbx", PROJECTS_RELATIVE_PATH))
+
+# Patterns for files that are ignored by default.  There don't seem to be any reasonable scenarios where someone
+# would want to sync these, so we don't make this configurable.
+DBX_SYNC_DEFAULT_IGNORES = [".git/", ".dbx", "*.isorted"]

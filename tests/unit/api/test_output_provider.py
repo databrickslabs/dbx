@@ -10,7 +10,7 @@ def test_provider_empty(capsys):
     provider = OutputProvider(js, {})
     provider.provide("stdout")
     captured = capsys.readouterr()
-    assert "cannot be captured since the job is not based on Jobs API V2.X+" in captured.out
+    assert "Output cannot be captured since the job" in captured.out
 
 
 def test_provider_full(capsys):

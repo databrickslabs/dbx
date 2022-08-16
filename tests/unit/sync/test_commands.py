@@ -4,16 +4,15 @@ from unittest.mock import patch, call, MagicMock
 import click
 import pytest
 
-from dbx.commands.sync import dbfs, repo, get_user_name, get_source_base_name, DEFAULT_IGNORES
+from dbx.commands.sync.functions import get_user_name, get_source_base_name
+from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
-
-from tests.unit.conftest import invoke_cli_runner
-
+from .conftest import invoke_cli_runner
 from .utils import temporary_directory, pushd
 
 
-@patch("dbx.commands.sync.get_user")
+@patch("dbx.commands.sync.functions.get_user")
 def test_get_user_name(mock_get_user):
     mock_get_user.return_value = {"userName": "foo"}
     config = MagicMock()
@@ -30,24 +29,24 @@ def test_get_source_base_name():
         get_source_base_name("/")
 
 
-@patch("dbx.commands.sync.get_databricks_config")
-@patch("dbx.commands.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.main_loop")
 def test_repo_no_opts(mock_get_config, mock_main_loop):
     # some options are required
-    res = invoke_cli_runner(repo, [], expected_error=True)
+    res = invoke_cli_runner(["repo"], expected_error=True)
     assert "Missing option" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_basic_opts(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
         mock_get_user_name.return_value = "me"
 
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -59,7 +58,7 @@ def test_repo_basic_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -71,32 +70,32 @@ def test_repo_basic_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
         mock_get_user_name.return_value = None
 
-        res = invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo"], expected_error=True)
+        res = invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
         assert mock_get_user_name.call_count == 1
 
-        assert "the user is not known" in res.output
+        assert "Destination repo path can't be automatically determined because the user is" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "--dry-run"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--dry-run"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -108,7 +107,7 @@ def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert not mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -120,16 +119,16 @@ def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
         mock_get_user_name.return_value = "me"
 
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "--polling-interval", "2"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "--polling-interval", "2"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -142,7 +141,7 @@ def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -154,9 +153,9 @@ def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -164,7 +163,7 @@ def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -176,7 +175,7 @@ def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["/foo/"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -188,9 +187,9 @@ def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -198,7 +197,7 @@ def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_n
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-fi", "foo"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fi", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -210,7 +209,7 @@ def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_n
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == ["/foo/"]
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -222,9 +221,9 @@ def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_n
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -232,7 +231,7 @@ def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-ip", "foo/*.py"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ip", "foo/*.py"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -244,7 +243,7 @@ def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["foo/*.py"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -256,9 +255,9 @@ def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -266,7 +265,7 @@ def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_us
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-fip", "foo/*.py"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fip", "foo/*.py"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -278,7 +277,7 @@ def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_us
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == ["foo/*.py"]
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -290,9 +289,9 @@ def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_us
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -300,7 +299,7 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-e", "foo"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-e", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -312,7 +311,7 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES + ["/foo/"])
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DBX_SYNC_DEFAULT_IGNORES + ["/foo/"])
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -324,9 +323,9 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -334,7 +333,7 @@ def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-ep", "foo/**/*.py"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ep", "foo/**/*.py"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -346,7 +345,9 @@ def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES + ["foo/**/*.py"])
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(
+            DBX_SYNC_DEFAULT_IGNORES + ["foo/**/*.py"]
+        )
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -358,9 +359,9 @@ def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -368,7 +369,7 @@ def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop, mock_get_u
 
         config = MagicMock()
         mock_get_config.return_value = config
-        res = invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"], expected_error=True)
+        res = invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -377,16 +378,16 @@ def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop, mock_get_u
         assert "does not exist" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
         os.mkdir(os.path.join(tempdir, ".git"))
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-d", "the-repo", "-u", "me"])
+        invoke_cli_runner(["repo", "-d", "the-repo", "-u", "me"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -398,7 +399,7 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_nam
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -410,9 +411,9 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_nam
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -420,7 +421,7 @@ def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop, mock_get_u
 
         config = MagicMock()
         mock_get_config.return_value = config
-        res = invoke_cli_runner(repo, ["-d", "the-repo", "-u", "me"], expected_error=True)
+        res = invoke_cli_runner(["repo", "-d", "the-repo", "-u", "me"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -429,15 +430,17 @@ def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop, mock_get_u
         assert "Must specify source" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_allow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
 
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "--allow-delete-unmatched"])
+        invoke_cli_runner(
+            ["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--unmatched-behaviour=allow-delete-unmatched"]
+        )
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -449,7 +452,7 @@ def test_repo_allow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_u
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED
 
@@ -459,15 +462,17 @@ def test_repo_allow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_u
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
         mock_get_config.return_value = config
 
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "--disallow-delete-unmatched"])
+        invoke_cli_runner(
+            ["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--unmatched-behaviour=disallow-delete-unmatched"]
+        )
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -479,7 +484,7 @@ def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_ge
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.DISALLOW_DELETE_UNMATCHED
 
@@ -489,9 +494,9 @@ def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_ge
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -503,7 +508,11 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(dbfs, [])
+        invoke_cli_runner(
+            [
+                "dbfs",
+            ]
+        )
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -514,7 +523,7 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -523,9 +532,9 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/me/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -537,7 +546,7 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(dbfs, ["--polling-interval", "3"])
+        invoke_cli_runner(["dbfs", "--polling-interval", "3"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -549,7 +558,7 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -558,9 +567,9 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/me/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -572,7 +581,7 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(dbfs, ["--dry-run"])
+        invoke_cli_runner(["dbfs", "--dry-run"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -583,7 +592,7 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert not mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -592,9 +601,9 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/me/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -603,7 +612,7 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(dbfs, ["-s", tempdir, "-d", "/foo/bar"])
+        invoke_cli_runner(["dbfs", "-s", tempdir, "-d", "/foo/bar"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -614,7 +623,7 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -623,9 +632,9 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/foo/bar"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -636,7 +645,7 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_config.return_value = config
 
         # we can run with no options as long as the source and user can be automatically inferred
-        invoke_cli_runner(dbfs, ["-u", "someone"])
+        invoke_cli_runner(["dbfs", "-u", "someone"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -648,7 +657,7 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -657,9 +666,9 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/someone/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -668,17 +677,17 @@ def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = None
 
         # we can run with no options as long as the source and user can be automatically inferred
-        res = invoke_cli_runner(dbfs, [], expected_error=True)
+        res = invoke_cli_runner(["dbfs"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
 
-        assert "Destination path can't be automatically determined because the user is not known" in res.output
+        assert "Destination path can't be automatically determined because the user is" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -687,7 +696,7 @@ def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
         mock_get_user_name.return_value = "me"
 
         # we can run with no options as long as the source and user can be automatically inferred
-        res = invoke_cli_runner(dbfs, ["-d", "/"], expected_error=True)
+        res = invoke_cli_runner(["dbfs", "-d", "/"], expected_error=True)
 
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
@@ -695,9 +704,9 @@ def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
         assert "Destination cannot be the root path" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -710,7 +719,7 @@ def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name)
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -722,7 +731,9 @@ def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name)
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["/foo/"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES + ["/bar", "/baz"])
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(
+            DBX_SYNC_DEFAULT_IGNORES + ["/bar", "/baz"]
+        )
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -734,9 +745,9 @@ def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name)
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_no_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -749,7 +760,7 @@ def test_repo_no_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_na
 
         config = MagicMock()
         mock_get_config.return_value = config
-        invoke_cli_runner(repo, ["-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo", "--no-use-gitignore"])
+        invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo", "--no-use-gitignore"])
 
         assert mock_main_loop.call_count == 1
         assert mock_get_config.call_count == 1
@@ -761,7 +772,7 @@ def test_repo_no_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_na
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["/foo/"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES)
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DBX_SYNC_DEFAULT_IGNORES)
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED

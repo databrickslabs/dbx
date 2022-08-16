@@ -7,13 +7,11 @@ from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
-from dbx.commands.deploy import deploy
 from dbx.commands.launch import (
     _cancel_run,
     _define_payload_key,
     _load_dbx_file,
     _trace_run,
-    launch,
 )
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import extract_function_name, invoke_cli_runner
@@ -23,9 +21,9 @@ def deploy_and_get_job_name(deploy_args: Optional[List[str]] = None) -> str:
     if deploy_args is None:
         deploy_args = []
 
-    deploy_result = invoke_cli_runner(deploy, deploy_args)
+    deploy_result = invoke_cli_runner(["deploy"] + deploy_args)
     assert deploy_result.exit_code == 0
-    _chosen_job = ConfigReader().get_environment("default")["jobs"][0]["name"]
+    _chosen_job = ConfigReader(Path("conf/deployment.yml")).get_environment("default")["jobs"][0]["name"]
     return _chosen_job
 
 
@@ -74,10 +72,10 @@ def test_smoke_launch(
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
 
-    launch_job_result = invoke_cli_runner(launch, ["--job", _chosen_job])
+    launch_job_result = invoke_cli_runner(["launch", "--job", _chosen_job])
     assert launch_job_result.exit_code == 0
 
-    launch_submit_result = invoke_cli_runner(launch, ["--job", _chosen_job, "--as-run-submit"], expected_error=True)
+    launch_submit_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--as-run-submit"], expected_error=True)
 
     assert launch_submit_result.exception is not None
 
@@ -89,7 +87,7 @@ def test_parametrized_tags(
     _chosen_job = deploy_and_get_job_name(tags_definition)
     prepare_job_service_mock(mocker, _chosen_job)
 
-    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + tags_definition)
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + tags_definition)
     assert launch_result.exit_code == 0
 
 
@@ -109,7 +107,7 @@ def test_long_tags_list(
     _chosen_job = deploy_and_get_job_name(tags_definition)
     prepare_job_service_mock(mocker, _chosen_job)
 
-    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + tags_definition)
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + tags_definition)
     assert launch_result.exit_code == 0
 
 
@@ -119,7 +117,7 @@ def test_unmatched_deploy_and_launch(
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
 
-    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--as-run-submit"], expected_error=True)
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--as-run-submit"], expected_error=True)
     assert launch_result.exception is not None
 
 
@@ -130,14 +128,14 @@ def test_launch_run_submit(
     _chosen_job = deploy_and_get_job_name(["--files-only", "--write-specs-to-file", deployment_result])
     mocked_result = JsonUtils.read(deployment_result)
     mocker.patch(extract_function_name(_load_dbx_file), MagicMock(return_value=mocked_result))
-    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--as-run-submit"])
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--as-run-submit"])
     assert launch_result.exit_code == 0
 
 
 def test_launch_not_found(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
     _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
     launch_result = invoke_cli_runner(
-        launch, ["--job", _chosen_job] + ["--tags", "cake=cheesecake"], expected_error=True
+        ["launch", "--job", _chosen_job] + ["--tags", "cake=cheesecake"], expected_error=True
     )
     assert "please verify tag existence in the UI" in str(launch_result.exception)
 
@@ -145,7 +143,7 @@ def test_launch_not_found(temp_project: Path, mlflow_file_uploader, mock_dbx_fil
 def test_launch_empty_runs(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
     _chosen_job = deploy_and_get_job_name(["--files-only", "--tags", "cake=strudel"])
     launch_result = invoke_cli_runner(
-        launch, ["--job", _chosen_job] + ["--as-run-submit", "--tags", "cake=cheesecake"], expected_error=True
+        ["launch", "--job", _chosen_job] + ["--as-run-submit", "--tags", "cake=cheesecake"], expected_error=True
     )
     assert "No deployments provided per given set of filters" in str(launch_result.exception)
 
@@ -155,7 +153,7 @@ def test_launch_with_output(
 ):
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
-    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--include-output=stdout"])
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--include-output=stdout"])
     assert launch_result.exit_code == 0
 
 
@@ -165,7 +163,7 @@ def test_launch_with_trace(
     _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
     prepare_job_service_mock(mocker, _chosen_job)
     prepare_tracing_mock(mocker, "SUCCESS")
-    launch_result = invoke_cli_runner(launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"])
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"])
     assert launch_result.exit_code == 0
 
 
@@ -176,7 +174,7 @@ def test_launch_with_trace_failed(
     prepare_job_service_mock(mocker, _chosen_job)
     prepare_tracing_mock(mocker, "ERROR")
     launch_result = invoke_cli_runner(
-        launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"], expected_error=True
+        ["launch", "--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"], expected_error=True
     )
     assert "Tracked run failed during execution" in str(launch_result.exception)
 
@@ -188,7 +186,7 @@ def test_launch_with_trace_and_kill_on_sigterm(
     prepare_job_service_mock(mocker, _chosen_job)
     prepare_tracing_mock(mocker, "SUCCESS")
     launch_result = invoke_cli_runner(
-        launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace", "--kill-on-sigterm"]
+        ["launch", "--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace", "--kill-on-sigterm"]
     )
     assert launch_result.exit_code == 0
 
@@ -201,7 +199,7 @@ def test_launch_with_trace_and_kill_on_sigterm_with_interruption(
     mocker.patch(extract_function_name(_trace_run), MagicMock(side_effect=[KeyboardInterrupt("stopped!")])),
     cancel_run_mock = mocker.patch(extract_function_name(_cancel_run))
     launch_result = invoke_cli_runner(
-        launch, ["--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace", "--kill-on-sigterm"]
+        ["launch", "--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace", "--kill-on-sigterm"]
     )
     assert launch_result.exit_code == 0
     cancel_run_mock.assert_called_once()

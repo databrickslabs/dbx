@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest import mock
 from unittest.mock import MagicMock
 
-import git
 import pytest
 from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
@@ -18,7 +17,6 @@ from dbx.utils.common import (
     handle_package,
 )
 from dbx.utils.job_listing import find_job_by_name
-
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")

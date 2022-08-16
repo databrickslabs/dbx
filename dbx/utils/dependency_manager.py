@@ -45,7 +45,7 @@ class DependencyManager:
         else:
 
             if not requirements_file.exists():
-                dbx_echo("Requirements file was not found")
+                dbx_echo("Requirements file doesn't exist")
                 return []
             else:
                 with requirements_file.open(encoding="utf-8") as requirements_txt:

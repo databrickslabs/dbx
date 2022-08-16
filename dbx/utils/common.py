@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 import git
 from databricks_cli.sdk import ClusterService
 from databricks_cli.sdk.api_client import ApiClient
+from rich.console import Console
 
 from dbx.api.auth import ProfileEnvConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
@@ -91,8 +92,14 @@ def handle_package(rebuild_arg):
             for _file in dist_path.glob("*.whl"):
                 _file.unlink()
 
-        subprocess.check_call([sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary --no-deps"))
-        dbx_echo("Package re-build finished")
+        console = Console()
+
+        with console.status("Building the package :hammer:", spinner="dots"):
+            subprocess.check_call(
+                [sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary --no-deps"),
+                stdout=subprocess.PIPE,
+            )
+        dbx_echo(":white_check_mark: Package re-build finished")
 
 
 def get_current_branch_name() -> Optional[str]:

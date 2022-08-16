@@ -2,6 +2,7 @@ from typing import Dict, Any, List
 
 from databricks_cli.sdk import JobsService
 
+from dbx.models.options import IncludeOutputOption
 from dbx.utils import dbx_echo
 
 
@@ -20,7 +21,7 @@ class OutputProvider:
     def _wrap_message(msg):
         return "-" * 20 + f" {msg} " + "-" * 20
 
-    def provide(self, output_level: str):
+    def provide(self, output_level: IncludeOutputOption):
         tasks: List[Any] = self._final_state.get("tasks", [])
         tasks.sort(key=lambda el: el["run_id"])  # sort is in-place function,
 
@@ -33,7 +34,7 @@ class OutputProvider:
                 output = self._js.get_run_output(run_id)
                 dbx_echo(f"Output for the task {task_key} from run {run_id}")
 
-                if output_level == "stdout":
+                if output_level == IncludeOutputOption.stdout:
                     if output.get("logs"):
                         dbx_echo(self._wrap_message("stdout"))
                         self._print_by_key(output, "logs")

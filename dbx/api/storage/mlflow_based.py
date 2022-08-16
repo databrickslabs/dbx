@@ -9,8 +9,8 @@ from mlflow.entities import Experiment
 
 from dbx.api.auth import AuthConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
-from dbx.constants import DATABRICKS_MLFLOW_URI
 from dbx.api.configure import EnvironmentInfo
+from dbx.constants import DATABRICKS_MLFLOW_URI
 
 
 class MlflowStorageConfigurationManager:

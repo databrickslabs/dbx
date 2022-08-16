@@ -1,14 +1,11 @@
-import asyncio
 import os
-import shutil
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from dbx.commands.sync import create_path_matcher
+from dbx.commands.sync.functions import create_path_matcher
 from dbx.sync import RemoteSyncer, DeleteUnmatchedOption
-
 from tests.unit.sync.utils import temporary_directory
 
 

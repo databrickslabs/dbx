@@ -10,11 +10,12 @@ from uuid import uuid4
 
 import mlflow
 import pytest
-from click.testing import CliRunner
 from databricks_cli.configure.provider import DatabricksConfig
+from typer.testing import CliRunner
 
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
+from dbx.cli import app
 from dbx.commands.deploy import _log_dbx_file
 from dbx.commands.init import init
 from dbx.utils.adjuster import adjust_path
@@ -40,8 +41,7 @@ def invoke_cli_runner(*args, **kwargs):
     Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
     """
     expected_error = kwargs.pop("expected_error") if "expected_error" in kwargs else None
-
-    res = CliRunner().invoke(*args, **kwargs)
+    res = CliRunner().invoke(app, *args, **kwargs)
 
     if res.exit_code != 0:
         if not expected_error:
@@ -54,10 +54,7 @@ def invoke_cli_runner(*args, **kwargs):
 
 
 def initialize_cookiecutter(project_name):
-    invoke_cli_runner(
-        init,
-        ["-p", f"project_name={project_name}", "--no-input"],
-    )
+    init(template="python_basic", path=None, package=None, parameters=[f"project_name={project_name}"], no_input=True)
 
 
 @contextlib.contextmanager

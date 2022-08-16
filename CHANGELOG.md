@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+- Switch all the CLI interfaces to `typer`
+- Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
+- `dbx sync` now takes into account `HTTP(S)_PROXY` env variables
+
 ----
 > Unreleased changes must be tracked above this line.
 > When releasing, Copy the changelog to below this line, with proper version and date.

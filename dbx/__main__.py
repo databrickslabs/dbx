@@ -1,4 +1,4 @@
-from dbx.cli import cli
+from dbx.cli import entrypoint
 
 if __name__ == "__main__":
-    cli()
+    entrypoint()
