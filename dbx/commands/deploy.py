@@ -56,7 +56,7 @@ def deploy(
     ),
     branch_name: Optional[str] = BRANCH_NAME_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
-    debug: Optional[bool] = DEBUG_OPTION,
+    debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 

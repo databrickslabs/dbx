@@ -69,7 +69,7 @@ def launch(
         * :code:`stderr` will add only stderr to the console output
         """,
     ),
-    debug: Optional[bool] = DEBUG_OPTION,
+    debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 

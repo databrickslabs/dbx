@@ -48,7 +48,7 @@ def execute(
         help="Upload files via execution context",
     ),
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
-    debug: Optional[bool] = DEBUG_OPTION,
+    debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     api_client = prepare_environment(environment)
 
