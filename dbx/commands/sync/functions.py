@@ -1,10 +1,12 @@
+import time
 from pathlib import Path
 from typing import List
 
 import click
 
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
-from dbx.sync import DeleteUnmatchedOption, PathMatcher
+from dbx.sync import DeleteUnmatchedOption, PathMatcher, BaseClient, RemoteSyncer
+from dbx.sync.event_handler import file_watcher
 from dbx.utils import dbx_echo
 
 
@@ -96,3 +98,67 @@ def subdirs_to_patterns(source: str, subdirs: List[str]) -> List[str]:
         subdir = Path(subdir).as_posix()
         patterns.append(f"/{subdir}/")
     return patterns
+
+
+def main_loop(
+    *,
+    source: str,
+    matcher: PathMatcher,
+    client: BaseClient,
+    full_sync: bool,
+    dry_run: bool,
+    watch: bool,
+    sleep_interval: float = 0.25,
+    polling_interval_secs: float = None,
+    delete_unmatched_option: DeleteUnmatchedOption = DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED,
+):
+    """
+    Performs the initial sync from the source directory and then watches for changes, performing
+    an incremental sync whenever changes are detected.
+    """
+
+    syncer = RemoteSyncer(
+        client=client,
+        source=source,
+        dry_run=dry_run,
+        full_sync=full_sync,
+        matcher=matcher,
+        delete_unmatched_option=delete_unmatched_option,
+    )
+
+    dbx_echo("Starting initial copy")
+
+    # Run the incremental copy and record how many operations were performed or would have been
+    # performed (if in dry run mode).  An operation usually translates to an API call, such as
+    # create a directory, put a file, etc.
+    op_count = syncer.incremental_copy()
+
+    if not op_count:
+        dbx_echo("No changes found during initial copy")
+
+    if dry_run:
+        dbx_echo("This was a dry run.  Exiting now.")
+    elif watch:
+        dbx_echo("Done. Watching for changes...")
+
+        with file_watcher(source=source, matcher=matcher, polling_interval_secs=polling_interval_secs) as event_handler:
+            while True:
+                # Keep looping until the event handler sees some file system events
+                # under the source path that match the provided filters.
+                while True:
+                    events = event_handler.get_events()
+
+                    # Once at least one event has occurred, break out of the loop so we can
+                    # sync the change over.
+                    if events:
+                        break
+                    time.sleep(sleep_interval)
+
+                # Run incremental copy to sync over changes since the last sync.
+                op_count = syncer.incremental_copy()
+
+                # simple way to enable unit testing to break out of loop
+                if op_count < 0:
+                    break
+
+                dbx_echo("Done")

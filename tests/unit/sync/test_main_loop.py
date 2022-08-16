@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock, patch
 
-from dbx.commands.sync.sync import main_loop
+from dbx.commands.sync.functions import main_loop
 from .utils import temporary_directory
 
 
-@patch("dbx.commands.sync.sync.RemoteSyncer")
+@patch("dbx.commands.sync.functions.RemoteSyncer")
 def test_main_loop_no_watch(remote_syncer_class_mock):
     with temporary_directory() as source:
         client = MagicMock()
@@ -30,7 +30,7 @@ def test_main_loop_no_watch(remote_syncer_class_mock):
         assert remote_syncer_class_mock.call_args[1]["matcher"] == matcher
 
 
-@patch("dbx.commands.sync.sync.RemoteSyncer")
+@patch("dbx.commands.sync.functions.RemoteSyncer")
 def test_main_loop_dry_run(remote_syncer_class_mock):
     with temporary_directory() as source:
         client = MagicMock()
@@ -56,8 +56,8 @@ def test_main_loop_dry_run(remote_syncer_class_mock):
         assert remote_syncer_class_mock.call_args[1]["matcher"] == matcher
 
 
-@patch("dbx.commands.sync.sync.file_watcher")
-@patch("dbx.commands.sync.sync.RemoteSyncer")
+@patch("dbx.commands.sync.functions.file_watcher")
+@patch("dbx.commands.sync.functions.RemoteSyncer")
 def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
     with temporary_directory() as source:
         client = MagicMock()
@@ -95,8 +95,8 @@ def test_main_loop_watch(remote_syncer_class_mock, mock_file_watcher):
         assert remote_syncer_class_mock.call_args[1]["matcher"] == matcher
 
 
-@patch("dbx.commands.sync.sync.file_watcher")
-@patch("dbx.commands.sync.sync.RemoteSyncer")
+@patch("dbx.commands.sync.functions.file_watcher")
+@patch("dbx.commands.sync.functions.RemoteSyncer")
 def test_main_loop_watch_no_events(remote_syncer_class_mock, mock_file_watcher):
     """
     Test running the main loop with one of the get_events calls returning no events, resulting in a short sleep.
