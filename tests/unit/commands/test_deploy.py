@@ -79,7 +79,7 @@ def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload,
                 str(deployment_file),
                 "--write-specs-to-file",
                 ".dbx/deployment-result.json",
-                "--debug"
+                "--debug",
             ],
         )
         _content = JsonUtils.read(Path(".dbx/deployment-result.json"))

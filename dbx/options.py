@@ -8,7 +8,12 @@ from dbx.callbacks import debug_callback, deployment_file_callback, verify_jinja
 ENVIRONMENT_OPTION = typer.Option("default", "--environment", "-e", help="Environment name.")
 
 PROFILE_OPTION = typer.Option(DEFAULT_SECTION, "--profile", help="Databricks CLI profile to use.")
-DEBUG_OPTION = typer.Option(False, callback=debug_callback)
+DEBUG_OPTION = typer.Option(
+    False, "--debug", is_flag=True, callback=debug_callback, help="""
+    Enable debugging of HTTP calls.
+
+    Disabled by default."""
+)
 DEPLOYMENT_FILE_OPTION = typer.Option(
     None,
     "--deployment-file",
