@@ -6,16 +6,13 @@ from typing import List
 import click
 from databricks_cli.configure.provider import DatabricksConfig
 
+from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption, RemoteSyncer
 from dbx.sync.clients import BaseClient, DBFSClient, ReposClient, get_user
 from dbx.sync.config import get_databricks_config
 from dbx.sync.event_handler import file_watcher
 from dbx.sync.path_matcher import PathMatcher
 from dbx.utils import dbx_echo
-
-# Patterns for files that are ignored by default.  There don't seem to be any reasonable scenarios where someone
-# would want to sync these, so we don't make this configurable.
-DEFAULT_IGNORES = [".git/", ".dbx", "*.isorted"]
 
 
 def validate_allow_unmatched(ctx, param, value):  # noqa
@@ -145,7 +142,7 @@ def create_path_matcher(
         dbx_echo(f"Including patterns from {syncinclude_path}")
         include_patterns.extend(syncinclude_path.read_text(encoding="utf-8").splitlines())
 
-    exclude_patterns.extend(DEFAULT_IGNORES)
+    exclude_patterns.extend(DBX_SYNC_DEFAULT_IGNORES)
 
     return PathMatcher(
         root_dir=source, ignores=exclude_patterns, includes=include_patterns, force_includes=force_include_patterns

@@ -4,7 +4,8 @@ from unittest.mock import patch, call, MagicMock
 import click
 import pytest
 
-from dbx.commands.sync.sync import dbfs, repo, get_user_name, get_source_base_name, DEFAULT_IGNORES
+from dbx.commands.sync.sync import dbfs, repo, get_user_name, get_source_base_name
+from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
 from .conftest import invoke_cli_runner
@@ -57,7 +58,7 @@ def test_repo_basic_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -106,7 +107,7 @@ def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert not mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -140,7 +141,7 @@ def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -174,7 +175,7 @@ def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["/foo/"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -208,7 +209,7 @@ def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_n
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == ["/foo/"]
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -242,7 +243,7 @@ def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["foo/*.py"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -276,7 +277,7 @@ def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_us
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == ["foo/*.py"]
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -310,7 +311,7 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES + ["/foo/"])
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DBX_SYNC_DEFAULT_IGNORES + ["/foo/"])
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -344,7 +345,7 @@ def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES + ["foo/**/*.py"])
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DBX_SYNC_DEFAULT_IGNORES + ["foo/**/*.py"])
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -396,7 +397,7 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_nam
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -447,7 +448,7 @@ def test_repo_allow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_u
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED
 
@@ -477,7 +478,7 @@ def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_ge
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
         assert mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.DISALLOW_DELETE_UNMATCHED
 
@@ -512,7 +513,7 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -547,7 +548,7 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -581,7 +582,7 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert not mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -612,7 +613,7 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -646,7 +647,7 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == []
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert mock_main_loop.call_args[1]["matcher"].ignores == DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
         assert mock_main_loop.call_args[1]["watch"]
 
         client = mock_main_loop.call_args[1]["client"]
@@ -720,7 +721,7 @@ def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name)
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["/foo/"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES + ["/bar", "/baz"])
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DBX_SYNC_DEFAULT_IGNORES + ["/bar", "/baz"])
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
@@ -759,7 +760,7 @@ def test_repo_no_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_na
         assert mock_main_loop.call_args[1]["matcher"]
         assert mock_main_loop.call_args[1]["matcher"].includes == ["/foo/"]
         assert mock_main_loop.call_args[1]["matcher"].force_includes == []
-        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DEFAULT_IGNORES)
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DBX_SYNC_DEFAULT_IGNORES)
         assert mock_main_loop.call_args[1]["watch"]
         assert (
             mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
