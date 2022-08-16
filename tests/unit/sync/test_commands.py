@@ -4,14 +4,14 @@ from unittest.mock import patch, call, MagicMock
 import click
 import pytest
 
-from dbx.commands.sync import dbfs, repo, get_user_name, get_source_base_name, DEFAULT_IGNORES
+from dbx.commands.sync.sync import dbfs, repo, get_user_name, get_source_base_name, DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
 from .conftest import invoke_cli_runner
 from .utils import temporary_directory, pushd
 
 
-@patch("dbx.commands.sync.get_user")
+@patch("dbx.commands.sync.sync.get_user")
 def test_get_user_name(mock_get_user):
     mock_get_user.return_value = {"userName": "foo"}
     config = MagicMock()
@@ -28,17 +28,17 @@ def test_get_source_base_name():
         get_source_base_name("/")
 
 
-@patch("dbx.commands.sync.get_databricks_config")
-@patch("dbx.commands.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.main_loop")
 def test_repo_no_opts(mock_get_config, mock_main_loop):
     # some options are required
     res = invoke_cli_runner(repo, [], expected_error=True)
     assert "Missing option" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_basic_opts(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
@@ -69,9 +69,9 @@ def test_repo_basic_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
@@ -87,9 +87,9 @@ def test_repo_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert "the user is not known" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
@@ -118,9 +118,9 @@ def test_repo_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
@@ -152,9 +152,9 @@ def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -186,9 +186,9 @@ def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -220,9 +220,9 @@ def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_n
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -254,9 +254,9 @@ def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -288,9 +288,9 @@ def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_us
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -322,9 +322,9 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -356,9 +356,9 @@ def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -375,9 +375,9 @@ def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop, mock_get_u
         assert "does not exist" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
         os.mkdir(os.path.join(tempdir, ".git"))
@@ -408,9 +408,9 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_nam
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -427,9 +427,9 @@ def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop, mock_get_u
         assert "Must specify source" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_allow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
@@ -457,9 +457,9 @@ def test_repo_allow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_u
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
         config = MagicMock()
@@ -487,9 +487,9 @@ def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_ge
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -521,9 +521,9 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/me/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -556,9 +556,9 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/me/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -590,9 +590,9 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/me/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -621,9 +621,9 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/foo/bar"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
 
@@ -655,9 +655,9 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert client.base_path == f"dbfs:/tmp/users/someone/{os.path.basename(tempdir)}"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -674,9 +674,9 @@ def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert "Destination path can't be automatically determined because the user is not known" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -693,9 +693,9 @@ def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
         assert "Destination cannot be the root path" in res.output
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 
@@ -732,9 +732,9 @@ def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name)
         assert client.base_path == "/Repos/me/the-repo"
 
 
-@patch("dbx.commands.sync.get_user_name")
-@patch("dbx.commands.sync.main_loop")
-@patch("dbx.commands.sync.get_databricks_config")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+@patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_no_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
 

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from dbx.commands.sync import create_path_matcher
+from dbx.commands.sync.sync import create_path_matcher
 from dbx.sync import RemoteSyncer, get_relative_path
 from tests.unit.sync.utils import temporary_directory
 

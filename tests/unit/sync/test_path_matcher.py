@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from dbx.commands.sync import create_path_matcher
+from dbx.commands.sync.sync import create_path_matcher
 from dbx.sync.path_matcher import PathMatcher, filtered_listdir
 from .utils import temporary_directory
 
