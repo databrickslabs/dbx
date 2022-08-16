@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Switch all the CLI interfaces to `typer`
 - Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
+- `dbx sync` now takes into account `HTTP(S)_PROXY` env variables
 
 ----
 > Unreleased changes must be tracked above this line.

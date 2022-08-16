@@ -229,7 +229,7 @@ class RemoteSyncer:
 
     async def _apply_snapshot_diff(self, diff: SnapshotDiff) -> int:
         connector = aiohttp.TCPConnector(limit=self.max_parallel)
-        async with aiohttp.ClientSession(connector=connector) as session:
+        async with aiohttp.ClientSession(connector=connector, trust_env=True) as session:
             op_count = 0
 
             # Collects directories deleted while applying this diff.  Since we perform recursive deletes, we can
