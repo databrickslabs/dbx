@@ -4,7 +4,8 @@ from unittest.mock import patch, call, MagicMock
 import click
 import pytest
 
-from dbx.commands.sync.sync import dbfs, repo, get_user_name, get_source_base_name
+from dbx.commands.sync.sync import dbfs, repo
+from dbx.commands.sync.functions import get_user_name, get_source_base_name
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
@@ -12,7 +13,7 @@ from .conftest import invoke_cli_runner
 from .utils import temporary_directory, pushd
 
 
-@patch("dbx.commands.sync.sync.get_user")
+@patch("dbx.commands.sync.functions.get_user")
 def test_get_user_name(mock_get_user):
     mock_get_user.return_value = {"userName": "foo"}
     config = MagicMock()

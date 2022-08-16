@@ -1,11 +1,14 @@
+import os
 import time
 from pathlib import Path
 from typing import List
 
 import click
+from databricks_cli.configure.provider import DatabricksConfig
 
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption, PathMatcher, BaseClient, RemoteSyncer
+from dbx.sync.clients import get_user
 from dbx.sync.event_handler import file_watcher
 from dbx.utils import dbx_echo
 
@@ -162,3 +165,52 @@ def main_loop(
                     break
 
                 dbx_echo("Done")
+
+
+def handle_source(source: str = None) -> str:
+    """Determine the source directory to sync from.  If the source directory is not specified
+    then it will check if the current directory has a .git subdirectory, implying that the current
+    directory should be the source.
+
+    Args:
+        source (str): source directory to use, or None to try automatically determining
+
+    Raises:
+        click.UsageError: When the source directory is unspecified and can't be automatically determined.
+
+    Returns:
+        str: source directory to sync from
+    """
+    if not source:
+        # If this is being run from the base of a git repo, then they probably want to use
+        # the repo as the source.
+        if os.path.exists(".git"):
+            source = "."
+        else:
+            raise click.UsageError("Must specify source directory using --source")
+
+    source = os.path.abspath(source)
+
+    dbx_echo(f"Syncing from {source}")
+
+    return source
+
+
+def get_user_name(config: DatabricksConfig) -> str:
+    """Gets the name of the user according to the Databricks API using the config for authorization.
+
+    Args:
+        config (DatabricksConfig): config to use to get user info
+
+    Returns:
+        str: name of user
+    """
+    user_info = get_user(config)
+    return user_info.get("userName")
+
+
+def get_source_base_name(source: str) -> str:
+    source_base_name = os.path.basename(source.rstrip("/"))
+    if not source_base_name:
+        raise click.UsageError("Destination path can't be determined.  Please specify with --dest.")
+    return source_base_name
