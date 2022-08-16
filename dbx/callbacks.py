@@ -53,6 +53,7 @@ def version_callback(value: bool):
         raise typer.Exit()
 
 
-def debug_callback(_, __):
-    dbx_echo(":bug: Debugging mode is [red]on[/red]")
-    http_client.HTTPConnection.debuglevel = 1
+def debug_callback(_, value):
+    if value:
+        dbx_echo(":bug: Debugging mode is [red]on[/red]")
+        http_client.HTTPConnection.debuglevel = 1
