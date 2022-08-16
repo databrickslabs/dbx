@@ -20,7 +20,7 @@ from dbx.options import (
     NO_REBUILD_OPTION,
     NO_PACKAGE_OPTION,
     TAGS_OPTION,
-    BRANCH_NAME_OPTION,
+    BRANCH_NAME_OPTION, DEBUG_OPTION,
 )
 from dbx.utils import dbx_echo
 from dbx.utils.adjuster import adjust_job_definitions
@@ -55,6 +55,7 @@ def deploy(
     ),
     branch_name: Optional[str] = BRANCH_NAME_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
+    debug: Optional[bool] = DEBUG_OPTION
 ):
     dbx_echo(f"Starting new deployment for environment {environment}")
 

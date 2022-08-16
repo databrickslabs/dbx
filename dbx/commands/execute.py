@@ -15,7 +15,7 @@ from dbx.options import (
     REQUIREMENTS_FILE_OPTION,
     NO_REBUILD_OPTION,
     NO_PACKAGE_OPTION,
-    JINJA_VARIABLES_FILE_OPTION,
+    JINJA_VARIABLES_FILE_OPTION, DEBUG_OPTION,
 )
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
@@ -47,6 +47,7 @@ def execute(
         help="Upload files via execution context",
     ),
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
+    debug: Optional[bool] = DEBUG_OPTION
 ):
     api_client = prepare_environment(environment)
 

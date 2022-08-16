@@ -13,7 +13,7 @@ from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
-from dbx.options import ENVIRONMENT_OPTION, TAGS_OPTION, BRANCH_NAME_OPTION
+from dbx.options import ENVIRONMENT_OPTION, TAGS_OPTION, BRANCH_NAME_OPTION, DEBUG_OPTION
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
@@ -69,6 +69,7 @@ def launch(
         * :code:`stderr` will add only stderr to the console output
         """,
     ),
+    debug: Optional[bool] = DEBUG_OPTION
 ):
     dbx_echo(f"Launching job {job} on environment {environment}")
 
