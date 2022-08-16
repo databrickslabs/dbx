@@ -6,7 +6,7 @@ from dbx.commands.deploy import deploy
 from dbx.commands.execute import execute
 from dbx.commands.init import init
 from dbx.commands.launch import launch
-from dbx.commands.sync import sync
+from dbx.commands.sync.sync import sync
 from dbx.commands.version import version_entrypoint
 
 app = typer.Typer(rich_markup_mode="rich")
