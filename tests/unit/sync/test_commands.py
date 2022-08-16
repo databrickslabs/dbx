@@ -85,7 +85,7 @@ def test_repo_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_get_config.call_count == 1
         assert mock_get_user_name.call_count == 1
 
-        assert "the user is not known" in res.output
+        assert "Destination repo path can't be automatically determined because the user is" in res.output
 
 
 @patch("dbx.commands.sync.sync.get_user_name")
@@ -682,7 +682,7 @@ def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
         assert mock_main_loop.call_count == 0
         assert mock_get_config.call_count == 1
 
-        assert "Destination path can't be automatically determined because the user is not known" in res.output
+        assert "Destination path can't be automatically determined because the user is" in res.output
 
 
 @patch("dbx.commands.sync.sync.get_user_name")
