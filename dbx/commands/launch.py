@@ -276,12 +276,10 @@ class RunNowLauncher:
         for run in active_runs:
             if self.existing_runs == ExistingRunsOption.pass_:
                 dbx_echo("Passing the existing runs status check")
-
-            if self.existing_runs.wait == ExistingRunsOption.wait:
+            elif self.existing_runs == ExistingRunsOption.wait:
                 dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
                 _wait_run(self.api_client, run)
-
-            if self.existing_runs.cancel == ExistingRunsOption.cancel:
+            elif self.existing_runs == ExistingRunsOption.cancel:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 _cancel_run(self.api_client, run)
 
