@@ -17,6 +17,7 @@ from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.cli import app
 from dbx.commands.deploy import _log_dbx_file
+from dbx.commands.init import init
 from dbx.utils.adjuster import adjust_path
 from dbx.utils.file_uploader import MlflowFileUploader
 
@@ -53,9 +54,7 @@ def invoke_cli_runner(*args, **kwargs):
 
 
 def initialize_cookiecutter(project_name):
-    invoke_cli_runner(
-        ["init", "-p", f"project_name={project_name}", "--no-input"],
-    )
+    init(template="python_basic", path=None, package=None, parameters=[f"project_name={project_name}"], no_input=True)
 
 
 @contextlib.contextmanager
