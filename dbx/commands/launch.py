@@ -13,6 +13,7 @@ from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
+from dbx.models.options import ExistingRunsOption, IncludeOutputOption
 from dbx.options import ENVIRONMENT_OPTION, TAGS_OPTION, BRANCH_NAME_OPTION, DEBUG_OPTION
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
@@ -38,11 +39,12 @@ def launch(
         is_flag=True,
         help="If provided, kills the job on SIGTERM (Ctrl+C) signal",
     ),
-    existing_runs: str = typer.Option(
-        "pass",
+    existing_runs: ExistingRunsOption = typer.Option(
+        ExistingRunsOption.pass_.value,
         "--existing-runs",
         help="""
         Strategy to handle existing active job runs.
+        Option will only work in case if workload is launched as a job.
 
         Options behaviour:
 
@@ -54,7 +56,7 @@ def launch(
     as_run_submit: bool = typer.Option(False, "--as-run-submit", is_flag=True, help="Run the job as run submit."),
     tags: Optional[List[str]] = TAGS_OPTION,
     branch_name: Optional[str] = BRANCH_NAME_OPTION,
-    include_output: Optional[str] = typer.Option(
+    include_output: Optional[IncludeOutputOption] = typer.Option(
         None,
         "--include-output",
         help="""
@@ -95,7 +97,6 @@ def launch(
                 run_launcher = RunSubmitLauncher(
                     job=job,
                     api_client=api_client,
-                    existing_runs=existing_runs,
                     deployment_run_id=deployment_run_id,
                     environment=environment,
                 )
@@ -123,7 +124,7 @@ def launch(
 
                 if include_output:
                     log_provider = OutputProvider(jobs_service, final_run_state)
-                    dbx_echo(f"Run output provisioning requested with level {include_output}")
+                    dbx_echo(f"Run output provisioning requested with level {include_output.value}")
                     log_provider.provide(include_output)
 
                 if dbx_status == "ERROR":
@@ -226,13 +227,11 @@ class RunSubmitLauncher:
         job: str,
         api_client: ApiClient,
         deployment_run_id: str,
-        existing_runs: str,
         environment: str,
     ):
         self.run_id = deployment_run_id
         self.job = job
         self.api_client = api_client
-        self.existing_runs = existing_runs
         self.environment = environment
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
@@ -257,10 +256,10 @@ class RunSubmitLauncher:
 
 
 class RunNowLauncher:
-    def __init__(self, job: str, api_client: ApiClient, existing_runs: str):
+    def __init__(self, job: str, api_client: ApiClient, existing_runs: ExistingRunsOption):
         self.job = job
         self.api_client = api_client
-        self.existing_runs = existing_runs
+        self.existing_runs: ExistingRunsOption = existing_runs
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
@@ -275,14 +274,14 @@ class RunNowLauncher:
         active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
 
         for run in active_runs:
-            if self.existing_runs == "pass":
+            if self.existing_runs == ExistingRunsOption.pass_:
                 dbx_echo("Passing the existing runs status check")
 
-            if self.existing_runs == "wait":
+            if self.existing_runs.wait == ExistingRunsOption.wait:
                 dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
                 _wait_run(self.api_client, run)
 
-            if self.existing_runs == "cancel":
+            if self.existing_runs.cancel == ExistingRunsOption.cancel:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 _cancel_run(self.api_client, run)
 
