@@ -10,11 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+## Added
 - Switch all the CLI interfaces to `typer`
-- Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
-- `dbx sync` now takes into account `HTTP(S)_PROXY` env variables
-- Deprecate `jobs` section and rename it to `workloads`
 - Add `workload-name` argument to `dbx deploy`, `dbx launch` and `dbx execute`
+
+## Changed
+- Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
+- Deprecate `jobs` section and rename it to `workflow`
+- Deprecate `job` and `jobs` argument and rename it to `workflow`
+
+## Fixed
+- `dbx sync` now takes into account `HTTP(S)_PROXY` env variables
+- empty task parameters are now supported
 
 ----
 > Unreleased changes must be tracked above this line.

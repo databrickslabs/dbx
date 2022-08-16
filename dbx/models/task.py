@@ -13,12 +13,12 @@ class TaskType(Enum):
 class PythonWheelTask(BaseModel):
     package_name: str
     entry_point: str
-    parameters: Optional[List[str]]
+    parameters: Optional[List[str]] = []
 
 
 class SparkPythonTask(BaseModel):
     python_file: Path
-    parameters: Optional[List[str]]
+    parameters: Optional[List[str]] = []
 
     @validator("python_file", always=True)
     def python_file_validator(cls, v: Path, values) -> Path:  # noqa
