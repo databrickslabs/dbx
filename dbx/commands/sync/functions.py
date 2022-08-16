@@ -13,14 +13,6 @@ from dbx.sync.event_handler import file_watcher
 from dbx.utils import dbx_echo
 
 
-def validate_allow_unmatched(ctx, param, value):  # noqa
-    if value is None:
-        return DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
-    if value:
-        return DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED
-    return DeleteUnmatchedOption.DISALLOW_DELETE_UNMATCHED
-
-
 def create_path_matcher(
     *,
     source: str,

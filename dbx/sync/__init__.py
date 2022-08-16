@@ -20,10 +20,10 @@ from .path_matcher import PathMatcher, filtered_listdir
 from .snapshot import SnapshotDiff, compute_snapshot_diff
 
 
-class DeleteUnmatchedOption(Enum):
-    ALLOW_DELETE_UNMATCHED = 1
-    DISALLOW_DELETE_UNMATCHED = 2
-    UNSPECIFIED_DELETE_UNMATCHED = 3
+class DeleteUnmatchedOption(str, Enum):
+    ALLOW_DELETE_UNMATCHED = "allow-delete-unmatched"
+    DISALLOW_DELETE_UNMATCHED = "disallow-delete-unmatched"
+    UNSPECIFIED_DELETE_UNMATCHED = "unspecified-delete-unmatched"
 
 
 def is_dir_ancestor(possible_ancestor: str, path: str) -> str:

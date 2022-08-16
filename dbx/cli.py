@@ -6,7 +6,7 @@ from dbx.commands.deploy import deploy
 from dbx.commands.execute import execute
 from dbx.commands.init import init
 from dbx.commands.launch import launch
-from dbx.commands.sync.sync import sync
+from dbx.commands.sync.sync import sync_app
 from dbx.commands.version import version_entrypoint
 
 app = typer.Typer(rich_markup_mode="rich")
@@ -118,10 +118,11 @@ app.command(
     """,
 )(launch)
 
-typer_click_object = typer.main.get_command(app)
-
-typer_click_object.add_command(sync, "sync")
+app.add_typer(
+    sync_app,
+    name="sync",
+)
 
 
 def entrypoint():
-    typer_click_object()
+    app()

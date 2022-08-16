@@ -1,17 +1,38 @@
-from typing import List
+from typing import List, Optional
 
 import click
+import typer
 
-from dbx.commands.sync.functions import validate_allow_unmatched, create_path_matcher, main_loop, handle_source, \
-    get_user_name, get_source_base_name
+from dbx.commands.sync.functions import (
+    create_path_matcher,
+    main_loop,
+    handle_source,
+    get_user_name,
+    get_source_base_name,
+)
+from dbx.commands.sync.options import (
+    SOURCE_OPTION,
+    FULL_SYNC_OPTION,
+    DRY_RUN_OPTION,
+    INCLUDE_DIRS_OPTION,
+    FORCE_INCLUDE_DIRS_OPTION,
+    EXCLUDE_DIRS_OPTION,
+    WATCH_OPTION,
+    POLLING_INTERVAL_OPTION,
+    INCLUDE_PATTERNS_OPTION,
+    FORCE_INCLUDE_PATTERNS_OPTION,
+    EXCLUDE_PATTERNS_OPTION,
+    USE_GITIGNORE_OPTION,
+    UNMATCHED_BEHAVIOUR_OPTION,
+)
+from dbx.options import PROFILE_OPTION
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
 from dbx.sync.config import get_databricks_config
 
-
-@click.group(short_help=":arrows_counterclockwise: Sync local files to Databricks and watch for changes")
-def sync():
-    """
+sync_app = typer.Typer(
+    short_help=":arrows_counterclockwise: Sync local files to Databricks and watch for changes",
+    help="""
     Sync local files to Databricks and watch for changes, with support for syncing to either a path
     in `DBFS <https://docs.databricks.com/data/databricks-file-system.html>`_ or a
     `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ via the :code:`dbfs` and :code:`repo`
@@ -73,192 +94,38 @@ def sync():
     syncing, which are well documented below.  For convenience, all patterns listed in a :code:`.gitignore` at the
     source will be excluded from syncing. The :code:`.git` directory is excluded as well.
 
-    """
-    pass  # pragma: no cover
+    """,
+)
 
 
-def common_options(f):
-    f = click.option(
-        "--profile",
-        type=str,
-        help="""The Databricks CLI
-                `connection profile <https://docs.databricks.com/dev-tools/cli/index.html#connection-profiles>`_
-                containing the host and API token to use to connect to Databricks.""",
-    )(f)
-    f = click.option(
-        "--source",
-        "-s",
-        type=click.Path(exists=True, dir_okay=True, file_okay=False),
-        required=False,
-        help="""The local source path to sync from.  If the current working directory is a git repo,
-        then the tool by default uses that path as the source.  Otherwise the source path will need
-        to be specified.""",
-    )(f)
-    f = click.option(
-        "--full-sync",
-        is_flag=True,
-        help="""Ignores any existing sync state and syncs all files and directories matching the filters to the
-        destination.""",
-    )(f)
-    f = click.option("--dry-run", is_flag=True, help="Log what the tool would do without making any changes.")(f)
-    f = click.option(
-        "--include",
-        "-i",
-        "include_dirs",
-        multiple=True,
-        type=str,
-        required=False,
-        help="""A directory to sync, relative to the source directory.  This directory must exist.
-        When this option is used, no files or directories will be synced unless specifically included
-        by this or other include options.
-
-        For example:
-
-        * :code:`-i foo` will sync a directory `foo` directly under the source directory
-        * :code:`-i foo/bar` will sync a directory `foo/bar` directly under the source directory
-        """,
-    )(f)
-    f = click.option(
-        "--force-include",
-        "-fi",
-        "force_include_dirs",
-        multiple=True,
-        type=str,
-        required=False,
-        help="""A directory to sync, relative to the source directory.  This directory must exist.
-        When this option is used, no files or directories will be synced unless specifically included
-        by this or other include options.
-
-        Unlike `--include`, this will sync a directory regardless of files/directories that are excluded from
-        syncing.  This can be useful when, for example, the `.gitignore` lists a directory that you want to have
-        synced.  The patterns in the `.gitignore` are used by default to exclude files/directories from syncing.
-
-        For example:
-
-        * :code:`-i foo` will sync a directory `foo` directly under the source directory
-        * :code:`-i foo/bar` will sync a directory `foo/bar` directly under the source directory
-        """,
-    )(f)
-    f = click.option(
-        "--exclude",
-        "-e",
-        "exclude_dirs",
-        type=str,
-        multiple=True,
-        help="""A directory to exclude from syncing, relative to the source directory.  This directory must exist.
-
-        For example:
-
-        * :code:`-e foo` will exclude directory `foo` directly under the source directory from syncing
-        * :code:`-e foo/bar` will exclude directory `foo/bar` directly under the source directory from syncing
-        """,
-    )(f)
-    f = click.option(
-        "--include-pattern",
-        "-ip",
-        "include_patterns",
-        multiple=True,
-        type=str,
-        required=False,
-        help="""A pattern specifying files and/or directories to sync, relative to the source directory.
-        This uses the same format as `gitignore <https://git-scm.com/docs/gitignore>`_.
-        When this option is used, no files or directories will be synced unless specifically included
-        by this or other include options.
-
-        For example:
-
-        * :code:`foo` will match any file or directory named `foo` anywhere under the source
-        * :code:`/foo/` will only match a directory named `foo` directly under the source.
-        * :code:`*.py` will match all Python files.
-        * :code:`/foo/*.py` will match all Python files directly under the `foo` directory.
-        * :code:`/foo/**/*.py` will match all Python files anywhere under the `foo` directory.
-
-        You may also store a list of patterns inside a :code:`.syncinclude` file under the source path.
-        Patterns in this file will be used as the default patterns to include.  This essentially behaves
-        as the opposite of a `gitignore <https://git-scm.com/docs/gitignore>`_ file, but with the same format.
-        """,
-    )(f)
-    f = click.option(
-        "--force-include-pattern",
-        "-fip",
-        "force_include_patterns",
-        multiple=True,
-        type=str,
-        required=False,
-        help="""A pattern specifying files and/or directories to sync, relative to the source directory, regardless
-        of whether these files and/or directories would otherwise be excluded.
-
-        See documentation of `--include-pattern` for usage.
-        """,
-    )(f)
-    f = click.option(
-        "--allow-delete-unmatched/--disallow-delete-unmatched",
-        "delete_unmatched_option",
-        callback=validate_allow_unmatched,
-        type=bool,
-        default=None,
-        help="""Specifies how to handle files/directories that would be deleted in the remote destination because
-        they don't match the current set of filters.
-
-        For example, suppose you have used the option :code:`-i foo` to sync only the `foo` directory and later
-        quit the tool.  Then suppose you restart the tool using :code:`-i bar` to sync only the `bar` directory.
-        In this situation, it is unclear whether your intention is to 1) sync over `bar` and remove `foo` in the
-        destination, or 2) sync over `bar` and leave `foo` alone in the destination.  Due to this ambiguity, the tool
-        will ask to confirm your intentions.
-
-        To avoid having to confirm, you can use either of these options:
-
-        * :code:`--allow-delete-unmatched` will delete files/directories in the destination that are not present
-          locally with the current filters.  So for the example above, this would remove `foo` in the destination when
-          syncing with :code:`-i bar`.
-        * :code:`--disallow-delete-unmatched` will NOT delete files/directories in the destination that are not present
-          locally with the current filters.  So for the example above, this would leave `foo` in the destination when
-          syncing with :code:`-i bar`.
-        """,
-    )(f)
-    f = click.option(
-        "--exclude-pattern",
-        "-ep",
-        "exclude_patterns",
-        type=str,
-        multiple=True,
-        help="""A pattern specifying files and/or directories to exclude from syncing, relative to the source directory.
-        This uses the same format as `gitignore <https://git-scm.com/docs/gitignore>`_.
-        For examples, see the documentation of :code:`--include-pattern`.""",
-    )(f)
-    f = click.option(
-        "--watch/--no-watch",
-        is_flag=True,
-        default=True,
-        help="""Controls whether the tool should watch for file changes after the initial sync.
-                     With :code:`--watch`, which is the default, it will watch for file system changes
-                     and rerun the sync whenever any changes occur to files or directories matching the filters.
-                     With :code:`--no-watch` the tool will quit after the initial sync.""",
-    )(f)
-    f = click.option(
-        "--polling-interval",
-        "polling_interval_secs",
-        type=float,
-        help="Use file system polling instead of file system events and set the polling interval (in seconds)",
-    )(f)
-    f = click.option(
-        "--use-gitignore/--no-use-gitignore",
-        is_flag=True,
-        default=True,
-        help="""Controls whether the .gitignore is used to automatically exclude file/directories from syncing.""",
-    )(f)
-    return f
-
-
-@sync.command()
-@common_options
-@click.option(
-    "--dest",
-    "-d",
-    "dest_path",
-    type=str,
-    required=False,
-    help="""A path in DBFS to sync to.  For example, :code:`-d /tmp/project` would sync from the
+@sync_app.command(
+    short_help="""
+    :file_folder: Syncs from a source directory to DBFS
+    """,
+    help="""
+    :file_folder:  Syncs from a source directory to DBFS
+    """,
+)
+def dbfs(
+    user_name: Optional[str] = typer.Option(
+        None,
+        "--user",
+        "-u",
+        help="""Specify the user name to use when constructing the default destination path.
+    This has no effect when :code:`--dest` is already specified.  If this is an email address then the domain is
+    ignored. For example :code:`-u first.last` and :code:`-u first.last@somewhere.com` will both result
+    in :code:`first.last` as the user name.""",
+    ),
+    source: Optional[str] = SOURCE_OPTION,
+    full_sync: bool = FULL_SYNC_OPTION,
+    dry_run: bool = DRY_RUN_OPTION,
+    include_dirs: Optional[List[str]] = INCLUDE_DIRS_OPTION,
+    force_include_dirs: Optional[List[str]] = FORCE_INCLUDE_DIRS_OPTION,
+    dest_path: Optional[str] = typer.Option(
+        None,
+        "--dest",
+        "-d",
+        help="""A path in DBFS to sync to.  For example, :code:`-d /tmp/project` would sync from the
     local source path to the DBFS path :code:`/tmp/project`.
 
     Specifying this path is optional.  By default the tool will sync to the destination
@@ -270,38 +137,17 @@ def common_options(f):
     `Databricks API <https://docs.databricks.com/dev-tools/api/latest/scim/scim-me.html>`_.  If it cannot be determined,
     or to use a different user for the path, you may use the :code:`--user` option.
     """,
-)
-@click.option(
-    "--user",
-    "-u",
-    "user_name",
-    type=str,
-    help="""Specify the user name to use when constructing the default destination path.
-    This has no effect when :code:`--dest` is already specified.  If this is an email address then the domain is
-    ignored. For example :code:`-u first.last` and :code:`-u first.last@somewhere.com` will both result
-    in :code:`first.last` as the user name.""",
-)
-def dbfs(
-    user_name: str,
-    source: str,
-    full_sync: bool,
-    dry_run: bool,
-    include_dirs: List[str],
-    force_include_dirs: List[str],
-    dest_path: str,
-    exclude_dirs: List[str],
-    profile: str,
-    watch: bool,
-    polling_interval_secs: float,
-    include_patterns: List[str],
-    force_include_patterns: List[str],
-    exclude_patterns: List[str],
-    use_gitignore: bool,
-    delete_unmatched_option: DeleteUnmatchedOption,
+    ),
+    exclude_dirs: Optional[List[str]] = EXCLUDE_DIRS_OPTION,
+    profile: str = PROFILE_OPTION,
+    watch: bool = WATCH_OPTION,
+    polling_interval_secs: Optional[float] = POLLING_INTERVAL_OPTION,
+    include_patterns: Optional[List[str]] = INCLUDE_PATTERNS_OPTION,
+    force_include_patterns: Optional[List[str]] = FORCE_INCLUDE_PATTERNS_OPTION,
+    exclude_patterns: Optional[List[str]] = EXCLUDE_PATTERNS_OPTION,
+    use_gitignore: bool = USE_GITIGNORE_OPTION,
+    delete_unmatched_option: DeleteUnmatchedOption = UNMATCHED_BEHAVIOUR_OPTION,
 ):
-    """
-    Syncs from a source directory to `DBFS <https://docs.databricks.com/data/databricks-file-system.html>`_.
-    """
 
     # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
     # we'll set watch to false here.
@@ -360,24 +206,20 @@ def dbfs(
     )
 
 
-@sync.command()
-@common_options
-@click.option(
-    "--dest-repo",
-    "-d",
-    type=str,
-    help="""The name of the `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ to sync to.
-
-    Repos exist in the Databricks workspace under a path  of the form :code:`/Repos/<user>/<repo>`.  This specifies the
-    :code:`<repo>` portion of the path.""",
-    required=True,
+@sync_app.command(
+    short_help="""
+    :twisted_rightwards_arrows: Syncs from a source directory to a Databricks Repo
+    """,
+    help="""
+    :twisted_rightwards_arrows: Syncs from a source directory to a Databricks Repo
+    """,
 )
-@click.option(
-    "--user",
-    "-u",
-    "user_name",
-    type=str,
-    help="""The user who owns the `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ to sync to.
+def repo(
+    user_name: Optional[str] = typer.Option(
+        None,
+        "--user",
+        "-u",
+        help="""The user who owns the `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ to sync to.
 
     Repos exist in the Databricks workspace under a path  of the form :code:`/Repos/<user>/<repo>`.  This specifies the
     :code:`<user>` portion of the path.
@@ -386,28 +228,31 @@ def dbfs(
     `Databricks API <https://docs.databricks.com/dev-tools/api/latest/scim/scim-me.html>`_.  If it cannot be determined,
     or to use a different user for the path, the user name may be specified using this option.
     """,
-)
-def repo(
-    user_name: str,
-    source: str,
-    full_sync: bool,
-    dry_run: bool,
-    include_dirs: List[str],
-    force_include_dirs: List[str],
-    dest_repo: str,
-    exclude_dirs: List[str],
-    profile: str,
-    watch: bool,
-    polling_interval_secs: float,
-    include_patterns: List[str],
-    force_include_patterns: List[str],
-    exclude_patterns: List[str],
-    use_gitignore: bool,
-    delete_unmatched_option: DeleteUnmatchedOption,
+    ),
+    source: Optional[str] = SOURCE_OPTION,
+    full_sync: bool = FULL_SYNC_OPTION,
+    dry_run: bool = DRY_RUN_OPTION,
+    include_dirs: Optional[List[str]] = INCLUDE_DIRS_OPTION,
+    force_include_dirs: Optional[List[str]] = FORCE_INCLUDE_DIRS_OPTION,
+    dest_repo: str = typer.Option(
+        ...,
+        "--dest-repo",
+        "-d",
+        help="""The name of the `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ to sync to.
+
+    Repos exist in the Databricks workspace under a path  of the form :code:`/Repos/<user>/<repo>`.  This specifies the
+    :code:`<repo>` portion of the path.""",
+    ),
+    exclude_dirs: Optional[List[str]] = EXCLUDE_DIRS_OPTION,
+    profile: str = PROFILE_OPTION,
+    watch: bool = WATCH_OPTION,
+    polling_interval_secs: Optional[float] = POLLING_INTERVAL_OPTION,
+    include_patterns: Optional[List[str]] = INCLUDE_PATTERNS_OPTION,
+    force_include_patterns: Optional[List[str]] = FORCE_INCLUDE_PATTERNS_OPTION,
+    exclude_patterns: Optional[List[str]] = EXCLUDE_PATTERNS_OPTION,
+    use_gitignore: bool = USE_GITIGNORE_OPTION,
+    delete_unmatched_option: DeleteUnmatchedOption = UNMATCHED_BEHAVIOUR_OPTION,
 ):
-    """
-    Syncs from source directory to a `Databricks Repo <https://docs.databricks.com/repos/index.html>`_.
-    """
 
     # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
     # we'll set watch to false here.
