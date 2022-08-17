@@ -40,14 +40,46 @@ from dbx.utils.job_listing import find_job_by_name
 def deploy(
     workflow_name: str = WORKFLOW_ARGUMENT,
     deployment_file: Path = DEPLOYMENT_FILE_OPTION,
-    job: Optional[str] = typer.Option(None, "--job", help="[red]This option is deprecated[/red]", show_default=False),
-    jobs: Optional[str] = typer.Option(None, "--jobs", help="[red]This option is deprecated[/red]", show_default=False),
+    job: Optional[str] = typer.Option(
+        None,
+        "--job",
+        help="[red]This option is deprecated, please use workflow name as argument[/red]",
+        show_default=False,
+    ),
+    jobs: Optional[str] = typer.Option(
+        None, "--jobs", help="[red]This option is deprecated, please use --workflows instead.[/red]", show_default=False
+    ),
+    workflows: Optional[str] = typer.Option(
+        None, "--workflows", help="Comma-separated list of workflow names to be deployed", show_default=False
+    ),
     requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
     tags: Optional[List[str]] = TAGS_OPTION,
     environment: str = ENVIRONMENT_OPTION,
     no_rebuild: bool = NO_REBUILD_OPTION,
     no_package: bool = NO_PACKAGE_OPTION,
-    files_only: bool = typer.Option(False, "--files-only", is_flag=True, help="[red]This option is deprecated[/red]"),
+    files_only: bool = typer.Option(
+        False,
+        "--files-only",
+        is_flag=True,
+        help="[red]This option is deprecated, please use --assets-only instead[/red]",
+    ),
+    assets_only: bool = typer.Option(
+        False,
+        "--assets-only",
+        is_flag=True,
+        help="""
+        When provided, will [bold]only[/bold] upload assets (referenced files, core package and workflow definition)
+        to the artifact storage.
+
+        [yellow]:rotating_light:A workflow(s) won't be created or updated in the Jobs UI[/yellow].
+
+        This option is intended for CI cases and for cases when users don't want to affect the job
+        instance in the workspace.
+
+        [bold]Workflows deployed with this option are intended to be used
+        with dbx launch --from-assets option.[/bold]
+    """,
+    ),
     write_specs_to_file: Optional[Path] = typer.Option(
         None,
         help="""Writes final job definitions into a given local file.
@@ -84,11 +116,16 @@ def deploy(
     if workflow_name:
         requested_jobs = [workflow_name]
     else:
+        if workflows:
+            jobs = workflows
+
         requested_jobs = _define_deployable_jobs(job, jobs)
 
     _preprocess_deployment(deployment, requested_jobs)
 
     dependency_manager = DependencyManager(no_package, no_rebuild, requirements_file)
+
+    _assets_only = assets_only if assets_only else files_only
 
     with mlflow.start_run() as deployment_run:
 
@@ -97,7 +134,7 @@ def deploy(
 
         adjust_job_definitions(deployment.payload.workflows, dependency_manager, _file_uploader, api_client)
 
-        if not files_only:
+        if not _assets_only:
             dbx_echo("Updating job definitions")
             deployment_data = _create_jobs(deployment.payload.workflows, api_client)
             _log_dbx_file(deployment_data, "deployments.json")
@@ -126,7 +163,7 @@ def deploy(
         if branch_name:
             deployment_tags["dbx_branch_name"] = branch_name
 
-        if files_only:
+        if _assets_only:
             deployment_tags["dbx_deploy_type"] = "files_only"
 
         _log_dbx_file(deployment_spec, "deployment-result.json")

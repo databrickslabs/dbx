@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 - 🎨Switch all the CLI interfaces to `typer`
 - ✨Add `workflow-name` argument to `dbx deploy`, `dbx launch` and `dbx execute`
+- ✨Add `--workflows` argument to `dbx deploy`
+- ✨Add `--assets-only` and `--from-assets` as a clearer replacement for old arguments
 
 ## Changed
 - ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
@@ -20,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🏷️Deprecate `job` and `jobs` argument and rename it to `workflow`
 - ✨Refactored all cluster-relevant methods into a separate `ClusterController`
 - ✨Refactored model-related components for `.dbx/project.json` file
+- 🚩Deprecate `--files-only` and `--as-run-submit` options
 
 ## Fixed
 - 🐛`dbx sync` now takes into account `HTTP(S)_PROXY` env variables
