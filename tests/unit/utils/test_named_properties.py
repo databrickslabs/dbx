@@ -1,4 +1,3 @@
-from typing import Dict, Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -6,6 +5,7 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.instance_pools.api import InstancePoolService
 
 from dbx.api.config_reader import ConfigReader
+from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
@@ -26,8 +26,8 @@ mtj_json_dep_conf = ConfigReader(mtj_json_conf).get_environment("default")
 mtj_yaml_dep_conf = ConfigReader(mtj_yaml_conf).get_environment("default")
 
 
-def get_job_by_name(src: Dict[str, Any], name: str):
-    matched = [j for j in src["jobs"] if j["name"] == name]
+def get_job_by_name(src: EnvironmentDeploymentInfo, name: str):
+    matched = [j for j in src.payload.workflows if j["name"] == name]
     return matched[0]
 
 
@@ -158,7 +158,7 @@ def test_mtj_named_positive():
     dm._core_package_reference = sample_reference
 
     for deployment_conf in [mtj_json_dep_conf, mtj_yaml_dep_conf]:
-        jobs = deployment_conf["jobs"]
+        jobs = deployment_conf.payload.workflows
 
         adjust_job_definitions(jobs=jobs, dependency_manager=dm, file_uploader=file_uploader, api_client=api_client)
 

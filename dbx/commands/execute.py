@@ -8,6 +8,7 @@ from databricks_cli.clusters.api import ClusterService
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
+from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.task import Task
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
@@ -62,9 +63,9 @@ def execute(
 
     deployment = config_reader.get_environment(environment)
 
-    _verify_deployment(deployment, environment, deployment_file)
+    _verify_deployment(deployment, deployment_file)
 
-    found_jobs = [j for j in deployment["jobs"] if j["name"] == job]
+    found_jobs = [j for j in deployment.payload.workflows if j["name"] == job]
 
     if not found_jobs:
         raise RuntimeError(f"Job {job} was not found in environment jobs, please check the deployment file")
@@ -111,15 +112,15 @@ def execute(
     controller_instance.run()
 
 
-def _verify_deployment(deployment, environment, deployment_file):
+def _verify_deployment(deployment: EnvironmentDeploymentInfo, deployment_file):
     if not deployment:
         raise NameError(
-            f"Environment {environment} is not provided in deployment file {deployment_file}"
+            f"Environment {deployment.name} is not provided in deployment file {deployment_file}"
             + " please add this environment first"
         )
-    env_jobs = deployment.get("jobs")
+    env_jobs = deployment.payload.workflows
     if not env_jobs:
-        raise RuntimeError(f"No jobs section found in environment {environment}, please check the deployment file")
+        raise RuntimeError(f"No jobs section found in environment {deployment.name}, please check the deployment file")
 
 
 def awake_cluster(cluster_service: ClusterService, cluster_id):

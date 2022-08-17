@@ -60,8 +60,8 @@ def test_jinja_files_with_env_variables_scalar_type():
     json_default_envs = ConfigReader(json_j2_file_04).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_04).get_environment("default")
 
-    json_timeout_seconds = json_default_envs.get("jobs")[0].get("timeout_seconds")
-    yaml_timeout_seconds = yaml_default_envs.get("jobs")[0].get("timeout_seconds")
+    json_timeout_seconds = json_default_envs.payload.workflows[0].get("timeout_seconds")
+    yaml_timeout_seconds = yaml_default_envs.payload.workflows[0].get("timeout_seconds")
 
     assert int(json_timeout_seconds) == 100
     assert int(yaml_timeout_seconds) == 100
@@ -75,8 +75,8 @@ def test_jinja_files_with_env_variables_array_type():
     json_default_envs = ConfigReader(json_j2_file_04).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_04).get_environment("default")
 
-    json_emails = json_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
-    yaml_emails = yaml_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
+    json_emails = json_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
+    yaml_emails = yaml_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
 
     assert json_emails == yaml_emails
     assert json_emails[0] == "test@test.com"
@@ -94,10 +94,10 @@ def test_jinja_file_with_env_variables_default_values():
     json_default_envs = ConfigReader(json_j2_file_04).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_04).get_environment("default")
 
-    json_max_retries = json_default_envs.get("jobs")[0].get("max_retries")
-    yaml_max_retries = yaml_default_envs.get("jobs")[0].get("max_retries")
-    json_avail = json_default_envs.get("jobs")[0].get("new_cluster").get("aws_attributes").get("availability")
-    yaml_avail = yaml_default_envs.get("jobs")[0].get("new_cluster").get("aws_attributes").get("availability")
+    json_max_retries = json_default_envs.payload.workflows[0].get("max_retries")
+    yaml_max_retries = yaml_default_envs.payload.workflows[0].get("max_retries")
+    json_avail = json_default_envs.payload.workflows[0].get("new_cluster").get("aws_attributes").get("availability")
+    yaml_avail = yaml_default_envs.payload.workflows[0].get("new_cluster").get("aws_attributes").get("availability")
 
     assert int(json_max_retries) == int(yaml_max_retries)
     assert int(json_max_retries) == 3
@@ -121,10 +121,10 @@ def test_jinja_files_with_env_variables_logic_1():
     json_default_envs = ConfigReader(json_j2_file_06).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_06).get_environment("default")
 
-    json_max_retries = json_default_envs.get("jobs")[0].get("max_retries")
-    yaml_max_retries = yaml_default_envs.get("jobs")[0].get("max_retries")
-    json_emails = json_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
-    yaml_emails = yaml_default_envs.get("jobs")[0].get("email_notifications").get("on_failure")
+    json_max_retries = json_default_envs.payload.workflows[0].get("max_retries")
+    yaml_max_retries = yaml_default_envs.payload.workflows[0].get("max_retries")
+    json_emails = json_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
+    yaml_emails = yaml_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
 
     assert int(json_max_retries) == -1
     assert int(yaml_max_retries) == -1
@@ -146,10 +146,10 @@ def test_jinja_files_with_env_variables_logic_2():
     json_default_envs = ConfigReader(json_j2_file_06).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_06).get_environment("default")
 
-    json_max_retries = json_default_envs.get("jobs")[0].get("max_retries")
-    yaml_max_retries = yaml_default_envs.get("jobs")[0].get("max_retries")
-    json_emails = json_default_envs.get("jobs")[0].get("email_notifications")
-    yaml_emails = yaml_default_envs.get("jobs")[0].get("email_notifications")
+    json_max_retries = json_default_envs.payload.workflows[0].get("max_retries")
+    yaml_max_retries = yaml_default_envs.payload.workflows[0].get("max_retries")
+    json_emails = json_default_envs.payload.workflows[0].get("email_notifications")
+    yaml_emails = yaml_default_envs.payload.workflows[0].get("email_notifications")
 
     assert int(json_max_retries) == 3
     assert int(yaml_max_retries) == 3
@@ -164,7 +164,7 @@ def test_jinja_with_include():
     cluster.
     """
     json_default_envs = ConfigReader(json_j2_file_09).get_environment("default")
-    json_node_type = json_default_envs.get("jobs")[0].get("new_cluster").get("node_type_id")
+    json_node_type = json_default_envs.payload.workflows[0].get("new_cluster").get("node_type_id")
 
     assert json_node_type == "some-node-type"
 

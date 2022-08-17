@@ -12,6 +12,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from requests.exceptions import HTTPError
 
 from dbx.api.config_reader import ConfigReader
+from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -89,14 +90,14 @@ def deploy(
         artifact_base_uri = deployment_run.info.artifact_uri
         _file_uploader = MlflowFileUploader(artifact_base_uri)
 
-        adjust_job_definitions(deployment["jobs"], dependency_manager, _file_uploader, api_client)
+        adjust_job_definitions(deployment.payload.workflows, dependency_manager, _file_uploader, api_client)
 
         if not files_only:
             dbx_echo("Updating job definitions")
-            deployment_data = _create_jobs(deployment["jobs"], api_client)
+            deployment_data = _create_jobs(deployment.payload.workflows, api_client)
             _log_dbx_file(deployment_data, "deployments.json")
 
-            for job_spec in deployment.get("jobs"):
+            for job_spec in deployment.payload.workflows:
                 permissions = job_spec.get("permissions")
                 if permissions:
                     job_name = job_spec.get("name")
@@ -113,7 +114,7 @@ def deploy(
             "dbx_status": "SUCCESS",
         }
 
-        deployment_spec = {environment: deployment}
+        deployment_spec = deployment.to_spec()
 
         deployment_tags.update(additional_tags)
 
@@ -161,11 +162,11 @@ def _define_deployable_jobs(job: str, jobs: str) -> Optional[List[str]]:
     return requested_jobs
 
 
-def _preprocess_deployment(deployment: Dict[str, Any], requested_jobs: Union[List[str], None]):
-    if "jobs" not in deployment:
+def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_jobs: Union[List[str], None]):
+    if not deployment.payload.workflows:
         raise Exception("No jobs provided for deployment")
 
-    deployment["jobs"] = _preprocess_jobs(deployment["jobs"], requested_jobs)
+    deployment.payload.workflows = _preprocess_jobs(deployment.payload.workflows, requested_jobs)
 
 
 def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:

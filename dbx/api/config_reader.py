@@ -7,6 +7,7 @@ from typing import List, Optional, Dict, Any
 import jinja2
 import yaml
 
+from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo
 from dbx.utils import dbx_echo
 from dbx.utils.json import JsonUtils
 
@@ -16,23 +17,25 @@ class _AbstractConfigReader(ABC):
         self._path = path
         self.config = self._get_config()
 
-    def _get_config(self) -> Dict[str, Any]:
+    def _get_config(self) -> DeploymentConfig:
         return self._read_file()
 
     @abstractmethod
-    def _read_file(self) -> Dict[str, Any]:
+    def _read_file(self) -> DeploymentConfig:
         """"""
 
 
 class _YamlConfigReader(_AbstractConfigReader):
-    def _read_file(self) -> Dict[str, Any]:
+    def _read_file(self) -> DeploymentConfig:
         content = yaml.load(self._path.read_text(encoding="utf-8"), yaml.SafeLoader)
-        return content.get("environments")
+        _envs = content.get("environments")
+        return DeploymentConfig.from_payload(_envs)
 
 
 class _JsonConfigReader(_AbstractConfigReader):
-    def _read_file(self) -> Dict[str, Any]:
-        return JsonUtils.read(self._path)
+    def _read_file(self) -> DeploymentConfig:
+        _content = JsonUtils.read(self._path)
+        return DeploymentConfig.from_payload(_content)
 
 
 class _Jinja2ConfigReader(_AbstractConfigReader):
@@ -45,7 +48,7 @@ class _Jinja2ConfigReader(_AbstractConfigReader):
     def _read_vars_file(file_path: Path) -> Dict[str, Any]:
         return yaml.load(file_path.read_text(encoding="utf-8"), yaml.SafeLoader)
 
-    def _read_file(self) -> Dict[str, Any]:
+    def _read_file(self) -> DeploymentConfig:
         abs_parent_path = self._path.parent.absolute()
         file_name = self._path.name
         dbx_echo("Reading file as a Jinja2 template")
@@ -53,10 +56,15 @@ class _Jinja2ConfigReader(_AbstractConfigReader):
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(abs_parent_path))
         _var = {} if not self._jinja_vars_file else self._read_vars_file(self._jinja_vars_file)
         rendered = env.get_template(file_name).render(env=os.environ, var=_var)
+
         if self._ext == ".json":
-            return json.loads(rendered)
+            _content = json.loads(rendered)
         elif self._ext in [".yml", ".yaml"]:
-            return yaml.load(rendered, yaml.SafeLoader).get("environments")
+            _content = yaml.load(rendered, yaml.SafeLoader).get("environments")
+        else:
+            raise Exception(f"Unexpected extension for Jinja reader: {self._ext}")
+
+        return DeploymentConfig.from_payload(_content)
 
 
 class ConfigReader:
@@ -92,8 +100,8 @@ class ConfigReader:
             f"Please check the documentation for supported extensions."
         )
 
-    def get_environment(self, environment: str) -> Optional[Dict[str, Any]]:
-        return self._reader.config.get(environment)
+    def get_environment(self, environment: str) -> Optional[EnvironmentDeploymentInfo]:
+        return self._reader.config.get_environment(environment)
 
     def get_all_environment_names(self) -> List[str]:
-        return list(self._reader.config.keys())
+        return [e.name for e in self._reader.config.environments]

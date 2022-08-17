@@ -111,7 +111,8 @@ def test_non_existent_env(mock_api_v2_client):
 
 def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
     result_file = ".dbx/deployment-result.json"
-    _chosen = [j["name"] for j in ConfigReader(Path("conf/deployment.yml")).get_environment("default")["jobs"]][:2]
+    deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
+    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
     deploy_result = invoke_cli_runner(
         ["deploy", "--environment", "default", "--jobs", ",".join(_chosen), "--write-specs-to-file", result_file],
     )
@@ -122,7 +123,8 @@ def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, moc
 
 def test_negative_both_arguments(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
     result_file = ".dbx/deployment-result.json"
-    _chosen = [j["name"] for j in ConfigReader(Path("conf/deployment.yml")).get_environment("default")["jobs"]][:2]
+    deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
+    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
     deploy_result = invoke_cli_runner(
         [
             "deploy",
