@@ -261,4 +261,10 @@ def _update_job(jobs_service: JobsService, job_id: str, job: Dict[str, Any]) -> 
         dbx_echo("Failed to update job with definition:")
         dbx_echo(json.dumps(job, indent=4))
         raise e
+
+    _acl = job.get("access_control_list")
+    if _acl:
+        _client = jobs_service.client
+        _client.perform_query("PUT", f"/permissions/jobs/{job_id}", data={"access_control_list": _acl})
+
     return job_id

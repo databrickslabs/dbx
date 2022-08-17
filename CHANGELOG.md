@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 - 🐛`dbx sync` now takes into account `HTTP(S)_PROXY` env variables
 - 🐛empty task parameters are now supported
+- 🐛ACLs are now properly updated for Jobs API 2.1
 
 ----
 > Unreleased changes must be tracked above this line.

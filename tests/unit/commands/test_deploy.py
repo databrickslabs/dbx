@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 import mlflow
 import pytest
@@ -267,3 +267,16 @@ def test_jinja_custom_path(mlflow_file_uploader, mock_dbx_file_upload, mock_api_
     shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
     deploy_result = invoke_cli_runner(["deploy", "--deployment-file", "../configs/09-jinja-include.json.j2"])
     assert deploy_result.exit_code == 0
+
+
+def test_update_job_v21_with_permissions():
+    _client = MagicMock(spec=ApiClient)
+    _jobs_service = JobsService(_client)
+    acl_definition = {"access_control_list": [{"user_name": "test@user.com", "permission_level": "IS_OWNER"}]}
+    job_definition = {
+        "name": "test",
+    }
+    job_definition.update(acl_definition)  # noqa
+
+    _update_job(_jobs_service, "1", job_definition)
+    _client.perform_query.assert_called_with("PUT", "/permissions/jobs/1", data=acl_definition)
