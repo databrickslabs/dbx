@@ -63,3 +63,10 @@ BRANCH_NAME_OPTION = typer.Option(
     help="""The name of the current branch.
               If not provided or empty, dbx will try to detect the branch name.""",
 )
+
+WORKFLOW_ARGUMENT = typer.Argument(
+    None,
+    help="""Workflow name from the deployment file.
+
+                If this argument is provided, --job and --jobs arguments will be [red bold]ignored[/red bold]""",
+)

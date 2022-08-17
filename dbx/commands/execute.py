@@ -1,13 +1,13 @@
-import time
 from pathlib import Path
 from typing import Optional
 
 import typer
-from databricks_cli.clusters.api import ClusterService
 
+from dbx.api.cluster import ClusterController
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
+from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.task import Task
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
@@ -17,20 +17,18 @@ from dbx.options import (
     NO_PACKAGE_OPTION,
     JINJA_VARIABLES_FILE_OPTION,
     DEBUG_OPTION,
+    WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.common import (
-    prepare_environment,
-    handle_package,
-    _preprocess_cluster_args,
-)
+from dbx.utils.common import prepare_environment, handle_package
 
 
 def execute(
+    workflow_name: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
     cluster_id: Optional[str] = typer.Option(None, "--cluster-id", help="Cluster ID."),
     cluster_name: Optional[str] = typer.Option(None, "--cluster-name", help="Cluster name."),
-    job: str = typer.Option(..., "--job", help="[red]This option is deprecated[/red]"),
+    job: str = typer.Option(None, "--job", help="[red]This option is deprecated[/red]"),
     task: Optional[str] = typer.Option(
         None,
         "--task",
@@ -51,10 +49,15 @@ def execute(
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     api_client = prepare_environment(environment)
+    controller = ClusterController(api_client)
+    cluster_id = controller.preprocess_cluster_args(cluster_name, cluster_id)
 
-    cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
+    _job = workflow_name if workflow_name else job
 
-    dbx_echo(f"Executing job: {job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
+    if not _job:
+        raise Exception("Please either provide workflow name as an argument or --job as an option")
+
+    dbx_echo(f"Executing job: {_job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
     handle_package(no_rebuild)
 
@@ -62,12 +65,12 @@ def execute(
 
     deployment = config_reader.get_environment(environment)
 
-    _verify_deployment(deployment, environment, deployment_file)
+    _verify_deployment(deployment, deployment_file)
 
-    found_jobs = [j for j in deployment["jobs"] if j["name"] == job]
+    found_jobs = [j for j in deployment.payload.workflows if j["name"] == _job]
 
     if not found_jobs:
-        raise RuntimeError(f"Job {job} was not found in environment jobs, please check the deployment file")
+        raise RuntimeError(f"Job {_job} was not found in environment jobs, please check the deployment file")
 
     job_payload = found_jobs[0]
 
@@ -76,10 +79,10 @@ def execute(
         found_tasks = [t for t in _tasks if t.get("task_key") == task]
 
         if not found_tasks:
-            raise Exception(f"Task {task} not found in the definition of job {job}")
+            raise Exception(f"Task {task} not found in the definition of job {_job}")
 
         if len(found_tasks) > 1:
-            raise Exception(f"Task keys are not unique, more then one task found for job {job} with task name {task}")
+            raise Exception(f"Task keys are not unique, more then one task found for job {_job} with task name {task}")
 
         _task = found_tasks[0]
 
@@ -93,11 +96,8 @@ def execute(
         _payload = job_payload
 
     task = Task(**_payload)
-
-    cluster_service = ClusterService(api_client)
-
     dbx_echo("Preparing interactive cluster to accept jobs")
-    awake_cluster(cluster_service, cluster_id)
+    controller.awake_cluster(cluster_id)
 
     context_client = RichExecutionContextClient(api_client, cluster_id)
 
@@ -111,29 +111,12 @@ def execute(
     controller_instance.run()
 
 
-def _verify_deployment(deployment, environment, deployment_file):
+def _verify_deployment(deployment: EnvironmentDeploymentInfo, deployment_file):
     if not deployment:
         raise NameError(
-            f"Environment {environment} is not provided in deployment file {deployment_file}"
+            f"Environment {deployment.name} is not provided in deployment file {deployment_file}"
             + " please add this environment first"
         )
-    env_jobs = deployment.get("jobs")
+    env_jobs = deployment.payload.workflows
     if not env_jobs:
-        raise RuntimeError(f"No jobs section found in environment {environment}, please check the deployment file")
-
-
-def awake_cluster(cluster_service: ClusterService, cluster_id):
-    cluster_info = cluster_service.get_cluster(cluster_id)
-    if cluster_info["state"] in ["RUNNING", "RESIZING"]:
-        dbx_echo("Cluster is ready")
-    if cluster_info["state"] in ["TERMINATED", "TERMINATING"]:
-        dbx_echo("Dev cluster is terminated, starting it")
-        cluster_service.start_cluster(cluster_id)
-        time.sleep(5)
-        awake_cluster(cluster_service, cluster_id)
-    elif cluster_info["state"] == "ERROR":
-        raise RuntimeError("Cluster is mis-configured and cannot be started, please check cluster settings at first")
-    elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
-        dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
-        time.sleep(5)
-        awake_cluster(cluster_service, cluster_id)
+        raise RuntimeError(f"No jobs section found in environment {deployment.name}, please check the deployment file")

@@ -1,4 +1,3 @@
-import json
 import shutil
 from pathlib import Path
 
@@ -29,8 +28,8 @@ def test_jinja_vars_file_api(mlflow_file_uploader, mock_dbx_file_upload, mock_ap
     shutil.copytree(jinja_vars_dir, project_config_dir)
     definitions = []
     for _dep_file in project_config_dir.glob("*.j2"):
-        env = ConfigReader(_dep_file, vars_file).get_environment("default")
-        definitions.append(json.dumps(env, indent=4))
+        definition = ConfigReader(_dep_file, vars_file).get_environment("default")
+        definitions.append(definition)
 
     # check if all definitions are same
     for _def in definitions:

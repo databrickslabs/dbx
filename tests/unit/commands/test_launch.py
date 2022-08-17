@@ -23,7 +23,8 @@ def deploy_and_get_job_name(deploy_args: Optional[List[str]] = None) -> str:
 
     deploy_result = invoke_cli_runner(["deploy"] + deploy_args)
     assert deploy_result.exit_code == 0
-    _chosen_job = ConfigReader(Path("conf/deployment.yml")).get_environment("default")["jobs"][0]["name"]
+    deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
+    _chosen_job = deployment_info.payload.workflows[0]["name"]
     return _chosen_job
 
 
@@ -78,6 +79,26 @@ def test_smoke_launch(
     launch_submit_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--as-run-submit"], expected_error=True)
 
     assert launch_submit_result.exception is not None
+
+
+def test_smoke_launch_workflow(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+
+    launch_job_result = invoke_cli_runner(["launch", _chosen_job])
+    assert launch_job_result.exit_code == 0
+
+
+def test_launch_no_arguments(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+
+    launch_job_result = invoke_cli_runner(["launch"], expected_error=True)
+    assert "Please either provide workflow name as an argument or --job" in str(launch_job_result.exception)
 
 
 def test_parametrized_tags(

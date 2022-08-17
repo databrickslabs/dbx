@@ -14,7 +14,7 @@ from mlflow.tracking import MlflowClient
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
 from dbx.models.options import ExistingRunsOption, IncludeOutputOption
-from dbx.options import ENVIRONMENT_OPTION, TAGS_OPTION, BRANCH_NAME_OPTION, DEBUG_OPTION
+from dbx.options import ENVIRONMENT_OPTION, TAGS_OPTION, BRANCH_NAME_OPTION, DEBUG_OPTION, WORKFLOW_ARGUMENT
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
@@ -30,8 +30,9 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
 
 
 def launch(
+    workflow_name: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
-    job: str = typer.Option(..., "--job", help="[red]This option is deprecated[/red]", show_default=False),
+    job: str = typer.Option(None, "--job", help="[red]This option is deprecated[/red]", show_default=False),
     trace: bool = typer.Option(False, "--trace", help="Trace the workload until it finishes.", is_flag=True),
     kill_on_sigterm: bool = typer.Option(
         False,
@@ -73,7 +74,12 @@ def launch(
     ),
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
-    dbx_echo(f"Launching job {job} on environment {environment}")
+    _job = workflow_name if workflow_name else job
+
+    if not _job:
+        raise Exception("Please either provide workflow name as an argument or --job as an option")
+
+    dbx_echo(f"Launching job {_job} on environment {environment}")
 
     api_client = prepare_environment(environment)
     additional_tags = parse_multiple(tags)
@@ -92,10 +98,10 @@ def launch(
         with mlflow.start_run(nested=True):
 
             if not as_run_submit:
-                run_launcher = RunNowLauncher(job=job, api_client=api_client, existing_runs=existing_runs)
+                run_launcher = RunNowLauncher(job=_job, api_client=api_client, existing_runs=existing_runs)
             else:
                 run_launcher = RunSubmitLauncher(
-                    job=job,
+                    job=_job,
                     api_client=api_client,
                     deployment_run_id=deployment_run_id,
                     environment=environment,
@@ -205,7 +211,7 @@ def _find_deployment_run(
             With file-based deployments (dbx_deployment_type='files_only')."""
             )
 
-        experiment_location = ConfigurationManager().get(environment).workspace_dir
+        experiment_location = ConfigurationManager().get(environment).properties.workspace_directory
         exception_string = (
             exception_string
             + f"""

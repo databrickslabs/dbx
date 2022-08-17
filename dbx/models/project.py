@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 
 from pydantic import BaseModel
+
+from dbx.utils import dbx_echo
 
 
 class StorageType(str, Enum):
@@ -22,25 +24,31 @@ class MlflowStorageProperties(BaseModel):
 
 
 class EnvironmentInfo(BaseModel):
-    storage_type: StorageType
-    properties: Union[MlflowStorageProperties]
+    profile: str
+    storage_type: Optional[StorageType] = StorageType.mlflow
+    properties: MlflowStorageProperties
 
-
-class LegacyProjectInfo(BaseModel):
-    environments: Dict[str, LegacyEnvironmentInfo]
+    @staticmethod
+    def from_legacy(env: LegacyEnvironmentInfo) -> EnvironmentInfo:
+        return EnvironmentInfo(
+            profile=env.profile,
+            storage_type=StorageType.mlflow,
+            properties=MlflowStorageProperties(
+                workspace_directory=env.workspace_dir, artifact_location=env.artifact_location
+            ),
+        )
 
 
 class ProjectInfo(BaseModel):
-    environments: Dict[str, EnvironmentInfo]
+    environments: Dict[str, Union[EnvironmentInfo, LegacyEnvironmentInfo]]
 
-    @classmethod
-    def from_legacy(cls, legacy: LegacyProjectInfo) -> ProjectInfo:
-        _container = {}
-        for name, env in legacy.environments.items():
-            _container[name] = EnvironmentInfo(
-                storage_type=StorageType.mlflow,
-                properties=MlflowStorageProperties(
-                    workspace_directory=env.workspace_dir, artifact_location=env.artifact_location
-                ),
+    def get_environment(self, name: str) -> EnvironmentInfo:
+        _env = self.environments.get(name)
+        if isinstance(_env, LegacyEnvironmentInfo):
+            dbx_echo(
+                ":warning: [red bold]legacy environment format is used in project file [/red bold]. "
+                "Please take a look at te docs and upgrade to the new format version"
             )
-        return ProjectInfo(environments=_container)
+            return EnvironmentInfo.from_legacy(_env)
+        else:
+            return _env
