@@ -18,8 +18,8 @@ from typing import Dict, Any
 
 from databricks_cli.sdk import ApiClient, InstancePoolService, PolicyService
 
+from dbx.api.cluster import ClusterController
 from dbx.utils import dbx_echo
-from dbx.utils.common import _preprocess_cluster_args
 from dbx.utils.policy_parser import PolicyParser
 
 
@@ -85,7 +85,9 @@ class WorkloadPropertiesProcessor(AbstractProcessor):
 
         if existing_cluster_name:
             dbx_echo("Named parameter existing_cluster_name is provided, looking for it's id")
-            existing_cluster_id = _preprocess_cluster_args(self._api_client, existing_cluster_name, None)
+            existing_cluster_id = ClusterController(self._api_client).preprocess_cluster_args(
+                existing_cluster_name, None
+            )
             object_reference["existing_cluster_id"] = existing_cluster_id
 
 

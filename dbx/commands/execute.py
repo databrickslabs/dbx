@@ -1,10 +1,9 @@
-import time
 from pathlib import Path
 from typing import Optional
 
 import typer
-from databricks_cli.clusters.api import ClusterService
 
+from dbx.api.cluster import ClusterController
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
@@ -21,11 +20,7 @@ from dbx.options import (
     WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.common import (
-    prepare_environment,
-    handle_package,
-    _preprocess_cluster_args,
-)
+from dbx.utils.common import prepare_environment, handle_package
 
 
 def execute(
@@ -54,8 +49,8 @@ def execute(
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     api_client = prepare_environment(environment)
-
-    cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
+    controller = ClusterController(api_client)
+    cluster_id = controller.preprocess_cluster_args(cluster_name, cluster_id)
 
     _job = workflow_name if workflow_name else job
 
@@ -101,11 +96,8 @@ def execute(
         _payload = job_payload
 
     task = Task(**_payload)
-
-    cluster_service = ClusterService(api_client)
-
     dbx_echo("Preparing interactive cluster to accept jobs")
-    awake_cluster(cluster_service, cluster_id)
+    controller.awake_cluster(cluster_id)
 
     context_client = RichExecutionContextClient(api_client, cluster_id)
 
@@ -128,20 +120,3 @@ def _verify_deployment(deployment: EnvironmentDeploymentInfo, deployment_file):
     env_jobs = deployment.payload.workflows
     if not env_jobs:
         raise RuntimeError(f"No jobs section found in environment {deployment.name}, please check the deployment file")
-
-
-def awake_cluster(cluster_service: ClusterService, cluster_id):
-    cluster_info = cluster_service.get_cluster(cluster_id)
-    if cluster_info["state"] in ["RUNNING", "RESIZING"]:
-        dbx_echo("Cluster is ready")
-    if cluster_info["state"] in ["TERMINATED", "TERMINATING"]:
-        dbx_echo("Dev cluster is terminated, starting it")
-        cluster_service.start_cluster(cluster_id)
-        time.sleep(5)
-        awake_cluster(cluster_service, cluster_id)
-    elif cluster_info["state"] == "ERROR":
-        raise RuntimeError("Cluster is mis-configured and cannot be started, please check cluster settings at first")
-    elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
-        dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
-        time.sleep(5)
-        awake_cluster(cluster_service, cluster_id)
