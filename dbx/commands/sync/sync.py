@@ -25,7 +25,8 @@ from dbx.commands.sync.options import (
     FORCE_INCLUDE_PATTERNS_OPTION,
     EXCLUDE_PATTERNS_OPTION,
     USE_GITIGNORE_OPTION,
-    UNMATCHED_BEHAVIOUR_OPTION, SYNC_ENVIRONMENT_OPTION,
+    UNMATCHED_BEHAVIOUR_OPTION,
+    SYNC_ENVIRONMENT_OPTION,
 )
 from dbx.options import PROFILE_OPTION
 from dbx.sync import DeleteUnmatchedOption
