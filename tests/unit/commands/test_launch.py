@@ -91,6 +91,16 @@ def test_smoke_launch_workflow(
     assert launch_job_result.exit_code == 0
 
 
+def test_launch_no_arguments(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+
+    launch_job_result = invoke_cli_runner(["launch"], expected_error=True)
+    assert "Please either provide workflow name as an argument or --job" in str(launch_job_result.exception)
+
+
 def test_parametrized_tags(
     mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
 ):

@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 - Switch all the CLI interfaces to `typer`
-- Add `workload-name` argument to `dbx deploy`, `dbx launch` and `dbx execute`
+- Add `workflow-name` argument to `dbx deploy`, `dbx launch` and `dbx execute`
 
 ## Changed
 - Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
