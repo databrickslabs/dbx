@@ -211,7 +211,7 @@ def _find_deployment_run(
             With file-based deployments (dbx_deployment_type='files_only')."""
             )
 
-        experiment_location = ConfigurationManager().get(environment).workspace_dir
+        experiment_location = ConfigurationManager().get(environment).properties.workspace_directory
         exception_string = (
             exception_string
             + f"""

@@ -42,28 +42,28 @@ class MlflowStorageConfigurationManager:
         cls._setup_experiment(properties)
 
     @classmethod
-    def _prepare_workspace_dir(cls, properties: EnvironmentInfo):
+    def _prepare_workspace_dir(cls, env: EnvironmentInfo):
         api_client = DatabricksClientProvider().get_v2_client()
-        p = str(PurePosixPath(properties.workspace_dir).parent)
+        p = str(PurePosixPath(env.properties.workspace_directory).parent)
         service = WorkspaceService(api_client)
         service.mkdirs(p)
 
     @classmethod
-    def _setup_experiment(cls, properties: EnvironmentInfo):
-        experiment: Optional[Experiment] = mlflow.get_experiment_by_name(properties.workspace_dir)
+    def _setup_experiment(cls, env: EnvironmentInfo):
+        experiment: Optional[Experiment] = mlflow.get_experiment_by_name(env.properties.workspace_directory)
 
         if not experiment:
-            mlflow.create_experiment(properties.workspace_dir, properties.artifact_location)
+            mlflow.create_experiment(env.properties.workspace_directory, env.properties.artifact_location)
         else:
             # verify experiment location
-            if experiment.artifact_location != properties.artifact_location:
+            if experiment.artifact_location != env.properties.artifact_location:
                 raise Exception(
-                    f"Required location of experiment {properties.workspace_dir} "
+                    f"Required location of experiment {env.properties.workspace_directory} "
                     f"doesn't match the project defined one: \n"
                     f"\t experiment artifact location: {experiment.artifact_location} \n"
-                    f"\t project artifact location   : {properties.artifact_location} \n"
+                    f"\t project artifact location   : {env.properties.artifact_location} \n"
                     f"Change of experiment location is currently not supported in Mlflow. "
                     f"Please change the experiment name (workspace_directory property) to create a new experiment."
                 )
 
-        mlflow.set_experiment(properties.workspace_dir)
+        mlflow.set_experiment(env.properties.workspace_directory)

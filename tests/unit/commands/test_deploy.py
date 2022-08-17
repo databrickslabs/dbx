@@ -18,6 +18,7 @@ from dbx.commands.deploy import (  # noqa
     _update_job,
     deploy,
 )
+from dbx.models.project import MlflowStorageProperties
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import (
     get_path_with_relation_to_current_file,
@@ -92,9 +93,19 @@ def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload,
 
 
 def test_incorrect_location(tmp_path):
-    _info = EnvironmentInfo("test", artifact_location=tmp_path.as_uri(), workspace_dir=f"/Shared/dbx/{tmp_path.name}")
+    _info = EnvironmentInfo(
+        profile="test",
+        properties=MlflowStorageProperties(
+            artifact_location=tmp_path.as_uri(), workspace_directory=f"/Shared/dbx/{tmp_path.name}"
+        ),
+    )
     MlflowStorageConfigurationManager._setup_experiment(_info)
-    _wrong_info = EnvironmentInfo("test", workspace_dir=_info.workspace_dir, artifact_location=tmp_path.parent.as_uri())
+    _wrong_info = EnvironmentInfo(
+        profile="test" "test",
+        properties=MlflowStorageProperties(
+            workspace_directory=_info.properties.workspace_directory, artifact_location=tmp_path.parent.as_uri()
+        ),
+    )
     with pytest.raises(Exception):
         MlflowStorageConfigurationManager._setup_experiment(_wrong_info)
 
@@ -102,7 +113,13 @@ def test_incorrect_location(tmp_path):
 def test_non_existent_env(mock_api_v2_client):
     env_name = "configured-but-not-provided"
     ConfigurationManager().create_or_update(
-        env_name, EnvironmentInfo("test", workspace_dir="/Shared/dbx/test", artifact_location="dbfs:/dbx/test")
+        env_name,
+        EnvironmentInfo(
+            profile="test",
+            properties=MlflowStorageProperties(
+                workspace_directory="/Shared/dbx/test", artifact_location="dbfs:/dbx/test"
+            ),
+        ),
     )
     deploy_result = invoke_cli_runner(["deploy", "--environment", env_name], expected_error=True)
     assert isinstance(deploy_result.exception, NameError)

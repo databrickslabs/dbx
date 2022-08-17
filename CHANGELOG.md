@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🏷️Deprecate `jobs` section and rename it to `workflow`
 - 🏷️Deprecate `job` and `jobs` argument and rename it to `workflow`
 - ✨Refactored all cluster-relevant methods into a separate `ClusterController`
+- ✨Refactored model-related components for `.dbx/project.json` file
 
 ## Fixed
 - 🐛`dbx sync` now takes into account `HTTP(S)_PROXY` env variables

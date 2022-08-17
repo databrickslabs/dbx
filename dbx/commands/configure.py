@@ -1,6 +1,7 @@
 import typer
 
 from dbx.api.configure import ConfigurationManager, EnvironmentInfo
+from dbx.models.project import MlflowStorageProperties, StorageType
 from dbx.options import ENVIRONMENT_OPTION, PROFILE_OPTION
 from dbx.utils import dbx_echo, current_folder_name
 
@@ -23,5 +24,12 @@ def configure(
 ):
     dbx_echo(f"Configuring new environment with name {environment}")
     manager = ConfigurationManager()
-    manager.create_or_update(environment, EnvironmentInfo(profile, workspace_dir, artifact_location))
+    manager.create_or_update(
+        environment,
+        EnvironmentInfo(
+            profile=profile,
+            storage_type=StorageType.mlflow,
+            properties=MlflowStorageProperties(workspace_directory=workspace_dir, artifact_location=artifact_location),
+        ),
+    )
     dbx_echo("Environment configuration successfully finished")
