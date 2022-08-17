@@ -7,7 +7,7 @@ def test_jobs_deprecated_message(capsys):
     _env = ConfigReader(configs_path / "01-yaml-test.yaml").get_environment("default")
     captured = capsys.readouterr()
     assert len(_env.payload.workflows) == 1
-    assert "Usage of jobs keyword is deprecated" in captured.out
+    assert "Usage of jobs keyword in deployment file" in captured.out
 
 
 def test_workflows_consistency(capsys):

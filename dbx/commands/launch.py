@@ -32,7 +32,12 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
 def launch(
     workflow_name: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
-    job: str = typer.Option(None, "--job", help="[red]This option is deprecated[/red]", show_default=False),
+    job: str = typer.Option(
+        None,
+        "--job",
+        help="[red]This option is deprecated, please use workflow name as an argument[/red]",
+        show_default=False,
+    ),
     trace: bool = typer.Option(False, "--trace", help="Trace the workload until it finishes.", is_flag=True),
     kill_on_sigterm: bool = typer.Option(
         False,
@@ -54,7 +59,26 @@ def launch(
         * :code:`pass` will simply pass the check and try to launch the job directly
         """,
     ),
-    as_run_submit: bool = typer.Option(False, "--as-run-submit", is_flag=True, help="Run the job as run submit."),
+    as_run_submit: bool = typer.Option(
+        False,
+        "--as-run-submit",
+        is_flag=True,
+        help="[red bold]This option is deprecated, please use --from-assets flag instead[/red bold]",
+    ),
+    from_assets: bool = typer.Option(
+        False,
+        "--from-assets",
+        is_flag=True,
+        help="""
+        Creates a one-time run using assets deployed with [bold]dbx deploy --assets-only[/bold] option.
+
+        Please note that one-time run is created using [bold]RunSubmit API[/bold].
+
+        :rotating_light: This workflow run won't be visible in the Jobs UI, but it will be visible in the Jobs Run tab.
+
+        Shared job cluster feature is not supported in runs/submit API and therefore is not supported with this flag.
+        """,
+    ),
     tags: Optional[List[str]] = TAGS_OPTION,
     branch_name: Optional[str] = BRANCH_NAME_OPTION,
     include_output: Optional[IncludeOutputOption] = typer.Option(
@@ -88,8 +112,9 @@ def launch(
         branch_name = get_current_branch_name()
 
     filter_string = generate_filter_string(environment, branch_name)
+    _from_assets = from_assets if from_assets else as_run_submit
 
-    run_info = _find_deployment_run(filter_string, additional_tags, as_run_submit, environment)
+    run_info = _find_deployment_run(filter_string, additional_tags, _from_assets, environment)
 
     deployment_run_id = run_info["run_id"]
 
@@ -97,7 +122,7 @@ def launch(
 
         with mlflow.start_run(nested=True):
 
-            if not as_run_submit:
+            if not _from_assets:
                 run_launcher = RunNowLauncher(job=_job, api_client=api_client, existing_runs=existing_runs)
             else:
                 run_launcher = RunSubmitLauncher(
@@ -160,7 +185,7 @@ def launch(
 
 
 def _find_deployment_run(
-    filter_string: str, tags: Dict[str, str], as_run_submit: bool, environment: str
+    filter_string: str, tags: Dict[str, str], from_assets: bool, environment: str
 ) -> Dict[str, Any]:
     runs = mlflow.search_runs(filter_string=filter_string)
 
@@ -182,13 +207,13 @@ def _find_deployment_run(
         dbx_echo("No additional tags provided")
         _runs = runs
 
-    if as_run_submit:
+    if from_assets:
         if "tags.dbx_deploy_type" not in _runs.columns:
             raise Exception(
                 """"
-                Run Submit API is available only when deployment was done with --files-only flag.
+                Run Submit API is available only when deployment was done with --assets-only flag.
                 Currently there is no deployments with such flag under given filters.
-                Please re-deploy with --files-only flag and then re-run this launch command.
+                Please re-deploy with --assets-only flag and then re-run this launch command.
             """
             )
 
@@ -204,11 +229,11 @@ def _find_deployment_run(
                 + f"""
             With additional tags: {tags}"""
             )
-        if as_run_submit:
+        if from_assets:
             exception_string = (
                 exception_string
                 + """
-            With file-based deployments (dbx_deployment_type='files_only')."""
+            With asset-based deployments (dbx_deployment_type='files_only')."""
             )
 
         experiment_location = ConfigurationManager().get(environment).properties.workspace_directory
