@@ -23,6 +23,7 @@ from dbx.options import (
     TAGS_OPTION,
     BRANCH_NAME_OPTION,
     DEBUG_OPTION,
+    WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
 from dbx.utils.adjuster import adjust_job_definitions
@@ -37,6 +38,7 @@ from dbx.utils.job_listing import find_job_by_name
 
 
 def deploy(
+    workflow_name: str = WORKFLOW_ARGUMENT,
     deployment_file: Path = DEPLOYMENT_FILE_OPTION,
     job: Optional[str] = typer.Option(None, "--job", help="[red]This option is deprecated[/red]", show_default=False),
     jobs: Optional[str] = typer.Option(None, "--jobs", help="[red]This option is deprecated[/red]", show_default=False),
@@ -79,7 +81,10 @@ def deploy(
         """
         )
 
-    requested_jobs = _define_deployable_jobs(job, jobs)
+    if workflow_name:
+        requested_jobs = [workflow_name]
+    else:
+        requested_jobs = _define_deployable_jobs(job, jobs)
 
     _preprocess_deployment(deployment, requested_jobs)
 

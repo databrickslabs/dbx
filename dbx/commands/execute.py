@@ -18,6 +18,7 @@ from dbx.options import (
     NO_PACKAGE_OPTION,
     JINJA_VARIABLES_FILE_OPTION,
     DEBUG_OPTION,
+    WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
@@ -28,10 +29,11 @@ from dbx.utils.common import (
 
 
 def execute(
+    workflow_name: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
     cluster_id: Optional[str] = typer.Option(None, "--cluster-id", help="Cluster ID."),
     cluster_name: Optional[str] = typer.Option(None, "--cluster-name", help="Cluster name."),
-    job: str = typer.Option(..., "--job", help="[red]This option is deprecated[/red]"),
+    job: str = typer.Option(None, "--job", help="[red]This option is deprecated[/red]"),
     task: Optional[str] = typer.Option(
         None,
         "--task",
@@ -55,7 +57,12 @@ def execute(
 
     cluster_id = _preprocess_cluster_args(api_client, cluster_name, cluster_id)
 
-    dbx_echo(f"Executing job: {job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
+    _job = workflow_name if workflow_name else job
+
+    if not _job:
+        raise Exception("Please either provide workflow name as an argument or --job as an option")
+
+    dbx_echo(f"Executing job: {_job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
     handle_package(no_rebuild)
 
@@ -65,10 +72,10 @@ def execute(
 
     _verify_deployment(deployment, deployment_file)
 
-    found_jobs = [j for j in deployment.payload.workflows if j["name"] == job]
+    found_jobs = [j for j in deployment.payload.workflows if j["name"] == _job]
 
     if not found_jobs:
-        raise RuntimeError(f"Job {job} was not found in environment jobs, please check the deployment file")
+        raise RuntimeError(f"Job {_job} was not found in environment jobs, please check the deployment file")
 
     job_payload = found_jobs[0]
 
@@ -77,10 +84,10 @@ def execute(
         found_tasks = [t for t in _tasks if t.get("task_key") == task]
 
         if not found_tasks:
-            raise Exception(f"Task {task} not found in the definition of job {job}")
+            raise Exception(f"Task {task} not found in the definition of job {_job}")
 
         if len(found_tasks) > 1:
-            raise Exception(f"Task keys are not unique, more then one task found for job {job} with task name {task}")
+            raise Exception(f"Task keys are not unique, more then one task found for job {_job} with task name {task}")
 
         _task = found_tasks[0]
 
