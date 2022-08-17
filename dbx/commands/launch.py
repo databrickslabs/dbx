@@ -30,7 +30,7 @@ POSSIBLE_TASK_KEYS = ["notebook_task", "spark_jar_task", "spark_python_task", "s
 
 
 def launch(
-    workflow_name: str = WORKFLOW_ARGUMENT,
+    workflow: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
     job: str = typer.Option(
         None,
@@ -98,7 +98,7 @@ def launch(
     ),
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
-    _job = workflow_name if workflow_name else job
+    _job = workflow if workflow else job
 
     if not _job:
         raise Exception("Please either provide workflow name as an argument or --job as an option")

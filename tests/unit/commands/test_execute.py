@@ -142,6 +142,45 @@ def test_smoke_execute_python_wheel_task(
     assert execute_result.exit_code == 0
 
 
+def test_smoke_execute_python_wheel_task_with_params(
+    temp_project,
+    mock_api_v1_client,
+    mock_api_v2_client,
+    mock_local_context_manager,
+    mlflow_file_uploader,
+    mock_dbx_file_upload,
+):  # noqa
+    _params_options = ['{"parameters": ["a", 1]}', '{"named_parameters": ["--a=1", "--b=1"]}']
+    mock_retval = {
+        "status": "Finished",
+        "results": {"resultType": "Ok", "data": "Ok!"},
+    }
+    for _params in _params_options:
+        with patch(
+            "dbx.api.client_provider.ApiV1Client.get_command_status",
+            return_value=mock_retval,
+        ):
+            execute_result = invoke_cli_runner(
+                [
+                    "execute",
+                    "--deployment-file",
+                    "conf/deployment.yml",
+                    "--environment",
+                    "default",
+                    "--cluster-id",
+                    "000-some-cluster-id",
+                    "--job",
+                    f"{temp_project.name}-sample-multitask",
+                    "--task",
+                    "ml",
+                    "--parameters",
+                    _params,
+                ],
+            )
+
+        assert execute_result.exit_code == 0
+
+
 @patch(
     "databricks_cli.clusters.api.ClusterService.list_clusters",
     return_value={

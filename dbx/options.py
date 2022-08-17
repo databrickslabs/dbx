@@ -3,7 +3,12 @@ from pathlib import Path
 import typer
 from databricks_cli.configure.provider import DEFAULT_SECTION
 
-from dbx.callbacks import debug_callback, deployment_file_callback, verify_jinja_variables_file
+from dbx.callbacks import (
+    debug_callback,
+    deployment_file_callback,
+    verify_jinja_variables_file,
+    execute_parameters_callback,
+)
 
 ENVIRONMENT_OPTION = typer.Option("default", "--environment", "-e", help="Environment name.")
 
@@ -66,7 +71,39 @@ BRANCH_NAME_OPTION = typer.Option(
 
 WORKFLOW_ARGUMENT = typer.Argument(
     None,
-    help="""Workflow name from the deployment file.
+    help="""Name of the workflow from the deployment file.
 
-                If this argument is provided, --job and --jobs arguments will be [red bold]ignored[/red bold]""",
+            If this argument is provided, --job and --jobs arguments will be [red bold]ignored[/red bold]""",
+)
+
+EXECUTE_PARAMETERS_OPTION = typer.Option(
+    None,
+    "--parameters",
+    help="""If provided, overrides parameters of the chosen workflow
+            or a task inside workflow.
+
+            Depending on the job or task type, it might contain various payloads.
+
+            Provided payload shall match the expected payload of a chosen workflow or task.
+
+            It also should be wrapped as a JSON-compatible string with curly brackets around API-compatible payload.
+
+            Examples:
+
+            [bold]dbx execute <workflow_name> --parameters='{parameters: ["argument1", "argument2"]}'[/bold]
+
+            [bold]dbx execute <workflow_name> --parameters='{named_parameters: ["--a=1", "--b=2"]}'[/bold]
+
+            :rotating_light: [red bold]Please note that various tasks have various parameter structures.[/red bold]
+
+            Also note that all parameters provided for the workflow or task will be preprocessed with file uploader.
+
+            It means that if you reference a [bold]file://[/bold] in the parameter override, it will be resolved and
+            uploaded to DBFS.
+
+            You can find more on the parameter structures for various Jobs API
+            versions in the official documentation""",
+    show_default=False,
+    show_choices=False,
+    callback=execute_parameters_callback,
 )

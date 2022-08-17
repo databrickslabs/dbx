@@ -54,7 +54,10 @@ class ExecutionController:
             self.preprocess_task_parameters(self._task.spark_python_task.parameters)
             self.execute_entrypoint_file(self._task.spark_python_task.python_file)
         elif self._task.task_type == TaskType.python_wheel_task:
-            self.preprocess_task_parameters(self._task.python_wheel_task.parameters)
+            if self._task.python_wheel_task.named_parameters:
+                self.preprocess_task_parameters(self._task.python_wheel_task.named_parameters)
+            elif self._task.python_wheel_task.parameters:
+                self.preprocess_task_parameters(self._task.python_wheel_task.parameters)
             self.execute_entrypoint(self._task.python_wheel_task)
 
         if self._run:
@@ -82,7 +85,7 @@ class ExecutionController:
         dbx_echo("Installing package - done")
 
     def preprocess_task_parameters(self, parameters: List[str]):
-        dbx_echo(f"Processing task parameters: {parameters}")
+        dbx_echo(f":fast_forward: Processing task parameters: {parameters}")
 
         def adjustment_callback(p: Any):
             return adjust_path(p, self._file_uploader)
@@ -90,4 +93,4 @@ class ExecutionController:
         walk_content(adjustment_callback, parameters)
 
         self._client.setup_arguments(parameters)
-        dbx_echo("Processing task parameters - done")
+        dbx_echo(":white_check_mark: Processing task parameters")
