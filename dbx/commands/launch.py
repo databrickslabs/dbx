@@ -211,9 +211,9 @@ def _find_deployment_run(
         if "tags.dbx_deploy_type" not in _runs.columns:
             raise Exception(
                 """"
-                Run Submit API is available only when deployment was done with --files-only flag.
+                Run Submit API is available only when deployment was done with --assets-only flag.
                 Currently there is no deployments with such flag under given filters.
-                Please re-deploy with --files-only flag and then re-run this launch command.
+                Please re-deploy with --assets-only flag and then re-run this launch command.
             """
             )
 
@@ -233,7 +233,7 @@ def _find_deployment_run(
             exception_string = (
                 exception_string
                 + """
-            With file-based deployments (dbx_deployment_type='files_only')."""
+            With asset-based deployments (dbx_deployment_type='files_only')."""
             )
 
         experiment_location = ConfigurationManager().get(environment).properties.workspace_directory
