@@ -161,3 +161,5 @@ USE_GITIGNORE_OPTION = typer.Option(
     is_flag=True,
     help="""Controls whether the .gitignore is used to automatically exclude file/directories from syncing.""",
 )
+
+SYNC_ENVIRONMENT_OPTION = typer.Option(None, "--environment", help="Environment name.")

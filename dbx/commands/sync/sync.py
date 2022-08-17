@@ -2,7 +2,9 @@ from typing import List, Optional
 
 import click
 import typer
+from databricks_cli.configure.provider import ProfileConfigProvider
 
+from dbx.api.configure import ConfigurationManager
 from dbx.commands.sync.functions import (
     create_path_matcher,
     main_loop,
@@ -24,11 +26,13 @@ from dbx.commands.sync.options import (
     EXCLUDE_PATTERNS_OPTION,
     USE_GITIGNORE_OPTION,
     UNMATCHED_BEHAVIOUR_OPTION,
+    SYNC_ENVIRONMENT_OPTION,
 )
 from dbx.options import PROFILE_OPTION
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient
 from dbx.sync.config import get_databricks_config
+from dbx.utils import dbx_echo
 
 sync_app = typer.Typer(
     short_help=":arrows_counterclockwise: Sync local files to Databricks and watch for changes",
@@ -140,6 +144,7 @@ def dbfs(
     ),
     exclude_dirs: Optional[List[str]] = EXCLUDE_DIRS_OPTION,
     profile: str = PROFILE_OPTION,
+    environment: Optional[str] = SYNC_ENVIRONMENT_OPTION,
     watch: bool = WATCH_OPTION,
     polling_interval_secs: Optional[float] = POLLING_INTERVAL_OPTION,
     include_patterns: Optional[List[str]] = INCLUDE_PATTERNS_OPTION,
@@ -148,13 +153,17 @@ def dbfs(
     use_gitignore: bool = USE_GITIGNORE_OPTION,
     delete_unmatched_option: DeleteUnmatchedOption = UNMATCHED_BEHAVIOUR_OPTION,
 ):
-
     # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
     # we'll set watch to false here.
     if dry_run:
         watch = False
 
-    config = get_databricks_config(profile)
+    if environment:
+        dbx_echo("Environment option is provided, therefore environment-based config will be used")
+        _info = ConfigurationManager().get(environment)
+        config = ProfileConfigProvider(_info.profile).get_config()
+    else:
+        config = get_databricks_config(profile)
 
     source = handle_source(source)
 
@@ -245,6 +254,7 @@ def repo(
     ),
     exclude_dirs: Optional[List[str]] = EXCLUDE_DIRS_OPTION,
     profile: str = PROFILE_OPTION,
+    environment: str = SYNC_ENVIRONMENT_OPTION,
     watch: bool = WATCH_OPTION,
     polling_interval_secs: Optional[float] = POLLING_INTERVAL_OPTION,
     include_patterns: Optional[List[str]] = INCLUDE_PATTERNS_OPTION,
@@ -253,13 +263,17 @@ def repo(
     use_gitignore: bool = USE_GITIGNORE_OPTION,
     delete_unmatched_option: DeleteUnmatchedOption = UNMATCHED_BEHAVIOUR_OPTION,
 ):
-
     # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
     # we'll set watch to false here.
     if dry_run:
         watch = False
 
-    config = get_databricks_config(profile)
+    if environment:
+        dbx_echo("Environment option is provided, therefore environment-based config will be used")
+        _info = ConfigurationManager().get(environment)
+        config = ProfileConfigProvider(_info.profile).get_config()
+    else:
+        config = get_databricks_config(profile)
 
     if not user_name:
         user_name = get_user_name(config)

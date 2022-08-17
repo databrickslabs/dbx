@@ -3,6 +3,7 @@ from unittest.mock import patch, call, MagicMock
 
 import click
 import pytest
+from databricks_cli.configure.provider import ProfileConfigProvider
 
 from dbx.commands.sync.functions import get_user_name, get_source_base_name
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
@@ -35,6 +36,33 @@ def test_repo_no_opts(mock_get_config, mock_main_loop):
     # some options are required
     res = invoke_cli_runner(["repo"], expected_error=True)
     assert "Missing option" in res.output
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_repo_environment(mock_main_loop, mock_get_user_name):
+    with temporary_directory() as tempdir:
+        mock_get_user_name.return_value = "me"
+
+        with patch.object(ProfileConfigProvider, "get_config") as config_mock:
+            invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "--environment", "default"])
+
+            assert mock_main_loop.call_count == 1
+            assert config_mock.call_count == 1
+            assert mock_get_user_name.call_count == 1
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_dbfs_environment(mock_main_loop, mock_get_user_name):
+    with temporary_directory() as tempdir:
+        mock_get_user_name.return_value = "me"
+
+        with patch.object(ProfileConfigProvider, "get_config") as config_mock:
+            invoke_cli_runner(["dbfs", "-s", tempdir, "-d", "the-repo", "--environment", "default"])
+
+            assert mock_main_loop.call_count == 1
+            assert config_mock.call_count == 1
 
 
 @patch("dbx.commands.sync.sync.get_user_name")
@@ -158,7 +186,6 @@ def test_repo_polling(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         config = MagicMock()
@@ -192,7 +219,6 @@ def test_repo_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         config = MagicMock()
@@ -226,7 +252,6 @@ def test_repo_force_include_dir(mock_get_config, mock_main_loop, mock_get_user_n
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         config = MagicMock()
@@ -260,7 +285,6 @@ def test_repo_include_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         config = MagicMock()
@@ -294,7 +318,6 @@ def test_repo_force_include_pattern(mock_get_config, mock_main_loop, mock_get_us
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         config = MagicMock()
@@ -328,7 +351,6 @@ def test_repo_exclude_dir(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         config = MagicMock()
@@ -364,7 +386,6 @@ def test_repo_exclude_pattern(mock_get_config, mock_main_loop, mock_get_user_nam
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_include_dir_not_exists(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         # we don't create the "foo" subdir, so it should produce an error
 
         config = MagicMock()
@@ -416,7 +437,6 @@ def test_repo_inferred_source(mock_get_config, mock_main_loop, mock_get_user_nam
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_inferred_source_no_git(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
-
         # source can only be inferred when the cwd contains a .git subdir
 
         config = MagicMock()
@@ -499,7 +519,6 @@ def test_repo_disallow_delete_unmatched(mock_get_config, mock_main_loop, mock_ge
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
-
         # infer source based on cwd having a .git directory
         os.mkdir(os.path.join(tempdir, ".git"))
 
@@ -537,7 +556,6 @@ def test_dbfs_no_opts(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
-
         # infer source based on cwd having a .git directory
         os.mkdir(os.path.join(tempdir, ".git"))
 
@@ -572,7 +590,6 @@ def test_dbfs_polling(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
-
         # infer source based on cwd having a .git directory
         os.mkdir(os.path.join(tempdir, ".git"))
 
@@ -606,7 +623,6 @@ def test_dbfs_dry_run(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         config = MagicMock()
         mock_get_config.return_value = config
         mock_get_user_name.return_value = "me"
@@ -637,7 +653,6 @@ def test_dbfs_source_dest(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir, pushd(tempdir):
-
         # infer source based on cwd having a .git directory
         os.mkdir(os.path.join(tempdir, ".git"))
 
@@ -671,7 +686,6 @@ def test_dbfs_specify_user(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         config = MagicMock()
         mock_get_config.return_value = config
         mock_get_user_name.return_value = None
@@ -690,7 +704,6 @@ def test_dbfs_unknown_user(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         config = MagicMock()
         mock_get_config.return_value = config
         mock_get_user_name.return_value = "me"
@@ -709,7 +722,6 @@ def test_dbfs_no_root(mock_get_config, mock_main_loop, mock_get_user_name):
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         # .gitignore will be used by default for ignore patterns
@@ -750,7 +762,6 @@ def test_repo_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name)
 @patch("dbx.commands.sync.sync.get_databricks_config")
 def test_repo_no_use_gitignore(mock_get_config, mock_main_loop, mock_get_user_name):
     with temporary_directory() as tempdir:
-
         os.mkdir(os.path.join(tempdir, "foo"))
 
         # .gitignore will be used by default for ignore patterns
