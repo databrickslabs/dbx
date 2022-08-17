@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Add `workflow-name` argument to `dbx deploy`, `dbx launch` and `dbx execute`
 - ✨Add `--workflows` argument to `dbx deploy`
 - ✨Add `--assets-only` and `--from-assets` as a clearer replacement for old arguments
+- ⚡️Add support for `--environment` parameter for `dbx sync` commands
 
 ## Changed
 - ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
