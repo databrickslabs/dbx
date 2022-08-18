@@ -1,7 +1,8 @@
+import json
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, Union
 from typing import List
 
 import mlflow
@@ -14,8 +15,8 @@ from mlflow.tracking import MlflowClient
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
 from dbx.models.options import ExistingRunsOption, IncludeOutputOption
-
-# from dbx.models.parameters import LaunchWorkloadParamInfo
+from dbx.models.parameters.run_now import RunNowV2d1ParamInfo, RunNowV2d0ParamInfo
+from dbx.models.parameters.run_submit import RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo
 from dbx.options import (
     ENVIRONMENT_OPTION,
     TAGS_OPTION,
@@ -134,13 +135,16 @@ def launch(
         with mlflow.start_run(nested=True):
 
             if not _from_assets:
-                run_launcher = RunNowLauncher(job=_job, api_client=api_client, existing_runs=existing_runs)
+                run_launcher = RunNowLauncher(
+                    job=_job, api_client=api_client, existing_runs=existing_runs, parameters=parameters
+                )
             else:
                 run_launcher = RunSubmitLauncher(
                     job=_job,
                     api_client=api_client,
                     deployment_run_id=deployment_run_id,
                     environment=environment,
+                    parameters=parameters,
                 )
 
             run_data, job_id = run_launcher.launch()
@@ -265,16 +269,21 @@ def _find_deployment_run(
 
 class RunSubmitLauncher:
     def __init__(
-        self,
-        job: str,
-        api_client: ApiClient,
-        deployment_run_id: str,
-        environment: str,
+        self, job: str, api_client: ApiClient, deployment_run_id: str, environment: str, parameters: Optional[str]
     ):
         self.run_id = deployment_run_id
         self.job = job
         self.api_client = api_client
         self.environment = environment
+        self._parameters = None if not parameters else self._process_parameters(parameters)
+
+    def _process_parameters(self, payload: str) -> Union[RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo]:
+        _payload = json.loads(payload)
+
+        if self.api_client.jobs_api_version == "2.1":
+            return RunSubmitV2d1ParamInfo(**_payload)
+        else:
+            return RunSubmitV2d0ParamInfo(**_payload)
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run submit API")
@@ -292,8 +301,11 @@ class RunSubmitLauncher:
             raise Exception(f"Job definition {self.job} not found in deployment spec")
 
         job_spec: Dict[str, Any] = found_jobs[0]
+        job_spec.pop("name")
 
-        run_data = _submit_run(self.api_client, job_spec)
+        service = JobsService(self.api_client)
+
+        run_data = service.submit_run(**job_spec)
         return run_data, None
 
 
@@ -304,7 +316,14 @@ class RunNowLauncher:
         self.job = job
         self.api_client = api_client
         self.existing_runs: ExistingRunsOption = existing_runs
-        # self._parameters = LaunchWorkloadParamInfo.from_string(parameters) if parameters else None
+        self._parameters = None if not parameters else self._process_parameters(parameters)
+
+    def _process_parameters(self, payload: str) -> Union[RunNowV2d0ParamInfo, RunNowV2d1ParamInfo]:
+        _payload = json.loads(payload)
+        if self.api_client.jobs_api_version == "2.1":
+            return RunNowV2d1ParamInfo(**_payload)
+        else:
+            return RunNowV2d0ParamInfo(**_payload)
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
@@ -328,28 +347,15 @@ class RunNowLauncher:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 _cancel_run(self.api_client, run)
 
-        run_data = jobs_service.run_now(job_id=job_id)
+        if self._parameters:
+            dbx_echo(f"Running the workload with the provided parameters {self._parameters.dict()}")
+            _additional_parameters = self._parameters.dict()
+        else:
+            _additional_parameters = {}
+
+        run_data = jobs_service.run_now(job_id=job_id, **_additional_parameters)
 
         return run_data, job_id
-
-
-def _define_payload_key(job_settings: Dict[str, Any]):
-    if job_settings.get("notebook_task"):
-        extra_payload_key = "notebook_params"
-    elif job_settings.get("spark_jar_task"):
-        extra_payload_key = "jar_params"
-    elif job_settings.get("spark_python_task"):
-        extra_payload_key = "python_params"
-    elif job_settings.get("spark_submit_task"):
-        extra_payload_key = "spark_submit_params"
-    else:
-        raise Exception(f"Unexpected type of the job with settings: {job_settings}")
-
-    return extra_payload_key
-
-
-def _submit_run(api_client: ApiClient, payload: Dict[str, Any]) -> Dict[str, Any]:
-    return api_client.perform_query("POST", "/jobs/runs/submit", data=payload)
 
 
 def _cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):

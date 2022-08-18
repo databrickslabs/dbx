@@ -135,17 +135,18 @@ def override_parameters(raw_params_info: str, task: Task):
         raise Exception(f"named parameters are only supported if task type is {TaskType.python_wheel_task.value}")
 
     if param_info.named_parameters:
-        dbx_echo(f":twisted_rightwards_arrows:Overriding named_parameters section for the task")
+        dbx_echo(":twisted_rightwards_arrows:Overriding named_parameters section for the task")
         task.python_wheel_task.named_parameters = param_info.named_parameters
         task.python_wheel_task.parameters = []
-        dbx_echo(f":white_check_mark:Overriding named_parameters section for the task")
+        dbx_echo(":white_check_mark:Overriding named_parameters section for the task")
 
     if param_info.parameters:
+        dbx_echo(":twisted_rightwards_arrows:Overriding parameters section for the task")
+
         if task.task_type == TaskType.python_wheel_task:
-            dbx_echo(f":twisted_rightwards_arrows:Overriding parameters section for the task")
             task.python_wheel_task.parameters = param_info.parameters
             task.python_wheel_task.named_parameters = []
         elif task.task_type == TaskType.spark_python_task:
             task.spark_python_task.parameters = param_info.parameters
-            dbx_echo(f":white_check_mark:Overriding parameters section for the task")
-        dbx_echo(f":white_check_mark:Overriding parameters section for the task")
+
+        dbx_echo(":white_check_mark:Overriding parameters section for the task")

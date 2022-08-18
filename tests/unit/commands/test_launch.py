@@ -2,14 +2,12 @@ from pathlib import Path
 from typing import List, Optional
 from unittest.mock import MagicMock
 
-import pytest
 from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
 from dbx.commands.launch import (
     _cancel_run,
-    _define_payload_key,
     _load_dbx_file,
     _trace_run,
 )
@@ -183,7 +181,7 @@ def test_launch_with_run_now_params(
 ):
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
-    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--parameters", '{"parameters":["a", "b"]}'])
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--parameters", '{"python_params":["a", "b"]}'])
     assert launch_result.exit_code == 0
 
 
@@ -233,19 +231,3 @@ def test_launch_with_trace_and_kill_on_sigterm_with_interruption(
     )
     assert launch_result.exit_code == 0
     cancel_run_mock.assert_called_once()
-
-
-def test_payload_keys():
-    # here w check conversions towards API-based props
-    nb_task = {"notebook_task": "something"}
-    assert _define_payload_key(nb_task) == "notebook_params"
-
-    sj_task = {"spark_jar_task": "something"}
-    assert _define_payload_key(sj_task) == "jar_params"
-
-    sp_task = {"spark_python_task": "something"}
-    assert _define_payload_key(sp_task) == "python_params"
-    ssb_task = {"spark_submit_task": "something"}
-    assert _define_payload_key(ssb_task) == "spark_submit_params"
-    with pytest.raises(Exception):
-        _define_payload_key({})

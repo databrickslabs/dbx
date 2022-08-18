@@ -21,3 +21,7 @@ class RunNowV2d0ParamInfo(BaseModel):
 
 class RunNowV2d1ParamInfo(RunNowV2d0ParamInfo):
     python_named_params: ParamPair
+
+    @root_validator(pre=True)
+    def initialize(cls, values: Dict[str, Any]):  # noqa
+        return validate_contains(cls.__fields__, values)
