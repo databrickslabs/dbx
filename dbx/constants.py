@@ -15,3 +15,4 @@ TEMPLATE_ROOT_PATH = Path(pkg_resources.resource_filename("dbx", PROJECTS_RELATI
 # Patterns for files that are ignored by default.  There don't seem to be any reasonable scenarios where someone
 # would want to sync these, so we don't make this configurable.
 DBX_SYNC_DEFAULT_IGNORES = [".git/", ".dbx", "*.isorted"]
+TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
