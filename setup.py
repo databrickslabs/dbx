@@ -36,7 +36,7 @@ if sys.platform.startswith("win32"):
 DEV_REQUIREMENTS = [
     # utilities for documentation
     "sphinx>=4.5.0,<5.0.0",
-    "sphinx_rtd_theme>=1.0.0,<2.0.0",
+    "furo>=2022.6",
     "sphinx-autobuild>=2021.3.14,<2022.0.0",
     "sphinx-click>=4.1.0,<5.0.0",
     "sphinx-tabs>=3.3.1,<4.0.0",
