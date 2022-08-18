@@ -14,6 +14,7 @@ from mlflow.tracking import MlflowClient
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
 from dbx.models.options import ExistingRunsOption, IncludeOutputOption
+
 # from dbx.models.parameters import LaunchWorkloadParamInfo
 from dbx.options import (
     ENVIRONMENT_OPTION,
@@ -297,8 +298,9 @@ class RunSubmitLauncher:
 
 
 class RunNowLauncher:
-    def __init__(self, job: str, api_client: ApiClient, existing_runs: ExistingRunsOption,
-                 parameters: Optional[str] = None):
+    def __init__(
+        self, job: str, api_client: ApiClient, existing_runs: ExistingRunsOption, parameters: Optional[str] = None
+    ):
         self.job = job
         self.api_client = api_client
         self.existing_runs: ExistingRunsOption = existing_runs

@@ -22,6 +22,7 @@ def test_named_params_execute():
     _p = ExecuteWorkloadParamInfo(**{"named_parameters": ["--a=1", "--b=2"]})
     assert _p.named_parameters is not None
 
+
 # def test_empty_launch():
 #     with pytest.raises(ValueError):
 #         LaunchWorkloadParamInfo.from_string("{}")
