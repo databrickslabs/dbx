@@ -34,28 +34,25 @@ def test_empty_launch():
 
 
 def test_launch_job_top_level():
-    _r = LaunchWorkloadParamInfo.from_string('{"job1":{"parameters": ["argument1", "argument2"]}}')
-    assert _r.content.get("job1").parameters is not None
+    _r = LaunchWorkloadParamInfo.from_string('{"parameters": ["argument1", "argument2"]}')
+    assert _r.content.parameters is not None
 
 
 def test_launch_job_task_level():
-    _r = LaunchWorkloadParamInfo.from_string('{"job1":[{"task_key": "some", "named_parameters": ["--a=1", "--b=2"]}]}')
-    assert _r.content.get("job1")[0].task_key is not None
+    _r = LaunchWorkloadParamInfo.from_string('[{"task_key": "some", "named_parameters": ["--a=1", "--b=2"]}]')
+    assert _r.content[0].task_key is not None
 
 
 def test_launch_multiple_tasks():
     _r = LaunchWorkloadParamInfo.from_string(
         """
-        {
-            "job1":
             [
                 {"task_key": "first", "base_parameters": {"a": 1, "b": 2}},
                 {"task_key": "second", "parameters": ["a", "b"]}
             ]
-        }
         """
     )
-    assert _r.content.get("job1")[0].task_key == "first"
-    assert _r.content.get("job1")[0].base_parameters is not None
-    assert _r.content.get("job1")[1].task_key == "second"
-    assert _r.content.get("job1")[1].parameters is not None
+    assert _r.content[0].task_key == "first"
+    assert _r.content[0].base_parameters is not None
+    assert _r.content[1].task_key == "second"
+    assert _r.content[1].parameters is not None

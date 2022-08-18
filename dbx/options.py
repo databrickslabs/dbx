@@ -117,32 +117,37 @@ LAUNCH_PARAMETERS_OPTION = typer.Option(
 
             Provided payload shall match the expected payload of a chosen workflow or task.
 
+            [bold]Please pass the parameters as described in the RunNow method of Jobs API v2.1.
+
+            dbx will automatically convert them to a proper structure.[/bold]
+
             It also should be wrapped as a JSON-compatible string with curly brackets around API-compatible payload.
 
             Examples:
 
             - Jobs API v2.0 spark_python_task, or python_wheel_task workflow without tasks inside
 
-            [bold]dbx launch <workflow_name> --parameters='{"job1":
-             {"parameters": ["argument1", "argument2"]}}'[/bold]
+            [bold]dbx launch <workflow_name> --parameters='{"parameters": ["argument1", "argument2"]}'[/bold]
 
             - Jobs API v2.1 multitask job with one python_wheel_task
 
-            [bold]dbx execute <workflow_name> --parameters='{"job1":
-            [{"task_key": "some", "named_parameters": ["--a=1", "--b=2"]}]}'[/bold]
+            [bold]dbx execute <workflow_name> --parameters='[{"task_key": "some", "named_parameters":
+            ["--a=1", "--b=2"]}]'[/bold]
 
             - Jobs API v2.1 multitask job with one notebook_task
 
-            [bold]dbx execute <workflow_name> --parameters='{"job1":
-            [{"task_key": "some", "base_parameters": {"a": 1, "b": 2}}]}'[/bold]
+            [bold]dbx execute <workflow_name> --parameters='[{"task_key": "some", "base_parameters":
+            {"a": 1, "b": 2}}]'[/bold]
 
             - Jobs API v2.1 multitask job with 2 tasks
 
-            [bold]dbx execute <workflow_name> --parameters='{"job1":
+            [bold]dbx execute <workflow_name> --parameters='[
 
-            [{"task_key": "first", "base_parameters": {"a": 1, "b": 2}},
+            {"task_key": "first", "base_parameters": {"a": 1, "b": 2}},
 
-            {"task_key": "second", "parameters": ["a", "b"]}]}'[/bold]
+            {"task_key": "second", "parameters": ["a", "b"]}
+
+            ]'[/bold]
 
             :rotating_light: [red bold]Please note that various tasks have various parameter structures.[/red bold]
 

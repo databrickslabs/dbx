@@ -1,13 +1,12 @@
 import json
 from http import client as http_client
-from json import JSONDecodeError
 from pathlib import Path
 from typing import Optional
 
 import typer
 
 from dbx import __version__
-from dbx.models.parameters import ExecuteWorkloadParamInfo
+from dbx.models.parameters import ExecuteWorkloadParamInfo, LaunchWorkloadParamInfo
 from dbx.utils import dbx_echo
 
 
@@ -66,7 +65,7 @@ def execute_parameters_callback(_, value: str) -> Optional[str]:
     if value:
         try:
             _parsed = json.loads(value)
-        except JSONDecodeError as e:
+        except json.JSONDecodeError as e:
             dbx_echo(":boom: Provided parameters payload cannot be parsed since it's not in json format")
             raise e
 
@@ -79,10 +78,10 @@ def launch_parameters_callback(_, value: str) -> Optional[str]:
     if value:
         try:
             _parsed = json.loads(value)
-        except JSONDecodeError as e:
+        except json.JSONDecodeError as e:
             dbx_echo(":boom: Provided parameters payload cannot be parsed since it's not in json format")
             raise e
 
-        ExecuteWorkloadParamInfo(**_parsed)
+        LaunchWorkloadParamInfo(**_parsed)
 
         return value

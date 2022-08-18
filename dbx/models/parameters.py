@@ -13,7 +13,8 @@ ParamPair = Dict[str, str]
 
 def validate_any_field(fields, values: Dict[str, Any]):
     _values = deepcopy(values)
-    _values.pop("task_key")
+    if "task_key" in _values:
+        _values.pop("task_key")
 
     if len(_values) == 0:
         raise ValueError(f"No parameters were provided in the in the --parameters argument, values content: {values}")
@@ -69,7 +70,7 @@ class NamedTaskDefinition(TaskDefinition):
 
 
 class LaunchWorkloadParamInfo(BaseModel):
-    content: Dict[str, Union[TaskDefinition, List[NamedTaskDefinition]]]
+    content: Union[TaskDefinition, List[NamedTaskDefinition]]
 
     @staticmethod
     def from_string(payload: str) -> LaunchWorkloadParamInfo:
