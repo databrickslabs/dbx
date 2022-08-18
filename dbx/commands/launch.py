@@ -14,7 +14,14 @@ from mlflow.tracking import MlflowClient
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
 from dbx.models.options import ExistingRunsOption, IncludeOutputOption
-from dbx.options import ENVIRONMENT_OPTION, TAGS_OPTION, BRANCH_NAME_OPTION, DEBUG_OPTION, WORKFLOW_ARGUMENT
+from dbx.options import (
+    ENVIRONMENT_OPTION,
+    TAGS_OPTION,
+    BRANCH_NAME_OPTION,
+    DEBUG_OPTION,
+    WORKFLOW_ARGUMENT,
+    LAUNCH_PARAMETERS_OPTION,
+)
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
     generate_filter_string,
@@ -96,6 +103,7 @@ def launch(
         * :code:`stderr` will add only stderr to the console output
         """,
     ),
+    parameters: Optional[str] = LAUNCH_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     _job = workflow if workflow else job

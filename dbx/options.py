@@ -8,6 +8,7 @@ from dbx.callbacks import (
     deployment_file_callback,
     verify_jinja_variables_file,
     execute_parameters_callback,
+    launch_parameters_callback,
 )
 
 ENVIRONMENT_OPTION = typer.Option("default", "--environment", "-e", help="Environment name.")
@@ -103,7 +104,55 @@ EXECUTE_PARAMETERS_OPTION = typer.Option(
 
             You can find more on the parameter structures for various Jobs API
             versions in the official documentation""",
-    show_default=False,
-    show_choices=False,
+    show_default=True,
     callback=execute_parameters_callback,
+)
+
+LAUNCH_PARAMETERS_OPTION = typer.Option(
+    None,
+    "--parameters",
+    help="""If provided, overrides parameters of the chosen set of workflow(s), or task(s) inside workflow(s)
+
+            Depending on the workflow or task type, it might contain various payloads.
+
+            Provided payload shall match the expected payload of a chosen workflow or task.
+
+            It also should be wrapped as a JSON-compatible string with curly brackets around API-compatible payload.
+
+            Examples:
+
+            - Jobs API v2.0 spark_python_task, or python_wheel_task workflow without tasks inside
+
+            [bold]dbx launch <workflow_name> --parameters='{"job1":
+             {"parameters": ["argument1", "argument2"]}}'[/bold]
+
+            - Jobs API v2.1 multitask job with one python_wheel_task
+
+            [bold]dbx execute <workflow_name> --parameters='{"job1":
+            [{"task_key": "some", "named_parameters": ["--a=1", "--b=2"]}]}'[/bold]
+
+            - Jobs API v2.1 multitask job with one notebook_task
+
+            [bold]dbx execute <workflow_name> --parameters='{"job1":
+            [{"task_key": "some", "base_parameters": {"a": 1, "b": 2}}]}'[/bold]
+
+            - Jobs API v2.1 multitask job with 2 tasks
+
+            [bold]dbx execute <workflow_name> --parameters='{"job1":
+
+            [{"task_key": "first", "base_parameters": {"a": 1, "b": 2}},
+
+            {"task_key": "second", "parameters": ["a", "b"]}]}'[/bold]
+
+            :rotating_light: [red bold]Please note that various tasks have various parameter structures.[/red bold]
+
+            Also note that all parameters provided for the workflow or task will be preprocessed with file uploader.
+
+            It means that if you reference a [bold]file://[/bold] or [bold]file:fuse://[/bold]
+            in the parameter override, it will be resolved and uploaded to DBFS.
+
+            You can find more on the parameter structures for various Jobs API
+            versions in the official documentation""",
+    show_default=True,
+    callback=launch_parameters_callback,
 )

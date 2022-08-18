@@ -73,3 +73,16 @@ def execute_parameters_callback(_, value: str) -> Optional[str]:
         ExecuteWorkloadParamInfo(**_parsed)
 
         return value
+
+
+def launch_parameters_callback(_, value: str) -> Optional[str]:
+    if value:
+        try:
+            _parsed = json.loads(value)
+        except JSONDecodeError as e:
+            dbx_echo(":boom: Provided parameters payload cannot be parsed since it's not in json format")
+            raise e
+
+        ExecuteWorkloadParamInfo(**_parsed)
+
+        return value
