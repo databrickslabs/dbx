@@ -32,11 +32,11 @@ class AbstractFileUploader(ABC):
         if local_file_path in self._uploaded_files:
             remote_path = self._uploaded_files[local_file_path]
         else:
-            dbx_echo(f"Uploading local file {local_file_path}")
+            dbx_echo(f":arrow_up: Uploading local file {local_file_path}")
             self._upload_file(local_file_path)
             remote_path = "/".join([self._base_uri, str(local_file_path.as_posix())])
             self._uploaded_files[local_file_path] = remote_path
-            dbx_echo(f"Uploading local file {local_file_path} - done")
+            dbx_echo(f":white_check_mark: Uploading local file {local_file_path}")
 
         remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
@@ -71,6 +71,6 @@ class ContextBasedUploader(AbstractFileUploader):
         try:
             dbx_echo("Cleaning up the temp directory")
             self._client.remove_dir(self._base_uri)
-            dbx_echo("Cleaning up the temp directory - done")
+            dbx_echo(":white_check_mark: Cleaning up the temp directory")
         except Exception as e:
             dbx_echo(f"Cannot cleanup temp directory due to {e}")

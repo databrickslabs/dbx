@@ -247,8 +247,8 @@ def _create_job(api_client: ApiClient, job: Dict[str, Any]) -> str:
         jobs_api = JobsApi(api_client)
         job_id = jobs_api.create_job(job)["job_id"]
     except HTTPError as e:
-        dbx_echo("Failed to create job with definition:")
-        dbx_echo(json.dumps(job, indent=4))
+        dbx_echo(":boom: Failed to create job with definition:")
+        dbx_echo(job)
         raise e
     return job_id
 
@@ -258,8 +258,8 @@ def _update_job(jobs_service: JobsService, job_id: str, job: Dict[str, Any]) -> 
     try:
         jobs_service.reset_job(job_id, job)
     except HTTPError as e:
-        dbx_echo("Failed to update job with definition:")
-        dbx_echo(json.dumps(job, indent=4))
+        dbx_echo(":boom: Failed to update job with definition:")
+        dbx_echo(job)
         raise e
 
     _acl = job.get("access_control_list")

@@ -131,7 +131,7 @@ class DatafactoryReflector:
             self.resource_group, self.factory_name, service_name, service_resource
         )
 
-        dbx_echo(f"Preparing linked service {service_name} - done")
+        dbx_echo(f":white_check_mark: Preparing linked service {service_name}")
         return service_name
 
     @staticmethod

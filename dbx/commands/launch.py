@@ -14,6 +14,7 @@ from mlflow.tracking import MlflowClient
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
 from dbx.models.options import ExistingRunsOption, IncludeOutputOption
+from dbx.models.parameters import LaunchWorkloadParamInfo
 from dbx.options import (
     ENVIRONMENT_OPTION,
     TAGS_OPTION,
@@ -295,10 +296,11 @@ class RunSubmitLauncher:
 
 
 class RunNowLauncher:
-    def __init__(self, job: str, api_client: ApiClient, existing_runs: ExistingRunsOption):
+    def __init__(self, job: str, api_client: ApiClient, existing_runs: ExistingRunsOption, parameters: Optional[str]):
         self.job = job
         self.api_client = api_client
         self.existing_runs: ExistingRunsOption = existing_runs
+        self._parameters = LaunchWorkloadParamInfo.from_string(parameters) if parameters else None
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")
@@ -322,7 +324,7 @@ class RunNowLauncher:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 _cancel_run(self.api_client, run)
 
-        run_data = jobs_service.run_now(job_id)
+        run_data = jobs_service.run_now(job_id=job_id)
 
         return run_data, job_id
 
