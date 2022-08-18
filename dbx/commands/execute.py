@@ -8,7 +8,7 @@ from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
 from dbx.models.deployment import EnvironmentDeploymentInfo
-from dbx.models.parameters import ExecuteWorkloadParamInfo
+from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
 from dbx.models.task import Task, TaskType
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,

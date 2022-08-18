@@ -14,7 +14,7 @@ from mlflow.tracking import MlflowClient
 from dbx.api.configure import ConfigurationManager
 from dbx.api.output_provider import OutputProvider
 from dbx.models.options import ExistingRunsOption, IncludeOutputOption
-from dbx.models.parameters import LaunchWorkloadParamInfo
+# from dbx.models.parameters import LaunchWorkloadParamInfo
 from dbx.options import (
     ENVIRONMENT_OPTION,
     TAGS_OPTION,
@@ -77,6 +77,7 @@ def launch(
         False,
         "--from-assets",
         is_flag=True,
+        is_eager=True,
         help="""
         Creates a one-time run using assets deployed with [bold]dbx deploy --assets-only[/bold] option.
 
@@ -296,11 +297,12 @@ class RunSubmitLauncher:
 
 
 class RunNowLauncher:
-    def __init__(self, job: str, api_client: ApiClient, existing_runs: ExistingRunsOption, parameters: Optional[str]):
+    def __init__(self, job: str, api_client: ApiClient, existing_runs: ExistingRunsOption,
+                 parameters: Optional[str] = None):
         self.job = job
         self.api_client = api_client
         self.existing_runs: ExistingRunsOption = existing_runs
-        self._parameters = LaunchWorkloadParamInfo.from_string(parameters) if parameters else None
+        # self._parameters = LaunchWorkloadParamInfo.from_string(parameters) if parameters else None
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
         dbx_echo("Launching job via run now API")

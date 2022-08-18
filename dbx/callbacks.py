@@ -6,7 +6,7 @@ from typing import Optional
 import typer
 
 from dbx import __version__
-from dbx.models.parameters import ExecuteWorkloadParamInfo, LaunchWorkloadParamInfo
+from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
 from dbx.utils import dbx_echo
 
 
@@ -81,7 +81,5 @@ def launch_parameters_callback(_, value: str) -> Optional[str]:
         except json.JSONDecodeError as e:
             dbx_echo(":boom: Provided parameters payload cannot be parsed since it's not in json format")
             raise e
-
-        LaunchWorkloadParamInfo(**_parsed)
 
         return value

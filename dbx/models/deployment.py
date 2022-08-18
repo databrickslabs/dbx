@@ -13,7 +13,7 @@ class Deployment(BaseModel):
     def check_inputs(cls, values: Dict[str, Any]):  # noqa
         if "jobs" in values:
             dbx_echo(
-                ":rotating_light: [red bold]Usage of jobs keyword in deployment file is deprecated[/red bold]."
+                ":rotating_light: [red bold]Usage of jobs keyword in deployment file is deprecated[/red bold]. "
                 "Please use [bold]workflows[bold] instead (simply rename this section to workflows)."
             )
         _w = values.get("jobs") if "jobs" in values else values.get("workflows")
@@ -35,7 +35,7 @@ class DeploymentConfig(BaseModel):
     def get_environment(self, name) -> Optional[EnvironmentDeploymentInfo]:
         _found = [env for env in self.environments if env.name == name]
         if len(_found) > 1:
-            raise Exception(f"There are more than one environment with name {name} defined")
+            raise Exception(f"More than one environment with name {name} is defined in the project file")
         if len(_found) == 0:
             return None
         return _found[0]

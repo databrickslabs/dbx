@@ -178,6 +178,15 @@ def test_launch_with_output(
     assert launch_result.exit_code == 0
 
 
+def test_launch_with_run_now_params(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--parameters", '{"parameters":["a", "b"]}'])
+    assert launch_result.exit_code == 0
+
+
 def test_launch_with_trace(
     mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
 ):
