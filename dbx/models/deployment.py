@@ -13,8 +13,8 @@ class Deployment(BaseModel):
     def check_inputs(cls, values: Dict[str, Any]):  # noqa
         if "jobs" in values:
             dbx_echo(
-                ":rotating_light: [red bold]Usage of jobs keyword in deployment file is deprecated[/red bold]. "
-                "Please use [bold]workflows[bold] instead (simply rename this section to workflows)."
+                "[yellow bold]Usage of jobs keyword in deployment file is deprecated. "
+                "Please use [bold]workflows[bold] instead (simply rename this section to workflows).[/yellow bold]"
             )
         _w = values.get("jobs") if "jobs" in values else values.get("workflows")
         return {"workflows": _w}

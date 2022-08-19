@@ -114,12 +114,12 @@ def deploy(
         )
 
     if workflow_name:
-        requested_jobs = [workflow_name]
-    else:
-        if workflows:
-            jobs = workflows
+        job = workflow_name
 
-        requested_jobs = _define_deployable_jobs(job, jobs)
+    if workflows:
+        jobs = workflows
+
+    requested_jobs = _define_deployable_jobs(job, jobs)
 
     _preprocess_deployment(deployment, requested_jobs)
 
@@ -217,7 +217,12 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
         dbx_echo(f"Deployment will be performed only for the following jobs: {requested_jobs}")
         for requested_job_name in requested_jobs:
             if requested_job_name not in job_names:
-                raise Exception(f"Job {requested_job_name} was requested, but not provided in deployment file")
+                raise Exception(
+                    f"""
+                Workflow {requested_job_name} was requested, but not provided in deployment file.
+                Available workflows are: {job_names}
+                """
+                )
         preprocessed_jobs = [job for job in jobs if job["name"] in requested_jobs]
     else:
         preprocessed_jobs = jobs

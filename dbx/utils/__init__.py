@@ -8,7 +8,7 @@ from rich import print as rich_print
 
 def dbx_echo(message: Any):
     formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    formatted_message = f"[red]\[dbx][/red][:hourglass_flowing_sand:{formatted_time}] {message}"  # noqa
+    formatted_message = f"[red]\[dbx][/red][{formatted_time}] {message}"  # noqa
     try:
         rich_print(formatted_message)
     except (UnicodeDecodeError, UnicodeEncodeError, UnicodeError):

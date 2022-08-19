@@ -46,8 +46,8 @@ class ProjectInfo(BaseModel):
         _env = self.environments.get(name)
         if isinstance(_env, LegacyEnvironmentInfo):
             dbx_echo(
-                ":warning: [red bold]legacy environment format is used in project file [/red bold]. "
-                "Please take a look at te docs and upgrade to the new format version"
+                "[yellow bold]Legacy environment format is used in project file. "
+                "Please take a look at te docs and upgrade to the new format version.[/yellow bold]"
             )
             return EnvironmentInfo.from_legacy(_env)
         else:
