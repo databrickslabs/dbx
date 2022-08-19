@@ -1,7 +1,6 @@
 import typer
 
 from dbx.commands.configure import configure
-from dbx.commands.datafactory import datafactory_app
 from dbx.commands.deploy import deploy
 from dbx.commands.execute import execute
 from dbx.commands.init import init
@@ -25,7 +24,6 @@ app.command(
     """,
 )(configure)
 
-app.add_typer(datafactory_app, name="datafactory", help=":blue_heart: Azure Data Factory integration utilities.")
 
 app.command(
     short_help="📦 Deploy project to artifact storage.",
