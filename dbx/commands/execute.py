@@ -58,7 +58,7 @@ def execute(
     _job = workflow if workflow else job
 
     if not _job:
-        raise Exception("Please either provide workflow name as an argument or --job as an option")
+        raise Exception("Please provide workflow name as an argument")
 
     dbx_echo(f"Executing job: {_job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
