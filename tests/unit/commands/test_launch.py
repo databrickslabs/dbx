@@ -93,7 +93,7 @@ def test_launch_no_arguments(
     prepare_job_service_mock(mocker, _chosen_job)
 
     launch_job_result = invoke_cli_runner(["launch"], expected_error=True)
-    assert "Please either provide workflow name as an argument or --job" in str(launch_job_result.exception)
+    assert "Please either provide workflow name as an argument" in str(launch_job_result.exception)
 
 
 def test_parametrized_tags(
