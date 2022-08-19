@@ -41,6 +41,7 @@ class EnvironmentInfo(BaseModel):
 
 class ProjectInfo(BaseModel):
     environments: Dict[str, Union[EnvironmentInfo, LegacyEnvironmentInfo]]
+    inplace_jinja_support: Optional[bool] = False
 
     def get_environment(self, name: str) -> EnvironmentInfo:
         _env = self.environments.get(name)

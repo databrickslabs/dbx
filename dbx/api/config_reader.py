@@ -7,6 +7,7 @@ from typing import List, Optional, Dict, Any
 import jinja2
 import yaml
 
+from dbx.api.configure import ProjectConfigurationManager
 from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo
 from dbx.utils import dbx_echo
 from dbx.utils.json import JsonUtils
@@ -82,12 +83,23 @@ class ConfigReader:
     def _define_reader(self) -> _AbstractConfigReader:
         if len(self._path.suffixes) > 1:
             if self._path.suffixes[0] in [".json", ".yaml", ".yml"] and self._path.suffixes[1] == ".j2":
+                dbx_echo(
+                    """[bright_magenta bold]You're using a deployment file with .j2 extension.
+                    if you would like to use Jinja directly inside YAML or JSON files without changing the extension,
+                    you can also configure your project to support in-place Jinja by running:
+                    [code]dbx configure --enable-inplace-jinja-support[/code][/bright_magenta bold]"""
+                )
                 return _Jinja2ConfigReader(
                     self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file
                 )
+        elif ProjectConfigurationManager().get_jinja_support():
+            return _Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file)
         else:
             if self._jinja_vars_file:
-                raise Exception("Jinja variables file is provided, but the deployment file is not based on Jinja.")
+                raise Exception(
+                    "Jinja variables file is provided, but the deployment file is not based on Jinja "
+                    "and inplace jinja support is not enabled for this project."
+                )
 
             if self._path.suffixes[0] == ".json":
                 return _JsonConfigReader(self._path)

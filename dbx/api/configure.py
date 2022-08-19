@@ -13,6 +13,11 @@ class JsonFileBasedManager:
             self._file.parent.mkdir(parents=True)
 
     def _read_typed(self) -> ProjectInfo:
+        if not self._file.exists():
+            raise FileNotFoundError(
+                f"Project file {self._file} doesn't exist. Please verify that you're in the correct directory"
+            )
+
         _content = JsonUtils.read(self._file)
         _typed = ProjectInfo(**_content)
         return _typed
@@ -22,11 +27,6 @@ class JsonFileBasedManager:
         self.create(name, environment_info)
 
     def get(self, name: str) -> Optional[EnvironmentInfo]:
-        if not self._file.exists():
-            raise FileNotFoundError(
-                f"Project file {self._file} doesn't exist. Please verify that you're in the correct directory"
-            )
-
         _typed = self._read_typed()
         return _typed.get_environment(name)
 
@@ -40,13 +40,22 @@ class JsonFileBasedManager:
         JsonUtils.write(self._file, _info.dict())
 
     def create_or_update(self, name: str, environment_info: EnvironmentInfo):
-        if self._file.exists() and self.get(name):
+        if self._file.exists():
             self.update(name, environment_info)
         else:
             self.create(name, environment_info)
 
+    def enable_jinja_support(self):
+        _typed = self._read_typed()
+        _typed.inplace_jinja_support = True
+        JsonUtils.write(self._file, _typed.dict())
 
-class ConfigurationManager:
+    def get_jinja_support(self) -> bool:
+        _result = self._read_typed().inplace_jinja_support if self._file.exists() else False
+        return _result
+
+
+class ProjectConfigurationManager:
     def __init__(self):
         self._manager = JsonFileBasedManager()
 
@@ -55,3 +64,9 @@ class ConfigurationManager:
 
     def get(self, environment_name: str) -> Optional[EnvironmentInfo]:
         return self._manager.get(environment_name)
+
+    def enable_jinja_support(self):
+        self._manager.enable_jinja_support()
+
+    def get_jinja_support(self) -> bool:
+        return self._manager.get_jinja_support()
