@@ -92,7 +92,8 @@ class PostProcessor:
     def process():
 
         configure(
-            environment="default", workspace_dir=WORKSPACE_DIR, artifact_location=ARTIFACT_LOCATION, profile=PROFILE
+            environment="default", workspace_dir=WORKSPACE_DIR, artifact_location=ARTIFACT_LOCATION, profile=PROFILE,
+            enable_inplace_jinja_support=False
         )
 
         env = Environment(loader=FileSystemLoader(COMPONENTS_PATH))

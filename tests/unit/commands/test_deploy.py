@@ -9,7 +9,7 @@ from databricks_cli.sdk import ApiClient, JobsService
 from requests import HTTPError
 
 from dbx.api.config_reader import ConfigReader
-from dbx.api.configure import ConfigurationManager, EnvironmentInfo
+from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.commands.deploy import (  # noqa
     _create_job,
@@ -119,7 +119,7 @@ def test_incorrect_location(tmp_path):
 
 def test_non_existent_env(mock_api_v2_client):
     env_name = "configured-but-not-provided"
-    ConfigurationManager().create_or_update(
+    ProjectConfigurationManager().create_or_update(
         env_name,
         EnvironmentInfo(
             profile="test",
@@ -131,18 +131,6 @@ def test_non_existent_env(mock_api_v2_client):
     deploy_result = invoke_cli_runner(["deploy", "--environment", env_name], expected_error=True)
     assert isinstance(deploy_result.exception, NameError)
     assert "non-existent in the deployment file" in str(deploy_result.exception)
-
-
-def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
-    result_file = ".dbx/deployment-result.json"
-    deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][0]
-    deploy_result = invoke_cli_runner(
-        ["deploy", "--environment=default", f"--write-specs-to-file={result_file}", _chosen],
-    )
-    assert deploy_result.exit_code == 0
-    _content = JsonUtils.read(Path(result_file))
-    assert _chosen in [j["name"] for j in _content["default"]["jobs"]]
 
 
 def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):

@@ -9,7 +9,7 @@ import pandas as pd
 from databricks_cli.sdk import ApiClient, JobsService
 from mlflow.tracking import MlflowClient
 
-from dbx.api.configure import ConfigurationManager
+from dbx.api.configure import ProjectConfigurationManager
 from dbx.constants import TERMINAL_RUN_LIFECYCLE_STATES
 from dbx.utils import dbx_echo
 
@@ -110,7 +110,7 @@ def find_deployment_run(
             With asset-based deployments (dbx_deployment_type='files_only')."""
             )
 
-        experiment_location = ConfigurationManager().get(environment).properties.workspace_directory
+        experiment_location = ProjectConfigurationManager().get(environment).properties.workspace_directory
         exception_string = (
             exception_string
             + f"""

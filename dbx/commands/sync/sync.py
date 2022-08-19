@@ -4,7 +4,7 @@ import click
 import typer
 from databricks_cli.configure.provider import ProfileConfigProvider
 
-from dbx.api.configure import ConfigurationManager
+from dbx.api.configure import ProjectConfigurationManager
 from dbx.commands.sync.functions import (
     create_path_matcher,
     main_loop,
@@ -160,7 +160,7 @@ def dbfs(
 
     if environment:
         dbx_echo("Environment option is provided, therefore environment-based config will be used")
-        _info = ConfigurationManager().get(environment)
+        _info = ProjectConfigurationManager().get(environment)
         config = ProfileConfigProvider(_info.profile).get_config()
     else:
         config = get_databricks_config(profile)
@@ -270,7 +270,7 @@ def repo(
 
     if environment:
         dbx_echo("Environment option is provided, therefore environment-based config will be used")
-        _info = ConfigurationManager().get(environment)
+        _info = ProjectConfigurationManager().get(environment)
         config = ProfileConfigProvider(_info.profile).get_config()
     else:
         config = get_databricks_config(profile)

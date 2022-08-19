@@ -11,7 +11,7 @@ from rich.console import Console
 
 from dbx.api.auth import ProfileEnvConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
-from dbx.api.configure import ConfigurationManager, EnvironmentInfo
+from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.utils import dbx_echo
 
@@ -31,7 +31,7 @@ def transfer_profile_name(info: EnvironmentInfo):
 
 
 def prepare_environment(env_name: str) -> ApiClient:
-    info = ConfigurationManager().get(env_name)
+    info = ProjectConfigurationManager().get(env_name)
     if not info:
         raise Exception(f"Environment {env_name} is not provided in the project file")
     transfer_profile_name(info)
@@ -55,7 +55,7 @@ def generate_filter_string(env: str, branch_name: Optional[str]) -> str:
 
 
 def get_environment_data(environment: str) -> EnvironmentInfo:
-    environment_data = ConfigurationManager().get(environment)
+    environment_data = ProjectConfigurationManager().get(environment)
 
     if not environment_data:
         raise Exception(f"No environment {environment} provided in the project file")
