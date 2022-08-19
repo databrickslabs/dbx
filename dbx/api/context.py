@@ -1,4 +1,3 @@
-import json
 import time
 from base64 import b64encode
 from pathlib import Path
@@ -8,20 +7,22 @@ from databricks_cli.sdk import ApiClient
 
 from dbx.api.client_provider import ApiV1Client
 from dbx.constants import LOCK_FILE_PATH
+from dbx.models.context import ContextInfo
 from dbx.utils import dbx_echo
+from dbx.utils.json import JsonUtils
 
 
 class LocalContextManager:
     context_file_path: Path = LOCK_FILE_PATH
 
     @classmethod
-    def set_context(cls, context_id: str) -> None:
-        cls.context_file_path.write_text(json.dumps({"context_id": context_id}), encoding="utf-8")
+    def set_context(cls, ctx: ContextInfo) -> None:
+        JsonUtils.write(cls.context_file_path, ctx.dict())
 
     @classmethod
-    def get_context(cls) -> Optional[str]:
+    def get_context(cls) -> Optional[ContextInfo]:
         if cls.context_file_path.exists():
-            return json.loads(cls.context_file_path.read_text(encoding="utf-8")).get("context_id")
+            return ContextInfo(**JsonUtils.read(cls.context_file_path))
         else:
             return None
 
@@ -90,17 +91,18 @@ class LowLevelExecutionContextClient:
             elif resp.get("status"):
                 return resp["status"] == "Running"
 
-    def __get_context_id(self, language: str):
+    def __get_context_id(self, language: str) -> str:
         dbx_echo("Preparing execution context")
-        lock_context_id = LocalContextManager.get_context()
+        ctx = LocalContextManager.get_context()
 
-        if self.__is_context_available(lock_context_id):
+        if self.__is_context_available(ctx.context_id):
             dbx_echo("Existing context is active, using it")
-            return lock_context_id
+            return ctx.context_id
         else:
             dbx_echo("Existing context is not active, creating a new one")
             context_id = self.__create_context(language)
-            LocalContextManager.set_context(context_id)
+            # we add additional str conversion here to make mocks in test work
+            LocalContextManager.set_context(ContextInfo(context_id=str(context_id)))
             dbx_echo("New context prepared, ready to use it")
             return context_id
 

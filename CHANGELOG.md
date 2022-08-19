@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Add `--workflows` argument to `dbx deploy`
 - ✨Add `--assets-only` and `--from-assets` as a clearer replacement for old arguments
 - ⚡️Add support for `--environment` parameter for `dbx sync` commands
+- ✨Add flexible parameter overriding logic for `dbx execute` via new `--parameters` option
+- ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunNow API)
+- ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunSubmit API)
 
 ## Changed
 - ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
@@ -23,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🏷️Deprecate `job` and `jobs` argument and rename it to `workflow`
 - ✨Refactored all cluster-relevant methods into a separate `ClusterController`
 - ✨Refactored model-related components for `.dbx/project.json` file
+- ✨Refactored `launch`-related API-level code
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 
 ## Fixed

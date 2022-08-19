@@ -29,7 +29,7 @@ class AbstractProcessor(abc.ABC):
 
     @abc.abstractmethod
     def process(self, object_reference: Dict[str, Any]):
-        pass
+        """"""
 
 
 class PolicyNameProcessor(AbstractProcessor):

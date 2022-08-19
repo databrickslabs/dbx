@@ -114,12 +114,12 @@ def deploy(
         )
 
     if workflow_name:
-        requested_jobs = [workflow_name]
-    else:
-        if workflows:
-            jobs = workflows
+        job = workflow_name
 
-        requested_jobs = _define_deployable_jobs(job, jobs)
+    if workflows:
+        jobs = workflows
+
+    requested_jobs = _define_deployable_jobs(job, jobs)
 
     _preprocess_deployment(deployment, requested_jobs)
 
@@ -217,7 +217,12 @@ def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str]
         dbx_echo(f"Deployment will be performed only for the following jobs: {requested_jobs}")
         for requested_job_name in requested_jobs:
             if requested_job_name not in job_names:
-                raise Exception(f"Job {requested_job_name} was requested, but not provided in deployment file")
+                raise Exception(
+                    f"""
+                Workflow {requested_job_name} was requested, but not provided in deployment file.
+                Available workflows are: {job_names}
+                """
+                )
         preprocessed_jobs = [job for job in jobs if job["name"] in requested_jobs]
     else:
         preprocessed_jobs = jobs
@@ -247,8 +252,8 @@ def _create_job(api_client: ApiClient, job: Dict[str, Any]) -> str:
         jobs_api = JobsApi(api_client)
         job_id = jobs_api.create_job(job)["job_id"]
     except HTTPError as e:
-        dbx_echo("Failed to create job with definition:")
-        dbx_echo(json.dumps(job, indent=4))
+        dbx_echo(":boom: Failed to create job with definition:")
+        dbx_echo(job)
         raise e
     return job_id
 
@@ -258,8 +263,8 @@ def _update_job(jobs_service: JobsService, job_id: str, job: Dict[str, Any]) -> 
     try:
         jobs_service.reset_job(job_id, job)
     except HTTPError as e:
-        dbx_echo("Failed to update job with definition:")
-        dbx_echo(json.dumps(job, indent=4))
+        dbx_echo(":boom: Failed to update job with definition:")
+        dbx_echo(job)
         raise e
 
     _acl = job.get("access_control_list")

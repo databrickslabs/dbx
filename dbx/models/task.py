@@ -5,6 +5,14 @@ from typing import List, Optional
 from pydantic import BaseModel, root_validator, validator
 
 
+def validate_named_parameters(values: List[str]):
+    for v in values:
+        if not v.startswith("--"):
+            raise ValueError(f"Named parameter shall start with --, provided value: {v}")
+        if "=" not in v:
+            raise ValueError(f"Named parameter shall contain equal sign, provided value: {v}")
+
+
 class TaskType(Enum):
     spark_python_task = "spark_python_task"
     python_wheel_task = "python_wheel_task"
@@ -14,6 +22,18 @@ class PythonWheelTask(BaseModel):
     package_name: str
     entry_point: str
     parameters: Optional[List[str]] = []
+    named_parameters: Optional[List[str]] = []
+
+    @root_validator(pre=True)
+    def validate_parameters(cls, values):  # noqa
+        if all(param in values for param in ["parameters", "named_parameters"]):
+            raise ValueError("Both named_parameters and parameters cannot be provided at the same time")
+        return values
+
+    @validator("named_parameters", pre=True)
+    def _validate_named_parameters(cls, values: List[str]):  # noqa
+        validate_named_parameters(values)
+        return values
 
 
 class SparkPythonTask(BaseModel):

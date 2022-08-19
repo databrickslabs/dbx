@@ -1,20 +1,15 @@
 from pathlib import Path
 from typing import List, Optional
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 
-import pytest
 from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
+from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.config_reader import ConfigReader
-from dbx.commands.launch import (
-    _cancel_run,
-    _define_payload_key,
-    _load_dbx_file,
-    _trace_run,
-)
+from dbx.api.launch.tracer import RunTracer
 from dbx.utils.json import JsonUtils
-from tests.unit.conftest import extract_function_name, invoke_cli_runner
+from tests.unit.conftest import invoke_cli_runner
 
 
 def deploy_and_get_job_name(deploy_args: Optional[List[str]] = None) -> str:
@@ -98,7 +93,7 @@ def test_launch_no_arguments(
     prepare_job_service_mock(mocker, _chosen_job)
 
     launch_job_result = invoke_cli_runner(["launch"], expected_error=True)
-    assert "Please either provide workflow name as an argument or --job" in str(launch_job_result.exception)
+    assert "Please provide workflow name as an argument" in str(launch_job_result.exception)
 
 
 def test_parametrized_tags(
@@ -148,7 +143,7 @@ def test_launch_run_submit(
     deployment_result = Path(".dbx/deployment-result.json")
     _chosen_job = deploy_and_get_job_name(["--files-only", "--write-specs-to-file", deployment_result])
     mocked_result = JsonUtils.read(deployment_result)
-    mocker.patch(extract_function_name(_load_dbx_file), MagicMock(return_value=mocked_result))
+    mocker.patch("dbx.api.launch.runners.load_dbx_file", MagicMock(return_value=mocked_result))
     launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--as-run-submit"])
     assert launch_result.exit_code == 0
 
@@ -175,6 +170,43 @@ def test_launch_with_output(
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
     launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--include-output=stdout"])
+    assert launch_result.exit_code == 0
+
+
+def test_launch_with_unparsable_params(
+    temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    launch_result = invoke_cli_runner(
+        ["launch", "--job", _chosen_job, "--parameters", "{very[bad]_json}"], expected_error=True
+    )
+    assert "Provided parameters payload cannot be" in launch_result.stdout
+
+
+def test_launch_with_run_now_v21_params(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload
+):
+    client_mock = MagicMock()
+    p = PropertyMock(return_value="2.1")
+    type(client_mock).jobs_api_version = p
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda: client_mock)
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+    launch_result = invoke_cli_runner(
+        ["launch", "--job", _chosen_job, "--parameters", '{"python_named_params":{"a":1}}']
+    )
+    assert launch_result.exit_code == 0
+
+
+def test_launch_with_run_now_v20_params(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload
+):
+    client_mock = MagicMock()
+    type(client_mock).jobs_api_version = PropertyMock(return_value="2.0")
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda: client_mock)
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+    launch_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--parameters", '{"python_params":[1,2]}'])
     assert launch_result.exit_code == 0
 
 
@@ -217,26 +249,9 @@ def test_launch_with_trace_and_kill_on_sigterm_with_interruption(
 ):
     _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
     prepare_job_service_mock(mocker, _chosen_job)
-    mocker.patch(extract_function_name(_trace_run), MagicMock(side_effect=[KeyboardInterrupt("stopped!")])),
-    cancel_run_mock = mocker.patch(extract_function_name(_cancel_run))
+    _tracer = mocker.patch.object(RunTracer, "start", return_value=("SUCCESS", {}))
     launch_result = invoke_cli_runner(
         ["launch", "--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace", "--kill-on-sigterm"]
     )
     assert launch_result.exit_code == 0
-    cancel_run_mock.assert_called_once()
-
-
-def test_payload_keys():
-    # here w check conversions towards API-based props
-    nb_task = {"notebook_task": "something"}
-    assert _define_payload_key(nb_task) == "notebook_params"
-
-    sj_task = {"spark_jar_task": "something"}
-    assert _define_payload_key(sj_task) == "jar_params"
-
-    sp_task = {"spark_python_task": "something"}
-    assert _define_payload_key(sp_task) == "python_params"
-    ssb_task = {"spark_submit_task": "something"}
-    assert _define_payload_key(ssb_task) == "spark_submit_params"
-    with pytest.raises(Exception):
-        _define_payload_key({})
+    _tracer.assert_called_once()

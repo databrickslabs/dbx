@@ -1,6 +1,8 @@
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from dbx.models.task import Task, TaskType, SparkPythonTask
 
@@ -45,6 +47,31 @@ def test_python_wheel_task():
     assert _result.spark_python_task is None
     assert _result.python_wheel_task is not None
     assert _result.task_type == TaskType.python_wheel_task
+
+
+def test_python_wheel_task_named():
+    _c = deepcopy(python_wheel_task_payload)
+    _c["python_wheel_task"].pop("parameters")
+    _c["python_wheel_task"]["named_parameters"] = ["--a=1", "--b=2"]
+    _result = Task(**_c)
+    assert _result.task_type == TaskType.python_wheel_task
+    assert _result.python_wheel_task.named_parameters is not None
+
+
+def test_python_wheel_task_named_invalid_prefix():
+    _c = deepcopy(python_wheel_task_payload)
+    _c["python_wheel_task"].pop("parameters")
+    _c["python_wheel_task"]["named_parameters"] = ["a", "--b=2"]
+    with pytest.raises(ValidationError):
+        Task(**_c)
+
+
+def test_python_wheel_task_named_invalid_equal():
+    _c = deepcopy(python_wheel_task_payload)
+    _c["python_wheel_task"].pop("parameters")
+    _c["python_wheel_task"]["named_parameters"] = ["--a"]
+    with pytest.raises(ValidationError):
+        Task(**_c)
 
 
 def test_negative():

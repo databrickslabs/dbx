@@ -35,7 +35,7 @@ from dbx.sync.config import get_databricks_config
 from dbx.utils import dbx_echo
 
 sync_app = typer.Typer(
-    short_help=":arrows_counterclockwise: Sync local files to Databricks and watch for changes",
+    short_help="🔄 Sync local files to Databricks and watch for changes",
     help="""
     Sync local files to Databricks and watch for changes, with support for syncing to either a path
     in `DBFS <https://docs.databricks.com/data/databricks-file-system.html>`_ or a
@@ -104,10 +104,10 @@ sync_app = typer.Typer(
 
 @sync_app.command(
     short_help="""
-    :file_folder: Syncs from a source directory to DBFS
+    📁 Syncs from a source directory to DBFS
     """,
     help="""
-    :file_folder:  Syncs from a source directory to DBFS
+    📁 Syncs from a source directory to DBFS
     """,
 )
 def dbfs(
@@ -217,10 +217,10 @@ def dbfs(
 
 @sync_app.command(
     short_help="""
-    :twisted_rightwards_arrows: Syncs from a source directory to a Databricks Repo
+    🔀 Syncs from a source directory to a Databricks Repo
     """,
     help="""
-    :twisted_rightwards_arrows: Syncs from a source directory to a Databricks Repo
+    🔀 Syncs from a source directory to a Databricks Repo
     """,
 )
 def repo(

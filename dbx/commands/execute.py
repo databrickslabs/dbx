@@ -8,7 +8,8 @@ from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
 from dbx.models.deployment import EnvironmentDeploymentInfo
-from dbx.models.task import Task
+from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
+from dbx.models.task import Task, TaskType
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -18,13 +19,14 @@ from dbx.options import (
     JINJA_VARIABLES_FILE_OPTION,
     DEBUG_OPTION,
     WORKFLOW_ARGUMENT,
+    EXECUTE_PARAMETERS_OPTION,
 )
 from dbx.utils import dbx_echo
 from dbx.utils.common import prepare_environment, handle_package
 
 
 def execute(
-    workflow_name: str = WORKFLOW_ARGUMENT,
+    workflow: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
     cluster_id: Optional[str] = typer.Option(None, "--cluster-id", help="Cluster ID."),
     cluster_name: Optional[str] = typer.Option(None, "--cluster-name", help="Cluster name."),
@@ -32,8 +34,8 @@ def execute(
     task: Optional[str] = typer.Option(
         None,
         "--task",
-        help="""Task name (task_key field) inside the job to be executed.
-             [red bold]Required if the --job is a multitask job[/red bold].""",
+        help="""Task name (task_key field) inside the workflow to be executed.
+             [red bold]Required if the workflow is a multitask job[/red bold].""",
     ),
     deployment_file: Path = DEPLOYMENT_FILE_OPTION,
     requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
@@ -46,16 +48,17 @@ def execute(
         help="Upload files via execution context",
     ),
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
+    parameters: Optional[str] = EXECUTE_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     api_client = prepare_environment(environment)
     controller = ClusterController(api_client)
     cluster_id = controller.preprocess_cluster_args(cluster_name, cluster_id)
 
-    _job = workflow_name if workflow_name else job
+    _job = workflow if workflow else job
 
     if not _job:
-        raise Exception("Please either provide workflow name as an argument or --job as an option")
+        raise Exception("Please provide workflow name as an argument")
 
     dbx_echo(f"Executing job: {_job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
@@ -96,6 +99,10 @@ def execute(
         _payload = job_payload
 
     task = Task(**_payload)
+
+    if parameters:
+        override_parameters(parameters, task)
+
     dbx_echo("Preparing interactive cluster to accept jobs")
     controller.awake_cluster(cluster_id)
 
@@ -120,3 +127,26 @@ def _verify_deployment(deployment: EnvironmentDeploymentInfo, deployment_file):
     env_jobs = deployment.payload.workflows
     if not env_jobs:
         raise RuntimeError(f"No jobs section found in environment {deployment.name}, please check the deployment file")
+
+
+def override_parameters(raw_params_info: str, task: Task):
+    param_info = ExecuteWorkloadParamInfo.from_string(raw_params_info)
+    if param_info.named_parameters is not None and task.task_type != TaskType.python_wheel_task:
+        raise Exception(f"named parameters are only supported if task type is {TaskType.python_wheel_task.value}")
+
+    if param_info.named_parameters:
+        dbx_echo(":twisted_rightwards_arrows:Overriding named_parameters section for the task")
+        task.python_wheel_task.named_parameters = param_info.named_parameters
+        task.python_wheel_task.parameters = []
+        dbx_echo(":white_check_mark:Overriding named_parameters section for the task")
+
+    if param_info.parameters:
+        dbx_echo(":twisted_rightwards_arrows:Overriding parameters section for the task")
+
+        if task.task_type == TaskType.python_wheel_task:
+            task.python_wheel_task.parameters = param_info.parameters
+            task.python_wheel_task.named_parameters = []
+        elif task.task_type == TaskType.spark_python_task:
+            task.spark_python_task.parameters = param_info.parameters
+
+        dbx_echo(":white_check_mark:Overriding parameters section for the task")

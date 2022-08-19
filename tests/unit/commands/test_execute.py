@@ -5,13 +5,32 @@ from databricks_cli.sdk import ApiClient, ClusterService
 
 from dbx.api.cluster import ClusterController
 from dbx.api.context import LocalContextManager
+from dbx.models.context import ContextInfo
 from tests.unit.conftest import invoke_cli_runner
 
 
 @pytest.fixture()
 def mock_local_context_manager(mocker):
     mocker.patch.object(LocalContextManager, "set_context", MagicMock())
-    mocker.patch.object(LocalContextManager, "get_context", MagicMock(return_value="some-context-id"))
+    mocker.patch.object(
+        LocalContextManager, "get_context", MagicMock(return_value=ContextInfo(context_id="some-context-id"))
+    )
+
+
+def test_smoke_execute_bad_argument(temp_project):
+    execute_result = invoke_cli_runner(
+        [
+            "execute",
+            "--cluster-id",
+            "000-some-cluster-id",
+            "--job",
+            f"{temp_project.name}-sample-etl-2.0",
+            "--parameters",
+            "{some-bad-json]",
+        ],
+        expected_error=True,
+    )
+    assert "Provided parameters payload cannot be" in execute_result.stdout
 
 
 def test_smoke_execute(
@@ -136,6 +155,82 @@ def test_smoke_execute_python_wheel_task(
                 f"{temp_project.name}-sample-multitask",
                 "--task",
                 "ml",
+            ],
+        )
+
+    assert execute_result.exit_code == 0
+
+
+def test_smoke_execute_python_wheel_task_with_params(
+    temp_project,
+    mock_api_v1_client,
+    mock_api_v2_client,
+    mock_local_context_manager,
+    mlflow_file_uploader,
+    mock_dbx_file_upload,
+):  # noqa
+    _params_options = ['{"parameters": ["a", 1]}', '{"named_parameters": ["--a=1", "--b=1"]}']
+    mock_retval = {
+        "status": "Finished",
+        "results": {"resultType": "Ok", "data": "Ok!"},
+    }
+    for _params in _params_options:
+        with patch(
+            "dbx.api.client_provider.ApiV1Client.get_command_status",
+            return_value=mock_retval,
+        ):
+            execute_result = invoke_cli_runner(
+                [
+                    "execute",
+                    "--deployment-file",
+                    "conf/deployment.yml",
+                    "--environment",
+                    "default",
+                    "--cluster-id",
+                    "000-some-cluster-id",
+                    "--job",
+                    f"{temp_project.name}-sample-multitask",
+                    "--task",
+                    "ml",
+                    "--parameters",
+                    _params,
+                ],
+            )
+
+        assert execute_result.exit_code == 0
+
+
+def test_smoke_execute_spark_python_task_with_params(
+    temp_project,
+    mock_api_v1_client,
+    mock_api_v2_client,
+    mock_local_context_manager,
+    mlflow_file_uploader,
+    mock_dbx_file_upload,
+):  # noqa
+    mock_retval = {
+        "status": "Finished",
+        "results": {"resultType": "Ok", "data": "Ok!"},
+    }
+    with patch(
+        "dbx.api.client_provider.ApiV1Client.get_command_status",
+        return_value=mock_retval,
+    ):
+        execute_result = invoke_cli_runner(
+            [
+                "execute",
+                "--deployment-file",
+                "conf/deployment.yml",
+                "--environment",
+                "default",
+                "--cluster-id",
+                "000-some-cluster-id",
+                "--job",
+                f"{temp_project.name}-sample-multitask",
+                "--task",
+                "etl",
+                "--parameters",
+                '{"parameters": ["a", 1]}',
             ],
         )
 
