@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 - 🚩Delete the Azure Data Factory-related functionality.
-    Unfortunately we're unable to make this integration stable and secure due to resource lack.
+    Unfortunately we're unable to make this integration stable and secure due to resource lack and lack of RunNow API.
 
 
 ## Fixed
