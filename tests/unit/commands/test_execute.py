@@ -17,6 +17,22 @@ def mock_local_context_manager(mocker):
     )
 
 
+def test_smoke_execute_bad_argument(temp_project):
+    execute_result = invoke_cli_runner(
+        [
+            "execute",
+            "--cluster-id",
+            "000-some-cluster-id",
+            "--job",
+            f"{temp_project.name}-sample-etl-2.0",
+            "--parameters",
+            "{some-bad-json]",
+        ],
+        expected_error=True,
+    )
+    assert "Provided parameters payload cannot be" in execute_result.stdout
+
+
 def test_smoke_execute(
     temp_project,
     mock_api_v1_client,

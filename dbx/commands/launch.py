@@ -101,7 +101,7 @@ def launch(
     _job = workflow if workflow else job
 
     if not _job:
-        raise Exception("Please either provide workflow name as an argument or --job as an option")
+        raise Exception("Please either provide workflow name as an argument")
 
     dbx_echo(f"Launching job {_job} on environment {environment}")
 

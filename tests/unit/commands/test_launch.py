@@ -173,6 +173,16 @@ def test_launch_with_output(
     assert launch_result.exit_code == 0
 
 
+def test_launch_with_unparsable_params(
+    temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    launch_result = invoke_cli_runner(
+        ["launch", "--job", _chosen_job, "--parameters", "{very[bad]_json}"], expected_error=True
+    )
+    assert "Provided parameters payload cannot be" in launch_result.stdout
+
+
 def test_launch_with_run_now_v21_params(
     mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload
 ):
