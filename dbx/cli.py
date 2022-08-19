@@ -14,9 +14,9 @@ app = typer.Typer(rich_markup_mode="rich")
 app.callback()(version_entrypoint)
 
 app.command(
-    short_help=":wrench: Configures project environment in the current folder.",
+    short_help="🔧 Configures project environment in the current folder.",
     help="""
-    :wrench: Configures project environment in the current folder.
+    🔧 Configures project environment in the current folder.
 
     This command might be used multiple times to change configuration or add new environment.
     If project file (located in [red].dbx/project.json[/red]) is non-existent, it will be initialized.
@@ -28,9 +28,9 @@ app.command(
 app.add_typer(datafactory_app, name="datafactory", help=":blue_heart: Azure Data Factory integration utilities.")
 
 app.command(
-    short_help=":hammer: Deploy project to artifact storage.",
+    short_help="📦 Deploy project to artifact storage.",
     help="""
-    :hammer: Deploy project to artifact storage.
+    📦 Deploy project to artifact storage.
 
     This command performs deployment to the given environment.
 
@@ -69,9 +69,9 @@ app.command(
 )(deploy)
 
 app.command(
-    short_help=":fire: Executes chosen workload on the interactive cluster.",
+    short_help="🔥 Executes chosen workload on the interactive cluster.",
     help="""
-    :fire: Executes chosen workload on the interactive cluster.
+    🔥Executes chosen workload on the interactive cluster.
 
     This command is very suitable to interactively execute your code on the interactive clusters.
 
@@ -96,9 +96,9 @@ app.command(
 )(execute)
 
 app.command(
-    short_help=":gem: Generates new project from the template",
+    short_help="💎Generates new project from the template",
     help="""
-    :gem: Generates new project from the template
+    💎Generates new project from the template
 
     Launching this command without :code:`--template-parameters` argument
     will open cookiecutter dialogue to enter the required parameters.
@@ -106,9 +106,9 @@ app.command(
 )(init)
 
 app.command(
-    short_help=":rocket: Launch the workload on a job cluster",
+    short_help="🚀Launch the workload on a job cluster",
     help="""
-    :rocket: Launch the workload on a job cluster
+    🚀Launch the workload on a job cluster
 
     This command will launch the given workload by it's name on a given environment.
 

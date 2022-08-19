@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from typing import Optional, Union, Tuple, Dict, Any
 
 from databricks_cli.sdk import ApiClient, JobsService
@@ -50,8 +51,83 @@ class RunSubmitLauncher:
 
         service = JobsService(self.api_client)
 
-        run_data = service.submit_run(**job_spec)
+        if self._parameters:
+            final_spec = self._add_parameters(job_spec, self._parameters)
+        else:
+            final_spec = job_spec
+
+        run_data = service.submit_run(**final_spec)
         return run_data, None
+
+    @staticmethod
+    def override_v2d0_parameters(_spec: Dict[str, Any], parameters: RunSubmitV2d0ParamInfo):
+        expected_task_key = parameters.get_task_key()
+        task_section = _spec.get(expected_task_key)
+        if not task_section:
+            raise ValueError(
+                f"""
+                        While overriding launch parameters the task key {expected_task_key} was not found in the
+                        workflow specification {_spec}.
+                        Please check that you override the task parameters correctly and
+                        accordingly to the RunSubmit V2.0 API.
+                    """
+            )
+
+        expected_parameters_key = parameters.get_defined_task().get_parameters_key()
+        task_section[expected_parameters_key] = parameters.get_defined_task().get_parameters()
+
+    @staticmethod
+    def override_v2d1_parameters(_spec: Dict[str, Any], parameters: RunSubmitV2d1ParamInfo):
+        tasks_in_spec = _spec.get("tasks")
+        if not tasks_in_spec:
+            raise ValueError(
+                f"""
+                    While overriding launch parameters the "tasks" section was not found in the
+                    workflow specification {_spec}.
+                    Please check that you override the task parameters correctly and
+                    accordingly to the RunSubmit V2.1 API.
+                """
+            )
+        for _task in parameters.tasks:
+            if _task.task_key not in [t.get("task_key") for t in tasks_in_spec]:
+                raise ValueError(
+                    f"""
+                    While overriding launch parameters task with key {_task.task_key} was not found in the tasks
+                    specification {tasks_in_spec}.
+                    Please check that you override the task parameters correctly and
+                    accordingly to the RunSubmit V2.1 API.
+                """
+                )
+
+            _task_container_spec = [t for t in tasks_in_spec if t["task_key"] == _task.task_key][0]
+            _task_spec = _task_container_spec.get(_task.get_task_key())
+
+            if not _task_spec:
+                raise ValueError(
+                    f"""
+                    While overriding launch parameters task with key {_task.task_key} was found in the tasks
+                    specification, but task has a different type then the provided parameters:
+
+                    Provided parameters: {_task.dict(exclude_none=True)}
+                    Task payload: {_task_spec}
+
+                    Please check that you override the task parameters correctly and
+                    accordingly to the RunSubmit V2.1 API.
+                    """
+                )
+            expected_parameters_key = _task.get_defined_task().get_parameters_key()
+            _task_spec[expected_parameters_key] = _task.get_defined_task().get_parameters()
+
+    def _add_parameters(
+        self, workflow_spec: Dict[str, Any], parameters: Union[RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo]
+    ) -> Dict[str, Any]:
+        _spec = deepcopy(workflow_spec)
+
+        if isinstance(parameters, RunSubmitV2d0ParamInfo):
+            self.override_v2d0_parameters(_spec, parameters)
+        else:
+            self.override_v2d1_parameters(_spec, parameters)
+        return _spec
 
 
 class RunNowLauncher:

@@ -5,13 +5,16 @@ from databricks_cli.sdk import ApiClient, ClusterService
 
 from dbx.api.cluster import ClusterController
 from dbx.api.context import LocalContextManager
+from dbx.models.context import ContextInfo
 from tests.unit.conftest import invoke_cli_runner
 
 
 @pytest.fixture()
 def mock_local_context_manager(mocker):
     mocker.patch.object(LocalContextManager, "set_context", MagicMock())
-    mocker.patch.object(LocalContextManager, "get_context", MagicMock(return_value="some-context-id"))
+    mocker.patch.object(
+        LocalContextManager, "get_context", MagicMock(return_value=ContextInfo(context_id="some-context-id"))
+    )
 
 
 def test_smoke_execute(

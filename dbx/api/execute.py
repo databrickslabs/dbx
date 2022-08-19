@@ -45,7 +45,8 @@ class ExecutionController:
         dbx_echo("Entrypoint execution finished")
 
     def run(self):
-        self.install_requirements_file()
+        if self._requirements_file.exists():
+            self.install_requirements_file()
 
         if not self._no_package:
             self.install_package()
@@ -64,14 +65,11 @@ class ExecutionController:
             mlflow.end_run()
 
     def install_requirements_file(self):
-        if self._requirements_file.exists():
-            dbx_echo("Installing provided requirements")
-            localized_requirements_path = self._file_uploader.upload_and_provide_path(
-                self._requirements_file, as_fuse=True
-            )
-            installation_command = f"%pip install -U -r {localized_requirements_path}"
-            self._client.client.execute_command(installation_command, verbose=False)
-            dbx_echo("Provided requirements installed")
+        dbx_echo("Installing provided requirements")
+        localized_requirements_path = self._file_uploader.upload_and_provide_path(self._requirements_file, as_fuse=True)
+        installation_command = f"%pip install -U -r {localized_requirements_path}"
+        self._client.client.execute_command(installation_command, verbose=False)
+        dbx_echo("Provided requirements installed")
 
     def install_package(self):
         package_file = get_package_file()

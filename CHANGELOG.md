@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🏷️Deprecate `job` and `jobs` argument and rename it to `workflow`
 - ✨Refactored all cluster-relevant methods into a separate `ClusterController`
 - ✨Refactored model-related components for `.dbx/project.json` file
+- ✨Refactored `launch`-related API-level code
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 
 ## Fixed
