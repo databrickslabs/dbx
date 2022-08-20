@@ -44,8 +44,8 @@ def test_jinja_functions(temp_with_file):
 
 def test_nested_vars_behaviour(temp_with_file):
     expected_value = 1
-    _file = f"""
-    test: {{{{ var["l1"]["l2"] }}}}
+    _file = """
+    test: {{ var["l1"]["l2"] }}
     """
     _sample_file = temp_with_file[0].parent / "sample.yml"
     _sample_file.write_text(_file)
