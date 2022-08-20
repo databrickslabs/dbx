@@ -33,7 +33,7 @@ def test_latest_file_func(temp_with_file):
 def test_jinja_functions(temp_with_file):
     # quadruple quotes here because of f-string
     _file = f"""
-    latest_path: {{{{ dbx.get_latest_file_from_path('{temp_with_file[0]}', "dat") }}}}
+    latest_path: {{{{ dbx.get_last_modified_file('{temp_with_file[0]}', "dat") }}}}
     """
     _sample_file = temp_with_file[0].parent / "sample.yml"
     _sample_file.write_text(_file)
