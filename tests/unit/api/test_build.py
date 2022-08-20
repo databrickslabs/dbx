@@ -28,3 +28,11 @@ def test_poetry(mocker: MockerFixture):
     conf = BuildConfiguration(python="poetry")
     prepare_build(conf)
     exec_mock.assert_called_once_with("-m poetry build -f wheel", with_python_executable=True)
+
+
+def test_flit(mocker: MockerFixture):
+    exec_mock = MagicMock()
+    mocker.patch("dbx.api.build.execute_shell_command", exec_mock)
+    conf = BuildConfiguration(python="flit")
+    prepare_build(conf)
+    exec_mock.assert_called_once_with("-m flit build --format wheel", with_python_executable=True)

@@ -26,6 +26,7 @@ class Deployment(BaseModel):
 class PythonBuild(str, Enum):
     pip = "pip"
     poetry = "poetry"
+    flit = "flit"
 
 
 class BuildConfiguration(BaseModel):

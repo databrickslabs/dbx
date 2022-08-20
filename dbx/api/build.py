@@ -46,8 +46,11 @@ def prepare_build(build_config: BuildConfiguration):
         elif build_config.python:
             dbx_echo("🐍 Building a Python-based project")
             cleanup_dist()
+
             if build_config.python == PythonBuild.poetry:
                 command = "-m poetry build -f wheel"
+            elif build_config.python == PythonBuild.flit:
+                command = "-m flit build --format wheel"
             else:
                 command = "-m pip wheel -w dist -e . --prefer-binary --no-deps"
 
