@@ -16,8 +16,9 @@ DEV_REQUIREMENTS = [
     "wheel",
     # versions set in accordance with DBR 10.4 ML Runtime
     "pyspark==3.2.1",
-    "pyyaml",
     "delta-spark==1.1.0",
+    # generic dependencies
+    "pyyaml",
     "scikit-learn",
     "pandas",
     "mlflow",
