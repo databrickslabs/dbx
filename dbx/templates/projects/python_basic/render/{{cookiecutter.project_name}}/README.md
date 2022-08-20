@@ -14,7 +14,7 @@ conda activate {{cookiecutter.project_slug}}
 
 2. If you don't have JDK installed on your local machine, install it (in this example we use `conda`-based installation):
 ```bash
-conda install -c conda-forge openjdk
+conda install -c conda-forge openjdk=11.0.15
 ```
 
 3. Install project in a dev mode (this will also install dev requirements):
@@ -67,9 +67,8 @@ dbx launch <workflow-name>  --from-assets --trace
 2. Please configure your workflow (and tasks inside it) in `conf/deployment.yml` file.
 3. To execute the code interactively, provide either `--cluster-id` or `--cluster-name`.
 ```bash
-dbx execute \
-    --cluster-name="<some-cluster-name>" \
-    --job=job-name
+dbx execute <workflow-name> \
+    --cluster-name="<some-cluster-name>"
 ```
 
 Multiple users also can use the same cluster for development. Libraries will be isolated per each user execution context.
