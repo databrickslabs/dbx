@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Add inplace Jinja support for YAML and JSON files, can be configured via `dbx configure --enable-inplace-jinja-support`
 - ✨Add build logic options for `pip` and `poetry`
 - ✨Add build logic customization with `build.commands` section
-
+- ✨Add support for custom Python functions in Jinja templates
 
 ## Changed
 - ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.

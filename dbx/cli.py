@@ -69,7 +69,7 @@ app.command(
 app.command(
     short_help="🔥 Executes chosen workload on the interactive cluster.",
     help="""
-    🔥Executes chosen workload on the interactive cluster.
+    🔥 Executes chosen workload on the interactive cluster.
 
     This command is very suitable to interactively execute your code on the interactive clusters.
 
@@ -94,9 +94,9 @@ app.command(
 )(execute)
 
 app.command(
-    short_help="💎Generates new project from the template",
+    short_help="💎 Generates new project from the template",
     help="""
-    💎Generates new project from the template
+    💎 Generates new project from the template
 
     Launching this command without :code:`--template-parameters` argument
     will open cookiecutter dialogue to enter the required parameters.
@@ -104,9 +104,9 @@ app.command(
 )(init)
 
 app.command(
-    short_help="🚀Launch the workload on a job cluster",
+    short_help="🚀 Launch the workload on a job cluster",
     help="""
-    🚀Launch the workload on a job cluster
+    🚀 Launch the workload on a job cluster
 
     This command will launch the given workload by it's name on a given environment.
 
