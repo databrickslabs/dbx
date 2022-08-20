@@ -59,7 +59,7 @@ def test_smoke_execute(
                 "000-some-cluster-id",
                 "--job",
                 f"{temp_project.name}-sample-etl",
-                "--task=main"
+                "--task=main",
             ],
         )
 
