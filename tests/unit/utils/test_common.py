@@ -35,7 +35,7 @@ json_j2_file_09 = get_path_with_relation_to_current_file(
 )
 
 
-def test_all_file_formats_can_be_read():
+def test_all_file_formats_can_be_read(temp_project):
     json_default_envs = ConfigReader(json_file_01).get_all_environment_names()
     yaml_default_envs = ConfigReader(yaml_file_01).get_all_environment_names()
     jinja_json_default_envs = ConfigReader(jinja_json_file_01).get_all_environment_names()
@@ -44,7 +44,7 @@ def test_all_file_formats_can_be_read():
     assert json_default_envs == yaml_default_envs == jinja_json_default_envs == jinja_yaml_default_envs
 
 
-def test_all_file_formats_contents_match():
+def test_all_file_formats_contents_match(temp_project):
     json_default_env = ConfigReader(json_file_01).get_environment("default")
     yaml_default_env = ConfigReader(yaml_file_01).get_environment("default")
     jinja_json_default_env = ConfigReader(jinja_json_file_01).get_environment("default")
@@ -54,7 +54,7 @@ def test_all_file_formats_contents_match():
 
 
 @mock.patch.dict(os.environ, {"TIMEOUT": "100"}, clear=True)
-def test_jinja_files_with_env_variables_scalar_type():
+def test_jinja_files_with_env_variables_scalar_type(temp_project):
     """
     JINJA2: Simple Scalar (key-value) type for timeout_seconds parameter
     """
@@ -70,7 +70,7 @@ def test_jinja_files_with_env_variables_scalar_type():
 
 
 @mock.patch.dict(os.environ, {"ALERT_EMAIL": "test@test.com"}, clear=True)
-def test_jinja_files_with_env_variables_array_type():
+def test_jinja_files_with_env_variables_array_type(temp_project):
     """
     JINJA2: In email_notification.on_failure, the first email has been set via env variables
     """
@@ -84,7 +84,7 @@ def test_jinja_files_with_env_variables_array_type():
     assert json_emails[0] == "test@test.com"
 
 
-def test_jinja_file_with_env_variables_default_values():
+def test_jinja_file_with_env_variables_default_values(temp_project):
     """
     JINJA:
     max_retries is set to {{ env['MAX_RETRY'] | default(3) }};
@@ -108,7 +108,7 @@ def test_jinja_file_with_env_variables_default_values():
 
 
 @mock.patch.dict(os.environ, {"ENVIRONMENT": "PRODUCTION"}, clear=True)
-def test_jinja_files_with_env_variables_logic_1():
+def test_jinja_files_with_env_variables_logic_1(temp_project):
     """
     JINJA:
     - max_retries is set to {{ MAX_RETRY | default(-1) }} if (ENVIRONMENT.lower() == "production"),
@@ -135,7 +135,7 @@ def test_jinja_files_with_env_variables_logic_1():
 
 
 @mock.patch.dict(os.environ, {"ENVIRONMENT": "test"}, clear=True)
-def test_jinja_files_with_env_variables_logic_2():
+def test_jinja_files_with_env_variables_logic_2(temp_project):
     """
     JINJA:
     - max_retries is set to {{ MAX_RETRY | default(-1) }} if (ENVIRONMENT == "production"),
@@ -159,7 +159,7 @@ def test_jinja_files_with_env_variables_logic_2():
     assert yaml_emails is None
 
 
-def test_jinja_with_include():
+def test_jinja_with_include(temp_project):
     """Ensure that templates from other directories can be included.
 
     In this test, the top level jinja template includes another template which describes the
