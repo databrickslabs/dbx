@@ -6,7 +6,6 @@ import pytest
 import yaml
 
 from dbx.api.config_reader import Jinja2ConfigReader
-from dbx.api.jinja import get_last_modified_file
 from dbx.constants import CUSTOM_JINJA_FUNCTIONS_PATH
 
 
@@ -23,23 +22,18 @@ def temp_with_file(tmp_path) -> Tuple[Path, Path]:
     return _content_path, last
 
 
-def test_latest_file_func(temp_with_file):
-    latest = get_last_modified_file(str(temp_with_file[0]), "dat")
-    assert str(temp_with_file[1]) == latest
-
-    assert get_last_modified_file(str(temp_with_file[0]), "nbat") is None
-
-
 def test_jinja_functions(temp_with_file):
     # quadruple quotes here because of f-string
     _file = f"""
     latest_path: {{{{ dbx.get_last_modified_file('{temp_with_file[0].as_posix()}', "dat") }}}}
+    latest_empty_path: {{{{ dbx.get_last_modified_file('{temp_with_file[0].as_posix()}', "wdat") or "null" }}}}
     """
     _sample_file = temp_with_file[0].parent / "sample.yml"
     _sample_file.write_text(_file)
     result = Jinja2ConfigReader._render_content(_sample_file, {})
     _content = yaml.load(result, yaml.SafeLoader)
     assert _content["latest_path"] == str(temp_with_file[1])
+    assert _content["latest_empty_path"] is None
 
 
 def test_nested_vars_behaviour(temp_with_file):
