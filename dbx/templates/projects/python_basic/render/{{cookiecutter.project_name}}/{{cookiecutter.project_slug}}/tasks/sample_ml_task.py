@@ -20,7 +20,7 @@ class SampleMLTask(Task):
         return _data
 
     @staticmethod
-    def _get_pipeline() -> Pipeline:
+    def get_pipeline() -> Pipeline:
         pipeline = Pipeline([
             ("scaler", StandardScaler()),
             ('random_forest', RandomForestRegressor())
@@ -29,7 +29,7 @@ class SampleMLTask(Task):
 
     def _train_model(self):
         mlflow.sklearn.autolog()
-        pipeline = self._get_pipeline()
+        pipeline = self.get_pipeline()
         data = self._read_data()
         X = data.drop(self.TARGET_COLUMN, axis=1)
         y = data[self.TARGET_COLUMN]

@@ -5,7 +5,7 @@ stages:
 
 unit-testing:
   stage: unit-testing
-  image: python:3.7-stretch
+  image: python:3.8-stretch
   script:
     - echo "Install dependencies"
     - apt-get update
@@ -21,9 +21,9 @@ integration-testing:
     - echo "Install dependencies"
     - pip install -e ".[dev]"
     - echo "Deploying tests"
-    - dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
+    - dbx deploy {{project_name}}-sample-etl --assets-only
     - echo "Running tests"
-    - dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
+    - dbx launch {{project_name}}-sample-etl --from-assets --trace
 
 release:
   stage: release
@@ -35,4 +35,4 @@ release:
     - echo "Install dependencies"
     - pip install -e ".[dev]"
     - echo "Deploying Job"
-    - dbx deploy --job={{project_name}}-sample-multitask
+    - dbx deploy {{project_name}}-sample-etl

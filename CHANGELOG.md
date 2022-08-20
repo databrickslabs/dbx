@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunNow API)
 - ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunSubmit API)
 - ✨Add inplace Jinja support for YAML and JSON files, can be configured via `dbx configure --enable-inplace-jinja-support`
-- ✨Add build logic options for `pip` and `poetry`
+- ✨Add build logic options for `pip`, `poetry` and `flit`
 - ✨Add build logic customization with `build.commands` section
 - ✨Add support for custom Python functions in Jinja templates
 

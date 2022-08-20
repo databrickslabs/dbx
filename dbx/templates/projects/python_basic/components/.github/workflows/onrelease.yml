@@ -35,9 +35,9 @@ jobs:
         run: |
           pip install -e ".[dev]"
 
-      - name: Deploy the job
+      - name: Deploy the workflow as a job
         run: |
-          dbx deploy --job={{project_name}}-sample-etl-2.0
+          dbx deploy {{project_name}}-sample-etl
 
       - name: Create Release
         id: create_release

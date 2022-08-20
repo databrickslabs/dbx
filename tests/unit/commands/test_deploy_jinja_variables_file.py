@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 from dbx.api.config_reader import ConfigReader, Jinja2ConfigReader
+from dbx.api.configure import ProjectConfigurationManager
 from tests.unit.conftest import (
     get_path_with_relation_to_current_file,
     invoke_cli_runner,
@@ -25,6 +26,7 @@ def test_passed_with_unsupported(temp_project: Path, mlflow_file_uploader, mock_
     src_vars_file = get_path_with_relation_to_current_file(f"../deployment-configs/jinja-vars/{file_name}")
     dst_vars_file = Path("./conf") / file_name
     shutil.copy(src_vars_file, dst_vars_file)
+    ProjectConfigurationManager().disable_jinja_support()
 
     deploy_result = invoke_cli_runner(["deploy", "--jinja-variables-file", str(dst_vars_file)], expected_error=True)
 

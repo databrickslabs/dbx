@@ -40,7 +40,7 @@ class ExecutionController:
         dbx_echo("Command execution finished")
 
     def execute_entrypoint(self, task: PythonWheelTask):
-        dbx_echo(f"Starting execution from task definition: {task}")
+        dbx_echo("Starting entrypoint execution")
         self._client.execute_entry_point(task.package_name, task.entry_point)
         dbx_echo("Entrypoint execution finished")
 

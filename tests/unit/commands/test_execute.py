@@ -24,7 +24,7 @@ def test_smoke_execute_bad_argument(temp_project):
             "--cluster-id",
             "000-some-cluster-id",
             "--job",
-            f"{temp_project.name}-sample-etl-2.0",
+            f"{temp_project.name}-sample-etl",
             "--parameters",
             "{some-bad-json]",
         ],
@@ -58,7 +58,8 @@ def test_smoke_execute(
                 "--cluster-id",
                 "000-some-cluster-id",
                 "--job",
-                f"{temp_project.name}-sample-etl-2.0",
+                f"{temp_project.name}-sample-etl",
+                "--task=main",
             ],
         )
 
@@ -86,7 +87,8 @@ def test_smoke_execute_workflow(
                 "--deployment-file=conf/deployment.yml",
                 "--environment=default",
                 "--cluster-id=000-some-cluster-id",
-                f"{temp_project.name}-sample-etl-2.0",
+                f"{temp_project.name}-sample-etl",
+                "--task=main",
             ],
         )
 
