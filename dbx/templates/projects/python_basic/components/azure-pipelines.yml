@@ -43,12 +43,12 @@ stages:
       displayName: 'Run Unit tests'
 
     - script: |
-        python -m dbx deploy --job={{project_name}}-sample-etl-2.0 --files-only
-      displayName: 'Deploy integration test'
+        python -m dbx deploy {{project_name}}-sample-etl --assets-only
+      displayName: 'Deploy workflow assets'
 
     - script: |
-        python -m dbx launch --job={{project_name}}-sample-etl-2.0 --as-run-submit --trace
-      displayName: 'Launch integration on test'
+        python -m dbx launch {{project_name}}-sample-etl --from-assets --trace
+      displayName: 'Launch workflow from assets'
 
     - task: PublishTestResults@2
       condition: succeededOrFailed()
@@ -92,7 +92,7 @@ stages:
         displayName: 'Run Unit tests'
 
       - script: |
-          python -m dbx deploy --job={{project_name}}-sample-etl-2.0
+          python -m dbx deploy {{project_name}}-sample-etl
         displayName: 'Deploy the job'
 
       - task: PublishTestResults@2

@@ -43,37 +43,36 @@ For quicker startup of the job clusters we recommend using instance pools ([AWS]
 
 For an integration test on interactive cluster, use the following command:
 ```
-dbx execute --cluster-name=<name of interactive cluster> --job=<name of the job to test>
+dbx execute <workload-name> --cluster-name=<name of interactive cluster>
 ```
 
 To execute a task inside multitask job, use the following command:
 ```
-dbx execute \
+dbx execute <workflow-name> \
     --cluster-name=<name of interactive cluster> \
     --job=<name of the job to test> \
     --task=<task-key-from-job-definition>
 ```
 
-For a test on an automated job cluster, deploy the job files and then launch:
+For a test on a job cluster, deploy the job assets and then launch a run from them:
 ```
-dbx deploy --jobs=<name of the job to test> --files-only
-dbx launch --job=<name of the job to test> --as-run-submit --trace
+dbx deploy <workflow-name> --assets-only
+dbx launch <workflow-name>  --from-assets --trace
 ```
 
-Please note that for testing we recommend using [jobless deployments](https://dbx.readthedocs.io/en/latest/guidance/run_submit.html), so you won't affect existing job definitions.
 
 ## Interactive execution and development on Databricks clusters
 
 1. `dbx` expects that cluster for interactive execution supports `%pip` and `%conda` magic [commands](https://docs.databricks.com/libraries/notebooks-python-libraries.html).
-2. Please configure your job in `conf/deployment.yml` file.
-2. To execute the code interactively, provide either `--cluster-id` or `--cluster-name`.
+2. Please configure your workflow (and tasks inside it) in `conf/deployment.yml` file.
+3. To execute the code interactively, provide either `--cluster-id` or `--cluster-name`.
 ```bash
 dbx execute \
     --cluster-name="<some-cluster-name>" \
     --job=job-name
 ```
 
-Multiple users also can use the same cluster for development. Libraries will be isolated per each execution context.
+Multiple users also can use the same cluster for development. Libraries will be isolated per each user execution context.
 
 ## Working with notebooks and Repos
 

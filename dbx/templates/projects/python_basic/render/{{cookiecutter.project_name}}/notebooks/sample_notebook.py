@@ -24,5 +24,5 @@
 
 from {{cookiecutter.project_slug}}.tasks.sample_ml_task import SampleMLTask
 
-pipeline = SampleMLTask._get_pipeline()
+pipeline = SampleMLTask.get_pipeline()
 print(pipeline)

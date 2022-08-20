@@ -1,4 +1,4 @@
 input:
   database: "default"
   table: "sklearn_housing"
-experiment: "/Shared/{{cookiecutter.project_name}}/sample_experiment"
+experiment: "/Shared/{{cookiecutter.project_name}}_experiment"

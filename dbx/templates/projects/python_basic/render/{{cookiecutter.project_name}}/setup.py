@@ -8,20 +8,24 @@ Please follow the `entry_points` documentation for more details on how to config
 from setuptools import find_packages, setup
 from {{cookiecutter.project_slug}} import __version__
 
-PACKAGE_REQUIREMENTS = ["PyYAML"]
+PACKAGE_REQUIREMENTS = ["pyyaml"]
 
 DEV_REQUIREMENTS = [
+    # installation & build
     "setuptools",
     "wheel",
-    "pyspark",
-    "pyyaml",
+    # versions set in accordance with DBR 10.4 ML Runtime
+    "pyspark==3.2.1",
+    "pyyaml==5.4.1",
+    "delta-spark==1.1.0",
+    "scikit-learn==0.24.1",
+    "pandas==1.2.4",
+    "mlflow==1.24.0",
+    # development & testing tools
     "pytest",
+    "coverage[toml]",
     "pytest-cov",
-    "dbx",
-    "mlflow",
-    "delta-spark",
-    "scikit-learn",
-    "pandas"
+    "dbx>=0.7,<0.8"
 ]
 
 setup(

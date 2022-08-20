@@ -2,7 +2,7 @@
 # Please read YAML documentation for details on how to use substitutions and anchors.
 custom:
   basic-cluster-props: &basic-cluster-props
-    spark_version: "9.1.x-cpu-ml-scala2.12"
+    spark_version: "10.4.x-cpu-ml-scala2.12"
 
   basic-static-cluster: &basic-static-cluster
     new_cluster:
@@ -13,43 +13,18 @@ custom:
 # please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
 environments:
   default:
-    jobs:
-      ##################################################################
-      # this is an example job with single ETL task based on 2.0 API  #
-      #################################################################
-      - name: "{{project_name}}-sample-etl-2.0"
-        <<: *basic-static-cluster
-        spark_python_task:
-          python_file: "file://{{project_slug}}/tasks/sample_etl_task.py"
-          parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
+    workflows:
       #######################################################################################
       # this is an example job with single ETL task based on 2.1 API and wheel_task format #
       ######################################################################################
       - name: "{{project_name}}-sample-etl"
-        job_clusters:
-          - job_cluster_key: "default"
-            <<: *basic-static-cluster
         tasks:
           - task_key: "main"
-            job_cluster_key: "default"
+            <<: *basic-static-cluster
             python_wheel_task:
               package_name: "{{project_slug}}"
               entry_point: "etl" # take a look at the setup.py entry_points section for details on how to define an entrypoint
               parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
-      ###############################################
-      # this is an example job with single ML task  #
-      ###############################################
-      - name: "{{project_name}}-sample-ml"
-        job_clusters:
-          - job_cluster_key: "default"
-            <<: *basic-static-cluster
-        tasks:
-          - task_key: "main"
-            job_cluster_key: "default"
-            python_wheel_task:
-              package_name: "{{project_slug}}"
-              entry_point: "ml"
-              parameters: [ "--conf-file", "file:fuse://conf/test/sample_ml_config.yml" ]
       #############################################################
       # this is an example multitask job with notebook task       #
       #############################################################
