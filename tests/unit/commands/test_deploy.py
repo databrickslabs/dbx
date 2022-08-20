@@ -45,7 +45,7 @@ def test_deploy_assets_only_smoke_default(
     assert deploy_result.exit_code == 0
 
 
-def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
     for file_name in ["03-multitask-job.json", "03-multitask-job.yaml"]:
         deployment_file = Path("./conf/") / file_name
@@ -70,7 +70,7 @@ def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock
         assert "libraries" in _content["default"]["jobs"][0]["tasks"][0]
 
 
-def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
     for file_name in ["04-path-adjustment-policy.json", "04-path-adjustment-policy.yaml"]:
         deployment_file = Path("./conf/") / file_name
@@ -117,7 +117,7 @@ def test_incorrect_location(tmp_path):
         MlflowStorageConfigurationManager._setup_experiment(_wrong_info)
 
 
-def test_non_existent_env(mock_api_v2_client):
+def test_non_existent_env(mock_api_v2_client, temp_project):
     env_name = "configured-but-not-provided"
     ProjectConfigurationManager().create_or_update(
         env_name,
@@ -133,7 +133,7 @@ def test_non_existent_env(mock_api_v2_client):
     assert "non-existent in the deployment file" in str(deploy_result.exception)
 
 
-def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
     _chosen = [j["name"] for j in deployment_info.payload.workflows][0]
@@ -145,7 +145,7 @@ def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload,
     assert _chosen in [j["name"] for j in _content["default"]["jobs"]]
 
 
-def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
     _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
@@ -157,7 +157,7 @@ def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, moc
     assert _chosen == [j["name"] for j in _content["default"]["jobs"]]
 
 
-def test_deploy_only_chosen_workflows(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_deploy_only_chosen_workflows(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
     _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
@@ -169,7 +169,7 @@ def test_deploy_only_chosen_workflows(mlflow_file_uploader, mock_dbx_file_upload
     assert _chosen == [j["name"] for j in _content["default"]["jobs"]]
 
 
-def test_negative_both_arguments(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_negative_both_arguments(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
     _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
@@ -190,7 +190,9 @@ def test_negative_both_arguments(mlflow_file_uploader, mock_dbx_file_upload, moc
     assert "cannot be provided together" in str(deploy_result.exception)
 
 
-def test_deploy_with_requirements_and_branch(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_deploy_with_requirements_and_branch(
+    mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project
+):
     sample_requirements = "\n".join(["pyspark==3.0.0", "xgboost==0.6.0", "pyspark3d"])
     Path("runtime_requirements.txt").write_text(sample_requirements)
 
@@ -236,7 +238,7 @@ def test_preprocess_jobs():
         _preprocess_jobs([], ["some-job-name"])
 
 
-def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     deployment_file = Path("conf/deployment.yml")
     deploy_content = yaml.safe_load(deployment_file.read_text())
 

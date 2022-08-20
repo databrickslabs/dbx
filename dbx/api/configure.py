@@ -9,8 +9,6 @@ from dbx.utils.json import JsonUtils
 class JsonFileBasedManager:
     def __init__(self, file_path: Optional[Path] = PROJECT_INFO_FILE_PATH):
         self._file = file_path.absolute()
-        if not self._file.parent.exists():
-            self._file.parent.mkdir(parents=True)
 
     def _read_typed(self) -> ProjectInfo:
         if not self._file.exists():
@@ -36,7 +34,8 @@ class JsonFileBasedManager:
             _info.environments.update({name: environment_info})
         else:
             _info = ProjectInfo(environments={name: environment_info})
-
+            if not self._file.parent.exists():
+                self._file.parent.mkdir(parents=True)
         JsonUtils.write(self._file, _info.dict())
 
     def create_or_update(self, name: str, environment_info: EnvironmentInfo):

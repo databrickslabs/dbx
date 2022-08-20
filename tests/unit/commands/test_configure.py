@@ -88,7 +88,7 @@ def test_config_update(temp_project: Path):
     assert env.properties.workspace_directory == new_ws_dir
 
 
-def test_configure_from_legacy():
+def test_configure_from_legacy(temp_project):
     w_dir_legacy = "/Shared/dbx/some-dir"
     art_loc_legacy = "dbfs:/Shared/dbx/projects/some-dir"
     profile_legacy = "default"

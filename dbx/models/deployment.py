@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from copy import deepcopy
+from enum import Enum
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, root_validator
+
+from pydantic import BaseModel, root_validator, validator
 
 from dbx.utils import dbx_echo
 
@@ -20,6 +23,23 @@ class Deployment(BaseModel):
         return {"workflows": _w}
 
 
+class PythonBuild(str, Enum):
+    pip = "pip"
+    poetry = "poetry"
+    flit = "flit"
+
+
+class BuildConfiguration(BaseModel):
+    no_build: Optional[bool] = False
+    commands: Optional[List[str]] = []
+    python: Optional[PythonBuild]
+
+    @root_validator(pre=True)
+    def init_default(cls, values):  # noqa
+        _v = values if values else {"python": "pip"}
+        return _v
+
+
 class EnvironmentDeploymentInfo(BaseModel):
     name: str
     payload: Deployment
@@ -31,6 +51,12 @@ class EnvironmentDeploymentInfo(BaseModel):
 
 class DeploymentConfig(BaseModel):
     environments: List[EnvironmentDeploymentInfo]
+    build: Optional[BuildConfiguration]
+
+    @validator("build", pre=True)
+    def default_build(cls, value):  # noqa
+        build_spec = value if value else {"python": "pip"}
+        return build_spec
 
     def get_environment(self, name) -> Optional[EnvironmentDeploymentInfo]:
         _found = [env for env in self.environments if env.name == name]
@@ -41,9 +67,39 @@ class DeploymentConfig(BaseModel):
         return _found[0]
 
     @staticmethod
-    def from_payload(payload: Dict[str, Any]) -> DeploymentConfig:
+    def prepare_build(payload: Dict[str, Any]) -> BuildConfiguration:
+        _build_payload = payload.get("build", {})
+        if not _build_payload:
+            dbx_echo(
+                "No build logic defined in the deployment file. "
+                "Default [code]pip[/code]-based build logic will be used."
+            )
+        return BuildConfiguration(**_build_payload)
+
+    @classmethod
+    def from_legacy_json_payload(cls, payload: Dict[str, Any]) -> DeploymentConfig:
+
+        _build = cls.prepare_build(payload)
+
         _envs = []
-        for name, _payload in payload.items():
-            _env = EnvironmentDeploymentInfo(name=name, payload=_payload)
+        for name, _env_payload in payload.items():
+            if name == "build":
+                raise ValueError(
+                    """Deployment file with a legacy syntax uses "build" as an environment name.
+                This behaviour is not supported since dbx v0.7.0.
+                Please nest all environment configurations under "environments" key in the deployment file."""
+                )
+            _env = EnvironmentDeploymentInfo(name=name, payload=_env_payload)
             _envs.append(_env)
-        return DeploymentConfig(environments=_envs)
+
+        return DeploymentConfig(environments=_envs, build=_build)
+
+    @classmethod
+    def from_payload(cls, payload: Dict[str, Any]) -> DeploymentConfig:
+        _payload = deepcopy(payload)
+        _envs = [
+            EnvironmentDeploymentInfo(name=name, payload=env_payload)
+            for name, env_payload in _payload.get("environments", {}).items()
+        ]
+        _build = cls.prepare_build(_payload)
+        return DeploymentConfig(environments=_envs, build=_build)

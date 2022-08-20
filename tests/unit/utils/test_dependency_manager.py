@@ -1,6 +1,7 @@
 import textwrap
 from pathlib import Path
 
+from dbx.models.deployment import BuildConfiguration
 from dbx.utils.dependency_manager import DependencyManager
 
 
@@ -20,7 +21,7 @@ def test_simple_requirements_file(tmp_path: Path):
     )
 
     dm = DependencyManager(
-        no_rebuild=True,
+        BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
     )
@@ -42,7 +43,7 @@ def test_requirements_with_comments(tmp_path: Path):
     )
 
     dm = DependencyManager(
-        no_rebuild=True,
+        BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
     )
@@ -63,7 +64,7 @@ def test_requirements_with_empty_line(tmp_path):
     )
 
     dm = DependencyManager(
-        no_rebuild=True,
+        BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
     )
@@ -85,7 +86,7 @@ def test_requirements_with_filtered_pyspark(tmp_path):
     )
 
     dm = DependencyManager(
-        no_rebuild=True,
+        BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
     )
@@ -98,7 +99,7 @@ def test_requirements_with_filtered_pyspark(tmp_path):
 
 def test_not_matching_conditions(tmp_path, capsys):
 
-    dm = DependencyManager(no_rebuild=True, global_no_package=True, requirements_file=None)
+    dm = DependencyManager(BuildConfiguration(no_package=True), global_no_package=True, requirements_file=None)
 
     reference = {"deployment_config": {"no_package": False}}
 

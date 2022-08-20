@@ -102,8 +102,9 @@ def deploy(
         branch_name = get_current_branch_name()
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
+    config = config_reader.get_config()
 
-    deployment = config_reader.get_environment(environment)
+    deployment = config.get_environment(environment)
 
     if not deployment:
         raise NameError(
@@ -123,7 +124,15 @@ def deploy(
 
     _preprocess_deployment(deployment, requested_jobs)
 
-    dependency_manager = DependencyManager(no_package, no_rebuild, requirements_file)
+    if no_rebuild:
+        dbx_echo(
+            """[yellow bold]
+        Legacy [code]--no-rebuild[/code] flag has been used.
+        Please specify build logic in the build section of the deployment file instead.[/yellow bold]"""
+        )
+        config.build.no_build = True
+
+    dependency_manager = DependencyManager(config.build, no_package, requirements_file)
 
     _assets_only = assets_only if assets_only else files_only
 

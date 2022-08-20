@@ -3,13 +3,10 @@ from typing import Optional, Dict, List, Union, Any
 
 import pkg_resources
 
+from dbx.models.deployment import BuildConfiguration
 from dbx.utils import dbx_echo
-from dbx.utils.common import handle_package, get_package_file
-
-# this type alias represents a library reference, for example:
-# {"whl": "path/to/some/file"}
-# {"pypi": "some-pypi-package"}
-# {"pypi": {"package": "some-package"}}
+from dbx.utils.common import get_package_file
+from dbx.api.build import prepare_build
 
 LibraryReference = Dict[str, Union[str, Dict[str, Any]]]
 
@@ -19,9 +16,9 @@ class DependencyManager:
     This class manages dependency references in the job or task deployment.
     """
 
-    def __init__(self, global_no_package: bool, no_rebuild: bool, requirements_file: Optional[Path]):
+    def __init__(self, build_config: BuildConfiguration, global_no_package: bool, requirements_file: Optional[Path]):
+        self.build_config = build_config
         self._global_no_package = global_no_package
-        self._no_rebuild = no_rebuild
         self._core_package_reference: Optional[LibraryReference] = self._get_package_requirement()
         self._requirements_references: List[LibraryReference] = self._get_requirements_from_file(requirements_file)
 
@@ -58,7 +55,7 @@ class DependencyManager:
         """
         Prepare package requirement to be added into the definition in case it's required.
         """
-        handle_package(self._no_rebuild)
+        prepare_build(self.build_config)
         package_file = get_package_file()
 
         if self._global_no_package:
