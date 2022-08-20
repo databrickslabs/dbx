@@ -5,7 +5,7 @@ from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 
-def test_jobs_deprecated_message(capsys):
+def test_jobs_deprecated_message(capsys, temp_project):
     configs_path = get_path_with_relation_to_current_file("../deployment-configs/")
     _env = ConfigReader(configs_path / "01-yaml-test.yaml").get_environment("default")
     captured = capsys.readouterr()
@@ -13,7 +13,7 @@ def test_jobs_deprecated_message(capsys):
     assert "Usage of jobs keyword in deployment file" in captured.out
 
 
-def test_workflows_consistency(capsys):
+def test_workflows_consistency(capsys, temp_project):
     configs_path = get_path_with_relation_to_current_file("../deployment-configs/")
     _old = ConfigReader(configs_path / "10-multitask-job-jobs.yaml").get_environment("default")
     _new = ConfigReader(configs_path / "10-multitask-job-workflows.yaml").get_environment("default")
