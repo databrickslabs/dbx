@@ -29,14 +29,28 @@ class _AbstractConfigReader(ABC):
 class _YamlConfigReader(_AbstractConfigReader):
     def _read_file(self) -> DeploymentConfig:
         content = yaml.load(self._path.read_text(encoding="utf-8"), yaml.SafeLoader)
-        _envs = content.get("environments")
-        return DeploymentConfig.from_payload(_envs)
+        return DeploymentConfig.from_payload(content)
 
 
 class _JsonConfigReader(_AbstractConfigReader):
     def _read_file(self) -> DeploymentConfig:
         _content = JsonUtils.read(self._path)
-        return DeploymentConfig.from_payload(_content)
+        return self.read_content(_content)
+
+    @staticmethod
+    def read_content(content: Dict[str, Any]) -> DeploymentConfig:
+        if not content.get("environments"):
+            dbx_echo(
+                """[yellow bold]
+                Since v0.7.0 environment configurations should be nested under [code]environments[/code] section.
+
+                Please nest environment configurations under this section to avoid potential issues while using "build"
+                configuration directive.[/yellow bold]
+            """
+            )
+            return DeploymentConfig.from_legacy_json_payload(content)
+        else:
+            return DeploymentConfig.from_payload(content)
 
 
 class _Jinja2ConfigReader(_AbstractConfigReader):
@@ -60,12 +74,12 @@ class _Jinja2ConfigReader(_AbstractConfigReader):
 
         if self._ext == ".json":
             _content = json.loads(rendered)
+            return _JsonConfigReader.read_content(_content)
         elif self._ext in [".yml", ".yaml"]:
-            _content = yaml.load(rendered, yaml.SafeLoader).get("environments")
+            _content = yaml.load(rendered, yaml.SafeLoader)
+            return DeploymentConfig.from_payload(_content)
         else:
             raise Exception(f"Unexpected extension for Jinja reader: {self._ext}")
-
-        return DeploymentConfig.from_payload(_content)
 
 
 class ConfigReader:
@@ -111,6 +125,9 @@ class ConfigReader:
             f"Unexpected extension of the deployment file: {self._path}. "
             f"Please check the documentation for supported extensions."
         )
+
+    def get_config(self) -> DeploymentConfig:
+        return self._reader.config
 
     def get_environment(self, environment: str) -> Optional[EnvironmentDeploymentInfo]:
         return self._reader.config.get_environment(environment)

@@ -1,13 +1,9 @@
 import os
-import shlex
-import subprocess
-import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
 import git
 from databricks_cli.sdk.api_client import ApiClient
-from rich.console import Console
 
 from dbx.api.auth import ProfileEnvConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
@@ -73,32 +69,6 @@ def get_package_file() -> Optional[Path]:
     else:
         dbx_echo("Package file was not found")
         return None
-
-
-def handle_package(rebuild_arg):
-    if rebuild_arg:
-        dbx_echo("No rebuild will be done, please ensure that the package distribution is in dist folder")
-    else:
-        dbx_echo("Re-building package")
-        if not Path("setup.py").exists():
-            raise FileNotFoundError(
-                "No setup.py provided in project directory. Please create one, or disable rebuild via --no-rebuild"
-            )
-
-        dist_path = Path("dist")
-        if dist_path.exists():
-            dbx_echo("dist folder already exists, cleaning it before build")
-            for _file in dist_path.glob("*.whl"):
-                _file.unlink()
-
-        console = Console()
-
-        with console.status("Building the package :hammer:", spinner="dots"):
-            subprocess.check_call(
-                [sys.executable] + shlex.split("-m pip wheel -w dist -e . --prefer-binary --no-deps"),
-                stdout=subprocess.PIPE,
-            )
-        dbx_echo(":white_check_mark: Package re-build finished")
 
 
 def get_current_branch_name() -> Optional[str]:

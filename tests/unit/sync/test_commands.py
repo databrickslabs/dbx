@@ -40,7 +40,7 @@ def test_repo_no_opts(mock_get_config, mock_main_loop):
 
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_environment(mock_main_loop, mock_get_user_name):
+def test_repo_environment(mock_main_loop, mock_get_user_name, temp_project):
     with temporary_directory() as tempdir:
         mock_get_user_name.return_value = "me"
 
@@ -54,7 +54,7 @@ def test_repo_environment(mock_main_loop, mock_get_user_name):
 
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_dbfs_environment(mock_main_loop, mock_get_user_name):
+def test_dbfs_environment(mock_main_loop, mock_get_user_name, temp_project):
     with temporary_directory() as tempdir:
         mock_get_user_name.return_value = "me"
 

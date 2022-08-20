@@ -1,0 +1,17 @@
+{
+    "environments": {
+        "legacy": {
+            "profile": "default",
+            "workspace_dir": "/Shared/dbx/some-dir",
+            "artifact_location": "dbfs:/Shared/dbx/projects/some-dir"
+        },
+        "new": {
+            "profile": "new",
+            "storage_type": "mlflow",
+            "properties": {
+                "workspace_directory": "/Shared/dbx/some-dir-mod",
+                "artifact_location": "dbfs:/Shared/dbx/projects/some-dir-new"
+            }
+        }
+    }
+}

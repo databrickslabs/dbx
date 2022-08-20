@@ -46,9 +46,25 @@ JINJA_VARIABLES_FILE_OPTION = typer.Option(
     callback=verify_jinja_variables_file,
 )
 
-REQUIREMENTS_FILE_OPTION = typer.Option(Path("requirements.txt"), help="[red]This option is deprecated[/red]")
+REQUIREMENTS_FILE_OPTION = typer.Option(
+    Path("requirements.txt"),
+    help="""
+    [red bold]This option is deprecated.
 
-NO_REBUILD_OPTION = typer.Option(False, "--no-rebuild", is_flag=True, help="Disable package rebuild")
+    Please use setup.py or poetry for package management. [/red bold]
+""",
+)
+
+NO_REBUILD_OPTION = typer.Option(
+    False,
+    "--no-rebuild",
+    is_flag=True,
+    help="""
+    [red]This option is deprecated.
+
+    Please use [code]build[/code] configuration section in the deployment file. [/red]
+""",
+)
 NO_PACKAGE_OPTION = typer.Option(
     False, "--no-package", is_flag=True, help="Do not add package reference into the job description"
 )

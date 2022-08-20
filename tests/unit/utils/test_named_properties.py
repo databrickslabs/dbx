@@ -5,7 +5,7 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.instance_pools.api import InstancePoolService
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import EnvironmentDeploymentInfo
+from dbx.models.deployment import EnvironmentDeploymentInfo, BuildConfiguration
 from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
@@ -148,7 +148,7 @@ def test_mtj_named_positive():
     api_client = MagicMock()
     test_profile_arn = "arn:aws:iam::123456789:instance-profile/some-instance-profile-name"
 
-    dm = DependencyManager(global_no_package=False, no_rebuild=True, requirements_file=None)
+    dm = DependencyManager(BuildConfiguration(no_package=True), global_no_package=False, requirements_file=None)
 
     api_client.perform_query = MagicMock(
         return_value={"instance_profiles": [{"instance_profile_arn": test_profile_arn}]}

@@ -22,7 +22,8 @@ from dbx.options import (
     EXECUTE_PARAMETERS_OPTION,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.common import prepare_environment, handle_package
+from dbx.utils.common import prepare_environment
+from dbx.api.build import prepare_build
 
 
 def execute(
@@ -62,11 +63,20 @@ def execute(
 
     dbx_echo(f"Executing job: {_job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
-    handle_package(no_rebuild)
-
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
-    deployment = config_reader.get_environment(environment)
+    config = config_reader.get_config()
+    deployment = config.get_environment(environment)
+
+    if no_rebuild:
+        dbx_echo(
+            """[yellow bold]
+        Legacy [code]--no-rebuild[/code] flag has been used.
+        Please specify build logic in the build section of the deployment file instead.[/yellow bold]"""
+        )
+        config.build.no_build = True
+
+    prepare_build(config.build)
 
     _verify_deployment(deployment, deployment_file)
 

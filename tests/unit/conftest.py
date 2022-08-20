@@ -68,7 +68,7 @@ def in_context(path):
         os.chdir(prev_cwd)
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function", autouse=False)
 def temp_project(tmp_path: Path) -> Path:
     project_name = "dev_dbx_%s" % str(uuid4()).split("-")[0]
     logging.info("Launching test in directory %s with project name %s" % (tmp_path, project_name))

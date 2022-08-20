@@ -1,6 +1,7 @@
 import os
 import shutil
 from pathlib import Path
+from subprocess import CalledProcessError
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -9,13 +10,14 @@ from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
+from dbx.models.deployment import BuildConfiguration
 from dbx.utils.adjuster import adjust_path, path_adjustment
 from dbx.utils.common import (
     generate_filter_string,
     get_current_branch_name,
     get_environment_data,
-    handle_package,
 )
+from dbx.api.build import prepare_build
 from dbx.utils.job_listing import find_job_by_name
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
@@ -169,7 +171,7 @@ def test_jinja_with_include():
     assert json_node_type == "some-node-type"
 
 
-def test_get_environment_data():
+def test_get_environment_data(temp_project):
     result = get_environment_data("default")
     assert result is not None
     with pytest.raises(Exception):
@@ -189,10 +191,11 @@ def test_get_current_branch_name_no_env(mocker, temp_project: Path):
     assert get_current_branch_name() is None
 
 
-def test_handle_package():
+def test_handle_package_no_setup(temp_project):
     Path("setup.py").unlink()
-    with pytest.raises(FileNotFoundError):
-        handle_package(None)
+    build = BuildConfiguration()
+    with pytest.raises(CalledProcessError):
+        prepare_build(build)
 
 
 def test_non_existent_path_adjustment():

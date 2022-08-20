@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunNow API)
 - ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunSubmit API)
 - ✨Add inplace Jinja support for YAML and JSON files, can be configured via `dbx configure --enable-inplace-jinja-support`
+- ✨Add build logic options for `pip` and `poetry`
+- ✨Add build logic customization with `build.commands` section
+
 
 ## Changed
 - ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
@@ -28,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Refactored all cluster-relevant methods into a separate `ClusterController`
 - ✨Refactored model-related components for `.dbx/project.json` file
 - ✨Refactored `launch`-related API-level code
+- ⚡️Deleted `autouse` of `temp_project` fixture to speedup the tests
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 - 🚩Delete the Azure Data Factory-related functionality.
