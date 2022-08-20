@@ -7,7 +7,10 @@ from typing import List, Optional, Dict, Any
 import jinja2
 import yaml
 
+import dbx.api.jinja as dbx_jinja
+from dbx.api._module_loader import load_module_from_source
 from dbx.api.configure import ProjectConfigurationManager
+from dbx.constants import CUSTOM_JINJA_FUNCTIONS_PATH
 from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo
 from dbx.utils import dbx_echo
 from dbx.utils.json import JsonUtils
@@ -26,13 +29,13 @@ class _AbstractConfigReader(ABC):
         """"""
 
 
-class _YamlConfigReader(_AbstractConfigReader):
+class YamlConfigReader(_AbstractConfigReader):
     def _read_file(self) -> DeploymentConfig:
         content = yaml.load(self._path.read_text(encoding="utf-8"), yaml.SafeLoader)
         return DeploymentConfig.from_payload(content)
 
 
-class _JsonConfigReader(_AbstractConfigReader):
+class JsonConfigReader(_AbstractConfigReader):
     def _read_file(self) -> DeploymentConfig:
         _content = JsonUtils.read(self._path)
         return self.read_content(_content)
@@ -53,7 +56,7 @@ class _JsonConfigReader(_AbstractConfigReader):
             return DeploymentConfig.from_payload(content)
 
 
-class _Jinja2ConfigReader(_AbstractConfigReader):
+class Jinja2ConfigReader(_AbstractConfigReader):
     def __init__(self, path: Path, ext: str, jinja_vars_file: Optional[Path]):
         self._ext = ext
         self._jinja_vars_file = jinja_vars_file
@@ -63,18 +66,36 @@ class _Jinja2ConfigReader(_AbstractConfigReader):
     def _read_vars_file(file_path: Path) -> Dict[str, Any]:
         return yaml.load(file_path.read_text(encoding="utf-8"), yaml.SafeLoader)
 
+    @classmethod
+    def _render_content(cls, file_path: Path, _var: Dict[str, Any]) -> str:
+        absolute_parent_path = file_path.absolute().parent
+        file_name = file_path.name
+
+        dbx_echo(f"The following path will be used for the jinja loader: {absolute_parent_path} with file {file_name}")
+
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(absolute_parent_path))
+        template = env.get_template(file_name)
+        template.globals["dbx"] = dbx_jinja
+
+        if CUSTOM_JINJA_FUNCTIONS_PATH.exists():
+            cls.add_custom_functions(template)
+
+        return template.render(env=os.environ, var=_var)
+
+    @classmethod
+    def add_custom_functions(cls, template: jinja2.Template):
+        dbx_echo(f"🔌 Found custom Jinja functions defined in {CUSTOM_JINJA_FUNCTIONS_PATH}, loading them")
+        _module = load_module_from_source(CUSTOM_JINJA_FUNCTIONS_PATH, "_custom")
+        template.globals["custom"] = _module
+        dbx_echo("✅ Custom Jinja functions successfully loaded")
+
     def _read_file(self) -> DeploymentConfig:
-        abs_parent_path = self._path.parent.absolute()
-        file_name = self._path.name
-        dbx_echo("Reading file as a Jinja2 template")
-        dbx_echo(f"The following path will be used for the jinja loader: {abs_parent_path} with file {file_name}")
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(abs_parent_path))
         _var = {} if not self._jinja_vars_file else self._read_vars_file(self._jinja_vars_file)
-        rendered = env.get_template(file_name).render(env=os.environ, var=_var)
+        rendered = self._render_content(self._path, _var)
 
         if self._ext == ".json":
             _content = json.loads(rendered)
-            return _JsonConfigReader.read_content(_content)
+            return JsonConfigReader.read_content(_content)
         elif self._ext in [".yml", ".yaml"]:
             _content = yaml.load(rendered, yaml.SafeLoader)
             return DeploymentConfig.from_payload(_content)
@@ -103,11 +124,9 @@ class ConfigReader:
                     you can also configure your project to support in-place Jinja by running:
                     [code]dbx configure --enable-inplace-jinja-support[/code][/bright_magenta bold]"""
                 )
-                return _Jinja2ConfigReader(
-                    self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file
-                )
+                return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file)
         elif ProjectConfigurationManager().get_jinja_support():
-            return _Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file)
+            return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file)
         else:
             if self._jinja_vars_file:
                 raise Exception(
@@ -116,9 +135,9 @@ class ConfigReader:
                 )
 
             if self._path.suffixes[0] == ".json":
-                return _JsonConfigReader(self._path)
+                return JsonConfigReader(self._path)
             elif self._path.suffixes[0] in [".yaml", ".yml"]:
-                return _YamlConfigReader(self._path)
+                return YamlConfigReader(self._path)
 
         # no matching reader found, raising an exception
         raise Exception(

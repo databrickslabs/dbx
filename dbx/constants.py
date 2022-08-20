@@ -5,6 +5,7 @@ import pkg_resources
 DBX_PATH = Path(".dbx")
 PROJECT_INFO_FILE_PATH = DBX_PATH / "project.json"
 LOCK_FILE_PATH = DBX_PATH / "lock.json"
+CUSTOM_JINJA_FUNCTIONS_PATH = DBX_PATH / "_custom_jinja_functions.py"
 
 DATABRICKS_MLFLOW_URI = "databricks"
 PROJECTS_RELATIVE_PATH = "templates/projects"

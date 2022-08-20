@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from dbx.api.config_reader import ConfigReader, _Jinja2ConfigReader
+from dbx.api.config_reader import ConfigReader, Jinja2ConfigReader
 from tests.unit.conftest import (
     get_path_with_relation_to_current_file,
     invoke_cli_runner,
@@ -38,7 +38,7 @@ def test_passed_with_inplace(temp_project: Path, mlflow_file_uploader, mock_dbx_
     dst_vars_file = Path("./conf") / file_name
     shutil.copy(src_vars_file, dst_vars_file)
     rdr = ConfigReader(Path("conf/deployment.yml"), dst_vars_file)._define_reader()
-    assert isinstance(rdr, _Jinja2ConfigReader)
+    assert isinstance(rdr, Jinja2ConfigReader)
 
 
 def test_jinja_vars_file_api(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project: Path):
