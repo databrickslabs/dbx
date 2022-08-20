@@ -242,7 +242,7 @@ def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v
     deployment_file = Path("conf/deployment.yml")
     deploy_content = yaml.safe_load(deployment_file.read_text())
 
-    sample_job = deploy_content.get("environments").get("default").get("jobs")[0]
+    sample_job = deploy_content.get("environments").get("default").get("workflows")[0]
 
     sample_job["permissions"] = {
         "access_control_list": [

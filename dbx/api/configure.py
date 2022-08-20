@@ -49,6 +49,11 @@ class JsonFileBasedManager:
         _typed.inplace_jinja_support = True
         JsonUtils.write(self._file, _typed.dict())
 
+    def disable_jinja_support(self):
+        _typed = self._read_typed()
+        _typed.inplace_jinja_support = False
+        JsonUtils.write(self._file, _typed.dict())
+
     def get_jinja_support(self) -> bool:
         _result = self._read_typed().inplace_jinja_support if self._file.exists() else False
         return _result
@@ -66,6 +71,9 @@ class ProjectConfigurationManager:
 
     def enable_jinja_support(self):
         self._manager.enable_jinja_support()
+
+    def disable_jinja_support(self):
+        self._manager.disable_jinja_support()
 
     def get_jinja_support(self) -> bool:
         return self._manager.get_jinja_support()
