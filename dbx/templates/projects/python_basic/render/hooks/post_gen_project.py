@@ -1,9 +1,9 @@
-import os
 import pathlib
 from typing import Callable, Dict, Optional, Any
 
 from jinja2 import Environment, FileSystemLoader
 
+from dbx.api.build import execute_shell_command
 from dbx.commands.configure import configure
 from dbx.constants import TEMPLATE_ROOT_PATH
 
@@ -101,7 +101,8 @@ class PostProcessor:
         PostProcessor.process_ci_component(env)
         PostProcessor.process_cloud_component(env)
 
-        os.system("git init")
+        execute_shell_command("git init")
+        execute_shell_command("dbx --version")
 
 
 if __name__ == "__main__":
