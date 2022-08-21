@@ -66,44 +66,11 @@ pipelines and as a part of local tooling for rapid prototyping.
 pip install dbx
 ```
 
-## Quickstart
-
-Please refer to the [Quickstart section](https://dbx.readthedocs.io/en/latest/quickstart.html).
-
 ## Documentation
 
 Please refer to the [docs page](https://dbx.readthedocs.io/en/latest/index.html).
 
-## Differences from other tools
-
-| Tool                                                                                             | Comment                                                                                                                                                                                                                                                                           |
-|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [databricks-cli](https://github.com/databricks/databricks-cli)                                   | dbx is NOT a replacement for databricks-cli. Quite the opposite - dbx is heavily dependent on databricks-cli and uses most of the APIs exactly from databricks-cli SDK.                                                                                                           |
-| [mlflow cli](https://www.mlflow.org/docs/latest/cli.html)                                        | dbx is NOT a replacement for mlflow cli. dbx uses some of the MLflow APIs under the hood to store serialized job objects, but doesn't use mlflow CLI directly.                                                                                                                    |
-| [Databricks Terraform Provider](https://github.com/databrickslabs/terraform-provider-databricks) | While dbx is primarily oriented on versioned job management, Databricks Terraform Provider provides much wider set of infrastructure settings. In comparison, dbx doesn't provide infrastructure management capabilities, but brings more flexible deployment and launch options. |
-| [Databricks Stack CLI](https://docs.databricks.com/dev-tools/cli/stack-cli.html)                 | Databricks Stack CLI is a great component for managing a stack of objects. dbx concentrates on the versioning and packaging jobs together, not treating files and notebooks as a separate component.                                                                              |
-
-## Limitations
-
-- Development:
-    - `dbx` currently doesn't provide interactive debugging
-      capabilities.
-      If you want to use interactive debugging, you can use [Databricks
-      Connect](https://docs.databricks.com/dev-tools/databricks-connect.html) +
-      `dbx` for deployment operations.
-
-    - `dbx execute` only supports Python-based projects which use
-      `spark_python_task` or `python_wheel_task`. Notebooks or Repos are
-      not supported in `dbx execute`.
-
-    - `dbx execute` can only be used on clusters with Databricks ML
-      Runtime 7.X or higher.
-- General:
-    - `dbx` doesn't support [Delta Live
-      Tables](https://databricks.com/product/delta-live-tables) at the
-      moment.
-
-## Versioning
+## Interface versioning
 
 For CLI interfaces, we support [SemVer](https://semver.org/) approach.
 However, for API components we don't use SemVer as of now. This may lead

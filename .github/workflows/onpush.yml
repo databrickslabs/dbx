@@ -38,7 +38,6 @@ jobs:
         run: |
           prospector --profile prospector.yaml
           black --check .
-          rstcheck README.rst
 
       - name: Run unit tests
         run: |

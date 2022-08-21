@@ -58,7 +58,7 @@ htmlcov/*
 
 # Sphinx documentation
 docs/build/
-/docs/source/_build
+/docs/_build
 
 # Jupyter Notebook
 .ipynb_checkpoints

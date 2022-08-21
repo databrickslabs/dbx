@@ -1,0 +1,42 @@
+site_name: dbx
+site_description: 🧱Databricks CLI eXtensions - aka dbx is a CLI tool for development and advanced Databricks workflows management.
+site_url: https://dbx.readthedocs.io/
+
+theme:
+  name: material
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/lightbulb
+        name: Switch to light mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to dark mode
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github-alt
+  logo: img/logo.svg
+  favicon: img/logo.svg
+  language: en
+
+repo_name: databrickslabs/dbx
+repo_url: https://github.com/databrickslabs/dbx
+edit_uri: ""
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+extra_css: [custom/custom.css]
