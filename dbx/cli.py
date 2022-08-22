@@ -16,7 +16,7 @@ app = typer.Typer(rich_markup_mode="markdown")
 app.callback(
     name="dbx",
     help="""
-    🧱Databricks eXtensions aka dbx.Please find the main docs page [here](https://dbx.readthedocs.io/).
+    🧱Databricks eXtensions aka dbx. Please find the main docs page [here](https://dbx.readthedocs.io/).
 """,
 )(version_entrypoint)
 
