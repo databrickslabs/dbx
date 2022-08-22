@@ -13,7 +13,9 @@ typer.rich_utils._get_help_text = _get_custom_help_text
 
 app = typer.Typer(rich_markup_mode="markdown")
 
-app.callback(name="dbx", help="🧱Databricks eXtensions aka dbx.")(version_entrypoint)
+app.callback(name="dbx", help="""
+    🧱Databricks eXtensions aka dbx.Please find the main docs page [here](https://dbx.readthedocs.io/).
+""")(version_entrypoint)
 
 app.command(
     short_help="🔧 Configures project environment in the current folder.",
@@ -32,8 +34,7 @@ app.command(
 
 app.command(
     short_help="📦 Deploy project to artifact storage.",
-    help="""
-    **📦 Deploy project to artifact storage.**
+    help="""📦 Deploy project to artifact storage.
 
     This command deploys workflow definitions to the given environment.<br/>
     During the deployment, following actions will be performed:
@@ -92,8 +93,7 @@ app.command(
 
 app.command(
     short_help="🔥 Executes chosen workload on the interactive cluster.",
-    help="""
-    🔥 Executes chosen workload on the interactive cluster.
+    help="""🔥 Executes chosen workload on the interactive cluster.
 
     This command is very suitable to interactively execute your code on the interactive clusters.
 
