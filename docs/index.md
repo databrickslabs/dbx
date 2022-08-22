@@ -1,6 +1,12 @@
 # dbx by Databricks Labs
 
-🧱Databricks CLI eXtensions - aka `dbx` is a CLI tool for development and advanced Databricks workflows management.
+<p align="center">
+    <a href="https://dbx.readthedocs.io/">
+        <img src="https://raw.githubusercontent.com/databrickslabs/dbx/master/images/logo.svg" class="align-center" width="200" height="200" alt="logo" />
+    </a>
+</p>
+
+🧱 Databricks CLI eXtensions - aka `dbx` is a CLI tool for development and advanced Databricks workflows management.
 
 ## :octicons-light-bulb-24: Concept
 
@@ -14,7 +20,7 @@
 
 Since `dbx` primary interface is CLI, it's easy to use it in various CI/CD pipelines, independent of the CI provider.
 
-Read more about the place of `dbx` and potential use-cases in the concepts section.
+Read more about the place of `dbx` and potential use-cases in the [Concepts section](/concepts).
 
 ## :octicons-tools-24: Differences from other tools
 
@@ -66,7 +72,8 @@ Databricks Support.
 
 ## :octicons-comment-24: Feedback
 
-Issues with `dbx`? Found a :octicons-bug-24: bug? Have a great idea for an addition? Want to improve the documentation? Please feel
+Issues with `dbx`? Found a :octicons-bug-24: bug?
+Have a great idea for an addition? Want to improve the documentation? Please feel
 free to file an [issue](https://github.com/databrickslabs/dbx/issues/new/choose).
 
 ## :fontawesome-solid-user-plus: Contributing

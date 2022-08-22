@@ -10,7 +10,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 INSTALL_REQUIRES = [
     "databricks-cli>=0.17,<0.18",
     "click>=8.1.0,<9.0.0",
-    "rich==12.4.4",
+    "rich==12.5.1",
     "typer[all]==0.6.1",
     "retry>=0.9.2",
     "requests>=2.24.0",
@@ -34,6 +34,7 @@ DEV_REQUIREMENTS = [
     "mkdocs-material>=8.1.4,<9.0.0",
     "mdx-include>=1.4.1,<2.0.0",
     "mkdocs-markdownextradata-plugin>=0.1.7,<0.3.0",
+    "mkdocs-glightbox",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
     "prospector>=1.3.1,<1.7.0",

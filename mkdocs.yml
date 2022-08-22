@@ -24,7 +24,7 @@ theme:
     - search.highlight
     - content.tabs.link
   icon:
-    repo: fontawesome/brands/github-alt
+    repo: fontawesome/brands/github
   logo: img/logo.svg
   favicon: img/logo.svg
   language: en
@@ -33,10 +33,35 @@ repo_name: databrickslabs/dbx
 repo_url: https://github.com/databrickslabs/dbx
 edit_uri: ""
 
+plugins:
+  - glightbox
+
+extra_css: [ custom/custom.css ]
+
 markdown_extensions:
   - attr_list
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.smartsymbols
+  - pymdownx.details
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.betterem:
+      smart_enable: all
+  - mkdocs-click
 
-extra_css: [custom/custom.css]
+nav:
+  - Main: index.md
+  - Concepts:
+      - Place of dbx in the ecosystem: concepts/ecosystem.md
+      - DevOps for workflows: concepts/devops.md
+      - Testing workflows: concepts/testing.md
+  - CLI Reference: cli.md
+
+

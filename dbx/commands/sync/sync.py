@@ -35,80 +35,90 @@ from dbx.sync.config import get_databricks_config
 from dbx.utils import dbx_echo
 
 sync_app = typer.Typer(
-    short_help="🔄 Sync local files to Databricks and watch for changes",
-    help="""
+    short_help="🔄 Sync local files to Databricks and watch for changes.",
+    help="""🔄 Sync local files to Databricks and watch for changes.
+
     Sync local files to Databricks and watch for changes, with support for syncing to either a path
-    in `DBFS <https://docs.databricks.com/data/databricks-file-system.html>`_ or a
-    `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ via the :code:`dbfs` and :code:`repo`
-    subcommands.  This enables one to incrementally sync local files to Databricks in order to enable quick, iterative
+    in [DBFS](https://docs.databricks.com/data/databricks-file-system.html) or a
+    [Databricks Repo](https://docs.databricks.com/repos/index.html) via the `dbfs` and `repo`
+    subcommands.
+
+
+    This enables one to incrementally sync local files to Databricks in order to enable quick, iterative
     development in an IDE with the ability to test changes almost immediately in Databricks notebooks.
 
-    Suppose you are using the `Repos for Git integration <https://docs.databricks.com/repos/index.html>`_ feature
+
+    Suppose you are using the [Repos for Git integration](https://docs.databricks.com/repos/index.html) feature
     and have cloned a git repo within Databricks where you have Python notebooks stored as well as various Python
-    modules that the notebooks import. You can edit any of these files directly in Databricks.
-    The :code:`dbx sync repo` command provides an additional option: edit the files in a local repo on your computer
+    modules that the notebooks import.
+
+
+    You can edit any of these files directly in Databricks.
+    The `dbx sync repo` command provides an additional option: edit the files in a local repo on your computer
     in an IDE of your choice and sync the changes to the repo in Databricks as you make changes.
 
+
     For example, when run from a local git clone, the following will sync all the files to an existing repo
-    named :code:`myrepo` in Databricks and watch for changes:
+    named `myrepo` in Databricks and watch for changes:
 
-    .. code-block:: sh
-
-        dbx sync repo -d myrepo
+    ```
+    dbx sync repo -d myrepo
+    ```
 
     At the top of your notebook you can turn on
-    `autoreload <https://ipython.org/ipython-doc/3/config/extensions/autoreload.html>`_ so that execution of cells
+    [autoreload](https://ipython.org/ipython-doc/3/config/extensions/autoreload.html) so that execution of cells
     will automatically pick up the changes:
 
-    .. code-block::
+    ```
+    %load_ext autoreload
+    %autoreload 2
+    ```
 
-        %load_ext autoreload
-        %autoreload 2
+    The `dbx sync repo` command syncs to a repo in Databricks. If that repo is a git clone you can see the
+    changes made to the files, as if you'd made the edits directly in Databricks.
 
-    The :code:`dbx sync repo` command syncs to a repo in Databricks. If that repo is a git clone you can see the
-    changes made to the files, as if you'd made the edits directly in Databricks. Alternatively, you can use
-    :code:`dbx sync dbfs` to sync the files to a path in DBFS. This keeps the files independent from the repos but
-    still allows you to use them in notebooks either in a repo or in notebooks existing in your workspace.
 
-    For example, when run from a local git clone in a :code:`myrepo` directory under a user
-    :code:`first.last@somewhere.com`, the following will sync all the files to the DBFS path
-    :code:`/tmp/users/first.last/myrepo`:
+    Alternatively, you can use `dbx sync dbfs` to sync the files to a path in DBFS.
+    This keeps the files independent from the repos but still allows you to use them in notebooks
+    either in a repo or in notebooks existing in your workspace.
 
-    .. code-block:: sh
 
-        dbx sync dbfs
+    For example, when run from a local git clone in a `myrepo` directory under a user
+    `first.last@somewhere.com`, the following will sync all the files to the DBFS path
+    `/tmp/users/first.last/myrepo`:
 
-    The destination path can also be specified, as in: :code:`-d /tmp/myrepo`.
+    ```
+    dbx sync dbfs
+    ```
+
+    The destination path can also be specified, as in: `-d /tmp/myrepo`.
 
     When executing notebooks in a repo, the root of the repo is automatically added to the Python path so that
     imports work relative to the repo root. This means that aside from turning on autoreload you don't need to do
-    anything else special for the changes to be reflected in the cell's execution. However, when syncing to DBFS,
-    for the imports to work you need to update the Python path to include this target directory you're syncing to.
-    For example, to import from the :code:`/tmp/users/first.last/myrepo` path used above, use the following at the top
+    anything else special for the changes to be reflected in the cell's execution.
+
+    However, when syncing to DBFS, for the imports to work you need to update the Python path to include
+    this target directory you're syncing to.
+
+
+    For example, to import from the `/tmp/users/first.last/myrepo` path used above, use the following at the top
     of your notebook:
 
-    .. code-block:: python
+    ```python
+    import sys
 
-        import sys
+    if "/dbfs/tmp/users/first.last/myrepo" not in sys.path:
+        sys.path.insert(0, "/dbfs/tmp/users/first.last/myrepo")
+    ```
 
-        if "/dbfs/tmp/users/first.last/myrepo" not in sys.path:
-            sys.path.insert(0, "/dbfs/tmp/users/first.last/myrepo")
-
-    The :code:`dbx sync` commands have many options for controlling which files/directories to include/exclude from
-    syncing, which are well documented below.  For convenience, all patterns listed in a :code:`.gitignore` at the
-    source will be excluded from syncing. The :code:`.git` directory is excluded as well.
-
-    """,
+    The `dbx sync` commands have many options for controlling which files/directories to include/exclude from
+    syncing, which are well documented below.  For convenience, all patterns listed in a `.gitignore` at the
+    source will be excluded from syncing. The `.git` directory is excluded as well.""",
 )
 
 
 @sync_app.command(
-    short_help="""
-    📁 Syncs from a source directory to DBFS
-    """,
-    help="""
-    📁 Syncs from a source directory to DBFS
-    """,
+    short_help="📁 Syncs from a source directory to DBFS",
 )
 def dbfs(
     user_name: Optional[str] = typer.Option(
@@ -116,9 +126,12 @@ def dbfs(
         "--user",
         "-u",
         help="""Specify the user name to use when constructing the default destination path.
-    This has no effect when :code:`--dest` is already specified.  If this is an email address then the domain is
-    ignored. For example :code:`-u first.last` and :code:`-u first.last@somewhere.com` will both result
-    in :code:`first.last` as the user name.""",
+
+        This has no effect when `--dest` is already specified.  If this is an email address then the domain is
+        ignored.
+
+        For example `-u first.last` and  `-u first.last@somewhere.com` will both result
+        in  `first.last` as the user name.""",
     ),
     source: Optional[str] = SOURCE_OPTION,
     full_sync: bool = FULL_SYNC_OPTION,
@@ -129,18 +142,21 @@ def dbfs(
         None,
         "--dest",
         "-d",
-        help="""A path in DBFS to sync to.  For example, :code:`-d /tmp/project` would sync from the
-    local source path to the DBFS path :code:`/tmp/project`.
+        help="""A path in DBFS to sync to.
+            For example,  `-d /tmp/project` would sync from the local source path to the DBFS path  `/tmp/project`.
 
-    Specifying this path is optional.  By default the tool will sync to the destination
-    :code:`/tmp/users/<user_name>/<source_base_name>`.  For example, given local source path :code:`/foo/bar`
-    and Databricks user :code:`first.last@somewhere.com`, this would sync to :code:`/tmp/users/first.last/bar`.
-    This path is chosen as a safe default option that is unlikely to overwrite anything important.
+            Specifying this path is optional. By default the tool will sync to the destination
+            `/tmp/users/<user_name>/<source_base_name>`.
 
-    When constructing this default destination path, the user name is determined using the
-    `Databricks API <https://docs.databricks.com/dev-tools/api/latest/scim/scim-me.html>`_.  If it cannot be determined,
-    or to use a different user for the path, you may use the :code:`--user` option.
-    """,
+            For example, given local source path  `/foo/bar` and Databricks user  `first.last@somewhere.com`,
+            this would sync to  `/tmp/users/first.last/bar`.
+
+
+            This path is chosen as a safe default option that is unlikely to overwrite anything important.
+
+
+            When constructing this default destination path, the user name is determined using the scim/me API.
+            If it cannot be determined or to use a different user for the path, you may use the  `--user` option.""",
     ),
     exclude_dirs: Optional[List[str]] = EXCLUDE_DIRS_OPTION,
     profile: str = PROFILE_OPTION,
@@ -228,15 +244,15 @@ def repo(
         None,
         "--user",
         "-u",
-        help="""The user who owns the `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ to sync to.
+        help="""The user who owns the Databricks Repo to sync to.
 
-    Repos exist in the Databricks workspace under a path  of the form :code:`/Repos/<user>/<repo>`.  This specifies the
-    :code:`<user>` portion of the path.
+            Repos exist in the Databricks workspace under a path  of the form  `/Repos/<user>/<repo>`.
+            This specifies the `<user>` portion of the path.
 
-    This is optional, as the user name is determined automatically using the
-    `Databricks API <https://docs.databricks.com/dev-tools/api/latest/scim/scim-me.html>`_.  If it cannot be determined,
-    or to use a different user for the path, the user name may be specified using this option.
-    """,
+            This is optional, as the user name is determined automatically using the scim/me API.
+
+            If it cannot be determined, or to use a different user for the path,
+            the user name may be specified using this option.""",
     ),
     source: Optional[str] = SOURCE_OPTION,
     full_sync: bool = FULL_SYNC_OPTION,
@@ -249,8 +265,8 @@ def repo(
         "-d",
         help="""The name of the `Databricks Repo <https://docs.databricks.com/repos/index.html>`_ to sync to.
 
-    Repos exist in the Databricks workspace under a path  of the form :code:`/Repos/<user>/<repo>`.  This specifies the
-    :code:`<repo>` portion of the path.""",
+            Repos exist in the Databricks workspace under a path  of the form  `/Repos/<user>/<repo>`.
+            This specifies the `<repo>` portion of the path.""",
     ),
     exclude_dirs: Optional[List[str]] = EXCLUDE_DIRS_OPTION,
     profile: str = PROFILE_OPTION,
