@@ -13,9 +13,12 @@ typer.rich_utils._get_help_text = _get_custom_help_text
 
 app = typer.Typer(rich_markup_mode="markdown")
 
-app.callback(name="dbx", help="""
+app.callback(
+    name="dbx",
+    help="""
     🧱Databricks eXtensions aka dbx.Please find the main docs page [here](https://dbx.readthedocs.io/).
-""")(version_entrypoint)
+""",
+)(version_entrypoint)
 
 app.command(
     short_help="🔧 Configures project environment in the current folder.",
@@ -118,10 +121,9 @@ app.command(
     """,
 )(execute)
 
-app.command(
-    short_help="💎 Generates new project from the template.",
-    help="💎 Generates new project from the template."
-)(init)
+app.command(short_help="💎 Generates new project from the template.", help="💎 Generates new project from the template.")(
+    init
+)
 
 app.command(
     short_help="🚀 Launch the workflow on a job cluster.",
