@@ -1,1 +1,1 @@
-# Jinja support
+# :shinto_shrine: Jinja support

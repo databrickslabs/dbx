@@ -1,4 +1,4 @@
-# Place of `dbx` in the ecosystem
+# :fontawesome-solid-map-location-dot: Place of `dbx` in the ecosystem
 
 This section describes the concepts, high-level architectural considerations and use-cases for `dbx`.
 

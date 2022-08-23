@@ -82,7 +82,7 @@ nav:
           - Development loop for JVM-based projects: guides/jvm/jvm_devloop.md
           - DevOps for JVM-based projects: guides/jvm/jvm_devops.md
   - Features:
-      - Ephemeral Workflows: features/ephemeral_workflows.md
+      - Assets-based deployment and launch: features/assets.md
       - File references: features/file_references.md
       - Build management: features/build_management.md
       - Jinja support: features/jinja_support.md

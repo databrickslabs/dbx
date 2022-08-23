@@ -291,7 +291,7 @@ To do so, we'll need to provide a `SparkSession` object - and it comes directly 
 
 We can now call this task with custom parameters and launch it programmatically, verifying the task output:
 ```python title="tests/unit/sample_test.py"
-# imports are ommitted
+# imports are omitted
 def test_jobs(spark: SparkSession, tmp_path: Path):
     logging.info("Testing the ETL job")
     common_config = {"database": "default", "table": "sklearn_housing"}
@@ -302,7 +302,7 @@ def test_jobs(spark: SparkSession, tmp_path: Path):
     _count = spark.table(table_name).count()
     assert _count > 0
     logging.info("Testing the ETL job - done")
-    # code of the ML task test is ommitted
+    # code of the ML task test is omitted
 ```
 
 To launch the tests use the following command:
@@ -370,7 +370,7 @@ upload local files to the Databricks workspace in automated fashion and properly
 In this specific case, the file reference points to a YAML file with task configuration (not to be confused with deployment configuration).
 The logic of parsing the arguments is defined in the `charming_aurora.common.Task` object:
 ```python title="charming_aurora/common.py"
-# some lines were intentionally ommitted
+# some lines were intentionally omitted
 
 class Task(ABC):
 
@@ -472,7 +472,7 @@ if __name__ == '__main__':
 The `entrypoint` is a function that will be executed when the package is specified as a `python_wheel_task` in the deployment file.
 
 ```yml title="conf/deployment.yml"
-# relevant section of the deployment file, some parts are ommitted
+# relevant section of the deployment file, some parts are omitted
 environments:
   default:
     workflows:
@@ -513,7 +513,7 @@ dbx deploy charming-aurora-sample-etl
 
 Now you can go to the Databricks UI and verify that the job has been properly created.
 
-There are cases when the immediate job creation is not needed - in this case `dbx` allows to use another deployment pattern which is described [here](../../features/ephemeral_workflows.md).
+There are cases when the immediate job creation is not needed - in this case `dbx` allows to use another deployment pattern which is described [here](../../features/assets.md).
 
 
 ## Launching the workflow

@@ -1,6 +1,6 @@
 # :material-axis-arrow: DevOps for Workflows
 
-## Glossary
+## :material-text-search: Glossary
 
 Let's quickly introduce the basic glossary and principles.
 
@@ -127,6 +127,8 @@ Combining all of the above, a generic **DevOps for :octicons-workflow-24: workfl
 ## `dbx` in the DevOps for workflows
 
 `dbx` supports DevOps for workflows in they way of providing elaborate interface to define configurations and perform
-deployments. For these purposes you'll need to configure the :material-file-code: deployment file and use `dbx deploy`
+deployments.
+
+For these purposes you'll need to configure the [:material-file-code: deployment file](../reference/deployment.md) and use `dbx deploy`
 command.
 
