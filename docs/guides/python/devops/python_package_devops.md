@@ -1,4 +1,4 @@
-# :material-truck-delivery-outline: DevOps for Python package-based projects
+# :fontawesome-solid-ship: DevOps for Python package-based projects
 
 !!! tip
 

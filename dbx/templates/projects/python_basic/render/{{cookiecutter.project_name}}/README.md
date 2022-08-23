@@ -43,7 +43,7 @@ For quicker startup of the job clusters we recommend using instance pools ([AWS]
 
 For an integration test on interactive cluster, use the following command:
 ```
-dbx execute <workload-name> --cluster-name=<name of interactive cluster>
+dbx execute <workflow-name> --cluster-name=<name of interactive cluster>
 ```
 
 To execute a task inside multitask job, use the following command:

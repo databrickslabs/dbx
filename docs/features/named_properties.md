@@ -1,1 +1,1 @@
-# Named properties
+# :material-rename-box: Named properties

@@ -1,4 +1,4 @@
-# :material-truck-delivery-outline: DevOps for Notebooks-based project
+# :fontawesome-solid-ship: DevOps for Notebooks-based project
 
 For notebook-based projects we recommend using the [notebooks in a remote Git repository](https://docs.databricks.com/workflows/jobs/jobs.html#run-jobs-using-notebooks-in-a-remote-git-repository) feature.
 
@@ -70,15 +70,15 @@ environments:
       git_source:
         git_url: https://some-git-provider.com/some/remote/repo.git
         git_provider: "git-provider-name"
-        git_branch: "{{env['GIT_BRANCH']}}"
+        git_branch: "{{env['GIT_BRANCH']}}" # assuming this env variable exists
     - name: "notebook-from-remote-tag"
       git_source:
         git_url: https://some-git-provider.com/some/remote/repo.git
         git_provider: "git-provider-name"
-        git_tag: "{{env['GIT_TAG']}}"
+        git_tag: "{{env['GIT_TAG']}}" # assuming this env variable exists
     - name: "notebook-from-remote-commit"
       git_source:
         git_url: https://some-git-provider.com/some/remote/repo.git
         git_provider: "git-provider-name"
-        git_commit: "{{env['GIT_COMMIT']}}"
+        git_commit: "{{env['GIT_COMMIT']}}" # assuming this env variable exists
 ```

@@ -54,6 +54,8 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.smartsymbols
   - pymdownx.details
   - pymdownx.caret
@@ -78,6 +80,7 @@ nav:
           - DevOps:
               - DevOps for Python package-based projects: guides/python/devops/python_package_devops.md
               - DevOps for Notebooks-based projects: guides/python/devops/python_notebook_devops.md
+          - Packaging arbitrary files: guides/python/packaging_files.md
       - JVM:
           - Development loop for JVM-based projects: guides/jvm/jvm_devloop.md
           - DevOps for JVM-based projects: guides/jvm/jvm_devops.md

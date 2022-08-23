@@ -1,1 +1,1 @@
-# DevOps for JVM-based projects
+# :fontawesome-solid-ship: DevOps for JVM-based projects
