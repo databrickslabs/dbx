@@ -148,10 +148,10 @@ tree -L 3 -I __pycache__ -a -I .git -I .pytest_cache -I .coverage
 1. This is an auxiliary :material-folder-cog: folder, used to store dbx-related information.
    <br/>Please don't store your files in this folder. The `.dbx/project.json` file shall also be provided in your git repository, don't add it to `.gitignore`.
 2. This file used to store information about currently used `ExecutionContext` while running `dbx execute`. It's expected to ignore this file in `.gitignore`.
-3. Project file is used to keep information about various environments and project-wide settings. It shouldn't be ignored when using git, since it points to the specific environment settings. [Read more about this file here]().
+3. Project file is used to keep information about various environments and project-wide settings. It shouldn't be ignored when using git, since it points to the specific environment settings. [Read more about this file here](../../reference/project.md).
 4. :fontawesome-brands-square-github: This folder is GitHub Actions-specific. It's used to store CI/CD pipeline defitions under `workflows` section. If you're not going to use GitHub Actions, you can delete it.
-5. :fontawesome-brands-square-github: This file is GitHub Actions-specific. It defines the :octicons-repo-forked-24: CI pipeline that will be executed on each push to the git repository. You can read more about the CI pipelines [here]().
-6. :fontawesome-brands-square-github: This file is GitHub Actions-specific. It defines the :octicons-repo-forked-24: CD pipeline that will be executed on each **tag** push to the repository (usually a new release is marked with a tag). You can read more about the CD pipelines [here]().
+5. :fontawesome-brands-square-github: This file is GitHub Actions-specific. It defines the :octicons-repo-forked-24: CI pipeline that will be executed on each push to the git repository. You can read more about the CI pipelines [here](../../concepts/devops.md#continuous-integration-and-continuous-delivery).
+6. :fontawesome-brands-square-github: This file is GitHub Actions-specific. It defines the :octicons-repo-forked-24: CD pipeline that will be executed on each **tag** push to the repository (usually a new release is marked with a tag). You can read more about the CD pipelines [here](../../concepts/devops.md#continuous-integration-and-continuous-delivery).
 7. Gitignore keeps specific files or folders out of git. Very useful to ignore aux. folders (e.g. `dist`), as well as secret files out of repo. Read more about `.gitignore` [here](https://git-scm.com/docs/gitignore).
 8. :fontawesome-brands-readme: Markdown-based file which is rendered when the Git repo is opened in the browser.
    Usually you would put here short project description, :material-tag: badges and :material-link-plus: links to the docs.
@@ -179,7 +179,7 @@ tree -L 3 -I __pycache__ -a -I .git -I .pytest_cache -I .coverage
 21. :material-language-python: Python configuration file. Could contain tool configurations. Read more about this file [here](https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/).
 22. :material-language-python: This file specifies Python project configurations such as dependencies and other project characteristics. Please find the documentation of this file [here](https://setuptools.pypa.io/en/latest/userguide/index.html), and [here](https://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/quickstart.html) is another good guide.
 23. :fontawesome-solid-flask-vial: Folder where we keep the `tests` relevant to this project. There is no strict requirement to store tests in this folder.
-24. :fontawesome-solid-vial-circle-check: In the future you might consider also having a set of `integration` or `e2e` tests, so we keep the unit tests separately. Please read more on the testing concepts [here]().
+24. :fontawesome-solid-vial-circle-check: In the future you might consider also having a set of `integration` or `e2e` tests, so we keep the unit tests separately. Please read more on the testing concepts [here](../../concepts/testing.md).
 25. :material-auto-fix: This file contains useful mocks (e.g. Spark, MLflow) and fixtures for testing. Read more on this file [here](https://docs.pytest.org/en/6.2.x/fixture.html).
 26. This file contains local tests for sample :octicons-workflow-24: workflow. We're going to discover its content later
 
@@ -363,7 +363,7 @@ The cluster and task definitions are following the [Databricks Jobs API](https:/
 As you can see, we don't add any package to the `libraries` section of the job.
 This is not required, since `dbx` by default will automatically build and add the core package to the tasks definitions.
 
-You might also notice that there is a file reference on the highlighted line. Please learn more about path referencing [here]().
+You might also notice that there is a file reference on the highlighted line. Please learn more about file referencing [here](../../features/file_references.md).
 As of now, think of a file reference as a mechanism that allows you to
 upload local files to the Databricks workspace in automated fashion and properly resolve them in the workflow definition.
 
@@ -412,7 +412,7 @@ class Task(ABC):
 
 1. This `if`-switch defines whenever the passed argument will be used (as it's done in test), or a default approach based on reading the config file will be used.
 2. You can override this method or create a new one if you would like to pass more parameters than just `--conf-file`.
-3. Since a file-system `safe_load` is used, we're passing the file reference by using `file:fuse://` syntax. Read more about it [here]()
+3. Since a file-system `safe_load` is used, we're passing the file reference by using `file:fuse://` syntax. Read more about it [here](../../features/file_references.md)
 
 You can :material-cursor-default-click: click on the :material-plus-circle-outline: annotations for in-depth explanations.
 
@@ -513,7 +513,7 @@ dbx deploy charming-aurora-sample-etl
 
 Now you can go to the Databricks UI and verify that the job has been properly created.
 
-There are cases when the immediate job creation is not needed - in this case `dbx` allows to use another deployment pattern which is described [here]().
+There are cases when the immediate job creation is not needed - in this case `dbx` allows to use another deployment pattern which is described [here](../../features/ephemeral_workflows.md).
 
 
 ## Launching the workflow

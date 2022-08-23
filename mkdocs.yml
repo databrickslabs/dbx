@@ -81,9 +81,18 @@ nav:
       - JVM:
           - Development loop for JVM-based projects: guides/jvm/jvm_devloop.md
           - DevOps for JVM-based projects: guides/jvm/jvm_devops.md
+  - Features:
+      - Ephemeral Workflows: features/ephemeral_workflows.md
+      - File references: features/file_references.md
+      - Build management: features/build_management.md
+      - Jinja support: features/jinja_support.md
+      - Named properties: features/named_properties.md
+      - Permissions management: features/permissions_management.md
   - Reference:
       - CLI Reference: reference/cli.md
       - Deployment file reference: reference/deployment.md
       - Project file reference: reference/project.md
+  - Migration: migration.md
+  - Frequently Asked Questions: faq.md
 
 
