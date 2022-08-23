@@ -21,7 +21,7 @@ python_wheel_task_payload = {
     "python_wheel_task": {
         "package_name": "some-pkg",
         "entry_point": "etl",
-        "parameters": ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"],
+        "parameters": ["--conf-file", "file:fuse://conf/tasks/sample_etl_config.yml"],
     }
 }
 

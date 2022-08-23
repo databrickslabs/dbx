@@ -81,6 +81,9 @@ nav:
       - JVM:
           - Development loop for JVM-based projects: guides/jvm/jvm_devloop.md
           - DevOps for JVM-based projects: guides/jvm/jvm_devops.md
-  - CLI Reference: cli.md
+  - Reference:
+      - CLI Reference: reference/cli.md
+      - Deployment file reference: reference/deployment.md
+      - Project file reference: reference/project.md
 
 
