@@ -19,6 +19,7 @@ This approach sorts the tests by two criteria: :material-cog-counterclockwise: i
 
 At the top of the pyramid there are usually **end-to-end** tests. The end-to-end tests verify that
 the whole data product is working as expected, without putting attention to how specific parts operate.
+Usually these tests are the hardest to implement and execute, since it requires coordinated work of many teams and services.
 
 Next level towards bottom of the pyramid is occupied by **integration tests**.
 Integration tests usually are launched inside the test environment (e.g. a Databricks workspace).
@@ -50,15 +51,23 @@ working as expected.
 
 ## :material-file-check: Relation between testing and data quality frameworks
 
-Various data quality frameworks (e.g. [Soda](https://github.com/sodadata/soda-core), [great_expectations](https://greatexpectations.io/), )
+Various data quality frameworks (e.g. [Soda](https://github.com/sodadata/soda-core), [great_expectations](https://greatexpectations.io/), [Deequ](https://github.com/awslabs/deequ) and others)
+provide capabilities to test various properties of the data sets.
+
+In context of testing, there might be 2 cases of usage for such frameworks:
+
+* Inside unit-tests as a part of output assertion
+* As integration tests as a part of output assertion on a real data
+
+However, the biggest and one of the most important is to run DQ checks as **separate tasks** on a regular basis (e.g. in a :material-timer-sync: scheduled fashion) out of the testing scope.
 
 ## :material-note-search: Real-life example
 
 Imagine that you need to develop a streaming pipeline that should do the following:
 
-- read data from a :material-table: Delta Table and writes
+- read data from a [:material-table: Delta Table](https://www.databricks.com/product/delta-lake-on-databricks)
 - apply complex :material-filter: filtering logic
-- output result to a :material-apache-kafka: Apacke Kafka topic
+- output result to a :material-apache-kafka: Apache Kafka topic
 
 For your local setup you probably would start from writing an Apache Spark application that mocks the input data and the
 output sink. In this application your tests would cover various data inputs, and verify that the outputs are following

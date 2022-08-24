@@ -51,7 +51,7 @@ Among other properties that could be configured in the deployment file, we'll ne
 
 Here is brief example of the features that shall be used in the deployment file:
 
-```yaml title="conf/deployment.yml" hl_lines="29"
+```yaml title="conf/deployment.yml" hl_lines="28"
 
 custom:
   basic-cluster-props: &basic-cluster-props
@@ -68,7 +68,6 @@ build:
     commands:
         - "mvn package" #(3)
 
-# please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
 environments:
   default:
     workflows:
@@ -95,6 +94,7 @@ environments:
 5. This setting disables default Python package behaviour.
 
 With this file, we can now easily launch the defined workload on the instance pools.
+
 Please note the highlighted `main_class_name` line, for various tasks you probably will have various classes.
 
 ## :material-cog-play: Running the code

@@ -1,5 +1,10 @@
 # :fontawesome-solid-ship: DevOps for Notebooks-based project
 
+!!! tip
+
+    For general DevOps considerations please take a look at the [concepts](../../../concepts/devops.md).
+
+
 For notebook-based projects we recommend using the [notebooks in a remote Git repository](https://docs.databricks.com/workflows/jobs/jobs.html#run-jobs-using-notebooks-in-a-remote-git-repository) feature.
 
 Describe your workflow steps, cluster properties and other configurations in the deployment file.

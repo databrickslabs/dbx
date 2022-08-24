@@ -190,7 +190,7 @@ Although :material-file-tree: project structure might seem a bit 🤯 overwhelmi
 Let's continue our :material-airplane: journey to the part of writing some code.
 Open the project in your favourite IDE and set it to use the conda environment we've created above.
 
-## Editing tasks code
+## :material-file-edit: Editing tasks code
 
 As it was shown above, our main task code is stored in the `charming_aurora/tasks/*.py` files.
 
@@ -249,7 +249,7 @@ Please note that in local tests `self.dbutils` ([DBUtils](https://docs.databrick
 
 Now you can edit the code of this task to any extent.
 
-## Running tests
+## :material-cog-play: Running tests
 
 Take a look at the following file:
 ```python title="tests/unit/sample_test.py"
@@ -325,10 +325,10 @@ pytest tests/unit --cov --cov-report=xml
 
 With the example above we're now able to run the unit tests and see how good our code is covered.
 
-## Deployment configuration
+## :material-file-code: Deployment configuration
 
 To launch the code on an all-purpose cluster or to deploy it as a workflow, we'll need to define the workflow
-and tasks in the [deployment file](). After project generation it looks like this:
+and tasks in the [:material-file-code: deployment file](../../reference/deployment.md). After project generation it looks like this:
 ```yaml title="conf/deployment.yml" hl_lines="26"
 # Custom section is used to store configurations that might be repetative.
 # Please read YAML documentation for details on how to use substitutions and anchors.
@@ -416,7 +416,7 @@ class Task(ABC):
 
 You can :material-cursor-default-click: click on the :material-plus-circle-outline: annotations for in-depth explanations.
 
-## Executing code on Databricks
+## :material-cloud-upload-outline: Executing code on Databricks
 
 Since we have now our task defined, we can execute this code on Databricks. There are two fundamentally different Databricks cluster types:
 
@@ -455,7 +455,7 @@ The reason is that `self.logger` logs it's content to the Driver Logs, which is 
 
 With a successfully executed code on the interactive cluster, we can now move on to the deployment and launch.
 
-## Defining the entrypoints
+## :material-door-open: Defining the entrypoints
 
 Let's get back to the ETL task to point our attention to the interfaces of how this task will be launched in Databricks:
 ```python title="charming_aurora/tasks/sample_etl_task.py"
@@ -504,7 +504,7 @@ As it states above, the `entrypoint` function from `sample_etl_task` file will b
 
 With this setup finished, we now can deploy the workflow.
 
-## Deploying the workflow
+## :fontawesome-solid-ship: Deploying the workflow
 
 To deploy the workflow as a [Databricks Job](https://docs.databricks.com/workflows/jobs/jobs.html) simply run:
 ```bash
@@ -516,7 +516,7 @@ Now you can go to the Databricks UI and verify that the job has been properly cr
 There are cases when the immediate job creation is not needed - in this case `dbx` allows to use another deployment pattern which is described [here](../../features/assets.md).
 
 
-## Launching the workflow
+## :octicons-feed-rocket-16: Launching the workflow
 
 To launch the deployed workflow, use the following command:
 
@@ -527,7 +527,7 @@ dbx launch charming-aurora-sample-etl
 You can add `--trace` flag to keep the current shell busy until the Job Run is finished.
 
 
-## Summary
+## :material-head-lightbulb: Summary
 
 
 With this guide we've done the following:
