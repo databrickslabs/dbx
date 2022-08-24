@@ -43,7 +43,7 @@ environments:
     workflows:
       - name: "charming-aurora-sample-jvm"
         libraries:
-          - jar: "{{ dbx.get_last_modified_file('target/scala-2.12', 'jar') }}" #(2)
+          - jar: "{{ 'file://' + dbx.get_last_modified_file('target/scala-2.12', 'jar') }}" #(2)
         tasks:
           - task_key: "main"
             <<: *basic-static-cluster
@@ -89,8 +89,9 @@ dbx launch <workflow-name> --from-assets --trace
 
 For CD process simply use normal deployment mode.
 
-Reference steps could like like this:
+Reference steps could like this:
 
+* Install JVM and packaging tools (e.g. `maven` ot `sbt`)
 * Install `dbx`
 * Deploy the workflows (note there is no `--assets-only`):
 

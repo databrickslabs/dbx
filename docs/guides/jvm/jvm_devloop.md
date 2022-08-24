@@ -73,7 +73,7 @@ environments:
     workflows:
       - name: "charming-aurora-sample-jvm"
         libraries:
-          - jar: "{{ dbx.get_last_modified_file('target/scala-2.12', 'jar') }}" #(4)
+          - jar: "{{ 'file://' + dbx.get_last_modified_file('target/scala-2.12', 'jar') }}" #(4)
         tasks:
           - task_key: "main"
             <<: *basic-static-cluster

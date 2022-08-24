@@ -6,6 +6,14 @@ from dbx.utils import dbx_echo
 
 
 def get_last_modified_file(path: str, extension: str) -> Optional[str]:
+    """
+
+    Provides last modified file from the given path with the provided extension.
+
+    :param path:
+    :param extension:
+    :return:
+    """
     file_locator = Path(path).glob(f"*.{extension}")
     sorted_locator = sorted(file_locator, key=os.path.getmtime)
     if sorted_locator:

@@ -3,6 +3,7 @@ Path adjustment logic during deployment
 
 
 During deployment, :code:`dbx` supports uploading local files and properly referencing them in the job definition.
+
 Any keys referenced in the deployment file starting with :code:`file://` or :code:`file:fuse://` will be uploaded to the artifact storage.
 References are resolved with relevance to the root of the project.
 
