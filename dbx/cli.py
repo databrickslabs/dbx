@@ -2,6 +2,7 @@ import typer.rich_utils
 
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy
+from dbx.commands.destroy import destroy
 from dbx.commands.execute import execute
 from dbx.commands.init import init
 from dbx.commands.launch import launch
@@ -166,6 +167,12 @@ app.add_typer(
     sync_app,
     name="sync",
 )
+
+app.command(
+    short_help="🚮 Delete defined workflows and relevant assets.",
+    help="""🚮 Delete defined workflows and relevant assets.""",
+    name="destroy",
+)(destroy)
 
 
 def get_click_app():
