@@ -4,6 +4,9 @@ site_url: https://dbx.readthedocs.io/
 
 theme:
   name: material
+  font:
+    text: DM Sans
+    code: DM Mono
   palette:
     - media: '(prefers-color-scheme: light)'
       scheme: default

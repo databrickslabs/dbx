@@ -70,12 +70,13 @@ Depending on your developer journey and overall tasks, you might use `dbx` in va
 
 ## :octicons-law-24: Legal Information
 
-This software is provided as-is and is not officially supported by
-Databricks through customer technical support channels. Support,
-questions, and feature requests can be communicated through the Issues
-page of the [dbx repo](https://github.com/databrickslabs/dbx/issues). Please see the legal agreement and understand that
-issues with the use of this code will not be answered or investigated by
-Databricks Support.
+!!! danger "Support notice"
+
+    This software is provided as-is and is not officially supported by
+    Databricks through customer technical support channels. Support, questions, and feature requests can be communicated through the Issues
+    page of the [dbx repo](https://github.com/databrickslabs/dbx/issues). Please see the legal agreement and understand that
+    issues with the use of this code will not be answered or investigated by
+    Databricks Support.
 
 ## :octicons-comment-24: Feedback
 
