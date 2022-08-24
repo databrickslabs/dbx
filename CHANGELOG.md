@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [07.0] - 2022-08-24
+
 ## Added
 - 🎨Switch all the CLI interfaces to `typer`
 - ✨Add `workflow-name` argument to `dbx deploy`, `dbx launch` and `dbx execute`
@@ -43,12 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐛`dbx sync` now takes into account `HTTP(S)_PROXY` env variables
 - 🐛empty task parameters are now supported
 - 🐛ACLs are now properly updated for Jobs API 2.1
-
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 ## [0.6.12] - 2022-08-15
 
