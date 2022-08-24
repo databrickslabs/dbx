@@ -1,4 +1,4 @@
-# dbx by Databricks Labs
+# :octicons-feed-rocket-16: dbx by Databricks Labs
 
 <p align="center">
     <a href="https://dbx.readthedocs.io/">
@@ -22,7 +22,7 @@ Since `dbx` primary interface is CLI, it's easy to use it in various CI/CD pipel
 
 Read more about the place of `dbx` and potential use-cases in the [Concepts section](/concepts).
 
-## :octicons-tools-24: Differences from other tools
+## :thinking: Differences from other tools
 
 | Tool                                                                                             | Comment                                                                                                                                                                                                                                                                           |
 |--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

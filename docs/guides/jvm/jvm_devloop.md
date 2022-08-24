@@ -66,7 +66,7 @@ custom:
 
 build:
     commands:
-        - "mvn package" #(3)
+        - "mvn clean package" #(3)
 
 environments:
   default:

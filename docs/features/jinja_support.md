@@ -1,7 +1,6 @@
 # :shinto_shrine: Jinja support
 
-[Jinja](https://jinja.palletsprojects.com/en/3.1.x/) is an extremely extensible templating engine that can<br/>
-:material-car-turbocharger: supercharge your static [:material-file-code: deployment file](../reference/deployment.md).
+[Jinja](https://jinja.palletsprojects.com/en/3.1.x/) is an extremely extensible engine that can add dynamic templating and :material-car-turbocharger: supercharge your static [:material-file-code: deployment file](../reference/deployment.md).
 
 
 ## :material-file-eye: File naming conventions
