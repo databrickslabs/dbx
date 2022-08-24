@@ -8,7 +8,7 @@ However, an alternative approach to JVM-based development from an IDE can be pro
 
 For local development you can continue using your setup based on local Apache Spark.
 
-Don't forget to add the Spark dependencies to your project, and keep them in sync with the used DBR version.
+Don't forget to add the Apache Spark dependencies to your project, and keep them in sync with the used DBR version.
 Add the dependencies as `provided` to avoid the `jar` from growing in size.
 
 Use this setup for local unit tests.

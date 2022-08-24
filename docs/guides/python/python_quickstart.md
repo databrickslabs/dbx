@@ -25,43 +25,44 @@ In the end of this guide you'll have a prepared local environment, as well as ca
 
 In this example we'll call our project: **:fontawesome-solid-wand-magic-sparkles: charming-aurora**.
 
-1. Create a new conda environment:
+Create a new conda environment:
 
 ```bash
 conda create -n charming-aurora python=3.9
 ```
 
-2. Activate this environment:
+Activate this environment:
 
 ```bash
 conda activate charming-aurora
 ```
 
-3. Install OpenJDK for local Spark tests:
+Install OpenJDK for local Apache Spark tests:
 
 ```bash
 conda install -c conda-forge openjdk=11.0.15
 ```
 
-4. Install `dbx`:
+Install `dbx`:
 
 ```bash
 pip install dbx
 ```
 
-5. Create a new [Databricks API token](https://docs.databricks.com/dev-tools/api/latest/authentication.html) and
+Create a new [Databricks API token](https://docs.databricks.com/dev-tools/api/latest/authentication.html) and
    configure the CLI:
 
 ```bash
 databricks configure --profile charming-aurora --token
 ```
 
-6. Verify that profile is working as expected:
+Verify that profile is working as expected:
 
 ```bash
 databricks --profile charming-aurora workspace ls /
 ```
-7. Now the preparation is done, let’s generate a project skeleton using [`dbx init`](../../../cli/#dbx-init):
+Now the preparation is done, let’s generate a project skeleton using [`dbx init`](../../reference/cli.md):
+
 ```bash
 dbx init -p \
     "cicd_tool=GitHub Actions" \
@@ -70,19 +71,21 @@ dbx init -p \
     -p "profile=charming-aurora" \
     --no-input
 ```
-8. Step into the newly generated folder:
+
+Step into the newly generated folder:
 
 ```bash
 cd charming-aurora
 ```
 
-9. Install dependencies for local environment:
+Install dependencies for local environment:
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-10. Run local unit tests:
+Run local unit tests:
+
 ```bash
 pytest tests/unit --cov
 ```
@@ -309,7 +312,7 @@ To launch the tests use the following command:
 ```bash
 pytest tests/unit
 ```
-This command will start local Spark session, run the tests and shutdown Spark afterwards.
+This command will start local Apache Spark session, run the tests and shutdown afterwards.
 
 To add coverage to the shell output, run the command with the following flag:
 ```bash
