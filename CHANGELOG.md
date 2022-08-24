@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🚩Delete the Azure Data Factory-related functionality.
     Unfortunately we're unable to make this integration stable and secure due to resource lack and lack of RunNow API.
 - 💎Documentation framework changed from `sphinx` to `mkdocs`
+- 💎Documentation has been heavily re-worked and improved
 
 ## Fixed
 - 🐛`dbx sync` now takes into account `HTTP(S)_PROXY` env variables

@@ -171,7 +171,7 @@ tree -L 3 -I __pycache__ -a -I .git -I .pytest_cache -I .coverage
     Deployment configurations are responsible for cluster, dependencies and orchestration configuration,<br>
     while task configuration files are used to pass parameters to the task.
 16. :material-file-cog-outline: One of the most important files - the deployment configuration file.<br/>
-    It defines workflows and their respective parameters and cluster configurations. Please read more about this file in the [reference section]()
+    It defines workflows and their respective parameters and cluster configurations. Please read more about this file in the [reference section](../../reference/deployment.md)
 17. :octicons-file-directory-24: In this folder we store task argument configuration files - these files specify parameters that are being passed into the tasks when they're deployed and launched.
 18. :material-cog-box: This file contains ETL task configurations, we'll touch on it later.
 19. :material-cog-box: This file contains ML task configurations, we'll touch on it later.
@@ -483,7 +483,7 @@ environments:
             python_wheel_task:
               package_name: "charming_aurora"
               entry_point: "etl" # take a look at the setup.py entry_points section for details on how to define an entrypoint
-              parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
+              parameters: ["--conf-file", "file:fuse://conf/tasks/sample_etl_config.yml"]
 ```
 
 To setup this function to a specific `entry_point` name, we assign this function in the `console_scripts` section of `setup.py` file:

@@ -33,5 +33,5 @@ environments:
               - task_key: "second-task"
             spark_python_task:
               python_file: "file://some/entrypoint.py"
-              parameters: ["--conf-file", "file:fuse://conf/test/sample_etl_config.yml"]
+              parameters: ["--conf-file", "file:fuse://conf/tasks/sample_etl_config.yml"]
 

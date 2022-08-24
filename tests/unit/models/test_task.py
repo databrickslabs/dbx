@@ -11,7 +11,7 @@ def get_spark_python_task_payload(py_file: str):
     spark_python_task_payload = {
         "spark_python_task": {
             "python_file": py_file,
-            "parameters": ["--conf-file", "file:fuse://conf/test/sample_ml_config.yml"],
+            "parameters": ["--conf-file", "file:fuse://conf/tasks/sample_ml_config.yml"],
         }
     }
     return spark_python_task_payload
