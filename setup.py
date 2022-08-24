@@ -60,7 +60,7 @@ setup(
     extras_require={"dev": DEV_REQUIREMENTS},
     entry_points={"console_scripts": ["dbx=dbx.cli:entrypoint"]},
     long_description=long_description,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     include_package_data=True,
     version=__version__,
     description="DataBricks CLI eXtensions aka dbx",
