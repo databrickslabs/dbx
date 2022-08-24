@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 from dbx import __version__
 
-with open("README.rst", "r", encoding="utf-8") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 INSTALL_REQUIRES = [
@@ -30,15 +30,13 @@ if sys.platform.startswith("win32"):
 
 DEV_REQUIREMENTS = [
     # utilities for documentation
-    "sphinx>=4.5.0,<5.0.0",
-    "sphinx_rtd_theme>=1.0.0,<2.0.0",
-    "sphinx-autobuild>=2021.3.14,<2022.0.0",
-    "sphinx-click>=4.1.0,<5.0.0",
-    "sphinx-tabs>=3.3.1,<4.0.0",
-    "rst2pdf>=0.99,<1.0",
+    "mkdocs>=1.1.2,<2.0.0",
+    "mkdocs-material>=8.4,<9.0.0",
+    "mdx-include>=1.4.1,<2.0.0",
+    "mkdocs-markdownextradata-plugin>=0.1.7,<0.3.0",
+    "mkdocs-glightbox>=0.2.1,<1.0",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
-    "rstcheck>=5.0.0,<6.0.0",
     "prospector>=1.3.1,<1.7.0",
     "black>=22.3.0,<23.0.0",
     "MarkupSafe>=2.1.1,<3.0.0",

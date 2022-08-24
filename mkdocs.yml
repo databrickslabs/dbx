@@ -1,0 +1,106 @@
+site_name: dbx
+site_description: 🧱Databricks CLI eXtensions - aka dbx is a CLI tool for development and advanced Databricks workflows management.
+site_url: https://dbx.readthedocs.io/
+copyright: © Copyright 2022, Databricks Inc.
+
+theme:
+  name: material
+  font:
+    text: DM Sans
+    code: DM Mono
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/lightbulb
+        name: Switch to light mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: black
+      accent: amber
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to dark mode
+  features:
+    - content.code.annotate
+    - content.tabs.link
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+    - navigation.sections
+    - navigation.tabs
+  icon:
+    repo: fontawesome/brands/github
+  logo: img/logo.svg
+  favicon: img/logo.svg
+  language: en
+
+repo_name: databrickslabs/dbx
+repo_url: https://github.com/databrickslabs/dbx
+
+plugins:
+  - glightbox
+  - search
+
+extra_css: [ custom/custom.css ]
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: "#"
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.smartsymbols
+  - pymdownx.details
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.betterem:
+      smart_enable: all
+  - mkdocs-click
+
+nav:
+  - Home: index.md
+  - Concepts:
+      - Place of dbx in the ecosystem: concepts/ecosystem.md
+      - DevOps for workflows: concepts/devops.md
+      - Testing workflows: concepts/testing.md
+  - Guides:
+      - Python:
+          - Python quickstart: guides/python/python_quickstart.md
+          - Development loop:
+              - Mixed-mode development loop for Python projects: guides/python/devloop/python_mixed_devloop.md
+              - Development loop for Python package-based projects: guides/python/devloop/python_package_devloop.md
+          - DevOps:
+              - DevOps for Python package-based projects: guides/python/devops/python_package_devops.md
+              - DevOps for Notebooks-based projects: guides/python/devops/python_notebook_devops.md
+          - Packaging arbitrary files: guides/python/packaging_files.md
+      - JVM:
+          - Development loop for JVM-based projects: guides/jvm/jvm_devloop.md
+          - DevOps for JVM-based projects: guides/jvm/jvm_devops.md
+  - Features:
+      - Assets-based deployment and launch: features/assets.md
+      - File references: features/file_references.md
+      - Build management: features/build_management.md
+      - Jinja support: features/jinja_support.md
+      - Named properties: features/named_properties.md
+      - Permissions management: features/permissions_management.md
+  - Reference:
+      - CLI Reference: reference/cli.md
+      - Deployment file reference: reference/deployment.md
+      - Project file reference: reference/project.md
+  - Migration: migration.md
+  - Frequently Asked Questions: faq.md
+
+

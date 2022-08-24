@@ -29,14 +29,20 @@ from dbx.api.build import prepare_build
 def execute(
     workflow: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
-    cluster_id: Optional[str] = typer.Option(None, "--cluster-id", help="Cluster ID."),
-    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", help="Cluster name."),
-    job: str = typer.Option(None, "--job", help="[red]This option is deprecated[/red]"),
+    cluster_id: Optional[str] = typer.Option(
+        None, "--cluster-id", help="Cluster ID. Cannot be provided together with `--cluster-name`"
+    ),
+    cluster_name: Optional[str] = typer.Option(
+        None, "--cluster-name", help="Cluster name. Cannot be provided together with `--cluster-id`"
+    ),
+    job: str = typer.Option(
+        None, "--job", help="This option is deprecated. Please use `workflow-name` as argument instead"
+    ),
     task: Optional[str] = typer.Option(
         None,
         "--task",
-        help="""Task name (task_key field) inside the workflow to be executed.
-             [red bold]Required if the workflow is a multitask job[/red bold].""",
+        help="""Task name (`task_key` field) inside the workflow to be executed.
+        Required if the workflow is a multitask job""",
     ),
     deployment_file: Path = DEPLOYMENT_FILE_OPTION,
     requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,

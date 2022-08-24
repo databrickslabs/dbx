@@ -11,6 +11,7 @@ def configure(
     workspace_dir: str = typer.Option(
         f"/Shared/dbx/projects/{current_folder_name()}",
         "--workspace-dir",
+        "--workspace-directory",
         help="Workspace directory for MLflow experiment.",
         show_default=False,
     ),
@@ -27,9 +28,11 @@ def configure(
         is_flag=True,
         help="""Enables inplace jinja support for deployment files.
 
-            This flag ignores any other flags.
 
-            Project file should exist, otherwise command will fail""",
+        This flag ignores any other flags.
+
+
+        Project file should exist, otherwise command will fail.""",
     ),
 ):
     manager = ProjectConfigurationManager()

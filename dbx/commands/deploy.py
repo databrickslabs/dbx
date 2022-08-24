@@ -43,11 +43,11 @@ def deploy(
     job: Optional[str] = typer.Option(
         None,
         "--job",
-        help="[red]This option is deprecated, please use workflow name as argument[/red]",
+        help="This option is deprecated, please use workflow name as argument instead.",
         show_default=False,
     ),
     jobs: Optional[str] = typer.Option(
-        None, "--jobs", help="[red]This option is deprecated, please use --workflows instead.[/red]", show_default=False
+        None, "--jobs", help="This option is deprecated, please use `--workflows` instead.", show_default=False
     ),
     workflows: Optional[str] = typer.Option(
         None, "--workflows", help="Comma-separated list of workflow names to be deployed", show_default=False
@@ -61,24 +61,27 @@ def deploy(
         False,
         "--files-only",
         is_flag=True,
-        help="[red]This option is deprecated, please use --assets-only instead[/red]",
+        help="This option is deprecated, please use `--assets-only` instead.",
     ),
     assets_only: bool = typer.Option(
         False,
         "--assets-only",
         is_flag=True,
-        help="""
-        When provided, will [bold]only[/bold] upload assets (referenced files, core package and workflow definition)
-        to the artifact storage.
+        help="""When provided, will **only** upload assets
+        (📁 referenced files, 📦 core package and workflow definition) to the artifact storage.
 
-        [yellow]:rotating_light:A workflow(s) won't be created or updated in the Jobs UI[/yellow].
+        ⚠️ A workflow(s) won't be created or updated in the Jobs UI.
 
-        This option is intended for CI cases and for cases when users don't want to affect the job
+
+        This option is intended for CI pipelines and for cases when users don't want to affect the job
         instance in the workspace.
 
-        [bold]Workflows deployed with this option are intended to be used
-        with dbx launch --from-assets option.[/bold]
-    """,
+
+        ⚠️ Please note that the only way to launch a workflow that has been deployed with `--assets-only` option
+        is to use the `dbx launch --from-assets`.
+
+
+        Workflows deployed with this option can only be launched to be used with `dbx launch --from-assets` option.""",
     ),
     write_specs_to_file: Optional[Path] = typer.Option(
         None,
@@ -86,7 +89,7 @@ def deploy(
 
               Helpful when final representation of a deployed job is needed for other integrations.
 
-              [bold red]Please note that output file will be overwritten if it exists.[/bold red]""",
+              Please note that output file will be overwritten if it exists.""",
         writable=True,
     ),
     branch_name: Optional[str] = BRANCH_NAME_OPTION,

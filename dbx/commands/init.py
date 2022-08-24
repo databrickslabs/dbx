@@ -18,32 +18,32 @@ def init(
     path: Optional[str] = typer.Option(
         None,
         "--path",
-        help="""
-            External template used to kickoff the project.
-            Cannot be used together with [bold]--template[/bold] option.""",
+        help="""External template used to kickoff the project.
+
+            Cannot be used together with `--template` option.""",
     ),
     package: Optional[str] = typer.Option(
         None,
         "--package",
-        help="""
-            Python package containing external template used to kickoff the project.
-            Cannot be used together with [bold]--template[/bold] option.""",
+        help="""Python package containing external template used to kickoff the project.
+
+            Cannot be used together with --template option.""",
     ),
     checkout: Optional[str] = typer.Option(
         None,
         "--checkout",
-        help="""Checkout argument for cookiecutter. Used only if [bold]--path[/bold] is used.""",
+        help="""Checkout argument for cookiecutter. Used only if `--path` is used.""",
     ),
     parameters: Optional[List[str]] = typer.Option(
         None,
         "--parameters",
         "-p",
-        help="""
-            Additional parameters for project creation.
-            Example: [bold]dbx init --p project_name=some-name -p cloud=some_cloud[/bold]
+        help="""Additional parameters for project creation.
+
+            Example: `dbx init -p cloud=some_cloud`
             """,
     ),
-    no_input: bool = typer.Option(False, "--no-input", is_flag=True),
+    no_input: bool = typer.Option(False, "--no-input", is_flag=True, help="Disables interactive input."),
 ):
     if sum([bool(template), bool(package), bool(path)]) > 1:
         raise Exception(

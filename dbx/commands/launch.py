@@ -33,7 +33,7 @@ def launch(
     job: str = typer.Option(
         None,
         "--job",
-        help="[red]This option is deprecated, please use workflow name as an argument[/red]",
+        help="This option is deprecated, please use workflow name as argument instead.",
         show_default=False,
     ),
     trace: bool = typer.Option(False, "--trace", help="Trace the workload until it finishes.", is_flag=True),
@@ -41,7 +41,7 @@ def launch(
         False,
         "--kill-on-sigterm",
         is_flag=True,
-        help="If provided, kills the job on SIGTERM (Ctrl+C) signal",
+        help="If provided, kills the job on SIGTERM (Ctrl+C) signal.",
     ),
     existing_runs: ExistingRunsOption = typer.Option(
         ExistingRunsOption.pass_.value,
@@ -52,16 +52,17 @@ def launch(
 
         Options behaviour:
 
-        * :code:`wait` will wait for all existing job runs to be finished
-        * :code:`cancel` will cancel all existing job runs
-        * :code:`pass` will simply pass the check and try to launch the job directly
-        """,
+        `wait` will wait for all existing job runs to be finished
+
+        `cancel` will cancel all existing job runs
+
+        `pass` will pass the check and launch the workflow""",
     ),
     as_run_submit: bool = typer.Option(
         False,
         "--as-run-submit",
         is_flag=True,
-        help="[red bold]This option is deprecated, please use --from-assets flag instead[/red bold]",
+        help="This option is deprecated, please use `--from-assets` flag instead.",
     ),
     from_assets: bool = typer.Option(
         False,
@@ -69,11 +70,11 @@ def launch(
         is_flag=True,
         is_eager=True,
         help="""
-        Creates a one-time run using assets deployed with [bold]dbx deploy --assets-only[/bold] option.
+        Creates a one-time run using assets deployed with `dbx deploy --assets-only` option.
 
-        Please note that one-time run is created using [bold]RunSubmit API[/bold].
+        Please note that one-time run is created using RunSubmit API.
 
-        :rotating_light: This workflow run won't be visible in the Jobs UI, but it will be visible in the Jobs Run tab.
+        🚨 This workflow run won't be visible in the Jobs UI, but it will be visible in the Jobs Run tab.
 
         Shared job cluster feature is not supported in runs/submit API and therefore is not supported with this flag.
         """,
@@ -83,17 +84,18 @@ def launch(
     include_output: Optional[IncludeOutputOption] = typer.Option(
         None,
         "--include-output",
-        help="""
-        If provided, adds run output to the console output of the launch command.
-        Please note that this option is only supported for Jobs V2.X+.
+        help="""If provided, adds run output to the console output of the launch command.
+
+        ℹ️ Please note that this option is only supported for Jobs V2.X+.
+
         For jobs created without tasks section output won't be printed.
         If not provided, run output will be omitted.
 
         Options behaviour:
 
-        * :code:`stdout` will add stdout and stderr to the console output
-        * :code:`stderr` will add only stderr to the console output
-        """,
+        `stdout` will add both stdout and stderr to the console output
+
+        `stderr` will add only stderr to the console output""",
     ),
     parameters: Optional[str] = LAUNCH_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa

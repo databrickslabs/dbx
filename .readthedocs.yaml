@@ -6,8 +6,8 @@
 version: 2
 
 # Build documentation in the docs/ directory with Sphinx
-sphinx:
-  configuration: docs/source/conf.py
+mkdocs:
+  configuration: mkdocs.yml
 
 # Optionally set the version of Python and requirements required to build your docs
 python:

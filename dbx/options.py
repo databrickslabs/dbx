@@ -13,7 +13,17 @@ from dbx.callbacks import (
 
 ENVIRONMENT_OPTION = typer.Option("default", "--environment", "-e", help="Environment name.")
 
-PROFILE_OPTION = typer.Option(DEFAULT_SECTION, "--profile", help="Databricks CLI profile to use.")
+PROFILE_OPTION = typer.Option(
+    DEFAULT_SECTION,
+    "--profile",
+    help="""Databricks CLI profile to use.
+
+
+    Please note that this profile shall only be used for local development.
+
+
+    For CI/CD pipelines please use `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables.""",
+)
 DEBUG_OPTION = typer.Option(
     False,
     "--debug",
@@ -22,13 +32,15 @@ DEBUG_OPTION = typer.Option(
     help="""
     Enable debugging of HTTP calls.
 
+
     Disabled by default.""",
 )
 DEPLOYMENT_FILE_OPTION = typer.Option(
     None,
     "--deployment-file",
-    help="Path to deployment file. "
-    "If not provided, auto-discovery will try to find relevant file in [green]conf[/green] directory.",
+    help="""Path to deployment file.
+
+    If not provided, auto-discovery will try to find relevant file in `conf` directory.""",
     callback=deployment_file_callback,
     show_default=False,
 )
@@ -36,22 +48,22 @@ DEPLOYMENT_FILE_OPTION = typer.Option(
 JINJA_VARIABLES_FILE_OPTION = typer.Option(
     None,
     "--jinja-variables-file",
-    help="""
-        Path to a file with variables for Jinja template.
+    help="""Path to a file with variables for Jinja template.
 
-        Only works when Jinja-based deployment file is used.
 
-        :information_source: Read more about this functionality in the Jinja2 support doc.
-        """,
+        Only works when Jinja-based deployment file is used OR inplace Jinja support is enabled.
+
+
+        ℹ️ Read more about this functionality in the Jinja2 support doc.""",
     callback=verify_jinja_variables_file,
 )
 
 REQUIREMENTS_FILE_OPTION = typer.Option(
     Path("requirements.txt"),
     help="""
-    [red bold]This option is deprecated.
+    This option is deprecated.
 
-    Please use setup.py or poetry for package management. [/red bold]
+    Please use `setup.py` and other standard Python packaging and dependency management tools.
 """,
 )
 
@@ -59,45 +71,50 @@ NO_REBUILD_OPTION = typer.Option(
     False,
     "--no-rebuild",
     is_flag=True,
-    help="""
-    [red]This option is deprecated.
-
-    Please use [code]build[/code] configuration section in the deployment file. [/red]
-""",
+    help="""This option is deprecated. Please use `build` configuration section in the deployment file.""",
 )
 NO_PACKAGE_OPTION = typer.Option(
-    False, "--no-package", is_flag=True, help="Do not add package reference into the job description"
+    False,
+    "--no-package",
+    is_flag=True,
+    help="""Do not add default Python package reference into the workflow description.
+
+    Useful for cases when pure Notebook or pure JVM workflows are deployed.""",
 )
 
 TAGS_OPTION = typer.Option(
     None,
     "--tags",
-    help="""Additional tags for deployment.
+    help="""
+    Additional tags for deployment.
 
-              Example: [bold]--tags tag1=value1[/bold].
 
-              Option might be repeated multiple times: [bold]--tags tag1=value1 --tags tag2=value2[/bold]""",
+    Please note that these tags are only relevant for the `artifact_location`,
+    passing tags in the `dbx deploy` will not change the Tags section in the Job UI.
+
+
+    Example: `--tags tag1=value1`
+
+
+    Option might be repeated multiple times: `--tags tag1=value1 --tags tag2=value2`""",
 )
 
 BRANCH_NAME_OPTION = typer.Option(
     None,
     "--branch-name",
-    help="""The name of the current branch.
-              If not provided or empty, dbx will try to detect the branch name.""",
+    help="""The name of the current branch. If not provided, dbx will try to detect the branch name.""",
 )
 
 WORKFLOW_ARGUMENT = typer.Argument(
     None,
     help="""Name of the workflow from the deployment file.
-
-            If this argument is provided, --job and --jobs arguments will be [red bold]ignored[/red bold]""",
+    Will raise an exception if provided together with `--workflows`.""",
 )
 
 EXECUTE_PARAMETERS_OPTION = typer.Option(
     None,
     "--parameters",
-    help="""If provided, overrides parameters of the chosen workflow
-            or a task inside workflow.
+    help="""If provided, overrides parameters of the chosen workflow or a task inside workflow.
 
             Depending on the job or task type, it might contain various payloads.
 
@@ -107,15 +124,17 @@ EXECUTE_PARAMETERS_OPTION = typer.Option(
 
             Examples:
 
-            [bold]dbx execute <workflow_name> --parameters='{parameters: ["argument1", "argument2"]}'[/bold]
 
-            [bold]dbx execute <workflow_name> --parameters='{named_parameters: ["--a=1", "--b=2"]}'[/bold]
+            dbx execute <workflow_name> --parameters='{parameters: ["argument1", "argument2"]}'
 
-            :rotating_light: [red bold]Please note that various tasks have various parameter structures.[/red bold]
+            dbx execute <workflow_name> --parameters='{named_parameters: ["--a=1", "--b=2"]}'
+
+
+            Please note that various tasks have various parameter structures.
 
             Also note that all parameters provided for the workflow or task will be preprocessed with file uploader.
 
-            It means that if you reference a [bold]file://[/bold] in the parameter override, it will be resolved and
+            It means that if you reference a `file://` in the parameter override, it will be resolved and
             uploaded to DBFS.
 
             You can find more on the parameter structures for various Jobs API
@@ -127,50 +146,43 @@ EXECUTE_PARAMETERS_OPTION = typer.Option(
 LAUNCH_PARAMETERS_OPTION = typer.Option(
     None,
     "--parameters",
-    help="""If provided, overrides parameters of the chosen set of workflow(s), or task(s) inside workflow(s)
+    help="""If provided, overrides parameters of the chosen workflow.
 
-            Depending on the workflow or task type, it might contain various payloads.
+            Depending on the workflow type and launch type, it might contain various payloads.
 
             Provided payload shall match the expected payload of a chosen workflow or task.
 
-            [bold]Please pass the parameters as described in the RunNow method of Jobs API v2.1.
-
-            dbx will automatically convert them to a proper structure.[/bold]
-
-            It also should be wrapped as a JSON-compatible string with curly brackets around API-compatible payload.
+            Payload should be wrapped as a JSON-compatible string with curly brackets around API-compatible payload.
 
             Examples:
 
-            - Jobs API v2.0 spark_python_task, or python_wheel_task workflow without tasks inside
+            - Jobs API v2.0 `spark_python_task`, or `python_wheel_task` workflow without tasks inside
 
-            [bold]dbx launch <workflow_name> --parameters='{"parameters": ["argument1", "argument2"]}'[/bold]
+            `dbx launch <workflow_name> --parameters='{"parameters": ["argument1", "argument2"]}'
 
-            - Jobs API v2.1 multitask job with one python_wheel_task
+            - Jobs API v2.1 multitask job with one `python_wheel_task`
 
-            [bold]dbx execute <workflow_name> --parameters='[{"task_key": "some", "named_parameters":
-            ["--a=1", "--b=2"]}]'[/bold]
+            `dbx execute <workflow_name> --parameters='[{"task_key": "some", "named_parameters":
+            ["--a=1", "--b=2"]}]'`
 
             - Jobs API v2.1 multitask job with one notebook_task
 
-            [bold]dbx execute <workflow_name> --parameters='[{"task_key": "some", "base_parameters":
-            {"a": 1, "b": 2}}]'[/bold]
+            `dbx execute <workflow_name> --parameters='[{"task_key": "some", "base_parameters":
+            {"a": 1, "b": 2}}]'`
 
             - Jobs API v2.1 multitask job with 2 tasks
 
-            [bold]dbx execute <workflow_name> --parameters='[
-
+            `dbx execute <workflow_name> --parameters='[
             {"task_key": "first", "base_parameters": {"a": 1, "b": 2}},
+            {"task_key": "second", "parameters": ["a", "b"]}]'`
 
-            {"task_key": "second", "parameters": ["a", "b"]}
-
-            ]'[/bold]
-
-            :rotating_light: [red bold]Please note that various tasks have various parameter structures.[/red bold]
 
             Also note that all parameters provided for the workflow or task will be preprocessed with file uploader.
 
-            It means that if you reference a [bold]file://[/bold] or [bold]file:fuse://[/bold]
+
+            It means that if you reference a `file://` or `file:fuse://` string
             in the parameter override, it will be resolved and uploaded to DBFS.
+
 
             You can find more on the parameter structures for various Jobs API
             versions in the official documentation""",
