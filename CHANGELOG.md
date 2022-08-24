@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
-## [07.0] - 2022-08-24
+## [0.7.0] - 2022-08-24
 
 ## Added
 - 🎨Switch all the CLI interfaces to `typer`
