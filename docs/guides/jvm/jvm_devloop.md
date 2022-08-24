@@ -109,5 +109,4 @@ dbx launch <workflow-name> --from-assets --trace
 Combination of both will deliver local files to Databricks and launch
 an [asset-based workflow](../../features/assets.md)
 
-With this approach you can get up to 1-3 minutes iteration for the new code, which sounds pretty good for a full-scale
-integration test.
+With this approach you can get up to :material-av-timer: 1-3 minutes iteration for the new code.
