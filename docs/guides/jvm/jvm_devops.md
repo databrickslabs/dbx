@@ -67,7 +67,7 @@ Please note the highlighted `main_class_name` line, for various tasks you probab
 
 ## :octicons-repo-forked-24: CI process
 
-For CI process it's recommended to use the [assets-based workflow deployment and launch](../../../features/assets.md).
+For CI process it's recommended to use the [assets-based workflow deployment and launch](../../features/assets.md).
 This approach allows multiple branches to be deployed and launched as jobs, without the actual job registration.
 
 Your reference CI process could look like this:
