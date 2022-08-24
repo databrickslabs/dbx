@@ -31,6 +31,7 @@ if sys.platform.startswith("win32"):
 DEV_REQUIREMENTS = [
     # utilities for documentation
     "mkdocs>=1.1.2,<2.0.0",
+    "mkdocs-click>=0.8.0,<1.0",
     "mkdocs-material>=8.4,<9.0.0",
     "mdx-include>=1.4.1,<2.0.0",
     "mkdocs-markdownextradata-plugin>=0.1.7,<0.3.0",

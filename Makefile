@@ -218,16 +218,7 @@ docs-clean: ## Clean the docs build folder
 	-rm -rf ${DOCS_BUILD}/*
 
 docs-serve: ## sphinx autobuild & serve docs on localhost
-	@echo ""
-	@echo "${YELLOW}Build and serve docs:${NORMAL}"
-	@make helper-line
-	$(SPHINX_AUTOBUILD) ${DOCS_SOURCE} ${DOCS_BUILD}
-
-docs-rebuild: docs-clean ## Re-build the docs.
-	@echo ""
-	@echo "${YELLOW}Building the docs:${NORMAL}"
-	@make helper-line
-	$(SPHINX_BUILD) ${DOCS_SOURCE} ${DOCS_BUILD}
+	mkdocs serve
 
 ##############################################################################
 
