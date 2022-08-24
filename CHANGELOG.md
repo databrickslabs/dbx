@@ -34,8 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Changed
 - ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
-- 🏷️Deprecate `jobs` section and rename it to `workflow`
-- 🏷️Deprecate `job` and `jobs` argument and rename it to `workflow`
+- 🏷️Deprecate `jobs` section and rename it to `workflows`
+- 🏷️Deprecate `job` and `jobs` options and rename it to `workflow` argument
 - ✨Refactored all cluster-relevant methods into a separate `ClusterController`
 - ✨Refactored model-related components for `.dbx/project.json` file
 - ✨Refactored `launch`-related API-level code
