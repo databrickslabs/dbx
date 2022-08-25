@@ -4,7 +4,6 @@ from typing import Optional, List
 from pydantic import BaseModel, root_validator
 
 from dbx.models.deployment import EnvironmentDeploymentInfo
-from dbx.utils import dbx_echo
 
 
 class DeletionMode(str, Enum):
