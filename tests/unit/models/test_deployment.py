@@ -28,6 +28,15 @@ def test_non_unique_environments():
         _dc.get_environment("n1")
 
 
+def test_raise_if_not_found():
+    _env1 = EnvironmentDeploymentInfo(name="n1", payload={})
+    _dc = DeploymentConfig(environments=[_env1, _env1])
+    with pytest.raises(Exception):
+        _dc.get_environment("n3", raise_if_not_found=True)
+
+    assert _dc.get_environment("n3") is None
+
+
 def test_build_payload(capsys):
     _payload = DeploymentConfig.prepare_build({"build": {"commands": ["sleep 5"]}})
     res = capsys.readouterr()

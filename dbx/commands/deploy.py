@@ -107,15 +107,7 @@ def deploy(
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
     config = config_reader.get_config()
 
-    deployment = config.get_environment(environment)
-
-    if not deployment:
-        raise NameError(
-            f"""
-        Requested environment {environment} is non-existent in the deployment file {deployment_file}.
-        Available environments are: {config_reader.get_all_environment_names()}
-        """
-        )
+    deployment = config.get_environment(environment, raise_if_not_found=True)
 
     if workflow_name:
         job = workflow_name

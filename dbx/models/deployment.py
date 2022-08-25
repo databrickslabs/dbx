@@ -64,7 +64,12 @@ class DeploymentConfig(BaseModel):
             raise Exception(f"More than one environment with name {name} is defined in the project file")
         if len(_found) == 0:
             if raise_if_not_found:
-                raise Exception(f"Environment {name} not found in the deployment file!")
+                raise NameError(
+                    f"""
+                    Environment {name} not found in the deployment file.
+                    Available environments are: {[e.name for e in self.environments]}
+                """
+                )
             return None
 
         return _found[0]

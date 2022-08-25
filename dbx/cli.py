@@ -170,7 +170,10 @@ app.add_typer(
 
 app.command(
     short_help="🚮 Delete defined workflows and relevant assets.",
-    help="""🚮 Delete defined workflows and relevant assets.""",
+    help="""🚮 Delete defined workflows and relevant assets.
+
+    🚨 If neither workflow argument not `--workflows` option are provided,
+    will destroy **all** workflows defined in the deployment file.""",
     name="destroy",
 )(destroy)
 

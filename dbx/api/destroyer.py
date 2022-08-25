@@ -1,41 +1,18 @@
 from __future__ import annotations
 
-from typing import Optional, List, Callable
+import time
+from typing import List, Callable
 
 import mlflow
 from databricks_cli.jobs.api import JobsApi
 from databricks_cli.sdk import ApiClient
 from mlflow.entities import Run
-from pydantic import BaseModel
-from pydantic import root_validator
 from rich.progress import track
 from typer.rich_utils import _get_rich_console  # noqa
 
 from dbx.api.configure import ProjectConfigurationManager
-from dbx.models.deployment import EnvironmentDeploymentInfo
+from dbx.models.destroyer import DestroyerConfig, DeletionMode
 from dbx.utils import dbx_echo
-
-
-class DestroyerConfig(BaseModel):
-    workflows: Optional[List[str]]
-    workflows_only: bool
-    assets_only: bool
-    dry_run: Optional[bool] = False
-    dracarys: Optional[bool] = False
-    deployment: EnvironmentDeploymentInfo
-
-    @root_validator()
-    def validate_all(cls, values):  # noqa
-        _dc = values["deployment"]
-        if not values["workflows"]:
-            dbx_echo("No workflows were specified, all workflows will be taken from deployment file")
-            values["workflows"] = [w["name"] for w in _dc.payload.workflows]
-        else:
-            _ws_names = [w["name"] for w in _dc.payload.workflows]
-            for w in values["workflows"]:
-                if w not in _ws_names:
-                    raise ValueError(f"Workflow name {w} not found in {_ws_names}")
-        return values
 
 
 class Destroyer:
@@ -48,9 +25,9 @@ class Destroyer:
 
         if self._config.dracarys:
             actions.append(self._dracarys_start)
-        if self._config.workflows_only:
+        if self._config.deletion_mode == DeletionMode.workflows_only:
             actions.append(self._delete_workflows)
-        elif self._config.assets_only:
+        elif self._config.deletion_mode == DeletionMode.assets_only:
             actions.append(self._delete_assets)
         else:
             actions.append(self._delete_workflows)
@@ -92,17 +69,21 @@ class Destroyer:
         proj_config = ProjectConfigurationManager().get(self._config.deployment.name)
         experiment = mlflow.get_experiment_by_name(proj_config.properties.workspace_directory)
         _runs: List[Run] = mlflow.search_runs(experiment_ids=[experiment.experiment_id], output_format="list")
-        description = (
-            "Listing assets in the artifact storage"
-            if self._config.dry_run
-            else "Deleting assets in the artifact storage"
-        )
-        for run in track(_runs, description=description):
-            artifact_id = run.info.run_id
-            if self._config.dry_run:
-                dbx_echo(f"Artifact with id {artifact_id} would be deleted in case of a real run")
-            else:
-                mlflow.delete_run(run.info.run_id)
+        if _runs:
+            description = (
+                "Listing assets in the artifact storage"
+                if self._config.dry_run
+                else "Deleting assets in the artifact storage"
+            )
+            for run in track(_runs, description=description):
+                artifact_id = run.info.run_id
+                if self._config.dry_run:
+                    dbx_echo(f"Artifact with id {artifact_id} would be deleted in case of a real run")
+                else:
+                    time.sleep(0.01)  # not to overflow the MLflow API
+                    mlflow.delete_run(run.info.run_id)
+
+            dbx_echo(f"Total {len(_runs)} artifact versions were deleted")
         dbx_echo("Assets deletion finished successfully ✅")
 
     def _delete_workflows(self):
