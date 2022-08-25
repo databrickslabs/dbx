@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## Added
+- ⚡️`dbx destroy` command
+
+## Changed
+- ✨Add `.dbx/sync` folder to template gitignore
+
 ## [0.7.0] - 2022-08-24
 
 ## Added

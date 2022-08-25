@@ -149,6 +149,9 @@ class ConfigReader:
         return self._reader.config
 
     def get_environment(self, environment: str) -> Optional[EnvironmentDeploymentInfo]:
+        """
+        This method is mainly used for testing purposes
+        """
         return self._reader.config.get_environment(environment)
 
     def get_all_environment_names(self) -> List[str]:

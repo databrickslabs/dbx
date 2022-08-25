@@ -130,7 +130,7 @@ def test_non_existent_env(mock_api_v2_client, temp_project):
     )
     deploy_result = invoke_cli_runner(["deploy", "--environment", env_name], expected_error=True)
     assert isinstance(deploy_result.exception, NameError)
-    assert "non-existent in the deployment file" in str(deploy_result.exception)
+    assert "not found in the deployment file" in str(deploy_result.exception)
 
 
 def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):

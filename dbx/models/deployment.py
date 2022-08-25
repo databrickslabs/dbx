@@ -6,6 +6,8 @@ from typing import Optional, Dict, Any, List
 
 from pydantic import BaseModel, root_validator, validator
 
+from dbx.api.configure import ProjectConfigurationManager
+from dbx.models.project import EnvironmentInfo
 from dbx.utils import dbx_echo
 
 
@@ -48,6 +50,12 @@ class EnvironmentDeploymentInfo(BaseModel):
         _spec = {self.name: {"jobs": self.payload.workflows}}
         return _spec
 
+    def get_project_info(self) -> EnvironmentInfo:
+        """
+        Convenience method for cases when the project information about specific environment is required.
+        """
+        return ProjectConfigurationManager().get(self.name)
+
 
 class DeploymentConfig(BaseModel):
     environments: List[EnvironmentDeploymentInfo]
@@ -58,12 +66,20 @@ class DeploymentConfig(BaseModel):
         build_spec = value if value else {"python": "pip"}
         return build_spec
 
-    def get_environment(self, name) -> Optional[EnvironmentDeploymentInfo]:
+    def get_environment(self, name, raise_if_not_found: Optional[bool] = False) -> Optional[EnvironmentDeploymentInfo]:
         _found = [env for env in self.environments if env.name == name]
         if len(_found) > 1:
             raise Exception(f"More than one environment with name {name} is defined in the project file")
         if len(_found) == 0:
+            if raise_if_not_found:
+                raise NameError(
+                    f"""
+                    Environment {name} not found in the deployment file.
+                    Available environments are: {[e.name for e in self.environments]}
+                """
+                )
             return None
+
         return _found[0]
 
     @staticmethod
