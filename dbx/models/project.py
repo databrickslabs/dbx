@@ -5,6 +5,7 @@ from typing import Dict, Union, Optional
 
 from pydantic import BaseModel
 
+from dbx.constants import PROJECT_INFO_FILE_PATH
 from dbx.utils import dbx_echo
 
 
@@ -45,10 +46,14 @@ class ProjectInfo(BaseModel):
 
     def get_environment(self, name: str) -> EnvironmentInfo:
         _env = self.environments.get(name)
+
+        if not _env:
+            raise NameError(f"Environment {name} not found in the project file {PROJECT_INFO_FILE_PATH}")
+
         if isinstance(_env, LegacyEnvironmentInfo):
             dbx_echo(
                 "[yellow bold]Legacy environment format is used in project file. "
-                "Please take a look at te docs and upgrade to the new format version.[/yellow bold]"
+                "Please take a look at the docs and upgrade to the new format version.[/yellow bold]"
             )
             return EnvironmentInfo.from_legacy(_env)
         else:

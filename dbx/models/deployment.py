@@ -6,6 +6,8 @@ from typing import Optional, Dict, Any, List
 
 from pydantic import BaseModel, root_validator, validator
 
+from dbx.api.configure import ProjectConfigurationManager
+from dbx.models.project import EnvironmentInfo
 from dbx.utils import dbx_echo
 
 
@@ -47,6 +49,12 @@ class EnvironmentDeploymentInfo(BaseModel):
     def to_spec(self) -> Dict[str, Any]:
         _spec = {self.name: {"jobs": self.payload.workflows}}
         return _spec
+
+    def get_project_info(self) -> EnvironmentInfo:
+        """
+        Convenience method for cases when the project information about specific environment is required.
+        """
+        return ProjectConfigurationManager().get(self.name)
 
 
 class DeploymentConfig(BaseModel):

@@ -24,7 +24,7 @@ class JsonFileBasedManager:
         # for file-based manager it's the same logic
         self.create(name, environment_info)
 
-    def get(self, name: str) -> Optional[EnvironmentInfo]:
+    def get(self, name: str) -> EnvironmentInfo:
         _typed = self._read_typed()
         return _typed.get_environment(name)
 
@@ -66,7 +66,7 @@ class ProjectConfigurationManager:
     def create_or_update(self, environment_name: str, environment_info: EnvironmentInfo):
         self._manager.create_or_update(environment_name, environment_info)
 
-    def get(self, environment_name: str) -> Optional[EnvironmentInfo]:
+    def get(self, environment_name: str) -> EnvironmentInfo:
         return self._manager.get(environment_name)
 
     def enable_jinja_support(self):

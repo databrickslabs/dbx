@@ -28,8 +28,6 @@ def transfer_profile_name(info: EnvironmentInfo):
 
 def prepare_environment(env_name: str) -> ApiClient:
     info = ProjectConfigurationManager().get(env_name)
-    if not info:
-        raise Exception(f"Environment {env_name} is not provided in the project file")
     transfer_profile_name(info)
     MlflowStorageConfigurationManager.prepare(info)
     return DatabricksClientProvider.get_v2_client()
@@ -51,11 +49,7 @@ def generate_filter_string(env: str, branch_name: Optional[str]) -> str:
 
 
 def get_environment_data(environment: str) -> EnvironmentInfo:
-    environment_data = ProjectConfigurationManager().get(environment)
-
-    if not environment_data:
-        raise Exception(f"No environment {environment} provided in the project file")
-    return environment_data
+    return ProjectConfigurationManager().get(environment)
 
 
 def get_package_file() -> Optional[Path]:
