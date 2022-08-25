@@ -37,7 +37,7 @@ class WorkflowEraser(Eraser):
         if len(found) > 1:
             raise Exception(f"More than one job with name {workflow} was found, please check the duplicates in the UI")
         if len(found) == 0:
-            dbx_echo(f"Job with name {workflow} already doesn't exist")
+            dbx_echo(f"Job with name {workflow} doesn't exist, no deletion is required")
         else:
             _job = found[0]
             if self._dry_run:

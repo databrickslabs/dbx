@@ -1,42 +1,112 @@
+import time
+from functools import partial
 from unittest.mock import MagicMock
 
+import mlflow
 import pytest
+from databricks_cli.jobs.api import JobsApi
 from pytest_mock import MockerFixture
 
 from dbx.api.destroyer import Destroyer, WorkflowEraser, AssetEraser
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.destroyer import DestroyerConfig, DeletionMode
+from tests.unit.conftest import invoke_cli_runner
+
+test_env_info = EnvironmentDeploymentInfo(name="default", payload={"workflows": [{"name": "w1"}]})
+basic_config = partial(DestroyerConfig, deployment=test_env_info)
 
 
 @pytest.mark.parametrize(
-    "mode, dracarys, wf_expected, assets_expected, dracarys_expected",
+    "conf, wf_expected, assets_expected",
     [
-        (DeletionMode.all, True, True, True, True),
-        (DeletionMode.assets_only, True, False, True, True),
-        (DeletionMode.workflows_only, False, True, False, False),
+        (basic_config(deletion_mode=DeletionMode.all, dracarys=True, dry_run=True), True, True),
+        (basic_config(deletion_mode=DeletionMode.workflows_only, dracarys=False, dry_run=False), True, False),
+        (basic_config(deletion_mode=DeletionMode.assets_only, dracarys=True, dry_run=False), False, True),
+        (basic_config(deletion_mode=DeletionMode.assets_only, dracarys=False, dry_run=True), False, True),
     ],
 )
-def test_destroyer_modes(
-    mode, dracarys, wf_expected, assets_expected, dracarys_expected, temp_project, capsys, mocker: MockerFixture
-):
+def test_destroyer_modes(conf, wf_expected, assets_expected, temp_project, capsys, mocker: MockerFixture):
     api_client = MagicMock()
-    d_info = EnvironmentDeploymentInfo(name="default", payload={"workflows": [{"name": "w1"}]})
-    _dc = DestroyerConfig(deletion_mode=mode, deployment=d_info, dracarys=dracarys)
     wf_mock = mocker.patch.object(WorkflowEraser, "erase", MagicMock())
     assets_mock = mocker.patch.object(AssetEraser, "erase", MagicMock())
-    d = Destroyer(api_client, _dc)
+    d = Destroyer(api_client, conf)
     d.launch()
-    dracarys_test = "🔥🔥🔥" in capsys.readouterr().out
-
+    output = capsys.readouterr().out
     assert wf_mock.called == wf_expected
     assert assets_mock.called == assets_expected
-    assert dracarys_test == dracarys_expected
+
+    if not conf.dry_run and conf.dracarys:
+        assert "🔥🔥🔥" in output
+
+    if conf.dry_run and conf.dracarys:
+        assert "would be displayed here" in output
 
 
-# def test_destroyer_dry_run(temp_project, capsys):
-#     client_mock = MagicMock()
-#     d_info = EnvironmentDeploymentInfo(name="default", payload={"workflows": [{"name": "w1"}]})
-#     _dc = DestroyerConfig(deletion_mode=DeletionMode.all, dry_run=True, deployment=d_info)
-#     _d = Destroyer(client_mock, _dc)
-#     _d.launch()
-#     assert client_mock.call_count == 0
+@pytest.mark.parametrize("dry_run", [True, False])
+def test_workflow_eraser_dr(dry_run, capsys, mocker: MockerFixture):
+    api_client = MagicMock()
+    mocker.patch.object(JobsApi, "_list_jobs_by_name", MagicMock(return_value=[{"name": "w1", "job_id": "1"}]))
+    eraser = WorkflowEraser(api_client, ["w1"], dry_run=dry_run)
+    eraser.erase()
+    out = capsys.readouterr().out
+    _test = "would be deleted" in out
+    assert _test == dry_run
+
+
+@pytest.mark.parametrize(
+    "job_response, expected",
+    [
+        ([{"name": "w1", "job_id": "1"}, {"name": "w1", "job_id": "1"}], Exception()),
+        ([], "doesn't exist"),
+        ([{"name": "w1", "job_id": "1"}], "w1 was successfully deleted"),
+    ],
+)
+def test_workflow_eraser_list(job_response, expected, capsys, mocker: MockerFixture):
+    api_client = MagicMock()
+    mocker.patch.object(JobsApi, "_list_jobs_by_name", MagicMock(return_value=job_response))
+    eraser = WorkflowEraser(api_client, ["w1"], dry_run=False)
+    if isinstance(expected, Exception):
+        with pytest.raises(Exception):
+            eraser.erase()
+    else:
+        eraser.erase()
+        out = capsys.readouterr().out
+        assert expected in out
+
+
+@pytest.mark.parametrize("dry_run", [True, False])
+def test_asset_eraser_dr(dry_run, tmp_path, capsys, temp_project):
+    exp = mlflow.create_experiment(tmp_path.name, tmp_path.as_uri())
+    invoke_cli_runner(f"configure --workspace-directory={tmp_path.name} --artifact-location={tmp_path.as_uri()}")
+
+    for i in range(3):
+        with mlflow.start_run(experiment_id=exp):
+            time.sleep(0.4)  # to avoid race conditions during parallel launch
+            mlflow.set_tag("id", 1)
+
+    conf = basic_config(deletion_mode=DeletionMode.assets_only, dry_run=dry_run)
+
+    d = Destroyer(MagicMock(), conf)
+    d.launch()
+    out = capsys.readouterr().out
+    dr_provided = "would be deleted" in out.replace("\n", " ")
+    assert dry_run == dr_provided
+
+
+def test_asset_eraser_no_experiment(tmp_path, capsys, temp_project):
+    invoke_cli_runner(f"configure --workspace-directory={tmp_path.name} --artifact-location={tmp_path.as_uri()}")
+    conf = basic_config(deletion_mode=DeletionMode.assets_only)
+
+    d = Destroyer(MagicMock(), conf)
+    d.launch()
+    out = capsys.readouterr().out
+    assert "non-existent mlflow experiment" in out.replace("\n", "")
+
+
+def test_asset_eraser_no_runs(tmp_path, capsys, temp_project):
+    mlflow.create_experiment(tmp_path.name, tmp_path.as_uri())
+    invoke_cli_runner(f"configure --workspace-directory={tmp_path.name} --artifact-location={tmp_path.as_uri()}")
+    conf = basic_config(deletion_mode=DeletionMode.assets_only)
+
+    d = Destroyer(MagicMock(), conf)
+    d.launch()

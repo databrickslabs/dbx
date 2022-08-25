@@ -24,7 +24,6 @@ class DestroyerConfig(BaseModel):
     def validate_all(cls, values):  # noqa
         _dc = values["deployment"]
         if not values["workflows"]:
-            dbx_echo("No workflows were specified, all workflows will be taken from deployment file")
             values["workflows"] = [w["name"] for w in _dc.payload.workflows]
         else:
             _ws_names = [w["name"] for w in _dc.payload.workflows]
