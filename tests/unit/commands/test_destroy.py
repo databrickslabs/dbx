@@ -46,7 +46,7 @@ def test_various_confirmation_inputs(mode, expected, base_config, capsys, monkey
     monkeypatch.setattr("builtins.input", lambda: "yes")
     ask_for_confirmation(_c)
     result = capsys.readouterr()
-    assert expected in result.out
+    assert expected in result.out.replace("\n", "")
 
 
 def test_destroy_wrong_args(temp_project):
@@ -74,4 +74,4 @@ def test_destroy_smoke_dry(mocker: MockerFixture, temp_project, monkeypatch, cap
     launch_mock = mocker.patch.object(Destroyer, "launch", MagicMock())
     res = invoke_cli_runner("destroy --dry-run")
     launch_mock.assert_called_once()
-    assert "Omitting the confirmation check" in res.stdout
+    assert "Omitting the confirmation check" in res.stdout.replace("\n", "")
