@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Changed the dependencies from the `mlflow` to a more lightweight `mlflow-skinny` option
 - ✨Added suppression for too verbose `click` stacktraces
 - ⚡️added `execute_shell_command` fixture, improving tests performance x2
+- ⚡️added failsafe check for `get_experiment_by_name` call
+
 
 ## [0.7.0] - 2022-08-24
 

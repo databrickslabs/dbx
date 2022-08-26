@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 import mlflow
 from databricks_cli.sdk import WorkspaceService
 from mlflow.entities import Experiment
+from mlflow.exceptions import RestException
 
 from dbx.api.auth import AuthConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
@@ -48,9 +49,22 @@ class MlflowStorageConfigurationManager:
         service = WorkspaceService(api_client)
         service.mkdirs(p)
 
+    @staticmethod
+    def _get_experiment_safe(name: str) -> Optional[Experiment]:
+        try:
+            experiment = mlflow.get_experiment_by_name(name)
+            return experiment
+        except RestException as e:
+            text_check = "does not exist." in str(e)
+            error_check = "INVALID_PARAMETER_VALUE" in str(e)
+            if text_check and error_check:
+                return None
+            else:
+                raise e
+
     @classmethod
     def _setup_experiment(cls, env: EnvironmentInfo):
-        experiment: Optional[Experiment] = mlflow.get_experiment_by_name(env.properties.workspace_directory)
+        experiment: Optional[Experiment] = cls._get_experiment_safe(env.properties.workspace_directory)
 
         if not experiment:
             mlflow.create_experiment(env.properties.workspace_directory, env.properties.artifact_location)
