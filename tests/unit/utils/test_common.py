@@ -191,6 +191,7 @@ def test_get_current_branch_name_no_env(mocker, temp_project: Path):
     assert get_current_branch_name() is None
 
 
+@pytest.mark.disable_auto_execute_mock
 def test_handle_package_no_setup(temp_project):
     Path("setup.py").unlink()
     build = BuildConfiguration()

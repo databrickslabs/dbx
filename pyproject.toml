@@ -21,3 +21,7 @@ log_level = "INFO"
 pythonpath = [
   "."
 ]
+
+markers = [
+  "disable_auto_execute_mock"
+]

@@ -20,7 +20,7 @@ def has_valid_token(config: DatabricksConfig) -> bool:
     token = config.token
     host = config.host.rstrip("/")
     headers = get_headers(token)
-    resp = requests.get(f"{host}/api/2.0/dbfs/list", json={"path": "/"}, headers=headers)
+    resp = requests.get(f"{host}/api/2.0/dbfs/list", json={"path": "/"}, headers=headers, timeout=30)
     return resp.status_code == 200
 
 

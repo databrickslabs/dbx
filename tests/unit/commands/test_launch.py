@@ -153,7 +153,7 @@ def test_launch_not_found(temp_project: Path, mlflow_file_uploader, mock_dbx_fil
     launch_result = invoke_cli_runner(
         ["launch", "--job", _chosen_job] + ["--tags", "cake=cheesecake"], expected_error=True
     )
-    assert "please verify tag existence in the UI" in str(launch_result.exception)
+    assert "No deployments provided per given set of filters" in str(launch_result.exception)
 
 
 def test_launch_empty_runs(temp_project: Path, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):

@@ -8,18 +8,24 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 INSTALL_REQUIRES = [
+    # to use Databricks and MLflow APIs
+    "retry>=0.9.2, <1.0.0",
+    "requests>=2.24.0, <3.0.0",
+    "mlflow-skinny==1.28.0",
     "databricks-cli>=0.17,<0.18",
+    # CLI interface
     "click>=8.1.0,<9.0.0",
     "rich==12.5.1",
     "typer[all]==0.6.1",
-    "retry>=0.9.2",
-    "requests>=2.24.0",
-    "mlflow>=1.26.1",
+    # for templates creation
+    "cookiecutter>=1.7.2, <3.0.0",
+    # file formats and models
     "pyyaml>=6.0",
     "pydantic>=1.9.1",
-    "cryptography>=3.3.1,<38.0.0",
-    "cookiecutter>=1.7.2",
     "Jinja2>=2.11.2",
+    # misc - enforced to avoid issues with dependent libraries
+    "cryptography>=3.3.1,<38.0.0",
+    # required by dbx sync
     "aiohttp>=3.8.1",
     "pathspec>=0.9.0",
     "watchdog>=2.1.0",
@@ -38,7 +44,7 @@ DEV_REQUIREMENTS = [
     "mkdocs-glightbox>=0.2.1,<1.0",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
-    "prospector>=1.3.1,<1.7.0",
+    "prospector==1.7.0",
     "black>=22.3.0,<23.0.0",
     "MarkupSafe>=2.1.1,<3.0.0",
     # testing framework

@@ -1,4 +1,6 @@
+import click
 import typer.rich_utils
+from rich.traceback import install
 
 from dbx.commands.configure import configure
 from dbx.commands.deploy import deploy
@@ -9,6 +11,8 @@ from dbx.commands.launch import launch
 from dbx.commands.sync.sync import sync_app
 from dbx.commands.version import version_entrypoint
 from dbx.custom import _get_custom_help_text
+
+install(suppress=[click])
 
 typer.rich_utils._get_help_text = _get_custom_help_text
 
