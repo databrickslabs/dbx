@@ -41,7 +41,7 @@ def get_user(config: DatabricksConfig) -> dict:
     host = config.host.rstrip("/")
     headers = get_headers(api_token)
     url = f"{host}/api/2.0/preview/scim/v2/Me"
-    resp = requests.get(url, headers=headers)
+    resp = requests.get(url, headers=headers, timeout=10)
     if resp.status_code == 200:
         return resp.json()
     return None

@@ -44,7 +44,7 @@ DEV_REQUIREMENTS = [
     "mkdocs-glightbox>=0.2.1,<1.0",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
-    "prospector>=1.3.1,<1.7.0",
+    "prospector==1.7.0",
     "black>=22.3.0,<23.0.0",
     "MarkupSafe>=2.1.1,<3.0.0",
     # testing framework

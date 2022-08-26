@@ -36,6 +36,9 @@ pep8:
   # E203: disabled because pep8 and black disagree on whitespace before colon in some cases
   disable: W293,E203
 
+pycodestyle:
+  disable: E203 # conflicts with black formatting
+
 mccabe:
   disable:
     - MC0001
