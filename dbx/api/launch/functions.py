@@ -1,18 +1,16 @@
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 import mlflow
-import pandas as pd
-
 from databricks_cli.sdk import ApiClient, JobsService
+from mlflow.entities import Run
 from mlflow.tracking import MlflowClient
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.constants import TERMINAL_RUN_LIFECYCLE_STATES
 from dbx.utils import dbx_echo
-
 from dbx.utils.json import JsonUtils
 
 
@@ -58,42 +56,22 @@ def get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str,
     return run_status
 
 
-def find_deployment_run(
-    filter_string: str, tags: Dict[str, str], from_assets: bool, environment: str
-) -> Dict[str, Any]:
-    runs = mlflow.search_runs(filter_string=filter_string)
+def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: bool, environment: str) -> Run:
+    runs: List[Run] = mlflow.search_runs(filter_string=filter_string, output_format="list")
 
-    filter_conditions = []
+    def _filter_by_tags(run: Run) -> bool:
+        return all(run.data.tags.get(tag_name) == tag_value for tag_name, tag_value in tags.items())
 
     if tags:
         dbx_echo("Filtering deployments with set of additional tags")
-        for tag_name, tag_value in tags.items():
-            tag_column_name = f"tags.{tag_name}"
-            if tag_column_name not in runs.columns:
-                raise Exception(
-                    f"Tag {tag_name} not found in underlying MLflow experiment, please verify tag existence in the UI"
-                )
-            tag_condition = runs[tag_column_name] == tag_value
-            filter_conditions.append(tag_condition)
-        full_filter = pd.DataFrame(filter_conditions).T.all(axis=1)  # noqa
-        _runs = runs[full_filter]
+        runs = list(filter(_filter_by_tags, runs))
     else:
         dbx_echo("No additional tags provided")
-        _runs = runs
 
     if from_assets:
-        if "tags.dbx_deploy_type" not in _runs.columns:
-            raise Exception(
-                """"
-                Run Submit API is available only when deployment was done with --assets-only flag.
-                Currently there is no deployments with such flag under given filters.
-                Please re-deploy with --assets-only flag and then re-run this launch command.
-            """
-            )
+        runs = list(filter(lambda r: r.data.tags.get("dbx_deploy_type") == "files_only", runs))
 
-        _runs = _runs[_runs["tags.dbx_deploy_type"] == "files_only"]
-
-    if _runs.empty:
+    if not runs:
         exception_string = f"""
         No deployments provided per given set of filters:
             {filter_string}"""
@@ -120,10 +98,10 @@ def find_deployment_run(
 
         raise Exception(exception_string)
 
-    run_info = _runs.iloc[0].to_dict()
+    last_run_info = sorted(runs, key=lambda r: r.info.start_time, reverse=True)[0]
 
     dbx_echo("Successfully found deployment per given job name")
-    return run_info
+    return last_run_info
 
 
 def trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> [str, Dict[str, Any]]:

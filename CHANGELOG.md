@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Changed
 - ✨Add `.dbx/sync` folder to template gitignore
+- ✨Changed the dependencies from the `mlflow` to a more lightweight `mlflow-skinny` option
+- ✨Added suppression for too verbose `click` stacktraces
 
 ## [0.7.0] - 2022-08-24
 

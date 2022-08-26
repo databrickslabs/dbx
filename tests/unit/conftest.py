@@ -11,6 +11,7 @@ from uuid import uuid4
 import mlflow
 import pytest
 from databricks_cli.configure.provider import DatabricksConfig
+from pytest_mock import MockerFixture
 from typer.testing import CliRunner
 
 from dbx.api.client_provider import DatabricksClientProvider
@@ -69,7 +70,7 @@ def in_context(path):
 
 
 @pytest.fixture(scope="function", autouse=False)
-def temp_project(tmp_path: Path) -> Path:
+def temp_project(tmp_path: Path, mocker: MockerFixture, request) -> Path:
     project_name = "dev_dbx_%s" % str(uuid4()).split("-")[0]
     logging.info("Launching test in directory %s with project name %s" % (tmp_path, project_name))
 
@@ -77,7 +78,17 @@ def temp_project(tmp_path: Path) -> Path:
         initialize_cookiecutter(project_name)
 
     project_path = tmp_path / project_name
+
+    def generate_wheel(*args, **kwargs):
+        wheel_file = Path(".").absolute() / "dist" / f"{project_name}-0.0.1-py3-none-any.whl"
+        wheel_file.parent.mkdir(exist_ok=True)
+        wheel_file.write_bytes(b"a")
+
     with in_context(project_path):
+        if "disable_auto_execute_mock" in request.keywords:
+            logging.info("Disabling the execute_shell_command for specific test")
+        else:
+            mocker.patch("dbx.api.build.execute_shell_command", generate_wheel)
         yield project_path
 
 

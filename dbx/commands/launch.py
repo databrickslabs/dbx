@@ -116,11 +116,9 @@ def launch(
     filter_string = generate_filter_string(environment, branch_name)
     _from_assets = from_assets if from_assets else as_run_submit
 
-    run_info = find_deployment_run(filter_string, additional_tags, _from_assets, environment)
+    last_deployment_run = find_deployment_run(filter_string, additional_tags, _from_assets, environment)
 
-    deployment_run_id = run_info["run_id"]
-
-    with mlflow.start_run(run_id=deployment_run_id):
+    with mlflow.start_run(run_id=last_deployment_run.info.run_id):
 
         with mlflow.start_run(nested=True):
 
@@ -132,7 +130,7 @@ def launch(
                 run_launcher = RunSubmitLauncher(
                     job=_job,
                     api_client=api_client,
-                    deployment_run_id=deployment_run_id,
+                    deployment_run_id=last_deployment_run.info.run_id,
                     environment=environment,
                     parameters=parameters,
                 )
