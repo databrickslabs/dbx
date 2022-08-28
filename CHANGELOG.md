@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 - ⚡️`dbx destroy` command
+- ⚡️`dbx destroy` command
+- ☁️ failsafe behaviour for shared clusters when assets-based launch is used
+- 📖 document differences between all-purpose and job clusters
 
 ## Changed
 - ✨Add `.dbx/sync` folder to template gitignore

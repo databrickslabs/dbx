@@ -13,7 +13,6 @@ Please find more guidance on the project file [here](../../../reference/project.
 
 After configuring the environment, you'll need to prepare the deployment file to define your workflows.
 
-
 You can find more guidance about the deployment file [here](../../../reference/deployment.md).
 
 ## :material-hammer-wrench: Configuring project build

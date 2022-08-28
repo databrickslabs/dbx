@@ -44,3 +44,34 @@ environments: #(2)
 
     As the project file, deployment file supports multiple environments.
     You can configure them by naming new environments under the `environments` section.
+
+The `workflows` section of the deployment file fully follows the [Databricks Jobs API structures](https://docs.databricks.com/dev-tools/api/latest/jobs.html).
+
+## Advanced package dependency management
+
+
+By default `dbx` is heavily oriented towards Python package-based projects. However, for pure Notebook or JVM projects this might be not necessary.
+
+Therefore, to disable the default behaviour of `dbx` which tries to add the Python package dependency, use the `deployment_config` section inside the task definition:
+
+```yaml title="conf/deployment.yml" hl_lines="12-13"
+# some code omitted
+environments:
+  default:
+    workflows:
+      - name: "workflow1"
+        tasks:
+          - task_key: "task1"
+            python_wheel_task: #(1)
+              package_name: "some-pkg"
+              entry_point: "some-ep"
+          - task_key: "task2" #(2)
+            deployment_config:
+                no_package: true
+            notebook_task:
+                notebook_path: "/some/notebook/path"
+```
+
+1. Standard Python package-based payload, the python wheel dependency will be added by default
+2. In the notebook task, the Python package is not required since code is delivered together with the Notebook.
+   Therefore, we disable this behaviour by providing this property.

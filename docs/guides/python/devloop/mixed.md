@@ -47,7 +47,7 @@ sys.path.append(project_root)
 
 
 * Start typing code in your local IDE.
-* All changes will be automatically synchronized and you can call the code of your package directly from the notebooks.
+* All changes will be automatically synchronized, so you can call the code of your package directly from the notebooks.
 
 ## :material-package-variant: Using packaged artifacts from notebooks
 
@@ -55,7 +55,7 @@ Another potential option is that your code in Python changes not so frequently, 
 
 In this case you can store your Python package in a custom pypi (e.g. Azure Artifacts, JFrog Artifactory, etc.) and then setup custom pypi repository.
 
-After doing this, you'll be able to install specific versions of the packaged Python code by using pip:
+After doing this, you'll be able to install specific versions of the packaged Python code in the notebook by using pip:
 
 ```jupyter
 %pip install package-from-artifactory
