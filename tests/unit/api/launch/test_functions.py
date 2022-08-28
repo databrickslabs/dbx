@@ -10,4 +10,3 @@ def test_cancel(mocker: MockerFixture):
     client = MagicMock()
     cancel_run(client, {"run_id": 1})
     wait_mock.assert_called()
-
