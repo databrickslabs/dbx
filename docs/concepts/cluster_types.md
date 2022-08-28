@@ -65,7 +65,7 @@ All settings of a job cluster for each specific workflow and task inside this wo
 
     Databricks jobs with Jobs API v2.1 support [Cluster Reuse](https://www.databricks.com/blog/2022/02/04/saving-time-and-costs-with-cluster-reuse-in-databricks-jobs.html) feature.
     This feature allows tasks to reuse the same cluster, which greatly reduces the overall job execution time.<br/>
-    :warning: Cluster Reuse feature is not supported in [assets-based workflow launches](#../features/assets.md).
+    :warning: Cluster Reuse feature is not supported in [assets-based workflow launches](../features/assets.md).
 
 !!! tip "Using instance pools"
 
