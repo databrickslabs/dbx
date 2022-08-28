@@ -95,7 +95,7 @@ class LowLevelExecutionContextClient:
         dbx_echo("Preparing execution context")
         ctx = LocalContextManager.get_context()
 
-        if self.__is_context_available(ctx.context_id):
+        if ctx and self.__is_context_available(ctx.context_id):
             dbx_echo("Existing context is active, using it")
             return ctx.context_id
         else:
