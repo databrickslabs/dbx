@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.7.2] - 2022-08-28
+
+## Fixed
+- 🐛 bug with context provisioning for `dbx execute`
+
 ## [0.7.1] - 2022-08-28
 
 ## Added
