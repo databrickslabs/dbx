@@ -47,7 +47,7 @@ environments: #(2)
 
 The `workflows` section of the deployment file fully follows the [Databricks Jobs API structures](https://docs.databricks.com/dev-tools/api/latest/jobs.html).
 
-## Advanced package dependency management
+## :material-package-up: Advanced package dependency management
 
 
 By default `dbx` is heavily oriented towards Python package-based projects. However, for pure Notebook or JVM projects this might be not necessary.
