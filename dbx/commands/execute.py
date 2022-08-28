@@ -57,8 +57,11 @@ def execute(
     pip_install_extras: Optional[str] = typer.Option(
         None,
         "--pip-install-extras",
-        help="""If provided, adds [extras] to the pip install command during package installation.
-    """,
+        help="""If provided, adds [<provided>] to the pip install command during
+        package installation in the Databricks context.
+
+
+        Useful when core package has extras section and installation of these extras is required.""",
     ),
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     parameters: Optional[str] = EXECUTE_PARAMETERS_OPTION,
