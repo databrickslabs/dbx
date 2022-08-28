@@ -133,7 +133,7 @@ Currently, the following functions are supported:
 
     This functionality is experimental, use it with caution.<br/>
 
-If you would like to implement a custom function for your Jinja templates, you can provide them into `_custom_jinja_functions.py`
+If you would like to implement a custom function for your Jinja templates, you can provide them into `.dbx/_custom_jinja_functions.py`
 and then call from the deployment file by `custom.<function_name>` prefix, for example:
 
 ```python title=".dbx/_custom_jinja_functions.py"
