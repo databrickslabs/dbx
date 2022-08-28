@@ -120,8 +120,11 @@ class RichExecutionContextClient:
     def __init__(self, v2_client: ApiClient, cluster_id: str, language: str = "python"):
         self._client = LowLevelExecutionContextClient(v2_client, cluster_id, language)
 
-    def install_package(self, package_file: str):
-        installation_command = f"%pip install --force-reinstall {package_file}"
+    def install_package(self, package_file: str, pip_install_extras: Optional[str]):
+        if pip_install_extras:
+            installation_command = f'%pip install --force-reinstall "{package_file}[{pip_install_extras}]"'
+        else:
+            installation_command = f"%pip install --force-reinstall {package_file}"
         self._client.execute_command(installation_command, verbose=False)
 
     def setup_arguments(self, arguments: List[Any]):

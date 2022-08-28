@@ -54,6 +54,15 @@ def execute(
         is_flag=True,
         help="Upload files via execution context",
     ),
+    pip_install_extras: Optional[str] = typer.Option(
+        None,
+        "--pip-install-extras",
+        help="""If provided, adds [<provided>] to the pip install command during
+        package installation in the Databricks context.
+
+
+        Useful when core package has extras section and installation of these extras is required.""",
+    ),
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     parameters: Optional[str] = EXECUTE_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
@@ -130,6 +139,7 @@ def execute(
         requirements_file=requirements_file,
         task=task,
         upload_via_context=upload_via_context,
+        pip_install_extras=pip_install_extras,
     )
     controller_instance.run()
 

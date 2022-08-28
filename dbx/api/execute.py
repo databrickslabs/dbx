@@ -19,13 +19,14 @@ class ExecutionController:
         upload_via_context: bool,
         requirements_file: Optional[Path],
         task: Task,
+        pip_install_extras: Optional[str],
     ):
         self._client = client
         self._requirements_file = requirements_file
         self._no_package = no_package
         self._task = task
         self._upload_via_context = upload_via_context
-
+        self._pip_install_extras = pip_install_extras
         self._run = None
 
         if not self._upload_via_context:
@@ -49,7 +50,7 @@ class ExecutionController:
             self.install_requirements_file()
 
         if not self._no_package:
-            self.install_package()
+            self.install_package(self._pip_install_extras)
 
         if self._task.task_type == TaskType.spark_python_task:
             self.preprocess_task_parameters(self._task.spark_python_task.parameters)
@@ -71,7 +72,7 @@ class ExecutionController:
         self._client.client.execute_command(installation_command, verbose=False)
         dbx_echo("Provided requirements installed")
 
-    def install_package(self):
+    def install_package(self, pip_install_extras: Optional[str]):
         package_file = get_package_file()
         if not package_file:
             raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
@@ -79,7 +80,7 @@ class ExecutionController:
         driver_package_path = self._file_uploader.upload_and_provide_path(package_file, as_fuse=True)
         dbx_echo(":white_check_mark: Uploading package - done")
         dbx_echo("Installing package")
-        self._client.install_package(driver_package_path)
+        self._client.install_package(driver_package_path, pip_install_extras)
         dbx_echo(":white_check_mark: Installing package - done")
 
     def preprocess_task_parameters(self, parameters: List[str]):

@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## Added
+- ✨ add pip install extras option
+
 ## Changed
 - 📖 Small typos in Jinja docs
 
