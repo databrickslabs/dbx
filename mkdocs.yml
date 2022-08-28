@@ -76,15 +76,17 @@ nav:
       - Place of dbx in the ecosystem: concepts/ecosystem.md
       - DevOps for workflows: concepts/devops.md
       - Testing workflows: concepts/testing.md
+      - Cluster types for various flows: concepts/cluster_types.md
   - Guides:
       - Python:
           - Python quickstart: guides/python/python_quickstart.md
           - Development loop:
-              - Mixed-mode development loop for Python projects: guides/python/devloop/python_mixed_devloop.md
-              - Development loop for Python package-based projects: guides/python/devloop/python_package_devloop.md
+              - Mixed-mode development loop for Python projects: guides/python/devloop/mixed.md
+              - Development loop for Python package-based projects: guides/python/devloop/package.md
           - DevOps:
-              - DevOps for Python package-based projects: guides/python/devops/python_package_devops.md
-              - DevOps for Notebooks-based projects: guides/python/devops/python_notebook_devops.md
+              - DevOps for Python package-based projects: guides/python/devops/package.md
+              - DevOps for Notebooks-based projects: guides/python/devops/notebook.md
+              - DevOps for Mixed-mode projects: guides/python/devops/mixed.md
           - Packaging arbitrary files: guides/python/packaging_files.md
       - JVM:
           - Development loop for JVM-based projects: guides/jvm/jvm_devloop.md

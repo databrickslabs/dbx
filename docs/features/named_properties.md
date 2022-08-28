@@ -8,6 +8,7 @@ The following properties are supported:
 -   :fontawesome-solid-microchip: `new_cluster.instance_pool_name` will be automatically replaced with `new_cluster.instance_pool_id`
 -   :fontawesome-solid-microchip: `new_cluster.driver_instance_pool_name` will be automatically replaced with `new_cluster.driver_instance_pool_id`
 -   :material-aws: `new_cluster.aws_attributes.instance_profile_name` will be automatically replaced with `new_cluster.aws_attributes.instance_profile_arn`
+-   :material-list-status: `new_cluster.policy_name` will automatically fetch all the missing policy parts and properly resolved them, replacing the `policy_name` with `policy_id`
 
 By this simplification, you don't need to look-up for these id-based properties, you can simply provide the names.
 

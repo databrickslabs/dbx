@@ -51,8 +51,6 @@ environments:
               no_package: true
             spark_jar_task:
                 main_class_name: "org.some.main.ClassName"
-                parameters: []
-
 ```
 
 
