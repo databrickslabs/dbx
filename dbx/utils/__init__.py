@@ -6,9 +6,14 @@ import typer
 from rich import print as rich_print
 
 
-def dbx_echo(message: Any):
+def format_dbx_message(message: Any) -> str:
     formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     formatted_message = f"[red]\[dbx][/red][{formatted_time}] {message}"  # noqa
+    return formatted_message
+
+
+def dbx_echo(message: Any):
+    formatted_message = format_dbx_message(message)
     try:
         rich_print(formatted_message)
     except (UnicodeDecodeError, UnicodeEncodeError, UnicodeError):
