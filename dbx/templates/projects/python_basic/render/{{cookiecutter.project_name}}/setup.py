@@ -38,7 +38,6 @@ setup(
         "console_scripts": [
             "etl = {{cookiecutter.project_slug}}.tasks.sample_etl_task:entrypoint",
             "ml = {{cookiecutter.project_slug}}.tasks.sample_ml_task:entrypoint",
-            "test = {{cookiecutter.project_slug}}.entrypoints:pytest_main"
     ]},
     version=__version__,
     description="",

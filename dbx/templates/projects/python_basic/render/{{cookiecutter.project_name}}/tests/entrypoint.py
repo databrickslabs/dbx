@@ -2,6 +2,5 @@ import sys
 
 import pytest
 
-
-def pytest_main():  # pragma: no cover
+if __name__ == '__main__':
     pytest.main(sys.argv[1:])

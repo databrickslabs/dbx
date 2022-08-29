@@ -10,10 +10,20 @@ custom:
       num_workers: 1
       node_type_id: "{{cloud_node_type_id}}"
 
-# please note that we're using FUSE reference for config file, hence we're going to load this file using its local FS path
 environments:
   default:
     workflows:
+      #######################################################################################
+      #   Example workflow for integration tests                                            #
+      #######################################################################################
+      - name: "{{project_name}}-sample-tests"
+        tasks:
+          - task_key: "main"
+            <<: *basic-static-cluster
+            spark_python_task:
+                python_file: "file://tests/entrypoint.py"
+                # this call supports all standard pytest arguments
+                parameters: ["file:fuse://tests/integration", "--cov={{project_slug}}"]
       #######################################################################################
       # this is an example job with single ETL task based on 2.1 API and wheel_task format #
       ######################################################################################

@@ -38,12 +38,14 @@ class ExecutionController:
 
     def execute_entrypoint_file(self, _file: Path):
         dbx_echo("Starting entrypoint file execution")
-        self._client.execute_file(_file)
+        with Console().status("Running the entrypoint file", spinner="dots"):
+            self._client.execute_file(_file)
         dbx_echo("Command execution finished")
 
     def execute_entrypoint(self, task: PythonWheelTask):
         dbx_echo("Starting entrypoint execution")
-        self._client.execute_entry_point(task.package_name, task.entry_point)
+        with Console().status("Running the entrypoint", spinner="dots"):
+            self._client.execute_entry_point(task.package_name, task.entry_point)
         dbx_echo("Entrypoint execution finished")
 
     def run(self):

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 - ✨ add pip install extras option
 - 🎨 Nice spinners for long-running processes (e.g. cluster start and run tracing)
+- 🧪 Add convenient integration tests interface example
 
 ## Changed
 - 📖 Small typos in Jinja docs
