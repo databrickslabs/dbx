@@ -42,7 +42,6 @@ def wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
             console_status.update(format_dbx_message(f"[Run Id: {run_data['run_id']}] run state: {run_state}"))
 
             if life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
-                dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
                 return status
 
 
@@ -102,6 +101,7 @@ def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: b
 
 def trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> [str, Dict[str, Any]]:
     final_status = wait_run(api_client, run_data)
+    dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
     result_state = final_status["state"].get("result_state", None)
     if result_state == "SUCCESS":
         dbx_echo("Job run finished successfully")
