@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.7.3] - 2022-08-29
+
 ## Added
 - ✨ add pip install extras option
 - 🎨 Nice spinners for long-running processes (e.g. cluster start and run tracing)
