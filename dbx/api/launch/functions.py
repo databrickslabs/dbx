@@ -7,10 +7,11 @@ import mlflow
 from databricks_cli.sdk import ApiClient, JobsService
 from mlflow.entities import Run
 from mlflow.tracking import MlflowClient
+from rich.console import Console
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.constants import TERMINAL_RUN_LIFECYCLE_STATES
-from dbx.utils import dbx_echo
+from dbx.utils import dbx_echo, format_dbx_message
 from dbx.utils.json import JsonUtils
 
 
@@ -29,25 +30,19 @@ def load_dbx_file(run_id: str, file_name: str) -> Dict[Any, Any]:
 
 
 def wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
-    dbx_echo(f"Tracing run with id {run_data['run_id']}")
-    while True:
-        time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
-        status = get_run_status(api_client, run_data)
-        run_state = status["state"]
-        result_state = run_state.get("result_state", None)
-        life_cycle_state = run_state.get("life_cycle_state", None)
-        state_message = run_state.get("state_message")
+    with Console().status(
+        format_dbx_message(f"Tracing run with id {run_data['run_id']}"), spinner="dots"
+    ) as console_status:
+        while True:
+            time.sleep(5)  # runs API is eventually consistent, it's better to have a short pause for status update
+            status = get_run_status(api_client, run_data)
+            run_state = status["state"]
+            life_cycle_state = run_state.get("life_cycle_state", None)
 
-        dbx_echo(
-            f"[Run Id: {run_data['run_id']}] Current run status info - "
-            f"result state: {result_state}, "
-            f"lifecycle state: {life_cycle_state}, "
-            f"state message: {state_message}"
-        )
+            console_status.update(format_dbx_message(f"[Run Id: {run_data['run_id']}] run state: {run_state}"))
 
-        if life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
-            dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
-            return status
+            if life_cycle_state in TERMINAL_RUN_LIFECYCLE_STATES:
+                return status
 
 
 def get_run_status(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -106,6 +101,7 @@ def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: b
 
 def trace_run(api_client: ApiClient, run_data: Dict[str, Any]) -> [str, Dict[str, Any]]:
     final_status = wait_run(api_client, run_data)
+    dbx_echo(f"Finished tracing run with id {run_data['run_id']}")
     result_state = final_status["state"].get("result_state", None)
     if result_state == "SUCCESS":
         dbx_echo("Job run finished successfully")

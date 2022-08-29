@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional, List, Any
 
 import mlflow
+from rich.console import Console
 
 from dbx.api.context import RichExecutionContextClient
 from dbx.models.task import Task, TaskType, PythonWheelTask
@@ -79,8 +80,10 @@ class ExecutionController:
         dbx_echo("Uploading package")
         driver_package_path = self._file_uploader.upload_and_provide_path(package_file, as_fuse=True)
         dbx_echo(":white_check_mark: Uploading package - done")
-        dbx_echo("Installing package")
-        self._client.install_package(driver_package_path, pip_install_extras)
+
+        with Console().status("Installing package on the cluster 📦", spinner="dots"):
+            self._client.install_package(driver_package_path, pip_install_extras)
+
         dbx_echo(":white_check_mark: Installing package - done")
 
     def preprocess_task_parameters(self, parameters: List[str]):

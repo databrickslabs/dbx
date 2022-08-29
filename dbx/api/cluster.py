@@ -1,10 +1,10 @@
 import time
 from typing import Optional
 
-from databricks_cli.sdk import ApiClient
 from databricks_cli.clusters.api import ClusterService
-
-from dbx.utils import dbx_echo
+from databricks_cli.sdk import ApiClient
+from rich.console import Console
+from rich.status import Status
 
 
 class ClusterController:
@@ -12,22 +12,26 @@ class ClusterController:
         self._cluster_service = ClusterService(api_client)
 
     def awake_cluster(self, cluster_id):
+        with Console().status("Preparing the all-purpose cluster", spinner="dots") as status:
+            self._awake_cluster(cluster_id, status)
+
+    def _awake_cluster(self, cluster_id, status: Status):
         cluster_info = self._cluster_service.get_cluster(cluster_id)
         if cluster_info["state"] in ["RUNNING", "RESIZING"]:
-            dbx_echo("Cluster is ready")
+            status.update("Cluster is ready")
         if cluster_info["state"] in ["TERMINATED", "TERMINATING"]:
-            dbx_echo("Dev cluster is terminated, starting it")
+            status.update("Dev cluster is terminated, starting it")
             self._cluster_service.start_cluster(cluster_id)
             time.sleep(5)
-            self.awake_cluster(cluster_id)
+            self._awake_cluster(cluster_id, status)
         elif cluster_info["state"] == "ERROR":
             raise RuntimeError(
                 "Cluster is mis-configured and cannot be started, please check cluster settings at first"
             )
         elif cluster_info["state"] in ["PENDING", "RESTARTING"]:
-            dbx_echo(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
+            status.update(f'Cluster is getting prepared, current state: {cluster_info["state"]}')
             time.sleep(5)
-            self.awake_cluster(cluster_id)
+            self._awake_cluster(cluster_id, status)
 
     def preprocess_cluster_args(self, cluster_name: Optional[str], cluster_id: Optional[str]) -> str:
 
