@@ -17,9 +17,9 @@ conda activate {{cookiecutter.project_slug}}
 conda install -c conda-forge openjdk=11.0.15
 ```
 
-3. Install project in a dev mode (this will also install dev requirements):
+3. Install project locally (this will also install dev requirements):
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[local,test]"
 ```
 
 ## Running unit tests

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Changed
 - 📖 Small typos in Jinja docs
+- 📖 Formatting issues in cluster types doc
 
 ## [0.7.2] - 2022-08-28
 

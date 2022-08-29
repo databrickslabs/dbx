@@ -10,18 +10,17 @@ from {{cookiecutter.project_slug}} import __version__
 
 PACKAGE_REQUIREMENTS = ["pyyaml"]
 
-DEV_REQUIREMENTS = [
-    # installation & build
-    "setuptools",
-    "wheel",
-    # versions set in accordance with DBR 10.4 ML Runtime
+# packages for local development and unit testing
+# please note that these packages are already available in DBR, there is no need to install them on DBR.
+LOCAL_REQUIREMENTS = [
     "pyspark==3.2.1",
     "delta-spark==1.1.0",
-    # generic dependencies
-    "pyyaml",
     "scikit-learn",
     "pandas",
     "mlflow",
+]
+
+TEST_REQUIREMENTS = [
     # development & testing tools
     "pytest",
     "coverage[toml]",
@@ -32,13 +31,14 @@ DEV_REQUIREMENTS = [
 setup(
     name="{{cookiecutter.project_slug}}",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    setup_requires=["wheel"],
+    setup_requires=["setuptools","wheel"],
     install_requires=PACKAGE_REQUIREMENTS,
-    extras_require={"dev": DEV_REQUIREMENTS},
+    extras_require={"local": LOCAL_REQUIREMENTS, "test": TEST_REQUIREMENTS},
     entry_points = {
         "console_scripts": [
             "etl = {{cookiecutter.project_slug}}.tasks.sample_etl_task:entrypoint",
-            "ml = {{cookiecutter.project_slug}}.tasks.sample_ml_task:entrypoint"
+            "ml = {{cookiecutter.project_slug}}.tasks.sample_ml_task:entrypoint",
+            "test = {{cookiecutter.project_slug}}.entrypoints:pytest_main"
     ]},
     version=__version__,
     description="",

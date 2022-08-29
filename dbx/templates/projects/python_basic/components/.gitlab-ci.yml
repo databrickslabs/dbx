@@ -10,7 +10,7 @@ unit-testing:
     - echo "Install dependencies"
     - apt-get update
     - apt-get install default-jdk -y
-    - pip install -e ".[dev]"
+    - pip install -e ".[local,test]"
     - echo "Launching unit tests"
     - pytest tests/unit
 
@@ -19,7 +19,7 @@ integration-testing:
   image: python:3.7-stretch
   script:
     - echo "Install dependencies"
-    - pip install -e ".[dev]"
+    - pip install -e ".[local,test]"
     - echo "Deploying tests"
     - dbx deploy {{project_name}}-sample-etl --assets-only
     - echo "Running tests"
@@ -33,6 +33,6 @@ release:
       - master
   script:
     - echo "Install dependencies"
-    - pip install -e ".[dev]"
+    - pip install -e ".[local,test]"
     - echo "Deploying Job"
     - dbx deploy {{project_name}}-sample-etl
