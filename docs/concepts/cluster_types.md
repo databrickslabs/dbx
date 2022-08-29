@@ -55,6 +55,7 @@ In contrast to **all-purpose clusters**, job clusters are dedicated for a specif
 No other user or workflow could use these VMs, job clusters of a given workflow are fully dedicated for tasks defined inside this workflow.
 
 This makes **job clusters** an excellent choice for:
+
 * production-stage workflow launches
 * integration tests
 * SLA-based workflows where delivery on-time is a critical factor

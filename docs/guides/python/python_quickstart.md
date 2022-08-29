@@ -81,7 +81,7 @@ cd charming-aurora
 Install dependencies for local environment:
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[local,test]"
 ```
 
 Run local unit tests:
@@ -160,7 +160,7 @@ tree -L 3 -I __pycache__ -a -I .git -I .pytest_cache -I .coverage
    Usually you would put here short project description, :material-tag: badges and :material-link-plus: links to the docs.
 9. :octicons-file-directory-fill-24: Directory with the package-related code.
    Please note that the folder name contains underscores (`_`) instead of spaces since it should follow Python module naming conventions.
-   <br/>To use the code of this directory locally, we've used <br/> `pip install -e ".[dev]"` command above.
+   <br/>To use the code of this directory locally, we've used <br/> `pip install -e ".[local,test]"` command above.
 10. In this file you would usually place the package version by using the following syntax:<br>
    ```python
    __version__ = "X.Y.Z" # for example 0.0.1
@@ -327,6 +327,10 @@ pytest tests/unit --cov --cov-report=xml
 ```
 
 With the example above we're now able to run the unit tests and see how good our code is covered.
+
+## :fontawesome-solid-flask-vial: Running integration tests
+
+To run integration tests on the Databricks clusters, take a look at the `tests/integration` section.
 
 ## :material-file-code: Deployment configuration
 
