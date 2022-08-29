@@ -40,6 +40,10 @@ In context of **:octicons-workflow-24: workflows** integration tests verify that
 For integration tests usually the test workspace is used, however in more enterprise-grade setups it might be
 considerable to have a separate integration workspace for such kind of workloads.
 
+!!! hint "Integration testing with `dbx` for Python package-based projects"
+
+    If you're looking for a way to run integration tests for Python package-based projects, check [this doc](../guides/python/integration_tests.md).
+
 ### :fontawesome-solid-vial-circle-check: Unit testing of the workflows
 
 **Unit test** is something that can be launched on the developer machine (locally),

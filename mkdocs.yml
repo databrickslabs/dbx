@@ -88,6 +88,7 @@ nav:
               - DevOps for Notebooks-based projects: guides/python/devops/notebook.md
               - DevOps for Mixed-mode projects: guides/python/devops/mixed.md
           - Packaging arbitrary files: guides/python/packaging_files.md
+          - Running integration tests: guides/python/integration_tests.md
       - JVM:
           - Development loop for JVM-based projects: guides/jvm/jvm_devloop.md
           - DevOps for JVM-based projects: guides/jvm/jvm_devops.md
