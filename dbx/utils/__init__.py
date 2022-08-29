@@ -18,6 +18,7 @@ def dbx_echo(message: Any):
         rich_print(formatted_message)
     except (UnicodeDecodeError, UnicodeEncodeError, UnicodeError):
         # fallback to the standard print behaviour
+        formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         formatted_message = f"[dbx][{formatted_time}] {message}"
         typer.echo(formatted_message)
 
