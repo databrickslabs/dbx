@@ -143,9 +143,12 @@ tree -L 3 -I __pycache__ -a -I .git -I .pytest_cache -I .coverage
 ├── pyproject.toml #(21)
 ├── setup.py #(22)
 └── tests #(23)
-    └── unit #(24)
-        ├── conftest.py #(25)
-        └── sample_test.py #(26)
+    ├── entrypoint.py #(24)
+    ├── integration
+    │   └── e2e_test.py
+    └── unit #(25)
+        ├── conftest.py #(26)
+        └── sample_test.py #(27)
 ```
 
 1. This is an auxiliary :material-folder-cog: folder, used to store dbx-related information.
@@ -182,9 +185,10 @@ tree -L 3 -I __pycache__ -a -I .git -I .pytest_cache -I .coverage
 21. :material-language-python: Python configuration file. Could contain tool configurations. Read more about this file [here](https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/).
 22. :material-language-python: This file specifies Python project configurations such as dependencies and other project characteristics. Please find the documentation of this file [here](https://setuptools.pypa.io/en/latest/userguide/index.html), and [here](https://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/quickstart.html) is another good guide.
 23. :fontawesome-solid-flask-vial: Folder where we keep the `tests` relevant to this project. There is no strict requirement to store tests in this folder.
-24. :fontawesome-solid-vial-circle-check: In the future you might consider also having a set of `integration` or `e2e` tests, so we keep the unit tests separately. Please read more on the testing concepts [here](../../concepts/testing.md).
-25. :material-auto-fix: This file contains useful mocks (e.g. Spark, MLflow) and fixtures for testing. Read more on this file [here](https://docs.pytest.org/en/6.2.x/fixture.html).
-26. This file contains local tests for sample :octicons-workflow-24: workflow. We're going to discover its content later
+24. This file is an entrypoint for integration tests. Read more on the topic of integrations tests [here](./integration_tests.md)
+25. :fontawesome-solid-vial-circle-check: In the future you might consider also having a set of `integration` or `e2e` tests, so we keep the unit tests separately. Please read more on the testing concepts [here](../../concepts/testing.md).
+26. :material-auto-fix: This file contains useful mocks (e.g. Spark, MLflow) and fixtures for testing. Read more on this file [here](https://docs.pytest.org/en/6.2.x/fixture.html).
+27. This file contains local tests for sample :octicons-workflow-24: workflow. We're going to discover its content later
 
 You can :material-cursor-default-click: click on the :material-plus-circle-outline: annotations for in-depth explanations.
 
