@@ -3,6 +3,7 @@
 In some cases you would like to develop your project via two interfaces.
 
 Such cases could be:
+
 * One part of the team that works with the repository prefers to do this from Databricks Repos, and another prefers IDE.
 * You would like to store low-level general components in standard Python module, and re-share this code with consumers from Databricks Repos
 
