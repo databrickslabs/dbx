@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 - 📖 indents in quickstart doc
+- 📝 add integration tests to the quickstart structure
 
 ## [0.7.3] - 2022-08-29
 
