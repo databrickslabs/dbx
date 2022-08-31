@@ -54,4 +54,4 @@ def test_flit(mocker: MockerFixture):
     mocker.patch("dbx.api.build.execute_shell_command", exec_mock)
     conf = BuildConfiguration(python="flit")
     prepare_build(conf)
-    exec_mock.assert_called_once_with(cmd='-m flit build --format wheel', with_python_executable=True)
+    exec_mock.assert_called_once_with(cmd="-m flit build --format wheel", with_python_executable=True)
