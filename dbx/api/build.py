@@ -3,7 +3,6 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Union, List, Optional
-
 from rich.console import Console
 
 from dbx.models.deployment import BuildConfiguration, PythonBuild
@@ -48,12 +47,14 @@ def prepare_build(build_config: BuildConfiguration):
             cleanup_dist()
 
             if build_config.python == PythonBuild.poetry:
-                command = "-m poetry build -f wheel"
+                build_kwargs = {"cmd": "poetry build -f wheel"}
             elif build_config.python == PythonBuild.flit:
                 command = "-m flit build --format wheel"
+                build_kwargs = {"cmd": command, "with_python_executable": True}
             else:
                 command = "-m pip wheel -w dist -e . --prefer-binary --no-deps"
+                build_kwargs = {"cmd": command, "with_python_executable": True}
 
             with Console().status("Building the package :hammer:", spinner="dots"):
-                execute_shell_command(command, with_python_executable=True)
+                execute_shell_command(**build_kwargs)
             dbx_echo(":white_check_mark: Python-based project build finished")

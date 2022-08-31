@@ -1,3 +1,4 @@
+import inspect
 from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
@@ -22,12 +23,28 @@ def test_commands(mocker: MockerFixture, capsys):
     assert exec_mock.call_count == 3
 
 
-def test_poetry(mocker: MockerFixture):
-    exec_mock = MagicMock()
-    mocker.patch("dbx.api.build.execute_shell_command", exec_mock)
+def test_poetry(temp_project):
+    (temp_project / "setup.py").unlink()
+    (temp_project / "pyproject.toml").unlink()
+
+    pyproject_content = f"""
+    [tool.poetry]
+    name = "{temp_project.name}"
+    version = "0.1.0"
+    description = "some description"
+    authors = []
+
+    [tool.poetry.dependencies]
+    python = "^3.8"
+
+    [build-system]
+    requires = ["poetry-core"]
+    build-backend = "poetry.core.masonry.api"
+    """
+
+    (temp_project / "pyproject.toml").write_text(inspect.cleandoc(pyproject_content))
     conf = BuildConfiguration(python="poetry")
     prepare_build(conf)
-    exec_mock.assert_called_once_with("-m poetry build -f wheel", with_python_executable=True)
 
 
 def test_flit(mocker: MockerFixture):
@@ -35,4 +52,4 @@ def test_flit(mocker: MockerFixture):
     mocker.patch("dbx.api.build.execute_shell_command", exec_mock)
     conf = BuildConfiguration(python="flit")
     prepare_build(conf)
-    exec_mock.assert_called_once_with("-m flit build --format wheel", with_python_executable=True)
+    exec_mock.assert_called_once_with(cmd="-m flit build --format wheel", with_python_executable=True)

@@ -55,6 +55,7 @@ DEV_REQUIREMENTS = [
     "pytest-cov>=3.0.0,<4.0.0",
     "pytest-timeout>=2.1.0,<3.0.0",
     "pytest-clarity>=1.0.1,<2.0.0",
+    "poetry>=1.2.0",
 ]
 
 setup(
