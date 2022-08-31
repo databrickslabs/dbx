@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.7.4] - 2022-08-31
+
 ## Added
 - 📖 documentation on the integration tests
 
