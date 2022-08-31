@@ -31,12 +31,6 @@ def execute_shell_command(
         raise exc
 
 
-class PoetryBuilder:
-    @staticmethod
-    def build():
-        execute_shell_command("poetry build -f wheel")
-
-
 def prepare_build(build_config: BuildConfiguration):
     if build_config.no_build:
         dbx_echo("No build actions will be performed.")
@@ -53,7 +47,7 @@ def prepare_build(build_config: BuildConfiguration):
             cleanup_dist()
 
             if build_config.python == PythonBuild.poetry:
-                build_task = PoetryBuilder().build
+                build_task = lambda: execute_shell_command("poetry build -f wheel")
             elif build_config.python == PythonBuild.flit:
                 command = "-m flit build --format wheel"
                 build_task = lambda: execute_shell_command(command, with_python_executable=True)
