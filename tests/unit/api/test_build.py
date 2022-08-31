@@ -23,12 +23,9 @@ def test_commands(mocker: MockerFixture, capsys):
     assert exec_mock.call_count == 3
 
 
-def test_poetry(temp_project, mocker: MockerFixture):
+def test_poetry(temp_project):
     (temp_project / "setup.py").unlink()
     (temp_project / "pyproject.toml").unlink()
-
-    from poetry.console.application import Application  # noqa
-    from clikit.args import StringArgs  # noqa
 
     pyproject_content = f"""
     [tool.poetry]
@@ -44,6 +41,7 @@ def test_poetry(temp_project, mocker: MockerFixture):
     requires = ["poetry-core"]
     build-backend = "poetry.core.masonry.api"
     """
+
     (temp_project / "pyproject.toml").write_text(inspect.cleandoc(pyproject_content))
     conf = BuildConfiguration(python="poetry")
     prepare_build(conf)
