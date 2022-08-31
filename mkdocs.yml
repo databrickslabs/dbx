@@ -1,6 +1,6 @@
 site_name: dbx
 site_description: 🧱Databricks CLI eXtensions - aka dbx is a CLI tool for development and advanced Databricks workflows management.
-site_url: https://dbx.readthedocs.io/
+site_url: https://dbx.readthedocs.io/en/latest/
 copyright: © Copyright 2022, Databricks Inc.
 
 theme:
