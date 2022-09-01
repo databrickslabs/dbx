@@ -9,8 +9,8 @@ from dbx.utils.file_uploader import MlflowFileUploader, AbstractFileUploader
 from dbx.utils.named_properties import WorkloadPropertiesProcessor, NewClusterPropertiesProcessor, PolicyNameProcessor
 
 
-def adjust_job_definitions(
-    jobs: List[Dict[str, Any]],
+def adjust_workflow_definitions(
+    workflow_definitions: List[Dict[str, Any]],
     dependency_manager: DependencyManager,
     file_uploader: MlflowFileUploader,
     api_client: ApiClient,
@@ -18,7 +18,7 @@ def adjust_job_definitions(
     def adjustment_callback(p: Any):
         return adjust_path(p, file_uploader)
 
-    for job in jobs:
+    for workflow_def in workflow_definitions:
 
         # please note that all adjustments here have side effects to the main jobs object.
 
@@ -28,17 +28,23 @@ def adjust_job_definitions(
 
         adjustable_references = []
 
-        if "tasks" in job:
-            dbx_echo(f"Tasks section found in the job {job['name']}, job will be deployed as a multitask job")
-            adjustable_references += job["tasks"]
-            job_clusters = job.get("job_clusters", [])
+        if "tasks" in workflow_def:
+            dbx_echo(
+                f"Tasks section found in the workflow {workflow_def['name']}. "
+                f"Workflow will be deployed as a multitask workflow"
+            )
+            adjustable_references += workflow_def["tasks"]
+            job_clusters = workflow_def.get("job_clusters", [])
             for jc_reference in job_clusters:
                 cluster_definition = jc_reference.get("new_cluster", {})
                 policy_name_processor.process(cluster_definition)
                 new_cluster_processor.process(cluster_definition)
         else:
-            dbx_echo(f"Tasks section not found in the job {job['name']}, job will be deployed as a single-task job")
-            adjustable_references.append(job)
+            dbx_echo(
+                f"Tasks section not found in the workflow {workflow_def['name']}. "
+                f"Workflow will be deployed as a single-task workflow"
+            )
+            adjustable_references.append(workflow_def)
 
         for workload_reference in adjustable_references:
 

@@ -11,8 +11,33 @@ from dbx.models.project import EnvironmentInfo
 from dbx.utils import dbx_echo
 
 
+class WorkflowType(str, Enum):
+    job = "job"
+    pipeline = "pipeline"
+
+
+class Workflow(BaseModel):
+    payload: Optional[Dict[str, Any]]
+    name: Optional[str]
+    workflow_type: Optional[WorkflowType]
+
+    @root_validator(pre=True)
+    def initialize(cls, values):  # noqa
+        if "type" in values:
+            _type = WorkflowType(values["type"])
+            values.pop("type")
+        else:
+            _type = WorkflowType.job
+
+        name = values.get("name")
+        if not name:
+            raise ValueError(f"No workflow name provided for definition: {values}")
+
+        return {"payload": values, "workflow_type": _type, "name": name}
+
+
 class Deployment(BaseModel):
-    workflows: Optional[List[Dict[str, Any]]]
+    workflows: Optional[List[Workflow]]
 
     @root_validator(pre=True)
     def check_inputs(cls, values: Dict[str, Any]):  # noqa
@@ -47,7 +72,7 @@ class EnvironmentDeploymentInfo(BaseModel):
     payload: Deployment
 
     def to_spec(self) -> Dict[str, Any]:
-        _spec = {self.name: {"jobs": self.payload.workflows}}
+        _spec = {self.name: {"jobs": [w.payload for w in self.payload.workflows]}}
         return _spec
 
     def get_project_info(self) -> EnvironmentInfo:

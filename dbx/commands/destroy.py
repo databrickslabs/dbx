@@ -63,7 +63,7 @@ def destroy(
     config = config_reader.get_config()
 
     _d_config = DestroyerConfig(
-        workflows=_workflows,
+        workflow_names=_workflows,
         deletion_mode=deletion_mode,
         dracarys=dracarys,
         deployment=config.get_environment(environment, raise_if_not_found=True),
@@ -97,10 +97,10 @@ def ask_for_confirmation(conf: DestroyerConfig):
         deletion_message = "All assets will de deleted, but the workflow definitions won't be affected."
     elif conf.deletion_mode == DeletionMode.workflows_only:
         deletion_message = (
-            f"The following workflows are marked for deletion: {conf.workflows}, assets won't be affected"
+            f"The following workflows are marked for deletion: {conf.workflow_names}, assets won't be affected"
         )
     else:
-        deletion_message = f"""The following workflows are marked for deletion: {conf.workflows}.
+        deletion_message = f"""The following workflows are marked for deletion: {conf.workflow_names}.
             [bold]All assets are also marked for deletion.[/bold]"""
 
     _c = _get_rich_console()

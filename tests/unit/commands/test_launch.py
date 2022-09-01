@@ -19,7 +19,7 @@ def deploy_and_get_job_name(deploy_args: Optional[List[str]] = None) -> str:
     deploy_result = invoke_cli_runner(["deploy"] + deploy_args)
     assert deploy_result.exit_code == 0
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen_job = deployment_info.payload.workflows[0]["name"]
+    _chosen_job = deployment_info.payload.workflows[0].name
     return _chosen_job
 
 

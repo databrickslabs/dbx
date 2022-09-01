@@ -14,7 +14,7 @@ from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.commands.deploy import (  # noqa
     _create_job,
     _log_dbx_file,
-    _preprocess_jobs,
+    _preprocess_workflows,
     _update_job,
     deploy,
 )
@@ -45,29 +45,31 @@ def test_deploy_assets_only_smoke_default(
     assert deploy_result.exit_code == 0
 
 
-def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
+@pytest.mark.parametrize("file_name", ["03-multitask-job.json", "03-multitask-job.yaml"])
+def test_deploy_multitask_smoke(
+    file_name, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project
+):
     samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
-    for file_name in ["03-multitask-job.json", "03-multitask-job.yaml"]:
-        deployment_file = Path("./conf/") / file_name
-        shutil.copy(samples_path / file_name, str(deployment_file))
-        shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
-        shutil.copy(samples_path / "placeholder_2.py", Path("./placeholder_2.py"))
+    deployment_file = Path("./conf/") / file_name
+    shutil.copy(samples_path / file_name, str(deployment_file))
+    shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
+    shutil.copy(samples_path / "placeholder_2.py", Path("./placeholder_2.py"))
 
-        deploy_result = invoke_cli_runner(
-            [
-                "deploy",
-                "--environment",
-                "default",
-                "--deployment-file",
-                str(deployment_file),
-                "--write-specs-to-file",
-                ".dbx/deployment-result.json",
-            ],
-        )
-        assert deploy_result.exit_code == 0
-        _content = JsonUtils.read(Path(".dbx/deployment-result.json"))
-        assert "libraries" not in _content["default"]["jobs"][0]
-        assert "libraries" in _content["default"]["jobs"][0]["tasks"][0]
+    deploy_result = invoke_cli_runner(
+        [
+            "deploy",
+            "--environment",
+            "default",
+            "--deployment-file",
+            str(deployment_file),
+            "--write-specs-to-file",
+            ".dbx/deployment-result.json",
+        ],
+    )
+    assert deploy_result.exit_code == 0
+    _content = JsonUtils.read(Path(".dbx/deployment-result.json"))
+    assert "libraries" not in _content["default"]["jobs"][0]
+    assert "libraries" in _content["default"]["jobs"][0]["tasks"][0]
 
 
 def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
@@ -136,7 +138,7 @@ def test_non_existent_env(mock_api_v2_client, temp_project):
 def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][0]
+    _chosen = [j.name for j in deployment_info.payload.workflows][0]
     deploy_result = invoke_cli_runner(
         ["deploy", "--environment=default", f"--write-specs-to-file={result_file}", _chosen],
     )
@@ -148,7 +150,7 @@ def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload,
 def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
+    _chosen = [j.name for j in deployment_info.payload.workflows][:2]
     deploy_result = invoke_cli_runner(
         ["deploy", "--environment", "default", "--jobs", ",".join(_chosen), "--write-specs-to-file", result_file],
     )
@@ -160,19 +162,19 @@ def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, moc
 def test_deploy_only_chosen_workflows(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
+    _chosen = [w.name for w in deployment_info.payload.workflows][:2]
     deploy_result = invoke_cli_runner(
         ["deploy", "--environment", "default", "--workflows", ",".join(_chosen), "--write-specs-to-file", result_file],
     )
     assert deploy_result.exit_code == 0
     _content = JsonUtils.read(Path(result_file))
-    assert _chosen == [j["name"] for j in _content["default"]["jobs"]]
+    assert _chosen == [w["name"] for w in _content["default"]["jobs"]]
 
 
 def test_negative_both_arguments(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
+    _chosen = [j.name for j in deployment_info.payload.workflows][:2]
     deploy_result = invoke_cli_runner(
         [
             "deploy",
@@ -235,7 +237,7 @@ def test_create_job_with_error():
 
 def test_preprocess_jobs():
     with pytest.raises(Exception):
-        _preprocess_jobs([], ["some-job-name"])
+        _preprocess_workflows([], ["some-job-name"])
 
 
 def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):

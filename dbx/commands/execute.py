@@ -71,12 +71,12 @@ def execute(
     controller = ClusterController(api_client)
     cluster_id = controller.preprocess_cluster_args(cluster_name, cluster_id)
 
-    _job = workflow if workflow else job
+    _wf = workflow if workflow else job
 
-    if not _job:
+    if not _wf:
         raise Exception("Please provide workflow name as an argument")
 
-    dbx_echo(f"Executing job: {_job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
+    dbx_echo(f"Executing workflow: {_wf} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
@@ -95,33 +95,35 @@ def execute(
 
     _verify_deployment(deployment, deployment_file)
 
-    found_jobs = [j for j in deployment.payload.workflows if j["name"] == _job]
+    found_workflows = [w.payload for w in deployment.payload.workflows if w.name == _wf]
 
-    if not found_jobs:
-        raise RuntimeError(f"Job {_job} was not found in environment jobs, please check the deployment file")
+    if not found_workflows:
+        raise RuntimeError(f"Workflow {_wf} was not found, please check the deployment file content")
 
-    job_payload = found_jobs[0]
+    workflow_payload = found_workflows[0]
 
     if task:
-        _tasks = job_payload.get("tasks", [])
+        _tasks = workflow_payload.get("tasks", [])
         found_tasks = [t for t in _tasks if t.get("task_key") == task]
 
         if not found_tasks:
-            raise Exception(f"Task {task} not found in the definition of job {_job}")
+            raise Exception(f"Task {task} not found in the definition of job {_wf}")
 
         if len(found_tasks) > 1:
-            raise Exception(f"Task keys are not unique, more then one task found for job {_job} with task name {task}")
+            raise Exception(
+                f"Task keys are not unique. " f"More then one task found for workflow {_wf} with task name {task}"
+            )
 
         _task = found_tasks[0]
 
         _payload = _task
     else:
-        if "tasks" in job_payload:
+        if "tasks" in workflow_payload:
             raise Exception(
-                "You're trying to execute a multitask job without passing the task name. "
+                "You're trying to execute a multitask workflow without passing the task name. "
                 "Please provide the task name via --task parameter"
             )
-        _payload = job_payload
+        _payload = workflow_payload
 
     task = Task(**_payload)
 
@@ -161,13 +163,13 @@ def override_parameters(raw_params_info: str, task: Task):
         raise Exception(f"named parameters are only supported if task type is {TaskType.python_wheel_task.value}")
 
     if param_info.named_parameters:
-        dbx_echo(":twisted_rightwards_arrows:Overriding named_parameters section for the task")
+        dbx_echo(":twisted_rightwards_arrows:  Overriding named_parameters section for the task")
         task.python_wheel_task.named_parameters = param_info.named_parameters
         task.python_wheel_task.parameters = []
-        dbx_echo(":white_check_mark:Overriding named_parameters section for the task")
+        dbx_echo(":white_check_mark:  Overriding named_parameters section for the task")
 
     if param_info.parameters:
-        dbx_echo(":twisted_rightwards_arrows:Overriding parameters section for the task")
+        dbx_echo(":twisted_rightwards_arrows:  Overriding parameters section for the task")
 
         if task.task_type == TaskType.python_wheel_task:
             task.python_wheel_task.parameters = param_info.parameters
@@ -175,4 +177,4 @@ def override_parameters(raw_params_info: str, task: Task):
         elif task.task_type == TaskType.spark_python_task:
             task.spark_python_task.parameters = param_info.parameters
 
-        dbx_echo(":white_check_mark:Overriding parameters section for the task")
+        dbx_echo(":white_check_mark:  Overriding parameters section for the task")

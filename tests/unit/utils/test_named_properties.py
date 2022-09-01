@@ -6,7 +6,7 @@ from databricks_cli.instance_pools.api import InstancePoolService
 
 from dbx.api.config_reader import ConfigReader
 from dbx.models.deployment import EnvironmentDeploymentInfo, BuildConfiguration
-from dbx.utils.adjuster import adjust_job_definitions
+from dbx.utils.adjuster import adjust_workflow_definitions
 from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
 from tests.unit.conftest import get_path_with_relation_to_current_file
@@ -26,14 +26,14 @@ mtj_json_dep_conf = ConfigReader(mtj_json_conf).get_environment("default")
 mtj_yaml_dep_conf = ConfigReader(mtj_yaml_conf).get_environment("default")
 
 
-def get_job_by_name(src: EnvironmentDeploymentInfo, name: str):
-    matched = [j for j in src.payload.workflows if j["name"] == name]
+def get_workflow_payload_by_name(src: EnvironmentDeploymentInfo, name: str):
+    matched = [j.payload for j in src.payload.workflows if j.name == name]
     return matched[0]
 
 
 def test_instance_profile_name_positive():
-    job_in_json = get_job_by_name(json_deployment_conf, "named-props-instance-profile-name")
-    job_in_yaml = get_job_by_name(yaml_deployment_conf, "named-props-instance-profile-name")
+    job_in_json = get_workflow_payload_by_name(json_deployment_conf, "named-props-instance-profile-name")
+    job_in_yaml = get_workflow_payload_by_name(yaml_deployment_conf, "named-props-instance-profile-name")
 
     api_client = MagicMock()
     test_profile_arn = "arn:aws:iam::123456789:instance-profile/some-instance-profile-name"
@@ -50,8 +50,8 @@ def test_instance_profile_name_positive():
 
 
 def test_instance_profile_name_negative():
-    job_in_json = get_job_by_name(json_deployment_conf, "named-props-instance-profile-name")
-    job_in_yaml = get_job_by_name(yaml_deployment_conf, "named-props-instance-profile-name")
+    job_in_json = get_workflow_payload_by_name(json_deployment_conf, "named-props-instance-profile-name")
+    job_in_yaml = get_workflow_payload_by_name(yaml_deployment_conf, "named-props-instance-profile-name")
 
     api_client = MagicMock()
     api_client.perform_query = MagicMock(
@@ -75,8 +75,8 @@ def test_instance_profile_name_negative():
 
 
 def test_instance_pool_name_positive():
-    job_in_json = get_job_by_name(json_deployment_conf, "named-props-instance-pool-name")
-    job_in_yaml = get_job_by_name(yaml_deployment_conf, "named-props-instance-pool-name")
+    job_in_json = get_workflow_payload_by_name(json_deployment_conf, "named-props-instance-pool-name")
+    job_in_yaml = get_workflow_payload_by_name(yaml_deployment_conf, "named-props-instance-pool-name")
 
     api_client = MagicMock()
     test_pool_id = "aaa-bbb-000-ccc"
@@ -97,8 +97,8 @@ def test_instance_pool_name_positive():
 
 
 def test_instance_pool_name_negative():
-    job_in_json = get_job_by_name(json_deployment_conf, "named-props-instance-pool-name")
-    job_in_yaml = get_job_by_name(yaml_deployment_conf, "named-props-instance-pool-name")
+    job_in_json = get_workflow_payload_by_name(json_deployment_conf, "named-props-instance-pool-name")
+    job_in_yaml = get_workflow_payload_by_name(yaml_deployment_conf, "named-props-instance-pool-name")
 
     api_client = MagicMock()
 
@@ -115,8 +115,8 @@ def test_instance_pool_name_negative():
 
 
 def test_existing_cluster_name_positive():
-    job_in_json = get_job_by_name(json_deployment_conf, "named-props-existing-cluster-name")
-    job_in_yaml = get_job_by_name(yaml_deployment_conf, "named-props-existing-cluster-name")
+    job_in_json = get_workflow_payload_by_name(json_deployment_conf, "named-props-existing-cluster-name")
+    job_in_yaml = get_workflow_payload_by_name(yaml_deployment_conf, "named-props-existing-cluster-name")
 
     api_client = MagicMock()
     test_existing_cluster_id = "aaa-bbb-000-ccc"
@@ -134,7 +134,7 @@ def test_existing_cluster_name_positive():
 
 
 def test_existing_cluster_name_negative():
-    job1 = get_job_by_name(json_deployment_conf, "named-props-existing-cluster-name")
+    job1 = get_workflow_payload_by_name(json_deployment_conf, "named-props-existing-cluster-name")
     api_client = MagicMock()
 
     processor = WorkloadPropertiesProcessor(api_client)
@@ -158,10 +158,12 @@ def test_mtj_named_positive():
     dm._core_package_reference = sample_reference
 
     for deployment_conf in [mtj_json_dep_conf, mtj_yaml_dep_conf]:
-        jobs = deployment_conf.payload.workflows
+        definitions = [w.payload for w in deployment_conf.payload.workflows]
 
-        adjust_job_definitions(jobs=jobs, dependency_manager=dm, file_uploader=file_uploader, api_client=api_client)
+        adjust_workflow_definitions(
+            workflow_definitions=definitions, dependency_manager=dm, file_uploader=file_uploader, api_client=api_client
+        )
 
-        assert jobs[0]["job_clusters"][0]["new_cluster"]["aws_attributes"]["instance_profile_arn"] is not None
-        assert jobs[0]["tasks"][0]["libraries"] == []
-        assert jobs[0]["tasks"][1]["libraries"] == [sample_reference]
+        assert definitions[0]["job_clusters"][0]["new_cluster"]["aws_attributes"]["instance_profile_arn"] is not None
+        assert definitions[0]["tasks"][0]["libraries"] == []
+        assert definitions[0]["tasks"][1]["libraries"] == [sample_reference]

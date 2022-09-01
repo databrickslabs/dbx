@@ -12,7 +12,7 @@ from databricks_cli.sdk.api_client import ApiClient
 from requests.exceptions import HTTPError
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import EnvironmentDeploymentInfo
+from dbx.models.deployment import EnvironmentDeploymentInfo, Workflow
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -26,7 +26,7 @@ from dbx.options import (
     WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.adjuster import adjust_job_definitions
+from dbx.utils.adjuster import adjust_workflow_definitions
 from dbx.utils.common import (
     prepare_environment,
     parse_multiple,
@@ -136,19 +136,20 @@ def deploy(
         artifact_base_uri = deployment_run.info.artifact_uri
         _file_uploader = MlflowFileUploader(artifact_base_uri)
 
-        adjust_job_definitions(deployment.payload.workflows, dependency_manager, _file_uploader, api_client)
+        workflow_definitions = [w.payload for w in deployment.payload.workflows]
+        adjust_workflow_definitions(workflow_definitions, dependency_manager, _file_uploader, api_client)
 
         if not _assets_only:
             dbx_echo("Updating job definitions")
             deployment_data = _create_jobs(deployment.payload.workflows, api_client)
             _log_dbx_file(deployment_data, "deployments.json")
 
-            for job_spec in deployment.payload.workflows:
-                permissions = job_spec.get("permissions")
+            for workflow in deployment.payload.workflows:
+                permissions = workflow.payload.get("permissions")
                 if permissions:
-                    job_name = job_spec.get("name")
+                    job_name = workflow.payload.get("name")
                     dbx_echo(f"Permission settings are provided for job {job_name}, setting it up")
-                    job_id = deployment_data.get(job_spec.get("name"))
+                    job_id = deployment_data.get(workflow.payload.get("name"))
                     api_client.perform_query("PUT", f"/permissions/jobs/{job_id}", data=permissions)
                     dbx_echo(f"Permission settings were successfully set for job {job_name}")
 
@@ -212,41 +213,41 @@ def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_jobs
     if not deployment.payload.workflows:
         raise Exception("No jobs provided for deployment")
 
-    deployment.payload.workflows = _preprocess_jobs(deployment.payload.workflows, requested_jobs)
+    deployment.payload.workflows = _preprocess_workflows(deployment.payload.workflows, requested_jobs)
 
 
-def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:
-    job_names = [job["name"] for job in jobs]
-    if requested_jobs:
-        dbx_echo(f"Deployment will be performed only for the following jobs: {requested_jobs}")
-        for requested_job_name in requested_jobs:
-            if requested_job_name not in job_names:
+def _preprocess_workflows(
+    workflows: List[Workflow], requested_workflow_names: Union[List[str], None]
+) -> List[Workflow]:
+    workflow_names = [w.name for w in workflows]
+    if requested_workflow_names:
+        dbx_echo(f"Deployment will be performed only for the following workflows: {requested_workflow_names}")
+        for requested_workflow_name in requested_workflow_names:
+            if requested_workflow_name not in workflow_names:
                 raise Exception(
-                    f"""
-                Workflow {requested_job_name} was requested, but not provided in deployment file.
-                Available workflows are: {job_names}
-                """
+                    f"""Workflow {requested_workflow_name} was requested, but not provided in deployment file.
+                    Available workflows are: {workflow_names}"""
                 )
-        preprocessed_jobs = [job for job in jobs if job["name"] in requested_jobs]
+        preprocessed_workflows = [w for w in workflows if w.name in requested_workflow_names]
     else:
-        preprocessed_jobs = jobs
-    return preprocessed_jobs
+        preprocessed_workflows = workflows
+    return preprocessed_workflows
 
 
-def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
+def _create_jobs(workflows: List[Workflow], api_client: ApiClient) -> Dict[str, int]:
     deployment_data = {}
-    for job in jobs:
-        dbx_echo(f'Processing deployment for job: {job["name"]}')
+    for workflow in workflows:
+        dbx_echo(f"Processing deployment for workflow: {workflow.name}")
         jobs_service = JobsService(api_client)
-        matching_job = find_job_by_name(jobs_service, job["name"])
+        matching_job = find_job_by_name(jobs_service, workflow.name)
 
         if not matching_job:
-            job_id = _create_job(api_client, job)
+            job_id = _create_job(api_client, workflow.payload)
         else:
             job_id = matching_job["job_id"]
-            _update_job(jobs_service, job_id, job)
+            _update_job(jobs_service, job_id, workflow.payload)
 
-        deployment_data[job["name"]] = job_id
+        deployment_data[workflow.name] = job_id
     return deployment_data
 
 
