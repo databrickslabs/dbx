@@ -16,8 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## Added
+- 🔥 Support for Delta Live Tables
+- 📝 Documentation for Delta Live Tables
+
+
 ## Fixed
 - 🎨 404 page in docs is now rendered correctly
+- 📝 Small typos in the docs
 
 ## [0.7.4] - 2022-08-31
 

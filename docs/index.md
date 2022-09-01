@@ -20,7 +20,7 @@
 
 Since `dbx` primary interface is CLI, it's easy to use it in various CI/CD pipelines, independent of the CI provider.
 
-Read more about the place of `dbx` and potential use-cases in the [Concepts section](/concepts).
+Read more about the place of `dbx` and potential use-cases in the [Concepts section](./concepts/ecosystem.md).
 
 ## :thinking: Differences from other tools
 
@@ -59,14 +59,19 @@ Depending on your developer journey and overall tasks, you might use `dbx` in va
 ## :octicons-stop-24: Limitations
 
 - For interactive development `dbx` can only be used for Python and JVM-based projects.
-  Please note that development workflow for JVM-based projects is different from the Python ones.
-  For R-based projects, `dbx` can only be used as a deployment management and workflow launch tool.
-- `dbx` currently doesn't provide interactive debugging capabilities.
-  If you want to use interactive debugging, you can use [Databricks
-  Connect](https://docs.databricks.com/dev-tools/databricks-connect.html), and then use
-  `dbx` for deployment operations.
-- [Delta Live
-  Tables](https://databricks.com/product/delta-live-tables) currently are not supported. We plan do add support for DLT deployments in near future.
+- For R-based projects, `dbx` can only be used as a deployment management and workflow launch tool.
+- For [Delta Live Tables](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-quickstart.html) `dbx` can only be used as a deployment management and workflow launch tool.
+- `dbx` currently doesn't provide interactive debugging capabilities
+- `dbx` supports all [Databricks Runtime](https://docs.databricks.com/release-notes/runtime/releases.html) types 9.X and above.
+
+!!! info "Differences between Python and JVM development loop"
+
+    Python and JVM development loops are distinctive and follow separate patterns. Please check [this section](#next-steps) for details on various development loops.
+
+
+!!! info "Interactive debugging capabilities"
+
+    If you want to use interactive debugging, you can use [Databricks Connect](https://docs.databricks.com/dev-tools/databricks-connect.html), and then use `dbx` for deployment operations.
 
 ## :octicons-law-24: Legal Information
 

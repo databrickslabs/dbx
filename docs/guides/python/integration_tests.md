@@ -9,9 +9,9 @@ For Python package-based projects it's pretty easy to setup the integration test
 
 ## :octicons-file-code-24:  Preparing the configuration
 
-* Add an entrypoint file to the `tests/entrypoint.py`
+* Add an entrypoint definition to the `tests/entrypoint.py`
 
-```python title="tests/netrypoint.py"
+```python title="tests/entrypoint.py"
 import sys
 
 import pytest
