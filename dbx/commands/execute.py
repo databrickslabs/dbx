@@ -7,7 +7,7 @@ from dbx.api.cluster import ClusterController
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
-from dbx.models.deployment import EnvironmentDeploymentInfo
+from dbx.models.deployment import EnvironmentDeploymentInfo, WorkflowType
 from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
 from dbx.models.task import Task, TaskType
 from dbx.options import (
@@ -95,12 +95,17 @@ def execute(
 
     _verify_deployment(deployment, deployment_file)
 
-    found_workflows = [w.payload for w in deployment.payload.workflows if w.name == _wf]
+    found_workflows = [w for w in deployment.payload.workflows if w.name == _wf]
 
     if not found_workflows:
         raise RuntimeError(f"Workflow {_wf} was not found, please check the deployment file content")
 
-    workflow_payload = found_workflows[0]
+    found_workflow = found_workflows[0]
+
+    if found_workflow.workflow_type == WorkflowType.pipeline:
+        raise Exception("Delta Live Tables pipelines are not supported in dbx execute.")
+
+    workflow_payload = found_workflow.payload
 
     if task:
         _tasks = workflow_payload.get("tasks", [])
