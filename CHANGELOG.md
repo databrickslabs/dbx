@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 - 🎨 404 page in docs is now rendered correctly
+- ✏️ Small typos in the docs
+- 🔗 Broken links in the docs
 
 ## [0.7.4] - 2022-08-31
 

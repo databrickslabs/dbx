@@ -20,7 +20,7 @@
 
 Since `dbx` primary interface is CLI, it's easy to use it in various CI/CD pipelines, independent of the CI provider.
 
-Read more about the place of `dbx` and potential use-cases in the [Concepts section](/concepts).
+Read more about the place of `dbx` and potential use-cases in the [Ecosystem section](concepts/ecosystem.md).
 
 ## :thinking: Differences from other tools
 

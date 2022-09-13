@@ -11,7 +11,7 @@ For Python package-based projects it's pretty easy to setup the integration test
 
 * Add an entrypoint file to the `tests/entrypoint.py`
 
-```python title="tests/netrypoint.py"
+```python title="tests/entrypoint.py"
 import sys
 
 import pytest

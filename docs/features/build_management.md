@@ -17,7 +17,7 @@ Build management in `dbx` is provided in three various flavours:
     ```yaml title="conf/deployment.yml"
     # irrelevant parts are omitted
     build:
-       python: "poetry" # "flit"
+       python: "poetry" # or "flit" or "pip" (default setting)
     ```
 
 === ":no_entry_sign: No build"
@@ -27,7 +27,7 @@ Build management in `dbx` is provided in three various flavours:
     ```yaml title="conf/deployment.yml"
     # irrelevant parts are omitted
     build:
-       no_build = true
+       no_build: true
     ```
 
 

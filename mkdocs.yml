@@ -69,6 +69,8 @@ markdown_extensions:
   - pymdownx.betterem:
       smart_enable: all
   - mkdocs-click
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 nav:
   - Home: index.md
