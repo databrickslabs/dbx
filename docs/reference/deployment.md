@@ -120,7 +120,7 @@ environments:
 ```
 
 1. This sets up the schedule for every day at midnight. Check [chrontab.guru](https://crontab.guru/) for more examples.
-2. Timezone is sec accordingly to the Java [`TimeZone`](https://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html) class.
+2. Timezone is set accordingly to the Java [`TimeZone`](https://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html) class.
 
 !!! tip "Official Databricks docs"
 
@@ -179,17 +179,16 @@ environments:
           on_failure: [ "user@email.com" ]
           no_alert_for_skipped_runs: false
 
-        #http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html
         schedule:
-        quartz_cron_expression: "00 25 03 * * ?"
-        timezone_id: "UTC"
-        pause_status: "PAUSED"
+           quartz_cron_expression: "00 25 03 * * ?" #(1)
+           timezone_id: "UTC"
+           pause_status: "PAUSED"
 
         tags:
           your-key: "your-value"
           your-key1: "your-value1"
 
-        format: MULTI_TASK
+        format: MULTI_TASK #(2)
 
         permissions:
           access_control_list:
@@ -241,3 +240,6 @@ environments:
             depends_on:
               - task_key: "your-task-01"
 ```
+
+1. Read more about scheduling in [this section](./deployment.md#scheduling-workflows)
+2. `format` key is not required, but you can provide it to explicitly enforce the job format. Please follow the [Jobs API doc](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsCreate) for details.
