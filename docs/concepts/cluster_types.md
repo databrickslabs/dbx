@@ -46,7 +46,7 @@ Therefore, with `dbx` we recommend using all-purpose clusters in the following c
 !!! danger ":material-language-java: JVM projects might lead to undefined behaviour when launched as a workflow on all-purpose clusters"
 
     Same reasoning as described for Python package-based projects is applied to JVM-based projects.
-    Due to the library reinstallation issues, it's also not possible to run JVM-based projects from IDE on interactive clusters with `dbx`.<br/>
+    Due to the library reinstallation issues, it's also not possible to run JVM-based projects from IDE on all-purpose clusters with `dbx`.<br/>
     For such cases, please use the development loop described in [this doc](../guides/jvm/jvm_devloop.md).
 
 ## :octicons-zap-16: Job clusters
