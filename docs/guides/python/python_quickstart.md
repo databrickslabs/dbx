@@ -481,7 +481,7 @@ The reason is that `self.logger` logs it's content to the Driver Logs, which is 
     or to specialized logging solutions like [Datadog](https://www.datadoghq.com/) and [New Relic](https://newrelic.com/).
 
 
-With a successfully executed code on the interactive cluster, we can now move on to the deployment and launch.
+With a successfully executed code on the all-purpose cluster, we can now move on to the deployment and launch.
 
 ## :material-door-open: Defining the entrypoints
 

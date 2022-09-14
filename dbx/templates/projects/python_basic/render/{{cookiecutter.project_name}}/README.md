@@ -36,20 +36,20 @@ In the `tests/unit/conftest.py` you'll also find useful testing primitives, such
 
 There are two options for running integration tests:
 
-- On an interactive cluster via `dbx execute`
+- On an all-purpose cluster via `dbx execute`
 - On a job cluster via `dbx launch`
 
 For quicker startup of the job clusters we recommend using instance pools ([AWS](https://docs.databricks.com/clusters/instance-pools/index.html), [Azure](https://docs.microsoft.com/en-us/azure/databricks/clusters/instance-pools/), [GCP](https://docs.gcp.databricks.com/clusters/instance-pools/index.html)).
 
-For an integration test on interactive cluster, use the following command:
+For an integration test on all-purpose cluster, use the following command:
 ```
-dbx execute <workflow-name> --cluster-name=<name of interactive cluster>
+dbx execute <workflow-name> --cluster-name=<name of all-purpose cluster>
 ```
 
 To execute a task inside multitask job, use the following command:
 ```
 dbx execute <workflow-name> \
-    --cluster-name=<name of interactive cluster> \
+    --cluster-name=<name of all-purpose cluster> \
     --job=<name of the job to test> \
     --task=<task-key-from-job-definition>
 ```

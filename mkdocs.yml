@@ -80,6 +80,8 @@ nav:
       - Testing workflows: concepts/testing.md
       - Cluster types for various flows: concepts/cluster_types.md
   - Guides:
+      - General:
+          - Dependency management: guides/general/dependency_management.md
       - Python:
           - Python quickstart: guides/python/python_quickstart.md
           - Development loop:

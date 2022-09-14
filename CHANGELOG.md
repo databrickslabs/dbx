@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > When releasing, Copy the changelog to below this line, with proper version and date.
 > And empty the **[Unreleased]** section above.
 ----
+## Added
+- 📖 documentation on the dependency management
 
 ## Fixed
 - 🎨 404 page in docs is now rendered correctly
