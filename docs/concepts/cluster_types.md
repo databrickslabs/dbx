@@ -64,9 +64,17 @@ All settings of a job cluster for each specific workflow and task inside this wo
 
 !!! tip "Cluster Reuse in Databricks Jobs"
 
-    Databricks jobs with Jobs API v2.1 support [Cluster Reuse](https://www.databricks.com/blog/2022/02/04/saving-time-and-costs-with-cluster-reuse-in-databricks-jobs.html) feature.
+    Databricks jobs with Jobs API v2.1 supports the [Cluster Reuse](https://www.databricks.com/blog/2022/02/04/saving-time-and-costs-with-cluster-reuse-in-databricks-jobs.html) feature.
     This feature allows tasks to reuse the same cluster, which greatly reduces the overall job execution time.<br/>
-    :warning: Cluster Reuse feature is not supported in [assets-based workflow launches](../features/assets.md).
+
+!!! tip "Cluster Reuse in assets-based launches"
+
+    Since Cluster Reuse feature is not supported in [assets-based launch](../features/assets.md), you can add a failsafe switch to automatically generate new clusters.
+    In this case a separate job cluster will be created for each task when `dbx launch --from-assets` is used.
+    To enable this feature, please run the following configuration command on the project level:
+    ```bash
+    dbx configure --enable-failsafe-cluster-reuse-with-assets
+    ```
 
 !!! tip "Using instance pools"
 

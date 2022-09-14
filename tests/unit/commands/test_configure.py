@@ -31,6 +31,18 @@ def test_configure_and_enable_jinja(temp_project) -> None:
     assert ProjectConfigurationManager().get_jinja_support()
 
 
+def test_configure_and_enable_failsafe_cluster_reuse(temp_project) -> None:
+    Path(PROJECT_INFO_FILE_PATH).unlink()
+    first_result = invoke_cli_runner(
+        ["configure", "--environment", "dev", "--profile", temp_project.name],
+    )
+    invoke_cli_runner(["configure", "--enable-failsafe-cluster-reuse-with-assets"])
+    assert first_result.exit_code == 0
+    env = ProjectConfigurationManager().get("dev")
+    assert env is not None
+    assert ProjectConfigurationManager().get_failsafe_cluster_reuse()
+
+
 def test_configure_custom_location(temp_project: Path):
     ws_dir = "/Shared/dbx/projects/%s" % temp_project.name
     first_result = invoke_cli_runner(

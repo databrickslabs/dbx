@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import mlflow
 from pytest_mock import MockerFixture
 
-from dbx.api.launch.functions import cancel_run, load_dbx_file
+from dbx.api.launch.functions import cancel_run, load_dbx_file, wait_run
 from dbx.utils.json import JsonUtils
 
 
@@ -12,6 +12,20 @@ def test_cancel(mocker: MockerFixture):
     client = MagicMock()
     cancel_run(client, {"run_id": 1})
     wait_mock.assert_called()
+
+
+def test_wait_run(mocker: MockerFixture):
+    mocker.patch(
+        "dbx.api.launch.functions.get_run_status",
+        MagicMock(
+            side_effect=[
+                {"state": {"life_cycle_state": "RUNNING"}},
+                {"state": {"life_cycle_state": "TERMINATED"}},
+            ]
+        ),
+    )
+    client = MagicMock()
+    wait_run(client, {"run_id": 1})
 
 
 def test_load_file(tmp_path):

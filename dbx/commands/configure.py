@@ -34,6 +34,19 @@ def configure(
 
         Project file should exist, otherwise command will fail.""",
     ),
+    enable_failsafe_cluster_reuse_with_assets: bool = typer.Option(
+        False,
+        "--enable-failsafe-cluster-reuse-with-assets",
+        is_flag=True,
+        help="""
+        Enables failsafe behaviour for assets-based launches with definitions
+        that are based on shared job clusters feature.
+
+        This flag ignores any other flags.
+
+
+        Project file should exist, otherwise command will fail.""",
+    ),
 ):
     manager = ProjectConfigurationManager()
 
@@ -41,6 +54,11 @@ def configure(
         dbx_echo("Enabling jinja support")
         manager.enable_jinja_support()
         dbx_echo("✅ Enabling jinja support")
+
+    elif enable_failsafe_cluster_reuse_with_assets:
+        dbx_echo("Enabling failsafe cluster reuse with assets")
+        manager.enable_failsafe_cluster_reuse()
+        dbx_echo("✅ Enabling failsafe cluster reuse with assets")
 
     else:
         dbx_echo(f"Configuring new environment with name {environment}")

@@ -4,10 +4,11 @@ from typing import Optional, Union, Tuple, Dict, Any
 
 from databricks_cli.sdk import ApiClient, JobsService
 
+from dbx.api.configure import ProjectConfigurationManager
 from dbx.api.launch.functions import cancel_run, load_dbx_file, wait_run
+from dbx.api.launch.processors import ClusterReusePreprocessor
 from dbx.models.options import ExistingRunsOption
 from dbx.models.parameters.run_now import RunNowV2d0ParamInfo, RunNowV2d1ParamInfo
-
 from dbx.models.parameters.run_submit import RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo
 from dbx.utils import dbx_echo
 from dbx.utils.job_listing import find_job_by_name
@@ -15,12 +16,18 @@ from dbx.utils.job_listing import find_job_by_name
 
 class RunSubmitLauncher:
     def __init__(
-        self, job: str, api_client: ApiClient, deployment_run_id: str, environment: str, parameters: Optional[str]
+        self,
+        job: str,
+        api_client: ApiClient,
+        deployment_run_id: str,
+        environment: str,
+        parameters: Optional[str] = None,
     ):
         self.run_id = deployment_run_id
         self.job = job
         self.api_client = api_client
         self.environment = environment
+        self.failsafe_cluster_reuse = ProjectConfigurationManager().get_failsafe_cluster_reuse()
         self._parameters = None if not parameters else self._process_parameters(parameters)
 
     def _process_parameters(self, payload: str) -> Union[RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo]:
@@ -32,24 +39,29 @@ class RunSubmitLauncher:
             return RunSubmitV2d0ParamInfo(**_payload)
 
     def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
-        dbx_echo("Launching job via run submit API")
+        dbx_echo("Launching workflow via run submit API")
 
         env_spec = load_dbx_file(self.run_id, "deployment-result.json").get(self.environment)
 
         if not env_spec:
-            raise Exception(f"No job definitions found for environment {self.environment}")
+            raise Exception(f"No workflow definitions found for environment {self.environment}")
 
         job_specs = env_spec.get("jobs")
 
         found_jobs = [j for j in job_specs if j["name"] == self.job]
 
         if not found_jobs:
-            raise Exception(f"Job definition {self.job} not found in deployment spec")
+            raise Exception(f"Workflow definition {self.job} not found in deployment spec")
 
         job_spec: Dict[str, Any] = found_jobs[0]
         job_spec.pop("name")
 
         service = JobsService(self.api_client)
+
+        if self.failsafe_cluster_reuse:
+            if "job_clusters" in job_spec:
+                processor = ClusterReusePreprocessor(job_spec)
+                job_spec = processor.process()
 
         if self._parameters:
             final_spec = self._add_parameters(job_spec, self._parameters)
