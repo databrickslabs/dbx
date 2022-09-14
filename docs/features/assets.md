@@ -54,9 +54,10 @@ dbx launch <workflow-name> --from-assets --tags "cake=strudel" # will launch the
     If you see that `dbx` is unable to pick up the git branch name (e.g. for cases when git head is in `DETACHED` state,
     you can also provide the branch name explicitly via `--branch-name`.
 
-## Enabling failsafe behaviour for shared job clusters
+## Failsafe behaviour for shared job clusters
+<img src="https://img.shields.io/badge/available%20since-0.7.5-green?style=for-the-badge" alt="Available since 0.7.5"/>
 
-Since Cluster Reuse feature is not supported in assets-based launch, you can add a failsafe switch to automatically generate new clusters.
+The Cluster Reuse feature is not supported in assets-based launch, but you can add a failsafe switch to automatically generate new clusters.
 
 A typical symptom of this issue is the following error message:
 ```bash
@@ -73,7 +74,7 @@ The failsafe behaviour allows to enable a workaround which will allow such confi
     * Increased VM costs since a separate job cluster will be created for each task.
     * Cluster startup time will be increased since no real reuse will happen.
 
-To enable this feature, please run the following configuration command on the project level:
+To enable this feature, run the following command on the project level:
 ```bash
 dbx configure --enable-failsafe-cluster-reuse-with-assets
 ```

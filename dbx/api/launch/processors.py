@@ -15,8 +15,6 @@ class ClusterReusePreprocessor:
         self._job_spec.pop("job_clusters")
 
     def _preprocess_task_definition(self, task: Dict[str, Any]):
-        dbx_echo(f"Found a task with shared job cluster definition {task['task_key']}")
-        dbx_echo("Replacing this definition with static cluster")
         task_cluster_key = task.pop("job_cluster_key")
         definition = self._job_clusters.get_cluster_definition(task_cluster_key).new_cluster
         task.update({"new_cluster": definition})
