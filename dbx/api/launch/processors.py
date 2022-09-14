@@ -22,7 +22,7 @@ class ClusterReusePreprocessor:
         task.update({"new_cluster": definition})
 
     def process(self) -> Dict[str, Any]:
-        with Console().status(f"🔍 Iterating over task definitions to find shared job cluster usages", spinner="dots"):
+        with Console().status("🔍 Iterating over task definitions to find shared job cluster usages", spinner="dots"):
             for task in self._job_spec.get("tasks", []):
                 if "job_cluster_key" in task:
                     self._preprocess_task_definition(task)
