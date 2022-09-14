@@ -24,7 +24,7 @@ INSTALL_REQUIRES = [
     "pydantic>=1.9.1",
     "Jinja2>=2.11.2",
     # misc - enforced to avoid issues with dependent libraries
-    "cryptography>=3.3.1,<38.0.0",
+    "cryptography>=3.3.1,<39.0.0",
     # required by dbx sync
     "aiohttp>=3.8.1",
     "pathspec>=0.9.0",
