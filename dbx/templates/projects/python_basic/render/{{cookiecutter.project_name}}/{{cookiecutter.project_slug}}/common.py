@@ -1,10 +1,11 @@
+import pathlib
+import sys
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
-from typing import Dict, Any
+from typing import Any, Dict
+
 import yaml
-import pathlib
 from pyspark.sql import SparkSession
-import sys
 
 
 def get_dbutils(
@@ -75,9 +76,9 @@ class Task(ABC):
 
     @staticmethod
     def _get_conf_file():
-        p = ArgumentParser()
-        p.add_argument("--conf-file", required=False, type=str)
-        namespace = p.parse_known_args(sys.argv[1:])[0]
+        parser = ArgumentParser()
+        parser.add_argument("--conf-file", required=False, type=str)
+        namespace = parser.parse_known_args()[0]
         return namespace.conf_file
 
     @staticmethod

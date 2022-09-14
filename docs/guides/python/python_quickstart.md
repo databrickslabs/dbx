@@ -1,6 +1,6 @@
 # :material-language-python: :material-airplane-takeoff: Python quickstart
 
-In this guide we're going to walkthough a typical setup for development purposes.
+In this guide we're going to walkthrough a typical setup for development purposes.
 
 In the end of this guide you'll have a prepared local environment, as well as capabilities to:
 
@@ -61,6 +61,7 @@ Verify that profile is working as expected:
 ```bash
 databricks --profile charming-aurora workspace ls /
 ```
+
 Now the preparation is done, let’s generate a project skeleton using [`dbx init`](../../reference/cli.md):
 
 ```bash
@@ -132,7 +133,7 @@ This is how the project looks like:
 tree -L 3 -I __pycache__ -a -I .git -I .pytest_cache -I .coverage
 ```
 
-``` shell title="project tree"
+```shell title="project tree"
 .
 ├── .dbx #(1)
 │   ├── lock.json #(2)
@@ -397,6 +398,7 @@ upload local files to the Databricks workspace in automated fashion and properly
 
 In this specific case, the file reference points to a YAML file with task configuration (not to be confused with deployment configuration).
 The logic of parsing the arguments is defined in the `charming_aurora.common.Task` object:
+
 ```python title="charming_aurora/common.py"
 # some lines were intentionally omitted
 
@@ -427,9 +429,9 @@ class Task(ABC):
 
     @staticmethod
     def _get_conf_file(): #(2)
-        p = ArgumentParser()
-        p.add_argument("--conf-file", required=False, type=str)
-        namespace = p.parse_known_args(sys.argv[1:])[0]
+        parser = ArgumentParser()
+        parser.add_argument("--conf-file", required=False, type=str)
+        namespace = parser.parse_known_args()[0]
         return namespace.conf_file
 
     @staticmethod
@@ -535,6 +537,7 @@ With this setup finished, we now can deploy the workflow.
 ## :fontawesome-solid-ship: Deploying the workflow
 
 To deploy the workflow as a [Databricks Job](https://docs.databricks.com/workflows/jobs/jobs.html) simply run:
+
 ```bash
 dbx deploy charming-aurora-sample-etl
 ```
@@ -554,9 +557,7 @@ dbx launch charming-aurora-sample-etl
 
 You can add `--trace` flag to keep the current shell busy until the Job Run is finished.
 
-
 ## :material-head-lightbulb: Summary
-
 
 With this guide we've done the following:
 
@@ -570,4 +571,3 @@ With this guide we've done the following:
 Congratulations 🎉! Now you can easily develop new IDE-based projects with `dbx`.
 
 For more advanced topics, such as CI/CD, dependency management and various guidance please check other documentation sections.
-
