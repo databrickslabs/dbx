@@ -69,12 +69,9 @@ All settings of a job cluster for each specific workflow and task inside this wo
 
 !!! tip "Cluster Reuse in assets-based launches"
 
-    Since Cluster Reuse feature is not supported in [assets-based launch](../features/assets.md), you can add a failsafe switch to automatically generate new clusters.
+    Since Cluster Reuse feature is not supported in [assets-based launch](../features/assets.md), you can add a failsafe switch to automatically generate new clusters.<br/>
     In this case a separate job cluster will be created for each task when `dbx launch --from-assets` is used.
-    To enable this feature, please run the following configuration command on the project level:
-    ```bash
-    dbx configure --enable-failsafe-cluster-reuse-with-assets
-    ```
+    Please read more on this functionality [assets-based launch](../features/assets.md#failsafe-behaviour-for-shared-job-clusters).
 
 !!! tip "Using instance pools"
 
