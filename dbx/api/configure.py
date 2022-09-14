@@ -58,6 +58,15 @@ class JsonFileBasedManager:
         _result = self._read_typed().inplace_jinja_support if self._file.exists() else False
         return _result
 
+    def enable_failsafe_cluster_reuse(self):
+        _typed = self._read_typed()
+        _typed.failsafe_cluster_reuse_with_assets = True
+        JsonUtils.write(self._file, _typed.dict())
+
+    def get_failsafe_cluster_reuse(self):
+        _result = self._read_typed().failsafe_cluster_reuse_with_assets if self._file.exists() else False
+        return _result
+
 
 class ProjectConfigurationManager:
     def __init__(self):
@@ -77,3 +86,9 @@ class ProjectConfigurationManager:
 
     def get_jinja_support(self) -> bool:
         return self._manager.get_jinja_support()
+
+    def enable_failsafe_cluster_reuse(self):
+        self._manager.enable_failsafe_cluster_reuse()
+
+    def get_failsafe_cluster_reuse(self) -> bool:
+        return self._manager.get_failsafe_cluster_reuse()

@@ -54,6 +54,38 @@ dbx launch <workflow-name> --from-assets --tags "cake=strudel" # will launch the
     If you see that `dbx` is unable to pick up the git branch name (e.g. for cases when git head is in `DETACHED` state,
     you can also provide the branch name explicitly via `--branch-name`.
 
+## Failsafe behaviour for shared job clusters
+<img src="https://img.shields.io/badge/available%20since-0.7.5-green?style=for-the-badge" alt="Available since 0.7.5"/>
+
+The Cluster Reuse feature is not supported in assets-based launch, but you can add a failsafe switch to automatically generate new clusters.
+
+A typical symptom of this issue is the following error message:
+```bash
+Shared job cluster feature is not supported in runs/submit API.
+```
+
+The failsafe behaviour allows to enable a workaround which will allow such configurations to work with assets-based launch.
+
+!!! warning "Failsafe Cluster Reuse caveats"
+
+    When this feature is enabled, a separate job cluster will be created for each task when `dbx launch --from-assets` is used.
+    Please be aware of the following side-effects of this feature:
+
+    * Increased VM costs since a separate job cluster will be created for each task.
+    * Cluster startup time will be increased since no real reuse will happen.
+
+To enable this feature, run the following command on the project level:
+```bash
+dbx configure --enable-failsafe-cluster-reuse-with-assets
+```
+
+To disable this feature, switch the following statement to `false` in the `.dbx/project.json`:
+```json title=".dbx/project.json" hl_lines="3"
+{
+  "environments": {...},
+  "failsafe_cluster_reuse_with_assets": false
+}
+```
 
 ## :fontawesome-regular-gem: Standard deployment
 
