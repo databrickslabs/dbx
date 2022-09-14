@@ -32,7 +32,7 @@ Logical flow of this approach is pretty simple:
 
 All these steps are executed every time when a `dbx execute` command is launched.
 
-With this approach it's pretty simple to add new dependencies to your wheel and guarantee that the expected version of a library will be used.
+With this approach it's pretty easy to add new dependencies to your wheel and guarantee that the expected version of a library will be used.
 
 ### :material-package-variant-closed-check: Managing dependencies for various environments
 
@@ -107,7 +107,7 @@ Usually library management is done with `setup.py` or [`poetry`](https://github.
     ```
     poetry add pyyaml
     ```
-    And here ishow you could add an extra dependency, e.g. dependencies for tests:
+    And here is how you could add an extra dependency, e.g. dependencies for tests:
     ```
     poetry add pytest -E test
     ```
