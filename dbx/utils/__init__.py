@@ -4,6 +4,9 @@ from typing import Any
 
 import typer
 from rich import print as rich_print
+from typer.rich_utils import _get_rich_console # noqa
+
+CONSOLE = _get_rich_console()
 
 
 def format_dbx_message(message: Any) -> str:
@@ -15,7 +18,7 @@ def format_dbx_message(message: Any) -> str:
 def dbx_echo(message: Any):
     formatted_message = format_dbx_message(message)
     try:
-        rich_print(formatted_message)
+        CONSOLE.print(formatted_message, soft_wrap=True)
     except (UnicodeDecodeError, UnicodeEncodeError, UnicodeError):
         # fallback to the standard print behaviour
         formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]

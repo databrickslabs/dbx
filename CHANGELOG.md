@@ -11,10 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [UNRELEASED] - YYYY-MM-DD
 
 ----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
+> Unreleased changes must be tracked below this line and the line which points to the latest release
+> When releasing, Copy the [UNRELEASED] line and set it to the proper release version and date.
 ----
+
+## Fixed
+
+- 🐛 disable text wrapping for links
+
 
 ## [0.7.5] - 2022-09-15
 
