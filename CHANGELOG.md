@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.7.5] - 2022-09-15
+
 ## Added
 - 📖 documentation on the dependency management
 - ✨ failsafe switch for assets-based shared job clusters
