@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from textwrap import dedent
 from typing import Tuple
@@ -15,6 +16,7 @@ def temp_with_file(tmp_path) -> Tuple[Path, Path]:
     _content_path.mkdir(exist_ok=True)
 
     (_content_path / "file1.dat").write_bytes(b"a")
+    time.sleep(3)  # for CI stability, the FS in the CI run is pretty slow and might fail the order of writes
     last = _content_path / "file2.dat"
     last.write_bytes(b"b")
     (_content_path / "file2.ndat").write_bytes(b"b")

@@ -4,6 +4,9 @@ from typing import Any
 
 import typer
 from rich import print as rich_print
+from rich import reconfigure
+
+reconfigure(soft_wrap=True)
 
 
 def format_dbx_message(message: Any) -> str:
