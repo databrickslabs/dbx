@@ -4,6 +4,7 @@ from unittest.mock import Mock, MagicMock
 
 import mlflow
 import pytest
+import typer
 import yaml
 from databricks_cli.sdk import ApiClient, JobsService
 from requests import HTTPError
@@ -17,7 +18,9 @@ from dbx.commands.deploy import (  # noqa
     _preprocess_jobs,
     _update_job,
     deploy,
+    _preprocess_deployment,
 )
+from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.project import MlflowStorageProperties
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import (
@@ -282,3 +285,10 @@ def test_update_job_v21_with_permissions():
 
     _update_job(_jobs_service, "1", job_definition)
     _client.perform_query.assert_called_with("PUT", "/permissions/jobs/1", data=acl_definition)
+
+
+@pytest.mark.parametrize("inp,exp", [(None, typer.Exit), (["wf1"], Exception)])
+def test_preprocess_empty_info(inp, exp):
+    _info = EnvironmentDeploymentInfo(name="some", payload={"workflows": []})
+    with pytest.raises(exp):
+        _preprocess_deployment(_info, inp)
