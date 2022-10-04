@@ -212,10 +212,12 @@ def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_jobs
     if not deployment.payload.workflows:
         dbx_echo("[yellow bold]🤷 No workflows were provided in the deployment file![/yellow bold]")
         if requested_jobs:
-            raise Exception(f"The following workflows were requested: {requested_jobs}, "
-                            f"but no workflows are defined in the deployment file.")
-        else:
-            raise typer.Exit()
+            raise Exception(
+                f"The following workflows were requested: {requested_jobs}, "
+                f"but no workflows are defined in the deployment file."
+            )
+
+        raise typer.Exit()
 
     deployment.payload.workflows = _preprocess_jobs(deployment.payload.workflows, requested_jobs)
 

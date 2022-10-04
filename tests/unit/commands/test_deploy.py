@@ -17,7 +17,8 @@ from dbx.commands.deploy import (  # noqa
     _log_dbx_file,
     _preprocess_jobs,
     _update_job,
-    deploy, _preprocess_deployment,
+    deploy,
+    _preprocess_deployment,
 )
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.project import MlflowStorageProperties
