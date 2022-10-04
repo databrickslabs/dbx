@@ -74,3 +74,12 @@ def test_run_submit_reuse(temp_project, mocker: MockerFixture):
     launcher = RunSubmitLauncher(job="test", api_client=MagicMock(), deployment_run_id="aaa-bbb", environment="default")
     launcher.launch()
     service_mock.assert_called_once_with(tasks=[{"task_key": "one", "new_cluster": cluster_def}])
+
+
+def test_unsupported_properties(capsys):
+    spec = {"max_retries": 2, "tasks": [{"spark_python_task": {"python_file": "some/file"}}]}
+    client = MagicMock()
+    serv = JobsService(client)
+    RunSubmitLauncher._cleanup_unsupported_properties(serv, spec)
+    res = capsys.readouterr()
+    assert "Property max_retries is not supported in the assets-only launch mode" in res.out

@@ -1,3 +1,4 @@
+import inspect
 import json
 from copy import deepcopy
 from typing import Optional, Union, Tuple, Dict, Any
@@ -68,8 +69,24 @@ class RunSubmitLauncher:
         else:
             final_spec = job_spec
 
-        run_data = service.submit_run(**final_spec)
+        cleaned_spec = self._cleanup_unsupported_properties(service, final_spec)
+        run_data = service.submit_run(**cleaned_spec)
+
         return run_data, None
+
+    @staticmethod
+    def _cleanup_unsupported_properties(service: JobsService, spec: Dict[str, Any]) -> Dict[str, Any]:
+        expected_props = inspect.getfullargspec(service.submit_run).args
+        cleaned_args = {}
+        for _prop in spec:
+            if _prop not in expected_props:
+                dbx_echo(
+                    f"[yellow bold]Property {_prop} is not supported in the assets-only launch mode."
+                    f" It will be ignored during current launch.[/yellow bold]"
+                )
+            else:
+                cleaned_args[_prop] = spec[_prop]
+        return cleaned_args
 
     @staticmethod
     def override_v2d0_parameters(_spec: Dict[str, Any], parameters: RunSubmitV2d0ParamInfo):
