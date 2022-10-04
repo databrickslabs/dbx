@@ -210,7 +210,12 @@ def _define_deployable_jobs(job: str, jobs: str) -> Optional[List[str]]:
 
 def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_jobs: Union[List[str], None]):
     if not deployment.payload.workflows:
-        raise Exception("No jobs provided for deployment")
+        dbx_echo("[yellow bold]🤷 No workflows were provided in the deployment file![/yellow bold]")
+        if requested_jobs:
+            raise Exception(f"The following workflows were requested: {requested_jobs}, "
+                            f"but no workflows are defined in the deployment file.")
+        else:
+            raise typer.Exit()
 
     deployment.payload.workflows = _preprocess_jobs(deployment.payload.workflows, requested_jobs)
 
