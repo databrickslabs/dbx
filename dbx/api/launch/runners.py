@@ -69,14 +69,14 @@ class RunSubmitLauncher:
         else:
             final_spec = job_spec
 
-        cleaned_spec = self._cleanup_unsupported_properties(service, final_spec)
+        cleaned_spec = self._cleanup_unsupported_properties(final_spec)
         run_data = service.submit_run(**cleaned_spec)
 
         return run_data, None
 
     @staticmethod
-    def _cleanup_unsupported_properties(service: JobsService, spec: Dict[str, Any]) -> Dict[str, Any]:
-        expected_props = inspect.getfullargspec(service.submit_run).args
+    def _cleanup_unsupported_properties(spec: Dict[str, Any]) -> Dict[str, Any]:
+        expected_props = inspect.getfullargspec(JobsService.submit_run).args
         cleaned_args = {}
         for _prop in spec:
             if _prop not in expected_props:
