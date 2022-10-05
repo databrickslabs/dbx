@@ -49,10 +49,10 @@ DEV_REQUIREMENTS = [
     "MarkupSafe>=2.1.1,<3.0.0",
     # testing framework
     "pytest>=7.1.2,<8.0.0",
-    "pytest-mock>=3.8.2,<3.9.0",
+    "pytest-mock>=3.8.2,<3.10.0",
     "pytest-xdist[psutil]>=2.5.0,<3.0.0",
     "pytest-asyncio>=0.18.3,<1.0.0",
-    "pytest-cov>=3.0.0,<4.0.0",
+    "pytest-cov>=3.0.0,<5.0.0",
     "pytest-timeout>=2.1.0,<3.0.0",
     "pytest-clarity>=1.0.1,<2.0.0",
     "poetry>=1.2.0",
