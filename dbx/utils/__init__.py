@@ -9,7 +9,9 @@ from rich import reconfigure
 reconfigure(soft_wrap=True)
 
 
-def format_dbx_message(message: Any) -> str:
+def format_dbx_message(message: Any, escape_markup: bool = True) -> str:
+    if escape_markup and isinstance(message, str):
+        message = message.replace("[", r"\[")
     formatted_time = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     formatted_message = f"[red]\[dbx][/red][{formatted_time}] {message}"  # noqa
     return formatted_message
