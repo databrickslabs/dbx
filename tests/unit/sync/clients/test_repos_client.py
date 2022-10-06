@@ -31,7 +31,7 @@ def test_init(mock_config):
 
 def test_delete(client: ReposClient):
     session = MagicMock()
-    resp = MagicMock()
+    resp = AsyncMock()
     setattr(type(resp), "status", PropertyMock(return_value=200))
     session.post.return_value = create_async_with_result(resp)
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
@@ -48,7 +48,7 @@ def test_delete_secure(client: ReposClient):
     mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=False)
     client = ReposClient(user="foo@somewhere.com", repo_name="my-repo", config=mock_config)
     session = MagicMock()
-    resp = MagicMock()
+    resp = AsyncMock()
     setattr(type(resp), "status", PropertyMock(return_value=200))
     session.post.return_value = create_async_with_result(resp)
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
@@ -63,7 +63,7 @@ def test_delete_insecure(client: ReposClient):
     mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=True)
     client = ReposClient(user="foo@somewhere.com", repo_name="my-repo", config=mock_config)
     session = MagicMock()
-    resp = MagicMock()
+    resp = AsyncMock()
     setattr(type(resp), "status", PropertyMock(return_value=200))
     session.post.return_value = create_async_with_result(resp)
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
@@ -91,7 +91,7 @@ def test_delete_no_path(client: ReposClient):
 
 def test_delete_recursive(client: ReposClient):
     session = MagicMock()
-    resp = MagicMock()
+    resp = AsyncMock()
     setattr(type(resp), "status", PropertyMock(return_value=200))
     session.post.return_value = create_async_with_result(resp)
     asyncio.run(client.delete(sub_path="foo/bar", session=session, recursive=True))
@@ -107,7 +107,7 @@ def test_delete_rate_limited(client: ReposClient):
     rate_limit_resp = MagicMock()
     setattr(type(rate_limit_resp), "status", PropertyMock(return_value=429))
 
-    success_resp = MagicMock()
+    success_resp = AsyncMock()
     setattr(type(success_resp), "status", PropertyMock(return_value=200))
     setattr(type(rate_limit_resp), "headers", PropertyMock(return_value={"Retry-After": None}))
 
@@ -127,7 +127,7 @@ def test_delete_rate_limited_retry_after(client: ReposClient):
     setattr(type(rate_limit_resp), "status", PropertyMock(return_value=429))
     setattr(type(rate_limit_resp), "headers", PropertyMock(return_value={"Retry-After": 1}))
 
-    success_resp = MagicMock()
+    success_resp = AsyncMock()
     setattr(type(success_resp), "status", PropertyMock(return_value=200))
 
     session.post.side_effect = [create_async_with_result(rate_limit_resp), create_async_with_result(success_resp)]
@@ -155,7 +155,7 @@ def test_delete_unauthorized(client: ReposClient):
 
 def test_mkdirs(client: ReposClient):
     session = MagicMock()
-    resp = MagicMock()
+    resp = AsyncMock()
     setattr(type(resp), "status", PropertyMock(return_value=200))
     session.post.return_value = create_async_with_result(resp)
     asyncio.run(client.mkdirs(sub_path="foo/bar", session=session))
@@ -188,7 +188,7 @@ def test_mkdirs_rate_limited(client: ReposClient):
     rate_limit_resp = MagicMock()
     setattr(type(rate_limit_resp), "status", PropertyMock(return_value=429))
 
-    success_resp = MagicMock()
+    success_resp = AsyncMock()
     setattr(type(success_resp), "status", PropertyMock(return_value=200))
     setattr(type(rate_limit_resp), "headers", PropertyMock(return_value={"Retry-After": None}))
 
@@ -208,7 +208,7 @@ def test_mkdirs_rate_limited_retry_after(client: ReposClient):
     setattr(type(rate_limit_resp), "status", PropertyMock(return_value=429))
     setattr(type(rate_limit_resp), "headers", PropertyMock(return_value={"Retry-After": 1}))
 
-    success_resp = MagicMock()
+    success_resp = AsyncMock()
     setattr(type(success_resp), "status", PropertyMock(return_value=200))
 
     session.post.side_effect = [create_async_with_result(rate_limit_resp), create_async_with_result(success_resp)]
