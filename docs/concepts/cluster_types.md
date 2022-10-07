@@ -93,6 +93,6 @@ To sum up the cases and potential choices for :material-lightning-bolt-circle: a
     * Use **all-purpose cluster** for development loop. Synchronize local files to Repo with Notebooks via [`dbx sync repo`](../reference/cli.md#dbx-sync-repo) as [described here](../guides/python/devloop/mixed.md).
     * Use **job clusters** and `dbx deploy` together with `dbx launch` for automated workflows as [described here](../guides/python/devops/mixed.md).
 * Developing a :material-language-java: JVM-based project in IDE?
-    * Use local tests and **job clusters** with [:fontawesome-solid-microchip: instance pools](https://docs.databricks.com/clusters/instance-pools/index.html) for development loop as [described here](../guides/jvm/jvm_devloop.md)
+    * Use local tests and **job clusters** with [:fontawesome-solid-microchip: instance pools](https://docs.databricks.com/clusters/instance-pools/index.html) for development loop as [described here](../guides/jvm/jvm_devloop.md).
     * Use **job clusters** and `dbx deploy` together with `dbx launch` for automated workflows as [described here](../guides/jvm/jvm_devops.md).
 
