@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+### Added
+- 📖 documentation on the differences between `dbx execute` and `dbx launch`
+
 ### Fixed
 
 - 🐛 Message with rich markup [] is properly displayed now
