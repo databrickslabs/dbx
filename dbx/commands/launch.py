@@ -6,7 +6,8 @@ import typer
 from databricks_cli.jobs.api import JobsService
 
 from dbx.api.launch.functions import find_deployment_run
-from dbx.api.launch.runners import RunSubmitLauncher, RunNowLauncher
+from dbx.api.launch.runners.asset_based import AssetBasedLauncher
+from dbx.api.launch.runners.standard import StandardLauncher
 from dbx.api.launch.tracer import RunTracer
 from dbx.api.output_provider import OutputProvider
 from dbx.models.cli.options import ExistingRunsOption, IncludeOutputOption
@@ -28,9 +29,9 @@ from dbx.utils.common import (
 
 
 def launch(
-    workflow: str = WORKFLOW_ARGUMENT,
-    environment: str = ENVIRONMENT_OPTION,
-    job: str = typer.Option(
+    workflow_name: str = WORKFLOW_ARGUMENT,
+    environment_name: str = ENVIRONMENT_OPTION,
+    job_name: str = typer.Option(
         None,
         "--job",
         help="This option is deprecated, please use workflow name as argument instead.",
@@ -100,42 +101,45 @@ def launch(
     parameters: Optional[str] = LAUNCH_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
-    _job = workflow if workflow else job
+    workflow_name = workflow_name if workflow_name else job_name
 
-    if not _job:
+    if not workflow_name:
         raise Exception("Please provide workflow name as an argument")
 
-    dbx_echo(f"Launching job {_job} on environment {environment}")
+    dbx_echo(f"Launching workflow {workflow_name} on environment {environment_name}")
 
-    api_client = prepare_environment(environment)
+    api_client = prepare_environment(environment_name)
     additional_tags = parse_multiple(tags)
 
     if not branch_name:
         branch_name = get_current_branch_name()
 
-    filter_string = generate_filter_string(environment, branch_name)
+    filter_string = generate_filter_string(environment_name, branch_name)
     _from_assets = from_assets if from_assets else as_run_submit
 
-    last_deployment_run = find_deployment_run(filter_string, additional_tags, _from_assets, environment)
+    last_deployment_run = find_deployment_run(filter_string, additional_tags, _from_assets, environment_name)
 
     with mlflow.start_run(run_id=last_deployment_run.info.run_id):
 
         with mlflow.start_run(nested=True):
 
             if not _from_assets:
-                run_launcher = RunNowLauncher(
-                    job=_job, api_client=api_client, existing_runs=existing_runs, parameters=parameters
+                launcher = StandardLauncher(
+                    workflow_name=workflow_name,
+                    api_client=api_client,
+                    existing_runs=existing_runs,
+                    parameters=parameters,
                 )
             else:
-                run_launcher = RunSubmitLauncher(
-                    job=_job,
+                launcher = AssetBasedLauncher(
+                    workflow_name=workflow_name,
                     api_client=api_client,
                     deployment_run_id=last_deployment_run.info.run_id,
-                    environment=environment,
+                    environment_name=environment_name,
                     parameters=parameters,
                 )
 
-            run_data, job_id = run_launcher.launch()
+            run_data, job_id = launcher.launch()
 
             jobs_service = JobsService(api_client)
             run_info = jobs_service.get_run(run_data["run_id"])
@@ -165,7 +169,7 @@ def launch(
                 "run_id": run_data.get("run_id"),
                 "dbx_action_type": "launch",
                 "dbx_status": dbx_status,
-                "dbx_environment": environment,
+                "dbx_environment": environment_name,
             }
 
             if branch_name:

@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel, validator
 
-from dbx.models.validators import validate_dbt_commands
+from dbx.models.validators import check_dbt_commands
 from dbx.models.workflow.common.parameters import (
     ParamPair,
     StringArray,
@@ -15,12 +15,12 @@ from dbx.models.workflow.common.parameters import (
 from dbx.models.workflow.v2dot1._parameters import PayloadElement
 
 
-class AssetBasedParametersPayload(BaseModel):
+class AssetBasedRunPayload(BaseModel):
     elements: Optional[List[PayloadElement]]
 
     @staticmethod
-    def from_string(raw: str) -> AssetBasedParametersPayload:
-        return AssetBasedParametersPayload(elements=json.loads(raw))
+    def from_string(raw: str) -> AssetBasedRunPayload:
+        return AssetBasedRunPayload(elements=json.loads(raw))
 
 
 class StandardRunPayload(StandardBasePayload):
@@ -29,4 +29,4 @@ class StandardRunPayload(StandardBasePayload):
     sql_params: Optional[ParamPair]
     dbt_commands: Optional[StringArray]
 
-    _validate_commands = validator("commands", allow_reuse=True)(validate_dbt_commands)
+    _verify_dbt_commands = validator("dbt_commands", allow_reuse=True)(check_dbt_commands)

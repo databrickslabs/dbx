@@ -69,7 +69,7 @@ def execute_parameters_callback(_, value: str) -> Optional[str]:
             dbx_echo(":boom: Provided parameters payload cannot be parsed since it's not in json format")
             raise e
 
-        ExecuteParametersPayload(**_parsed)
+        ExecuteParametersPayload.from_json(value)
 
         return value
 

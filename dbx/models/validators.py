@@ -17,7 +17,7 @@ def at_least_one_by_suffix(suffix: str, values: Dict[str, Any]):
 
 def only_one_by_suffix(suffix: str, values: Dict[str, Any]):
     _matching_fields = [f for f in values if f.endswith(suffix)]
-    if len(_matching_fields) == 1:
+    if len(_matching_fields) != 1:
         raise ValidationError(
             f"""
                 Only one field with suffix {suffix} should be provided.
@@ -70,7 +70,9 @@ def named_parameters_check(values: List[str]) -> List[str]:
     return values
 
 
-def validate_dbt_commands(value):
-    for v in value:
-        if not v.startswith("dbt"):
-            raise ValueError("All commands in the dbt_task must start with `dbt`, e.g. `dbt command1`")
+def check_dbt_commands(commands):
+    if commands:
+        for cmd in commands:
+            if not cmd.startswith("dbt"):
+                raise ValueError("All commands in the dbt_task must start with `dbt`, e.g. `dbt command1`")
+    return commands

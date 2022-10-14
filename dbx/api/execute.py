@@ -5,7 +5,8 @@ import mlflow
 from rich.console import Console
 
 from dbx.api.context import RichExecutionContextClient
-from dbx.models.workflow.common.task import TaskType
+from dbx.types import ExecuteTask
+from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.v2dot1.task import PythonWheelTask
 from dbx.utils import dbx_echo
 from dbx.utils.adjuster import adjust_path, walk_content
@@ -20,7 +21,7 @@ class ExecutionController:
         no_package: bool,
         upload_via_context: bool,
         requirements_file: Optional[Path],
-        task: Task,
+        task: ExecuteTask,
         pip_install_extras: Optional[str],
     ):
         self._client = client
@@ -58,7 +59,8 @@ class ExecutionController:
 
         if self._task.task_type == TaskType.spark_python_task:
             self.preprocess_task_parameters(self._task.spark_python_task.parameters)
-            self.execute_entrypoint_file(self._task.spark_python_task.python_file)
+            self.execute_entrypoint_file(self._task.spark_python_task.execute_file)
+
         elif self._task.task_type == TaskType.python_wheel_task:
             if self._task.python_wheel_task.named_parameters:
                 self.preprocess_task_parameters(self._task.python_wheel_task.named_parameters)

@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from dbx.models.workflow._flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
@@ -10,8 +10,8 @@ class JobCluster(FlexibleModel):
     new_cluster: NewCluster
 
 
-class JobClusters(FlexibleModel):
-    job_clusters: List[JobCluster] = []
+class JobClustersMixin(FlexibleModel):
+    job_clusters: Optional[List[JobCluster]] = []
 
     @root_validator(pre=True)
     def validator(cls, values: Dict[str, Any]):  # noqa
@@ -29,7 +29,7 @@ class JobClusters(FlexibleModel):
                     raise ValueError(f"Duplicated cluster key {key} found in the job_clusters section")
         return values
 
-    def get_cluster_definition(self, key: str) -> JobCluster:
+    def get_job_cluster_definition(self, key: str) -> JobCluster:
         _found = list(filter(lambda jc: jc.job_cluster_key == key, self.job_clusters))
         if not _found:
             raise ValueError(f"Cluster key {key} is not provided in the job_clusters section: {self.job_clusters}")

@@ -1,10 +1,10 @@
 from enum import Enum
 from typing import Optional, List
 
-from pydantic import root_validator, validator
+from pydantic import root_validator, validator, BaseModel
 from pydantic.fields import Field
 
-from dbx.models.validators import validate_dbt_commands, at_least_one_of, mutually_exclusive, named_parameters_check
+from dbx.models.validators import check_dbt_commands, at_least_one_of, mutually_exclusive, named_parameters_check
 from dbx.models.workflow._flexible import FlexibleModel
 from dbx.models.workflow.common.task import (
     BaseTaskMixin,
@@ -59,20 +59,10 @@ class DbtTask(FlexibleModel):
     warehouse_id: str
     profiles_directory: Optional[str]
 
-    _validate_commands = validator("commands", allow_reuse=True)(validate_dbt_commands)
+    _verify_dbt_commands = validator("commands", allow_reuse=True)(check_dbt_commands)
 
 
-class TaskMixin(BaseTaskMixin):
-    notebook_task: Optional[NotebookTask]
-    spark_jar_task: Optional[SparkJarTask]
-    spark_python_task: Optional[SparkPythonTask]
-    spark_submit_task: Optional[SparkSubmitTask]
-    pipeline_task: Optional[PipelineTask]
-    sql_task: Optional[SqlTask]
-    dbt_task: Optional[DbtTask]
-
-
-class PythonWheelTask(FlexibleModel):
+class PythonWheelTask(BaseModel):
     package_name: str
     entry_point: str
     parameters: Optional[List[str]]
@@ -83,3 +73,14 @@ class PythonWheelTask(FlexibleModel):
     )
 
     _named_check = validator("named_parameters", allow_reuse=True)(named_parameters_check)
+
+
+class TaskMixin(BaseTaskMixin):
+    notebook_task: Optional[NotebookTask]
+    spark_jar_task: Optional[SparkJarTask]
+    spark_python_task: Optional[SparkPythonTask]
+    spark_submit_task: Optional[SparkSubmitTask]
+    python_wheel_task: Optional[PythonWheelTask]
+    pipeline_task: Optional[PipelineTask]
+    sql_task: Optional[SqlTask]
+    dbt_task: Optional[DbtTask]

@@ -1,10 +1,15 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 
+from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask
+from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.common.workflow import WorkflowBase
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
-from dbx.models.workflow.v2dot0.task import TaskMixin
+from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload, StandardRunPayload
+from dbx.models.workflow.v2dot0.task import TaskMixin, NotebookTask
 from pydantic import root_validator, validator
+
+ALLOWED_TASK_TYPES = Union[SparkPythonTask, NotebookTask, SparkJarTask, SparkSubmitTask]
 
 
 class Workflow(WorkflowBase, TaskMixin):
@@ -23,10 +28,25 @@ class Workflow(WorkflowBase, TaskMixin):
         cls.field_deprecated("existing_cluster_id", "existing_cluster_name", "cluster", value)
         return value
 
-    @root_validator(pre=True)
+    @root_validator()
     def mutually_exclusive(cls, values):  # noqa
-        if not cls.task_type.pipeline_task:
+        if not values.get("pipeline_task"):
             if values.get("new_cluster") and (values.get("existing_cluster_id") or values.get("existing_cluster_name")):
                 raise ValueError(
                     'Fields ("existing_cluster_id" or "existing_cluster_name") and "new_cluster" are mutually exclusive'
                 )
+        return values
+
+    def get_task(self, name: str):
+        raise Exception("Provided workflow format is V2.0, and it doesn't support task format")
+
+    def override_standard_launch_parameters(self, payload: StandardRunPayload):
+        pointer = self.__getattribute__(self.task_type)
+        pointer.__dict__.update(payload.dict(exclude_none=True))
+
+    def override_asset_based_launch_parameters(self, payload: AssetBasedRunPayload):
+        if self.task_type == TaskType.notebook_task:
+            self.notebook_task.base_parameters = payload.base_parameters
+        else:
+            pointer = self.__getattribute__(self.task_type)
+            pointer.__dict__.update(payload.dict(exclude_none=True))

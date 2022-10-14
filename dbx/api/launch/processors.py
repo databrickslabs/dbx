@@ -1,28 +1,17 @@
-from copy import deepcopy
-from typing import Dict, Any
-
 from rich.console import Console
 
-from dbx.models.workflow.v2dot1.job_cluster import JobClusters
+from dbx.models.workflow.v2dot1.workflow import Workflow
 from dbx.utils import dbx_echo
 
 
 class ClusterReusePreprocessor:
-    def __init__(self, job_spec: Dict[str, Any]):
-        self._job_spec = deepcopy(job_spec)
-        self._job_clusters = JobClusters(**job_spec)
-        # delete the job clusters section from the spec
-        self._job_spec.pop("job_clusters")
-
-    def _preprocess_task_definition(self, task: Dict[str, Any]):
-        task_cluster_key = task.pop("job_cluster_key")
-        definition = self._job_clusters.get_cluster_definition(task_cluster_key).new_cluster
-        task.update({"new_cluster": definition})
-
-    def process(self) -> Dict[str, Any]:
+    @classmethod
+    def process(cls, workflow: Workflow):
         with Console().status("🔍 Iterating over task definitions to find shared job cluster usages", spinner="dots"):
-            for task in self._job_spec.get("tasks", []):
-                if "job_cluster_key" in task:
-                    self._preprocess_task_definition(task)
+            for task in workflow.tasks:
+                if task.job_cluster_key is not None:
+                    _definition = workflow.get_job_cluster_definition(task.job_cluster_key)
+                    task.job_cluster_key = None
+                    task.new_cluster = _definition.new_cluster
+        workflow.job_clusters = []
         dbx_echo("✅ All shared job cluster usages were replaced with their relevant cluster definitions")
-        return self._job_spec

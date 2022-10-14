@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 from copy import deepcopy
 from enum import Enum
 from typing import Optional, Dict, Any, List, Union
@@ -13,10 +14,31 @@ from dbx.utils import dbx_echo
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 
+AnyWorkflow = Union[V2dot0Workflow, V2dot1Workflow]
+WorkflowList = List[AnyWorkflow]
 
-class Deployment(BaseModel):
-    workflows: Optional[List[Union[V2dot0Workflow, V2dot1Workflow]]]
 
+class WorkflowListMixin(BaseModel):
+    workflows: Optional[WorkflowList] = []
+
+    @property
+    def workflow_names(self) -> List[str]:
+        return [w.name for w in self.workflows]
+
+    @validator("workflows")
+    def _validate_unique(cls, workflow_names: Optional[WorkflowList]):  # noqa
+        _duplicates = [name for name, count in collections.Counter(workflow_names).items() if count > 1]
+        if _duplicates:
+            raise ValueError(f"Duplicated workflow names: {_duplicates}")
+
+    def get_workflow(self, name) -> AnyWorkflow:
+        _found = list(filter(lambda w: w.name == name, self.workflows))
+        if not _found:
+            raise Exception(f"Workflow {name} not found. Available workflows are {self.workflow_names}")
+        return _found[0]
+
+
+class Deployment(WorkflowListMixin):
     @root_validator(pre=True)
     def check_inputs(cls, values: Dict[str, Any]):  # noqa
         if "jobs" in values:
@@ -26,6 +48,11 @@ class Deployment(BaseModel):
             )
         _w = values.get("jobs") if "jobs" in values else values.get("workflows")
         return {"workflows": _w}
+
+    @staticmethod
+    def from_spec(raw_spec: Dict[str, Any]) -> Deployment:
+        _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
+        return Deployment(**{"workflows": _w})
 
 
 class PythonBuild(str, Enum):
@@ -52,6 +79,16 @@ class EnvironmentDeploymentInfo(BaseModel):
     def to_spec(self) -> Dict[str, Any]:
         _spec = {self.name: {"jobs": self.payload.workflows}}
         return _spec
+
+    @staticmethod
+    def from_spec(environment_name: str, raw_spec: Dict[str, Any]) -> EnvironmentDeploymentInfo:
+        payload = raw_spec.get(environment_name)
+        if not payload:
+            raise ValueError(f"Deployment result for {environment_name} doesn't contain any workflow definitions")
+
+        _spec = {"name": environment_name, "payload": Deployment.from_spec(payload)}
+
+        return EnvironmentDeploymentInfo(**_spec)
 
     def get_project_info(self) -> EnvironmentInfo:
         """

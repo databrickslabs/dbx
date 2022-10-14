@@ -132,6 +132,26 @@ environments:
     Here are some examples for [Apache Airflow](https://airflow.apache.org/docs/apache-airflow-providers-databricks/stable/connections/databricks.html) and [Prefect](https://docs-v1.prefect.io/api/0.15.13/tasks/databricks.html).
 
 
+### :octicons-zap-24: Enabling Photon
+
+To define job clusters with [Photon](https://www.databricks.com/product/photon) support, add the following to the configuration:
+
+```yaml title="conf/deployment.yaml" hl_lines="9"
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "your-spark-version"
+    node_type_id: "your-node-type-id"
+    spark_conf:
+      spark.databricks.delta.preview.enabled: 'true'
+    instance_pool_name: <enter pool name>
+    driver_instance_pool_name: <enter pool name>
+    runtime_engine: PHOTON
+    init_scripts:
+      - dbfs:
+        destination: dbfs:/<enter your path>
+
+```
+
 ### :material-code-array: Configuring complex deployments
 
 While configuring complex deployments, it's recommended to use YAML anchor mechanics to avoid repeating code blocks.

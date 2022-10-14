@@ -1,12 +1,16 @@
 from abc import ABC
-from enum import Enum
+from pathlib import Path
 from typing import Optional
 
-from dbx.models.validators import at_least_one_by_suffix, only_one_by_suffix
-from dbx.models.workflow.common.parameters import ParamPair, StringArray
+from pydantic import validator, root_validator, BaseModel
+
+from dbx.constants import TASKS_SUPPORTED_IN_EXECUTE
+from dbx.models.cli.execute import ExecuteParametersPayload
+from dbx.models.validators import at_least_one_by_suffix, only_one_by_suffix, at_least_one_of
 from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.parameters import ParamPair, StringArray
+from dbx.models.workflow.common.task_type import TaskType
 from dbx.utils import dbx_echo
-from pydantic import validator, root_validator
 
 
 class BaseNotebookTask(FlexibleModel, ABC):
@@ -17,6 +21,7 @@ class BaseNotebookTask(FlexibleModel, ABC):
 class SparkJarTask(FlexibleModel):
     main_class_name: str
     parameters: Optional[StringArray]
+    jar_params: Optional[StringArray]
     jar_uri: Optional[str]
 
     @validator("jar_uri")
@@ -28,47 +33,39 @@ class SparkJarTask(FlexibleModel):
         return value
 
 
-class SparkPythonTask(FlexibleModel):
+class SparkPythonTask(BaseModel):
     python_file: str
     parameters: Optional[StringArray]
+    execute_file: Optional[Path]
+
+    @validator("execute_file")
+    def _strip_value(cls, v: str) -> Path:  # noqa
+
+        if not v.startswith("file://"):
+            raise ValueError("File for execute mode should be located locally and referenced via file:// prefix.")
+
+        _path = Path(v).relative_to("file://")
+
+        if not _path.exists():
+            raise ValueError(f"Provided file doesn't exist {v}")
+
+        return _path
 
 
 class SparkSubmitTask(FlexibleModel):
-    parameters: StringArray
+    parameters: Optional[StringArray]
+    spark_submit_params: Optional[StringArray]
+
+    _validate_provided = root_validator(allow_reuse=True)(
+        lambda _, values: at_least_one_of(["parameters", "spark_submit_params"], values)
+    )
 
 
 class BasePipelineTask(FlexibleModel, ABC):
     pipeline_id: str
 
 
-class TaskType(Enum):
-    # task types defined both in v2.0 and v2.1
-    notebook_task = "notebook_task"
-    spark_jar_task = "spark_jar_task"
-    spark_python_task = "spark_python_task"
-    spark_submit_task = "spark_submit_task"
-    pipeline_task = "pipeline_task"
-
-    # specific to v2.1
-    python_wheel_task = "python_wheel_task"
-    sql_task = "sql_task"
-    dbt_task = "dbt_task"
-
-    # undefined handler for cases when a new task type is added
-    undefined_task = "undefined_task"
-
-
-class ApiVersion(str, Enum):
-    v2dot0 = "v2dot0"
-    v2dot1 = "v2dot1"
-
-    undefined = "undefined"
-
-
-class BaseTaskMixin(FlexibleModel, ABC):
-    task_type: Optional[TaskType]
-    api_version: Optional[ApiVersion]
-
+class BaseTaskMixin(FlexibleModel):
     _at_least_one_check = root_validator(pre=True, allow_reuse=True)(
         lambda cls, values: at_least_one_by_suffix("_task", values)
     )
@@ -76,22 +73,26 @@ class BaseTaskMixin(FlexibleModel, ABC):
         lambda cls, values: only_one_by_suffix("_task", values)
     )
 
-    @validator("task_type", always=True)
-    def task_type_validator(cls, v, values) -> TaskType:  # noqa
-
+    @property
+    def task_type(self) -> TaskType:
         for _type in TaskType:
-            if values.get(_type.name):
+            if self.dict().get(_type):
                 return TaskType(_type)
-
         return TaskType.undefined_task
 
-    @validator("api_version", always=True)
-    def get_api_version(cls, _) -> ApiVersion:  # noqa
-        module_name = cls.__class__.__module__
+    def check_if_supported_in_execute(self):
+        if self.task_type not in TASKS_SUPPORTED_IN_EXECUTE:
+            raise Exception(
+                f"Provided task type {self.task_type} is not supported in execute mode. "
+                f"Supported types are: {TASKS_SUPPORTED_IN_EXECUTE}"
+            )
 
-        if ApiVersion.v2dot0 in module_name:
-            return ApiVersion.v2dot0
-        elif ApiVersion.v2dot1 in module_name:
-            return ApiVersion.v2dot1
-        else:
-            return ApiVersion.undefined
+    def override_execute_parameters(self, payload: ExecuteParametersPayload):
+        if isinstance(payload, ExecuteParametersPayload):
+            if payload.named_parameters and self.task_type == TaskType.spark_python_task:
+                raise ValueError(
+                    "`named_parameters` are not supported by spark_python_task. Please use `parameters` instead."
+                )
+
+            pointer = self.__getattribute__(self.task_type)
+            pointer.__dict__.update(payload.dict(exclude_none=True))

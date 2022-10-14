@@ -3,14 +3,12 @@ from typing import Optional
 
 import typer
 
+from dbx.api.build import prepare_build
 from dbx.api.cluster import ClusterController
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
-from dbx.models.deployment import EnvironmentDeploymentInfo
-from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
-from dbx.models.task import Task
-from dbx.models.workflow.common.task import TaskType
+from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -22,13 +20,13 @@ from dbx.options import (
     WORKFLOW_ARGUMENT,
     EXECUTE_PARAMETERS_OPTION,
 )
+from dbx.types import ExecuteTask
 from dbx.utils import dbx_echo
 from dbx.utils.common import prepare_environment
-from dbx.api.build import prepare_build
 
 
 def execute(
-    workflow: str = WORKFLOW_ARGUMENT,
+    workflow_name: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
     cluster_id: Optional[str] = typer.Option(
         None, "--cluster-id", help="Cluster ID. Cannot be provided together with `--cluster-name`"
@@ -36,10 +34,10 @@ def execute(
     cluster_name: Optional[str] = typer.Option(
         None, "--cluster-name", help="Cluster name. Cannot be provided together with `--cluster-id`"
     ),
-    job: str = typer.Option(
+    job_name: str = typer.Option(
         None, "--job", help="This option is deprecated. Please use `workflow-name` as argument instead"
     ),
-    task: Optional[str] = typer.Option(
+    task_name: Optional[str] = typer.Option(
         None,
         "--task",
         help="""Task name (`task_key` field) inside the workflow to be executed.
@@ -72,20 +70,20 @@ def execute(
     controller = ClusterController(api_client)
     cluster_id = controller.preprocess_cluster_args(cluster_name, cluster_id)
 
-    _workflow_name = workflow if workflow else job
+    workflow_name = workflow_name if workflow_name else job_name
 
-    if not _workflow_name:
+    if not workflow_name:
         raise Exception("Please provide workflow name as an argument")
 
     dbx_echo(
-        f"Executing workflow: {_workflow_name} in environment {environment} "
+        f"Executing workflow: {workflow_name} in environment {environment} "
         f"on cluster {cluster_name} (id: {cluster_id})"
     )
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
     config = config_reader.get_config()
-    deployment = config.get_environment(environment)
+    environment_config = config.get_environment(environment, raise_if_not_found=True)
 
     if no_rebuild:
         dbx_echo(
@@ -97,42 +95,14 @@ def execute(
 
     prepare_build(config.build)
 
-    _verify_deployment(deployment, deployment_file)
+    workflow = environment_config.payload.get_workflow(workflow_name)
 
-    found_jobs = [j for j in deployment.payload.workflows if j["name"] == _workflow_name]
+    task: ExecuteTask = workflow.get_task(task_name) if task_name else workflow
 
-    if not found_jobs:
-        raise RuntimeError(f"Job {_workflow_name} was not found in environment jobs, please check the deployment file")
-
-    job_payload = found_jobs[0]
-
-    if task:
-        _tasks = job_payload.get("tasks", [])
-        found_tasks = [t for t in _tasks if t.get("task_key") == task]
-
-        if not found_tasks:
-            raise Exception(f"Task {task} not found in the definition of job {_workflow_name}")
-
-        if len(found_tasks) > 1:
-            raise Exception(
-                f"Task keys are not unique, more then one task found for job {_workflow_name} with task name {task}"
-            )
-
-        _task = found_tasks[0]
-
-        _payload = _task
-    else:
-        if "tasks" in job_payload:
-            raise Exception(
-                "You're trying to execute a multitask job without passing the task name. "
-                "Please provide the task name via --task parameter"
-            )
-        _payload = job_payload
-
-    task = Task(**_payload)
+    task.check_if_supported_in_execute()
 
     if parameters:
-        override_parameters(parameters, task)
+        task.override_execute_parameters(ExecuteParametersPayload.from_json(parameters))
 
     dbx_echo("Preparing interactive cluster to accept jobs")
     controller.awake_cluster(cluster_id)
@@ -148,37 +118,3 @@ def execute(
         pip_install_extras=pip_install_extras,
     )
     controller_instance.run()
-
-
-def _verify_deployment(deployment: EnvironmentDeploymentInfo, deployment_file):
-    if not deployment:
-        raise NameError(
-            f"Environment {deployment.name} is not provided in deployment file {deployment_file}"
-            + " please add this environment first"
-        )
-    env_jobs = deployment.payload.workflows
-    if not env_jobs:
-        raise RuntimeError(f"No jobs section found in environment {deployment.name}, please check the deployment file")
-
-
-def override_parameters(raw_params_info: str, task: Task):
-    param_info = ExecuteWorkloadParamInfo.from_string(raw_params_info)
-    if param_info.named_parameters is not None and task.task_type != TaskType.python_wheel_task:
-        raise Exception(f"named parameters are only supported if task type is {TaskType.python_wheel_task.value}")
-
-    if param_info.named_parameters:
-        dbx_echo(":twisted_rightwards_arrows:Overriding named_parameters section for the task")
-        task.python_wheel_task.named_parameters = param_info.named_parameters
-        task.python_wheel_task.parameters = []
-        dbx_echo(":white_check_mark:Overriding named_parameters section for the task")
-
-    if param_info.parameters:
-        dbx_echo(":twisted_rightwards_arrows:Overriding parameters section for the task")
-
-        if task.task_type == TaskType.python_wheel_task:
-            task.python_wheel_task.parameters = param_info.parameters
-            task.python_wheel_task.named_parameters = []
-        elif task.task_type == TaskType.spark_python_task:
-            task.spark_python_task.parameters = param_info.parameters
-
-        dbx_echo(":white_check_mark:Overriding parameters section for the task")

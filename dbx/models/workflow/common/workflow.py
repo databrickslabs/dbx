@@ -1,14 +1,9 @@
-from abc import ABC
-from typing import Optional, List
+from abc import ABC, abstractmethod
+from typing import Optional
 
 from dbx.models.workflow._flexible import FlexibleModel
-
-
-class JobEmailNotifications(FlexibleModel):
-    on_start: Optional[List[str]]
-    on_success: Optional[List[str]]
-    on_failure: Optional[List[str]]
-    no_alert_for_skipped_runs: Optional[bool]
+from dbx.models.workflow.common.api_version import ApiVersionMixin
+from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications
 
 
 class CronSchedule(FlexibleModel):
@@ -17,10 +12,22 @@ class CronSchedule(FlexibleModel):
     pause_status: str
 
 
-class WorkflowBase(FlexibleModel, ABC):
+class WorkflowBase(FlexibleModel, ApiVersionMixin, ABC):
     # common fields between 2.0 and 2.1
     name: str
     email_notifications: Optional[JobEmailNotifications]
     timeout_seconds: Optional[int]
     schedule: Optional[CronSchedule]
     max_concurrent_runs: Optional[int]
+
+    @abstractmethod
+    def get_task(self, name: str):
+        """Abstract method to be implemented"""
+
+    @abstractmethod
+    def override_asset_based_launch_parameters(self, payload):
+        """Abstract method to be implemented"""
+
+    @abstractmethod
+    def override_standard_launch_parameters(self, payload):
+        """Abstract method to be implemented"""
