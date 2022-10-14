@@ -1,14 +1,16 @@
 from typing import Dict, Any, List
 
-from pydantic import BaseModel, root_validator
+from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.new_cluster import NewCluster
+from pydantic import root_validator
 
 
-class JobCluster(BaseModel):
+class JobCluster(FlexibleModel):
     job_cluster_key: str
-    new_cluster: Dict[str, Any]
+    new_cluster: NewCluster
 
 
-class JobClusters(BaseModel):
+class JobClusters(FlexibleModel):
     job_clusters: List[JobCluster] = []
 
     @root_validator(pre=True)

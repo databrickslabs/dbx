@@ -21,7 +21,7 @@ from dbx.commands.deploy import (  # noqa
     _preprocess_deployment,
 )
 from dbx.models.deployment import EnvironmentDeploymentInfo
-from dbx.models.project import MlflowStorageProperties
+from dbx.models.files.project import MlflowStorageProperties
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import (
     get_path_with_relation_to_current_file,

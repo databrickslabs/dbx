@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 from dbx.constants import PROJECT_INFO_FILE_PATH
-from dbx.models.project import EnvironmentInfo, ProjectInfo
+from dbx.models.files.project import EnvironmentInfo, ProjectInfo
 from dbx.utils.json import JsonUtils
 
 

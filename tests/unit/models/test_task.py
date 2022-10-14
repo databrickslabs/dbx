@@ -4,7 +4,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from dbx.models.task import Task, TaskType, SparkPythonTask
+from dbx.models.task import Task, SparkPythonTask
+from dbx.models.workflow.common.task import TaskType
 
 
 def get_spark_python_task_payload(py_file: str):

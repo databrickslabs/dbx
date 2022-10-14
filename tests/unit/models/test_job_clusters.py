@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from dbx.models.job_clusters import JobClusters
+from dbx.models.workflow.v2dot1.job_cluster import JobClusters
 
 
 def test_empty():

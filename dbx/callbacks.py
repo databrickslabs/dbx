@@ -6,7 +6,7 @@ from typing import Optional
 import typer
 
 from dbx import __version__
-from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
+from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.utils import dbx_echo
 
 
@@ -69,7 +69,7 @@ def execute_parameters_callback(_, value: str) -> Optional[str]:
             dbx_echo(":boom: Provided parameters payload cannot be parsed since it's not in json format")
             raise e
 
-        ExecuteWorkloadParamInfo(**_parsed)
+        ExecuteParametersPayload(**_parsed)
 
         return value
 

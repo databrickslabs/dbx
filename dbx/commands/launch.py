@@ -9,7 +9,7 @@ from dbx.api.launch.functions import find_deployment_run
 from dbx.api.launch.runners import RunSubmitLauncher, RunNowLauncher
 from dbx.api.launch.tracer import RunTracer
 from dbx.api.output_provider import OutputProvider
-from dbx.models.options import ExistingRunsOption, IncludeOutputOption
+from dbx.models.cli.options import ExistingRunsOption, IncludeOutputOption
 from dbx.options import (
     ENVIRONMENT_OPTION,
     TAGS_OPTION,

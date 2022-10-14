@@ -6,7 +6,8 @@ from pytest_mock import MockerFixture
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.api.launch.runners import RunSubmitLauncher
-from dbx.models.parameters.run_submit import RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo
+from dbx.models.parameters.run_submit import RunSubmitV2d1ParamInfo
+from dbx.models.workflow.v2d0.parameters import RunSubmitV2d0ParamInfo
 
 
 def test_v2d0_parameter_override_negative():

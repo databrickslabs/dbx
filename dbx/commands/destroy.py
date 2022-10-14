@@ -8,7 +8,7 @@ from typer.rich_utils import _get_rich_console  # noqa
 
 from dbx.api.config_reader import ConfigReader
 from dbx.api.destroyer import Destroyer
-from dbx.models.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 from dbx.options import (
     WORKFLOW_ARGUMENT,
     DEPLOYMENT_FILE_OPTION,

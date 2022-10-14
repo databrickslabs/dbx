@@ -2,17 +2,20 @@ from __future__ import annotations
 
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 
 from pydantic import BaseModel, root_validator, validator
 
 from dbx.api.configure import ProjectConfigurationManager
-from dbx.models.project import EnvironmentInfo
+from dbx.models.files.project import EnvironmentInfo
 from dbx.utils import dbx_echo
+
+from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
+from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 
 
 class Deployment(BaseModel):
-    workflows: Optional[List[Dict[str, Any]]]
+    workflows: Optional[List[Union[V2dot0Workflow, V2dot1Workflow]]]
 
     @root_validator(pre=True)
     def check_inputs(cls, values: Dict[str, Any]):  # noqa

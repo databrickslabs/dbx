@@ -10,8 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+### Changed
+- ♻️ Introduce model matching for workflow object
+- ♻️ Heavily refactor parameter passing logic
+
 ### Added
 - 📖 documentation on the differences between `dbx execute` and `dbx launch`
+- 📖 documentation on how to use parameter passing in various cases.
 
 ### Fixed
 

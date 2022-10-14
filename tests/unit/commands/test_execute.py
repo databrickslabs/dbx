@@ -5,7 +5,7 @@ from databricks_cli.sdk import ApiClient, ClusterService
 
 from dbx.api.cluster import ClusterController
 from dbx.api.context import LocalContextManager
-from dbx.models.context import ContextInfo
+from dbx.models.files.context import ContextInfo
 from tests.unit.conftest import invoke_cli_runner
 
 

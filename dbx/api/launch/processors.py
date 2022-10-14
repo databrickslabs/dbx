@@ -3,7 +3,7 @@ from typing import Dict, Any
 
 from rich.console import Console
 
-from dbx.models.job_clusters import JobClusters
+from dbx.models.workflow.v2dot1.job_cluster import JobClusters
 from dbx.utils import dbx_echo
 
 

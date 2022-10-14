@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 
 
 def test_destroy_model(temp_project):

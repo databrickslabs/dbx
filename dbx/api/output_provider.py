@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 
 from databricks_cli.sdk import JobsService
 
-from dbx.models.options import IncludeOutputOption
+from dbx.models.cli.options import IncludeOutputOption
 from dbx.utils import dbx_echo
 
 

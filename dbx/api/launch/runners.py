@@ -8,9 +8,11 @@ from databricks_cli.sdk import ApiClient, JobsService
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.api.launch.functions import cancel_run, load_dbx_file, wait_run
 from dbx.api.launch.processors import ClusterReusePreprocessor
-from dbx.models.options import ExistingRunsOption
-from dbx.models.parameters.run_now import RunNowV2d0ParamInfo, RunNowV2d1ParamInfo
-from dbx.models.parameters.run_submit import RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo
+from dbx.models.cli.options import ExistingRunsOption
+from dbx.models.workflow.v2dot1.parameters import RunNowV2d1ParamInfo
+from dbx.models.workflow.v2dot0.parameters import RunNowV2d0ParamInfo
+from dbx.models.parameters.run_submit import RunSubmitV2d1ParamInfo
+from dbx.models.workflow.v2d0.parameters import RunSubmitV2d0ParamInfo
 from dbx.utils import dbx_echo
 from dbx.utils.job_listing import find_job_by_name
 

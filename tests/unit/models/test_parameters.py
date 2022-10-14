@@ -1,8 +1,10 @@
 import pytest
 
 from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
-from dbx.models.parameters.run_now import RunNowV2d0ParamInfo, RunNowV2d1ParamInfo
-from dbx.models.parameters.run_submit import RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo
+from dbx.models.workflow.v2dot1.parameters import RunNowV2d1ParamInfo
+from dbx.models.workflow.v2dot0.parameters import RunNowV2d0ParamInfo
+from dbx.models.parameters.run_submit import RunSubmitV2d1ParamInfo
+from dbx.models.workflow.v2d0.parameters import RunSubmitV2d0ParamInfo
 
 
 def test_empty_execute():

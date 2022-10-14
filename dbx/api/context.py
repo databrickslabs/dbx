@@ -7,7 +7,7 @@ from databricks_cli.sdk import ApiClient
 
 from dbx.api.client_provider import ApiV1Client
 from dbx.constants import LOCK_FILE_PATH
-from dbx.models.context import ContextInfo
+from dbx.models.files.context import ContextInfo
 from dbx.utils import dbx_echo
 from dbx.utils.json import JsonUtils
 

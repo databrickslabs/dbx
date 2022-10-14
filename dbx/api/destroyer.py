@@ -12,8 +12,8 @@ from mlflow.entities import Run
 from rich.progress import track
 from typer.rich_utils import _get_rich_console  # noqa
 
-from dbx.models.destroyer import DestroyerConfig, DeletionMode
-from dbx.models.project import EnvironmentInfo
+from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.files.project import EnvironmentInfo
 from dbx.utils import dbx_echo
 
 

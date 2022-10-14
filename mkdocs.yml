@@ -82,6 +82,7 @@ nav:
   - Guides:
       - General:
           - Dependency management: guides/general/dependency_management.md
+          - Passing parameters: guides/general/passing_parameters.md
       - Python:
           - Python quickstart: guides/python/python_quickstart.md
           - Development loop:

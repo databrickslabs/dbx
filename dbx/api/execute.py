@@ -5,7 +5,8 @@ import mlflow
 from rich.console import Console
 
 from dbx.api.context import RichExecutionContextClient
-from dbx.models.task import Task, TaskType, PythonWheelTask
+from dbx.models.workflow.common.task import TaskType
+from dbx.models.workflow.v2dot1.task import PythonWheelTask
 from dbx.utils import dbx_echo
 from dbx.utils.adjuster import adjust_path, walk_content
 from dbx.utils.common import get_package_file

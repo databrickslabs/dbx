@@ -9,7 +9,8 @@ from dbx.api.context import RichExecutionContextClient
 from dbx.api.execute import ExecutionController
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
-from dbx.models.task import Task, TaskType
+from dbx.models.task import Task
+from dbx.models.workflow.common.task import TaskType
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -71,12 +72,15 @@ def execute(
     controller = ClusterController(api_client)
     cluster_id = controller.preprocess_cluster_args(cluster_name, cluster_id)
 
-    _job = workflow if workflow else job
+    _workflow_name = workflow if workflow else job
 
-    if not _job:
+    if not _workflow_name:
         raise Exception("Please provide workflow name as an argument")
 
-    dbx_echo(f"Executing job: {_job} in environment {environment} on cluster {cluster_name} (id: {cluster_id})")
+    dbx_echo(
+        f"Executing workflow: {_workflow_name} in environment {environment} "
+        f"on cluster {cluster_name} (id: {cluster_id})"
+    )
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
@@ -95,10 +99,10 @@ def execute(
 
     _verify_deployment(deployment, deployment_file)
 
-    found_jobs = [j for j in deployment.payload.workflows if j["name"] == _job]
+    found_jobs = [j for j in deployment.payload.workflows if j["name"] == _workflow_name]
 
     if not found_jobs:
-        raise RuntimeError(f"Job {_job} was not found in environment jobs, please check the deployment file")
+        raise RuntimeError(f"Job {_workflow_name} was not found in environment jobs, please check the deployment file")
 
     job_payload = found_jobs[0]
 
@@ -107,10 +111,12 @@ def execute(
         found_tasks = [t for t in _tasks if t.get("task_key") == task]
 
         if not found_tasks:
-            raise Exception(f"Task {task} not found in the definition of job {_job}")
+            raise Exception(f"Task {task} not found in the definition of job {_workflow_name}")
 
         if len(found_tasks) > 1:
-            raise Exception(f"Task keys are not unique, more then one task found for job {_job} with task name {task}")
+            raise Exception(
+                f"Task keys are not unique, more then one task found for job {_workflow_name} with task name {task}"
+            )
 
         _task = found_tasks[0]
 
