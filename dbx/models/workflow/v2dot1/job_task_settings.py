@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications

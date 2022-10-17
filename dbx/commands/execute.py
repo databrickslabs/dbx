@@ -3,10 +3,10 @@ from typing import Optional
 
 import typer
 
-from dbx.api.build import prepare_build
 from dbx.api.cluster import ClusterController
 from dbx.api.config_reader import ConfigReader
 from dbx.api.context import RichExecutionContextClient
+from dbx.api.dependency.core_package import CorePackageManager
 from dbx.api.execute import ExecutionController
 from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.options import (
@@ -67,8 +67,8 @@ def execute(
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     api_client = prepare_environment(environment)
-    controller = ClusterController(api_client)
-    cluster_id = controller.preprocess_cluster_args(cluster_name, cluster_id)
+    cluster_controller = ClusterController(api_client)
+    cluster_controller.preprocess_cluster_args(cluster_name, cluster_id)
 
     workflow_name = workflow_name if workflow_name else job_name
 
@@ -93,28 +93,30 @@ def execute(
         )
         config.build.no_build = True
 
-    prepare_build(config.build)
-
     workflow = environment_config.payload.get_workflow(workflow_name)
 
     task: ExecuteTask = workflow.get_task(task_name) if task_name else workflow
 
     task.check_if_supported_in_execute()
 
+    config.build.trigger_build_process()
+
+    core_package = CorePackageManager(config.build).core_package if not no_package else None
+
     if parameters:
         task.override_execute_parameters(ExecuteParametersPayload.from_json(parameters))
 
-    dbx_echo("Preparing interactive cluster to accept jobs")
-    controller.awake_cluster(cluster_id)
+    cluster_controller.awake_cluster()
 
     context_client = RichExecutionContextClient(api_client, cluster_id)
 
-    controller_instance = ExecutionController(
+    execution_controller = ExecutionController(
         client=context_client,
         no_package=no_package,
+        core_package=core_package,
         requirements_file=requirements_file,
         task=task,
         upload_via_context=upload_via_context,
         pip_install_extras=pip_install_extras,
     )
-    controller_instance.run()
+    execution_controller.run()

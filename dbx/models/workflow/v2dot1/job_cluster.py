@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional
 
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
 from pydantic import root_validator
 

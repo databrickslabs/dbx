@@ -1,4 +1,4 @@
-from dbx.utils.policy_parser import PolicyParser
+from dbx.api.adjuster.policy import PolicyAdjuster
 
 
 def test_base_aws_policy():

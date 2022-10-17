@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 
 
 class JobEmailNotifications(FlexibleModel):

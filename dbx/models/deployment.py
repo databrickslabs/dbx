@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import collections
 from copy import deepcopy
-from enum import Enum
 from typing import Optional, Dict, Any, List, Union
 
 from pydantic import BaseModel, root_validator, validator
 
 from dbx.api.configure import ProjectConfigurationManager
+from dbx.models.build import BuildConfiguration
 from dbx.models.files.project import EnvironmentInfo
-from dbx.utils import dbx_echo
-
-from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
+from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
+from dbx.utils import dbx_echo
 
 AnyWorkflow = Union[V2dot0Workflow, V2dot1Workflow]
 WorkflowList = List[AnyWorkflow]
@@ -26,8 +25,8 @@ class WorkflowListMixin(BaseModel):
         return [w.name for w in self.workflows]
 
     @validator("workflows")
-    def _validate_unique(cls, workflow_names: Optional[WorkflowList]):  # noqa
-        _duplicates = [name for name, count in collections.Counter(workflow_names).items() if count > 1]
+    def _validate_unique(cls, workflows: Optional[WorkflowList]):  # noqa
+        _duplicates = [name for name, count in collections.Counter([w.name for w in workflows]).items() if count > 1]
         if _duplicates:
             raise ValueError(f"Duplicated workflow names: {_duplicates}")
 
@@ -54,22 +53,21 @@ class Deployment(WorkflowListMixin):
         _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
         return Deployment(**{"workflows": _w})
 
+    def get_deployable_workflows(
+        self, workflow_name: Optional[str], workflow_names: Optional[List[str]]
+    ) -> WorkflowList:
 
-class PythonBuild(str, Enum):
-    pip = "pip"
-    poetry = "poetry"
-    flit = "flit"
-
-
-class BuildConfiguration(BaseModel):
-    no_build: Optional[bool] = False
-    commands: Optional[List[str]] = []
-    python: Optional[PythonBuild]
-
-    @root_validator(pre=True)
-    def init_default(cls, values):  # noqa
-        _v = values if values else {"python": "pip"}
-        return _v
+        if workflow_name and workflow_names:
+            raise Exception("Workflow argument and --workflows (or --job and --jobs) cannot be provided together")
+        elif workflow_name:
+            dbx_echo(f"The workflow {workflow_name} was selected for deployment")
+            return [self.get_workflow(workflow_name)]
+        elif workflow_names:
+            dbx_echo(f"Workflows {workflow_names} were selected for deployment")
+            return [self.get_workflow(w) for w in workflow_names]
+        else:
+            dbx_echo(f"All available workflows were chosen for deployment: {self.workflow_names}")
+            return self.workflows
 
 
 class EnvironmentDeploymentInfo(BaseModel):
@@ -99,12 +97,17 @@ class EnvironmentDeploymentInfo(BaseModel):
 
 class DeploymentConfig(BaseModel):
     environments: List[EnvironmentDeploymentInfo]
-    build: Optional[BuildConfiguration]
+    build: Optional[BuildConfiguration] = BuildConfiguration()
 
-    @validator("build", pre=True)
-    def default_build(cls, value):  # noqa
-        build_spec = value if value else {"python": "pip"}
-        return build_spec
+    @staticmethod
+    def _prepare_build(payload: Dict[str, Any]) -> BuildConfiguration:
+        _build_payload = payload.get("build", {})
+        if not _build_payload:
+            dbx_echo(
+                "No build logic defined in the deployment file. "
+                "Default [code]pip[/code]-based build logic will be used."
+            )
+        return BuildConfiguration(**_build_payload)
 
     def get_environment(self, name, raise_if_not_found: Optional[bool] = False) -> Optional[EnvironmentDeploymentInfo]:
         _found = [env for env in self.environments if env.name == name]
@@ -122,20 +125,10 @@ class DeploymentConfig(BaseModel):
 
         return _found[0]
 
-    @staticmethod
-    def prepare_build(payload: Dict[str, Any]) -> BuildConfiguration:
-        _build_payload = payload.get("build", {})
-        if not _build_payload:
-            dbx_echo(
-                "No build logic defined in the deployment file. "
-                "Default [code]pip[/code]-based build logic will be used."
-            )
-        return BuildConfiguration(**_build_payload)
-
     @classmethod
     def from_legacy_json_payload(cls, payload: Dict[str, Any]) -> DeploymentConfig:
 
-        _build = cls.prepare_build(payload)
+        _build = cls._prepare_build(payload)
 
         _envs = []
         for name, _env_payload in payload.items():
@@ -157,5 +150,5 @@ class DeploymentConfig(BaseModel):
             EnvironmentDeploymentInfo(name=name, payload=env_payload)
             for name, env_payload in _payload.get("environments", {}).items()
         ]
-        _build = cls.prepare_build(_payload)
+        _build = cls._prepare_build(_payload)
         return DeploymentConfig(environments=_envs, build=_build)

@@ -15,7 +15,7 @@ from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.commands.deploy import (  # noqa
     _create_job,
     _log_dbx_file,
-    _preprocess_jobs,
+    _preprocess_workflows,
     _update_job,
     deploy,
     _preprocess_deployment,
@@ -238,7 +238,7 @@ def test_create_job_with_error():
 
 def test_preprocess_jobs():
     with pytest.raises(Exception):
-        _preprocess_jobs([], ["some-job-name"])
+        _preprocess_workflows([], ["some-job-name"])
 
 
 def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):

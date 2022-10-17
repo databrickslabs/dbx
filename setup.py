@@ -21,7 +21,7 @@ INSTALL_REQUIRES = [
     "cookiecutter>=1.7.2, <3.0.0",
     # file formats and models
     "pyyaml>=6.0",
-    "pydantic>=1.9.1",
+    "pydantic>=1.9.1,<=2.0.0",
     "Jinja2>=2.11.2",
     # misc - enforced to avoid issues with dependent libraries
     "cryptography>=3.3.1,<39.0.0",

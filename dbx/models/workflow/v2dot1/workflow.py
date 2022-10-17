@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 from pydantic import root_validator, validator
 
 from dbx.models.validators import at_least_one_of
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.workflow import WorkflowBase
 from dbx.models.workflow.v2dot1.job_cluster import JobClustersMixin

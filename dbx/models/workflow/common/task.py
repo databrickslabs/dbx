@@ -7,7 +7,7 @@ from pydantic import validator, root_validator, BaseModel
 from dbx.constants import TASKS_SUPPORTED_IN_EXECUTE
 from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.models.validators import at_least_one_by_suffix, only_one_by_suffix, at_least_one_of
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.parameters import ParamPair, StringArray
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.utils import dbx_echo

@@ -10,8 +10,8 @@ from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import BuildConfiguration
-from dbx.utils.adjuster import adjust_path, path_adjustment
+from dbx.models.build import BuildConfiguration
+from dbx.api.adjuster import adjust_path, path_adjustment
 from dbx.utils.common import (
     generate_filter_string,
     get_current_branch_name,

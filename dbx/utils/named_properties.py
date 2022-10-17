@@ -20,7 +20,7 @@ from databricks_cli.sdk import ApiClient, InstancePoolService, PolicyService
 
 from dbx.api.cluster import ClusterController
 from dbx.utils import dbx_echo
-from dbx.utils.policy_parser import PolicyParser
+from dbx.api.adjuster.policy import PolicyParser
 
 
 class AbstractProcessor(abc.ABC):
@@ -43,24 +43,6 @@ class PolicyNameProcessor(AbstractProcessor):
             policy_props = PolicyParser(policy).parse()
             self._deep_update(object_reference, policy_props, policy_name)
             object_reference["policy_id"] = policy_spec["policy_id"]
-
-    @staticmethod
-    def _deep_update(d: Dict, u: collections.abc.Mapping, policy_name: str) -> Dict:
-        for k, v in u.items():
-            if isinstance(v, collections.abc.Mapping):
-                d[k] = PolicyNameProcessor._deep_update(d.get(k, {}), v, policy_name)
-            else:
-                # if the key is already provided in deployment configuration, we need to verify the value
-                # if value exists, we verify that it's the same as in the policy
-                existing_value = d.get(k)
-                if existing_value:
-                    if existing_value != v:
-                        raise Exception(
-                            f"For key {k} there is a value in the cluster definition: {existing_value} \n"
-                            f"However this value is fixed in the policy {policy_name} and shall be equal to: {v}"
-                        )
-                d[k] = v
-        return d
 
     def _preprocess_policy_name(self, policy_name: str):
         policies = PolicyService(self._api_client).list_policies().get("policies", [])

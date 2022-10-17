@@ -38,14 +38,14 @@ def test_raise_if_not_found():
 
 
 def test_build_payload(capsys):
-    _payload = DeploymentConfig.prepare_build({"build": {"commands": ["sleep 5"]}})
+    _payload = DeploymentConfig._prepare_build({"build": {"commands": ["sleep 5"]}})
     res = capsys.readouterr()
     assert "No build logic defined in the deployment file" not in res.out
     assert _payload.commands is not None
 
 
 def test_build_payload_warning(capsys):
-    _payload = DeploymentConfig.prepare_build({})
+    _payload = DeploymentConfig._prepare_build({})
     res = capsys.readouterr()
     assert "No build logic defined in the deployment file" in res.out
 

@@ -5,9 +5,10 @@ from databricks_cli.clusters.api import ClusterService
 from databricks_cli.instance_pools.api import InstancePoolService
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import EnvironmentDeploymentInfo, BuildConfiguration
-from dbx.utils.adjuster import adjust_job_definitions
-from dbx.utils.dependency_manager import DependencyManager
+from dbx.models.deployment import EnvironmentDeploymentInfo
+from dbx.models.build import BuildConfiguration
+from dbx.api.adjuster import adjust_job_definitions
+from dbx.api.dependency.core_package import DependencyManagerProvider
 from dbx.utils.named_properties import NewClusterPropertiesProcessor, WorkloadPropertiesProcessor
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
@@ -148,14 +149,14 @@ def test_mtj_named_positive():
     api_client = MagicMock()
     test_profile_arn = "arn:aws:iam::123456789:instance-profile/some-instance-profile-name"
 
-    dm = DependencyManager(BuildConfiguration(no_package=True), global_no_package=False, requirements_file=None)
+    dm = DependencyManagerProvider(BuildConfiguration(no_package=True), global_no_package=False, requirements_file=None)
 
     api_client.perform_query = MagicMock(
         return_value={"instance_profiles": [{"instance_profile_arn": test_profile_arn}]}
     )
 
     sample_reference = {"whl": "path/to/some/file"}
-    dm._core_package_reference = sample_reference
+    dm.core_package = sample_reference
 
     for deployment_conf in [mtj_json_dep_conf, mtj_yaml_dep_conf]:
         jobs = deployment_conf.payload.workflows

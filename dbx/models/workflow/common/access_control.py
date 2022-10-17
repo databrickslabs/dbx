@@ -1,10 +1,11 @@
+import json
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from dbx.models.exceptions import ValidationError
 from dbx.models.validators import at_least_one_of
-from dbx.models.workflow._flexible import FlexibleModel
-from pydantic import root_validator, validator
+from dbx.models.workflow.common.flexible import FlexibleModel
+from pydantic import root_validator, validator, BaseModel
 
 
 class PermissionLevel(str, Enum):
@@ -24,8 +25,13 @@ class AccessControlRequest(FlexibleModel):
     )
 
 
+class PermissionsAclStructure(BaseModel):
+    access_control_list: Optional[List[AccessControlRequest]]
+
+
 class AccessControlMixin(FlexibleModel):
     access_control_list: Optional[List[AccessControlRequest]]
+    permissions: Optional[PermissionsAclStructure]
 
     @validator("access_control_list")
     def owner_is_provided(cls, acls: Optional[List[AccessControlRequest]]):  # noqa
@@ -38,3 +44,9 @@ class AccessControlMixin(FlexibleModel):
                     """
                 )
             return acls
+
+    def get_acl_payload(self) -> Dict[str, Any]:
+        if self.access_control_list:
+            return {"access_control_list": json.dumps(self.access_control_list)}
+        elif self.permissions:
+            return {"access_control_list": json.dumps(self.permissions.access_control_list)}

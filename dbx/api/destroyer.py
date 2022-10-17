@@ -125,7 +125,7 @@ class Destroyer:
         self._config = config
 
     def _get_workflow_eraser(self) -> WorkflowEraser:
-        return WorkflowEraser(self._client, self._config.workflows, self._config.dry_run)
+        return WorkflowEraser(self._client, self._config.workflow_names, self._config.dry_run)
 
     def _get_asset_eraser(self) -> AssetEraser:
         env_info = self._config.deployment.get_project_info()

@@ -1,8 +1,8 @@
 import textwrap
 from pathlib import Path
 
-from dbx.models.deployment import BuildConfiguration
-from dbx.utils.dependency_manager import DependencyManager
+from dbx.models.build import BuildConfiguration
+from dbx.api.dependency.core_package import DependencyManagerProvider
 
 
 def write_requirements(parent: Path, content: str) -> Path:
@@ -20,7 +20,7 @@ def test_simple_requirements_file(tmp_path: Path):
         prospector>=1.3.1,<1.7.0""",
     )
 
-    dm = DependencyManager(
+    dm = DependencyManagerProvider(
         BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
@@ -42,7 +42,7 @@ def test_requirements_with_comments(tmp_path: Path):
         prospector>=1.3.1,<1.7.0""",
     )
 
-    dm = DependencyManager(
+    dm = DependencyManagerProvider(
         BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
@@ -63,7 +63,7 @@ def test_requirements_with_empty_line(tmp_path):
         prospector>=1.3.1,<1.7.0""",
     )
 
-    dm = DependencyManager(
+    dm = DependencyManagerProvider(
         BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
@@ -85,7 +85,7 @@ def test_requirements_with_filtered_pyspark(tmp_path):
         prospector>=1.3.1,<1.7.0""",
     )
 
-    dm = DependencyManager(
+    dm = DependencyManagerProvider(
         BuildConfiguration(no_package=True),
         global_no_package=True,
         requirements_file=requirements_txt.resolve(),
@@ -99,7 +99,7 @@ def test_requirements_with_filtered_pyspark(tmp_path):
 
 def test_not_matching_conditions(tmp_path, capsys):
 
-    dm = DependencyManager(BuildConfiguration(no_package=True), global_no_package=True, requirements_file=None)
+    dm = DependencyManagerProvider(BuildConfiguration(no_package=True), global_no_package=True, requirements_file=None)
 
     reference = {"deployment_config": {"no_package": False}}
 

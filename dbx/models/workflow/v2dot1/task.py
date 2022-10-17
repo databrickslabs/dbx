@@ -5,7 +5,7 @@ from pydantic import root_validator, validator, BaseModel
 from pydantic.fields import Field
 
 from dbx.models.validators import check_dbt_commands, at_least_one_of, mutually_exclusive, named_parameters_check
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.task import (
     BaseTaskMixin,
     BaseNotebookTask,

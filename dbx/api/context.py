@@ -118,6 +118,7 @@ class LowLevelExecutionContextClient:
 
 class RichExecutionContextClient:
     def __init__(self, v2_client: ApiClient, cluster_id: str, language: str = "python"):
+        self.api_client = v2_client
         self._client = LowLevelExecutionContextClient(v2_client, cluster_id, language)
 
     def install_package(self, package_file: str, pip_install_extras: Optional[str]):

@@ -1,16 +1,16 @@
 from pathlib import Path
-from typing import Optional, List, Any
+from typing import Optional, List
 
 import mlflow
 from rich.console import Console
 
+from dbx.api.adjuster.adjuster import Adjuster
 from dbx.api.context import RichExecutionContextClient
-from dbx.types import ExecuteTask
+from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.v2dot1.task import PythonWheelTask
+from dbx.types import ExecuteTask
 from dbx.utils import dbx_echo
-from dbx.utils.adjuster import adjust_path, walk_content
-from dbx.utils.common import get_package_file
 from dbx.utils.file_uploader import MlflowFileUploader, ContextBasedUploader
 
 
@@ -19,6 +19,7 @@ class ExecutionController:
         self,
         client: RichExecutionContextClient,
         no_package: bool,
+        core_package: Optional[Library],
         upload_via_context: bool,
         requirements_file: Optional[Path],
         task: ExecuteTask,
@@ -27,6 +28,7 @@ class ExecutionController:
         self._client = client
         self._requirements_file = requirements_file
         self._no_package = no_package
+        self._core_package = core_package
         self._task = task
         self._upload_via_context = upload_via_context
         self._pip_install_extras = pip_install_extras
@@ -79,11 +81,10 @@ class ExecutionController:
         dbx_echo("Provided requirements installed")
 
     def install_package(self, pip_install_extras: Optional[str]):
-        package_file = get_package_file()
-        if not package_file:
+        if not self._core_package:
             raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
         dbx_echo("Uploading package")
-        driver_package_path = self._file_uploader.upload_and_provide_path(package_file, as_fuse=True)
+        driver_package_path = self._file_uploader.upload_and_provide_path(Path(self._core_package.whl), as_fuse=True)
         dbx_echo(":white_check_mark: Uploading package - done")
 
         with Console().status("Installing package on the cluster 📦", spinner="dots"):
@@ -94,10 +95,12 @@ class ExecutionController:
     def preprocess_task_parameters(self, parameters: List[str]):
         dbx_echo(f":fast_forward: Processing task parameters: {parameters}")
 
-        def adjustment_callback(p: Any):
-            return adjust_path(p, self._file_uploader)
-
-        walk_content(adjustment_callback, parameters)
+        Adjuster(
+            api_client=self._client.api_client,
+            no_package=self._no_package,
+            additional_libraries=[],
+            file_uploader=self._file_uploader,
+        ).traverse(parameters)
 
         self._client.setup_arguments(parameters)
         dbx_echo(":white_check_mark: Processing task parameters")

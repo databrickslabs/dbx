@@ -3,7 +3,7 @@ from typing import Optional, List
 from pydantic import root_validator
 
 from dbx.models.validators import at_least_one_of, mutually_exclusive
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 
 
 class PythonPyPiLibrary(FlexibleModel):

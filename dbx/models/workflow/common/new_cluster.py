@@ -1,6 +1,6 @@
 from typing import Optional
 
-from dbx.models.workflow._flexible import FlexibleModel
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.exceptions import ValidationError
 from pydantic import root_validator, validator
 
@@ -39,6 +39,7 @@ class NewCluster(FlexibleModel):
     driver_instance_pool_name: Optional[str]
     aws_attributes: Optional[AwsAttributes]
     policy_name: Optional[str]
+    policy_id: Optional[str]
 
     @validator("instance_pool_name")
     def instance_pool_name_validate(cls, value):  # noqa
