@@ -1,5 +1,5 @@
-import collections
 import json
+from collections.abc import Mapping
 from typing import Dict, Any, List, Tuple, Union, Optional
 
 from databricks_cli.cluster_policies.api import PolicyService
@@ -36,13 +36,16 @@ class PolicyAdjuster(ApiClientMixin):
         self._cluster = cluster
         self._policy = self._get_policy(cluster.policy_name, cluster.policy_id)
         self._traversed_policy = self._traverse_policy(policy_payload=json.loads(self._policy.definition))
-        self._updated_object = self._deep_update(cluster.dict(exclude_none=True), self._traversed_policy)
-        return self._updated_object
+
+        _updated_object = self._deep_update(cluster.dict(exclude_none=True), self._traversed_policy)
+        _updated_object = NewCluster(**_updated_object)
+        _updated_object.policy_id = self._policy.policy_id
+        return _updated_object
 
     @classmethod
-    def _deep_update(cls, d: Dict, u: collections.Mapping) -> Dict:
+    def _deep_update(cls, d: Dict, u: Mapping) -> Dict:
         for k, v in u.items():
-            if isinstance(v, collections.Mapping):
+            if isinstance(v, Mapping):
                 d[k] = cls._deep_update(d.get(k, {}), v)
             else:
                 # if the key is already provided in deployment configuration, we need to verify the value

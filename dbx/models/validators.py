@@ -17,11 +17,13 @@ def at_least_one_by_suffix(suffix: str, values: Dict[str, Any]):
 
 def only_one_by_suffix(suffix: str, values: Dict[str, Any]):
     _matching_fields = [f for f in values if f.endswith(suffix)]
+
     if len(_matching_fields) != 1:
+        _filtered_values = {k: v for k, v in values.items() if v is not None}
         raise ValidationError(
             f"""
                 Only one field with suffix {suffix} should be provided.
-                Provided payload: {values}
+                Provided payload: {_filtered_values}
             """,
         )
     return values
@@ -42,6 +44,13 @@ def at_least_one_of(fields_names: List[str], values: Dict[str, Any]):
             Provided payload: {values}
         """,
         )
+    return values
+
+
+def only_one_provided(suffix: str, values: Dict[str, Any]):
+    """Function verifies if value IS provided and it's unique"""
+    at_least_one_by_suffix(suffix, values)
+    only_one_by_suffix(suffix, values)
     return values
 
 

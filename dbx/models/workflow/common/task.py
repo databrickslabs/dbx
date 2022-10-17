@@ -6,7 +6,7 @@ from pydantic import validator, root_validator, BaseModel
 
 from dbx.constants import TASKS_SUPPORTED_IN_EXECUTE
 from dbx.models.cli.execute import ExecuteParametersPayload
-from dbx.models.validators import at_least_one_by_suffix, only_one_by_suffix, at_least_one_of
+from dbx.models.validators import at_least_one_of, only_one_provided
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.parameters import ParamPair, StringArray
 from dbx.models.workflow.common.task_type import TaskType
@@ -66,11 +66,8 @@ class BasePipelineTask(FlexibleModel, ABC):
 
 
 class BaseTaskMixin(FlexibleModel):
-    _at_least_one_check = root_validator(pre=True, allow_reuse=True)(
-        lambda cls, values: at_least_one_by_suffix("_task", values)
-    )
-    _only_one_check = root_validator(pre=True, allow_reuse=True)(
-        lambda cls, values: only_one_by_suffix("_task", values)
+    _only_one_provided = root_validator(pre=True, allow_reuse=True)(
+        lambda _, values: only_one_provided("_task", values)
     )
 
     @property

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import collections
-from copy import deepcopy
 from typing import Optional, Dict, Any, List, Union
 
-from pydantic import BaseModel, root_validator, validator
+from pydantic import BaseModel, validator
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.models.build import BuildConfiguration
 from dbx.models.files.project import EnvironmentInfo
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from dbx.utils import dbx_echo
@@ -18,7 +18,7 @@ WorkflowList = List[AnyWorkflow]
 
 
 class WorkflowListMixin(BaseModel):
-    workflows: Optional[WorkflowList] = []
+    workflows: Optional[WorkflowList]
 
     @property
     def workflow_names(self) -> List[str]:
@@ -26,9 +26,15 @@ class WorkflowListMixin(BaseModel):
 
     @validator("workflows")
     def _validate_unique(cls, workflows: Optional[WorkflowList]):  # noqa
-        _duplicates = [name for name, count in collections.Counter([w.name for w in workflows]).items() if count > 1]
-        if _duplicates:
-            raise ValueError(f"Duplicated workflow names: {_duplicates}")
+        if workflows:
+            _duplicates = [
+                name for name, count in collections.Counter([w.name for w in workflows]).items() if count > 1
+            ]
+            if _duplicates:
+                raise ValueError(f"Duplicated workflow names: {_duplicates}")
+            return workflows
+        else:
+            return []
 
     def get_workflow(self, name) -> AnyWorkflow:
         _found = list(filter(lambda w: w.name == name, self.workflows))
@@ -37,19 +43,19 @@ class WorkflowListMixin(BaseModel):
         return _found[0]
 
 
-class Deployment(WorkflowListMixin):
-    @root_validator(pre=True)
-    def check_inputs(cls, values: Dict[str, Any]):  # noqa
-        if "jobs" in values:
+class Deployment(FlexibleModel, WorkflowListMixin):
+    @staticmethod
+    def from_spec_local(raw_spec: Dict[str, Any]) -> Deployment:
+        if "jobs" in raw_spec:
             dbx_echo(
                 "[yellow bold]Usage of jobs keyword in deployment file is deprecated. "
                 "Please use [bold]workflows[bold] instead (simply rename this section to workflows).[/yellow bold]"
             )
-        _w = values.get("jobs") if "jobs" in values else values.get("workflows")
-        return {"workflows": _w}
+        _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
+        return Deployment(**{"workflows": _w})
 
     @staticmethod
-    def from_spec(raw_spec: Dict[str, Any]) -> Deployment:
+    def from_spec_remote(raw_spec: Dict[str, Any]) -> Deployment:
         _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
         return Deployment(**{"workflows": _w})
 
@@ -75,16 +81,18 @@ class EnvironmentDeploymentInfo(BaseModel):
     payload: Deployment
 
     def to_spec(self) -> Dict[str, Any]:
-        _spec = {self.name: {"jobs": self.payload.workflows}}
+        _spec = {self.name: self.payload.dict(exclude_none=True)}
         return _spec
 
     @staticmethod
-    def from_spec(environment_name: str, raw_spec: Dict[str, Any]) -> EnvironmentDeploymentInfo:
-        payload = raw_spec.get(environment_name)
-        if not payload:
+    def from_spec(
+        environment_name: str, raw_spec: Dict[str, Any], reader_type: Optional[str] = "local"
+    ) -> EnvironmentDeploymentInfo:
+        deployment_reader = Deployment.from_spec_local if reader_type == "local" else Deployment.from_spec_remote
+        if not raw_spec:
             raise ValueError(f"Deployment result for {environment_name} doesn't contain any workflow definitions")
 
-        _spec = {"name": environment_name, "payload": Deployment.from_spec(payload)}
+        _spec = {"name": environment_name, "payload": deployment_reader(raw_spec)}
 
         return EnvironmentDeploymentInfo(**_spec)
 
@@ -138,17 +146,14 @@ class DeploymentConfig(BaseModel):
                 This behaviour is not supported since dbx v0.7.0.
                 Please nest all environment configurations under "environments" key in the deployment file."""
                 )
-            _env = EnvironmentDeploymentInfo(name=name, payload=_env_payload)
+            _env = EnvironmentDeploymentInfo.from_spec(name, _env_payload)
             _envs.append(_env)
 
         return DeploymentConfig(environments=_envs, build=_build)
 
     @classmethod
     def from_payload(cls, payload: Dict[str, Any]) -> DeploymentConfig:
-        _payload = deepcopy(payload)
-        _envs = [
-            EnvironmentDeploymentInfo(name=name, payload=env_payload)
-            for name, env_payload in _payload.get("environments", {}).items()
-        ]
-        _build = cls._prepare_build(_payload)
+        _env_payloads = payload.get("environments", {})
+        _envs = [EnvironmentDeploymentInfo.from_spec(name, env_payload) for name, env_payload in _env_payloads.items()]
+        _build = cls._prepare_build(payload)
         return DeploymentConfig(environments=_envs, build=_build)

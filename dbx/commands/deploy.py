@@ -128,6 +128,7 @@ def deploy(
     libraries_from_requirements = RequirementsFileProcessor(requirements_file).libraries if requirements_file else []
     additional_libraries = libraries_from_requirements + [core_package] if core_package else libraries_from_requirements
 
+    print(additional_libraries)
     _assets_only = assets_only if assets_only else files_only
 
     with mlflow.start_run() as deployment_run:

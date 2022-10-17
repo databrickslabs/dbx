@@ -124,19 +124,9 @@ def mlflow_fixture(session_mocker):
     logging.info("Test session finished, unrolling the Mlflow instance")
 
 
-# @pytest.fixture(scope="function")
-# def mlflow_file_uploader(mocker, mlflow_fixture):
-#     real_adjuster = adjust_path
-#
-#     def fake_adjuster(candidate: str, file_uploader: MlflowFileUploader) -> str:
-#         if str(candidate).startswith(file_uploader._base_uri):
-#             return candidate
-#         else:
-#             adjusted = real_adjuster(candidate, file_uploader)
-#             return adjusted
-#
-#     mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
-#     mocker.patch(extract_function_name(real_adjuster), MagicMock(side_effect=fake_adjuster))
+@pytest.fixture(scope="function")
+def mlflow_file_uploader(mocker, mlflow_fixture):
+    mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
 
 
 @pytest.fixture()

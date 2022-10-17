@@ -119,7 +119,7 @@ environments:
          timezone_id: "Europe/Berlin" #(2)
 ```
 
-1. This sets up the schedule for every day at midnight. Check [chrontab.guru](https://crontab.guru/) for more examples.
+1. This sets up the schedule for every day at midnight. Check [this site](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html) for more examples.
 2. Timezone is set accordingly to the Java [`TimeZone`](https://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html) class.
 
 !!! tip "Official Databricks docs"
@@ -165,8 +165,8 @@ custom:
     node_type_id: "your-node-type-id"
     spark_conf:
       spark.databricks.delta.preview.enabled: 'true'
-    instance_pool_name: <enter pool name>
-    driver_instance_pool_name: <enter pool name>
+    instance_pool_id: "instance-pool://some-pool-name"
+    driver_instance_pool_id: "instance-pool://some-pool-name"
     runtime_engine: STANDARD
     init_scripts:
       - dbfs:
@@ -174,19 +174,19 @@ custom:
 
   basic-auto-scale-props: &basic-auto-scale-props
     autoscale:
-    min_workers: 2
-    max_workers: 4
+      min_workers: 2
+      max_workers: 4
 
   basic-static-cluster: &basic-static-cluster
     new_cluster:
-    <<: *basic-cluster-props
-    num_workers: 2
+      <<: *basic-cluster-props
+      num_workers: 2
 
   basic-autoscale-cluster: &basic-autoscale-cluster
     new_cluster:
-    <<: # merge these two maps and place them here.
-      - *basic-cluster-props
-      - *basic-auto-scale-props
+       <<: # merge these two maps and place them here.
+         - *basic-cluster-props
+         - *basic-auto-scale-props
 
 environments:
   default:
@@ -214,12 +214,8 @@ environments:
           access_control_list:
             - user_name: "user@email.com"
               permission_level: "IS_OWNER"
-            #- group_name: "your-group-name"
-            #permission_level: "CAN_VIEW"
-            #- user_name: "user2@databricks.com"
-            #permission_level: "CAN_VIEW"
-            #- user_name: "user3@databricks.com"
-            #permission_level: "CAN_VIEW"
+            - group_name: "your-group-name"
+              permission_level: "CAN_VIEW"
 
         job_clusters:
           - job_cluster_key: "basic-cluster"

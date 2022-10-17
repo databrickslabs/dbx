@@ -42,8 +42,8 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
                 raise ValueError(f"Duplicated task keys are not allowed. Provided payload: {tasks}")
         return tasks
 
-    def get_task(self, name: str) -> JobTaskSettings:
-        _found = list(filter(lambda t: t.name == name, self.tasks))
+    def get_task(self, task_key: str) -> JobTaskSettings:
+        _found = list(filter(lambda t: t.task_key == task_key, self.tasks))
         return _found[0]
 
     @property

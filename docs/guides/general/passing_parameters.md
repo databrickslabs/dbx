@@ -1,5 +1,7 @@
 # :material-code-brackets: Passing parameters
 
+<img src="https://img.shields.io/badge/available%20since-0.8.0-green?style=for-the-badge" alt="Available since 0.8.0"/>
+
 
 `dbx` provides various interfaces to pass the parameters to the workflows and tasks.
 Unfortunately, the underlying APIs and the fact that `dbx` is a CLI tool are somewhat

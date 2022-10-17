@@ -47,7 +47,7 @@ class AssetBasedLauncher:
 
         service = JobsService(self.api_client)
         env_spec = load_dbx_file(self.run_id, "deployment-result.json")
-        _config = EnvironmentDeploymentInfo.from_spec(self.environment_name, env_spec)
+        _config = EnvironmentDeploymentInfo.from_spec(self.environment_name, env_spec, reader_type="remote")
 
         workflow = _config.payload.get_workflow(self.workflow_name)
 

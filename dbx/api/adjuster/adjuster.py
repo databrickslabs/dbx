@@ -21,6 +21,7 @@ from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
+from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from dbx.utils.file_uploader import AbstractFileUploader
 
@@ -109,7 +110,7 @@ class Adjuster(
                 if element.instance_pool_name is not None:
                     self._adjust_legacy_instance_pool_ref(element)
                 # instance_profile_name -> instance_profile_arn
-                if element.aws_attributes.instance_profile_name is not None:
+                if element.aws_attributes is not None and element.aws_attributes.instance_profile_name is not None:
                     self._adjust_legacy_instance_profile_ref(element)
 
             if isinstance(element, str):
@@ -122,13 +123,13 @@ class Adjuster(
                 elif element.startswith("instance-pool://"):
                     self._adjust_instance_pool_ref(element, parent, index)
 
-                elif element.startswith("pipelines://"):
+                elif element.startswith("pipeline://"):
                     self._adjust_pipeline_ref(element, parent, index)
 
                 elif element.startswith("service-principal://"):
                     self._adjust_service_principal_ref(element, parent, index)
 
-                elif element.startswith("warehouses://"):
+                elif element.startswith("warehouse://"):
                     self._adjust_warehouse_ref(element, parent, index)
 
                 elif element.startswith("query://"):
@@ -149,16 +150,16 @@ class Adjuster(
         :return: None
         """
         for parent, element, index in self._traverse(workflows):
-            if isinstance(element, NewCluster) and element.policy_name is not None:
-                element = self._adjust_policy_ref(element)
-            if (
-                isinstance(element, NewCluster)
-                and element.policy_id is not None
-                and element.policy_id.startswith("cluster-policy://")
+            if (isinstance(parent, V2dot0Workflow) or isinstance(parent, JobTaskSettings)) and isinstance(
+                element, NewCluster
             ):
-                element = self._adjust_policy_ref(element)
-
-            parent[index] = element
+                if element.policy_name is not None or (
+                    isinstance(element, NewCluster)
+                    and element.policy_id is not None
+                    and element.policy_id.startswith("cluster-policy://")
+                ):
+                    element = self._adjust_policy_ref(element)
+                parent.new_cluster = element
 
     def traverse(self, workflows: Union[WorkflowList, List[str]]):
         self._main_traverse(workflows)

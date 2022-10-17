@@ -1,5 +1,9 @@
 # Migration between dbx versions
 
+## From 0.7.0 to 0.8.0
+
+- The interface for `--parameters` passing has been changed. Please check the special doc dedicated to parameter passing.
+- `dbx deploy --write-specs-to-file` now generates a JSON payload which is `workflows` based (not `jobs`).
 
 ## From 0.6.0 and earlier to 0.7.0
 

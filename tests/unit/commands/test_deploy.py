@@ -7,6 +7,7 @@ import pytest
 import typer
 import yaml
 from databricks_cli.sdk import ApiClient, JobsService
+from pytest_mock import MockerFixture
 from requests import HTTPError
 
 from dbx.api.config_reader import ConfigReader
@@ -15,7 +16,6 @@ from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.commands.deploy import (  # noqa
     _create_job,
     _log_dbx_file,
-    _preprocess_workflows,
     _update_job,
     deploy,
     _preprocess_deployment,
@@ -48,7 +48,10 @@ def test_deploy_assets_only_smoke_default(
     assert deploy_result.exit_code == 0
 
 
-def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
+def test_deploy_multitask_smoke(
+    mlflow_file_uploader, mocker: MockerFixture, mock_dbx_file_upload, mock_api_v2_client, temp_project
+):
+    mocker.patch("dbx.commands.deploy._create_job", MagicMock(return_value="aaa-bbb"))
     samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
     for file_name in ["03-multitask-job.json", "03-multitask-job.yaml"]:
         deployment_file = Path("./conf/") / file_name
@@ -69,8 +72,8 @@ def test_deploy_multitask_smoke(mlflow_file_uploader, mock_dbx_file_upload, mock
         )
         assert deploy_result.exit_code == 0
         _content = JsonUtils.read(Path(".dbx/deployment-result.json"))
-        assert "libraries" not in _content["default"]["jobs"][0]
-        assert "libraries" in _content["default"]["jobs"][0]["tasks"][0]
+        assert "libraries" not in _content["default"]["workflows"][0]
+        assert "libraries" in _content["default"]["workflows"][0]["tasks"][0]
 
 
 def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
@@ -234,11 +237,6 @@ def test_create_job_with_error():
     client.perform_query.side_effect = Mock(side_effect=HTTPError())
     with pytest.raises(HTTPError):
         _create_job(client, {"name": "some-job"})
-
-
-def test_preprocess_jobs():
-    with pytest.raises(Exception):
-        _preprocess_workflows([], ["some-job-name"])
 
 
 def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):

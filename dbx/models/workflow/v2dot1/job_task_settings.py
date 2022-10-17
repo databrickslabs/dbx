@@ -18,7 +18,7 @@ class JobTaskSettings(TaskMixin):
     existing_cluster_id: Optional[str]
     new_cluster: Optional[NewCluster]
     job_cluster_key: Optional[str]
-    libraries: Optional[List[Library]]
+    libraries: Optional[List[Library]] = []
     email_notifications: Optional[JobEmailNotifications]
     timeout_seconds: Optional[int]
     max_retries: Optional[int]
