@@ -76,7 +76,10 @@ def test_deploy_multitask_smoke(
         assert "libraries" in _content["default"]["workflows"][0]["tasks"][0]
 
 
-def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
+def test_deploy_path_adjustment_json(
+    mlflow_file_uploader, mocker, mock_dbx_file_upload, mock_api_v2_client, temp_project
+):
+    mocker.patch("dbx.commands.deploy._create_job", MagicMock(return_value="aaa-bbb"))
     samples_path = get_path_with_relation_to_current_file("../deployment-configs/")
     for file_name in ["04-path-adjustment-policy.json", "04-path-adjustment-policy.yaml"]:
         deployment_file = Path("./conf/") / file_name
@@ -98,9 +101,10 @@ def test_deploy_path_adjustment_json(mlflow_file_uploader, mock_dbx_file_upload,
         )
         _content = JsonUtils.read(Path(".dbx/deployment-result.json"))
         expected_prefix = mlflow.get_tracking_uri()
-        assert _content["default"]["jobs"][0]["libraries"][0]["whl"].startswith(expected_prefix)
-        assert _content["default"]["jobs"][0]["spark_python_task"]["python_file"].startswith(expected_prefix)
-        assert _content["default"]["jobs"][0]["spark_python_task"]["parameters"][0].startswith(expected_prefix)
+
+        assert _content["default"]["workflows"][0]["libraries"][0]["whl"].startswith(expected_prefix)
+        assert _content["default"]["workflows"][0]["spark_python_task"]["python_file"].startswith(expected_prefix)
+        assert _content["default"]["workflows"][0]["spark_python_task"]["parameters"][0].startswith(expected_prefix)
 
         assert deploy_result.exit_code == 0
 

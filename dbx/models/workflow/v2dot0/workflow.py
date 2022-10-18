@@ -1,5 +1,6 @@
 from typing import Optional, List, Union
 
+from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.common.workflow import WorkflowBase
@@ -12,7 +13,7 @@ from pydantic import root_validator, validator
 ALLOWED_TASK_TYPES = Union[SparkPythonTask, NotebookTask, SparkJarTask, SparkSubmitTask]
 
 
-class Workflow(WorkflowBase, TaskMixin):
+class Workflow(WorkflowBase, TaskMixin, AccessControlMixin):
     # this follows structure of 2.0 API
     # https://docs.databricks.com/dev-tools/api/2.0/jobs.html
     existing_cluster_id: Optional[str]

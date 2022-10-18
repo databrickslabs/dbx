@@ -1,6 +1,5 @@
 from typing import Any, Optional, Union, List
 
-from databricks_cli.sdk import ApiClient
 from pydantic import BaseModel
 
 from dbx.api.adjuster._mixins import (
@@ -16,14 +15,13 @@ from dbx.api.adjuster._mixins import (
     AlertAdjuster,
 )
 from dbx.api.adjuster.policy import PolicyAdjuster
-from dbx.models.deployment import WorkflowList, AnyWorkflow
+from dbx.models.deployment import WorkflowList
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
-from dbx.utils.file_uploader import AbstractFileUploader
 
 
 class Adjuster(
@@ -39,29 +37,23 @@ class Adjuster(
     AlertAdjuster,
     PolicyAdjuster,
 ):
-    def __init__(
-        self,
-        api_client: ApiClient,
-        file_uploader: AbstractFileUploader,
-        additional_libraries: List[Library],
-        no_package: bool,
-    ):
-        self.file_uploader = file_uploader
+    def __init__(self, additional_libraries: List[Library], **kwargs):
         self.additional_libraries = additional_libraries
-        self.no_package = no_package
-        super().__init__(api_client)
+        super().__init__(**kwargs)
 
     def _traverse(self, _object: Any, parent: Optional[Any] = None, index_in_parent: Optional[Any] = None):
 
         # if element is a dictionary, simply continue traversing
         if isinstance(_object, dict):
             for key, item in _object.items():
+                yield item, _object, key
                 for _out in self._traverse(item, _object, index_in_parent):
                     yield _out
 
         # if element is a list, simply continue traversing
         elif isinstance(_object, list):
             for idx, sub_item in enumerate(_object):
+                yield sub_item, _object, idx
                 for _out in self._traverse(sub_item, _object, idx):
                     yield _out
 
@@ -69,23 +61,17 @@ class Adjuster(
         elif isinstance(_object, (BaseModel, FlexibleModel)):
             for key, sub_element in _object.__dict__.items():
                 if sub_element is not None:
+                    yield sub_element, _object, key
                     for _out in self._traverse(sub_element, _object, key):
                         yield _out
         else:
+            # yield the low-level objects
             yield _object, parent, index_in_parent
-        # yield the low-level objects
 
-    def _search_and_apply_cluster_policies(self, workflow: AnyWorkflow):
-        pass
+    def _library_traverse(self, workflows: WorkflowList):
 
-    def _main_traverse(self, workflows: WorkflowList):
-        """
-        This traverse applies all the transformations to the workflows
-        :param workflows:
-        :return: None
-        """
-        for parent, element, index in self._traverse(workflows):
-
+        for element, parent, index in self._traverse(workflows):
+            print(element, parent, index)
             if isinstance(element, V2dot1Workflow):
                 # core package provisioning for V2.1 API
                 if self.additional_libraries:
@@ -101,6 +87,14 @@ class Adjuster(
                 # core package provisioning for V2.0 API
                 if self.additional_libraries:
                     element.libraries += self.additional_libraries
+
+    def _main_traverse(self, workflows: WorkflowList):
+        """
+        This traverse applies all the transformations to the workflows
+        :param workflows:
+        :return: None
+        """
+        for element, parent, index in self._traverse(workflows):
 
             if isinstance(element, NewCluster):
                 # driver_instance_pool_name -> driver_instance_pool_id
@@ -149,7 +143,7 @@ class Adjuster(
         :param workflows:
         :return: None
         """
-        for parent, element, index in self._traverse(workflows):
+        for element, parent, index in self._traverse(workflows):
             if (isinstance(parent, V2dot0Workflow) or isinstance(parent, JobTaskSettings)) and isinstance(
                 element, NewCluster
             ):
@@ -162,5 +156,6 @@ class Adjuster(
                 parent.new_cluster = element
 
     def traverse(self, workflows: Union[WorkflowList, List[str]]):
+        self._library_traverse(workflows)
         self._main_traverse(workflows)
         self._cluster_policy_traverse(workflows)
