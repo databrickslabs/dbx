@@ -67,8 +67,7 @@ def execute(
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     api_client = prepare_environment(environment)
-    cluster_controller = ClusterController(api_client)
-    cluster_controller.preprocess_cluster_args(cluster_name, cluster_id)
+    cluster_controller = ClusterController(api_client, cluster_name=cluster_name, cluster_id=cluster_id)
 
     workflow_name = workflow_name if workflow_name else job_name
 

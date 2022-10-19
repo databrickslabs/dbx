@@ -54,19 +54,18 @@ def destroy(
         False, "--dracarys", help="🔥 add more fire to the CLI output, making the deletion absolutely **epic**."
     ),
 ):
-    if workflow_name and workflow_names:
-        raise Exception(f"arguments {workflow_name} and {workflow_names} cannot be provided together")
 
-    workflow_names = [workflow_name] if workflow_name else workflow_names.split(",") if workflow_names else []
+    workflow_names = workflow_names.split(",") if workflow_names else []
 
-    config_reader = ConfigReader(deployment_file, jinja_variables_file)
-    config = config_reader.get_config()
+    global_config = ConfigReader(deployment_file, jinja_variables_file).get_config()
+    env_config = global_config.get_environment(environment_name, raise_if_not_found=True)
+    relevant_workflows = env_config.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
 
     _d_config = DestroyerConfig(
-        workflows=workflow_names,
+        workflow_names=[w.name for w in relevant_workflows],
         deletion_mode=deletion_mode,
         dracarys=dracarys,
-        deployment=config.get_environment(environment_name, raise_if_not_found=True),
+        deployment=env_config,
         dry_run=dry_run,
     )
 

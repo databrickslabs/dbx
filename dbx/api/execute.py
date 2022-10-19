@@ -53,7 +53,7 @@ class ExecutionController:
         dbx_echo("Entrypoint execution finished")
 
     def run(self):
-        if self._requirements_file.exists():
+        if self._requirements_file:
             self.install_requirements_file()
 
         if not self._no_package:
@@ -74,8 +74,14 @@ class ExecutionController:
             mlflow.end_run()
 
     def install_requirements_file(self):
+        if not self._requirements_file.exists():
+
+            raise Exception(f"Requirements file provided, but doesn't exist at path {self._requirements_file}")
+
         dbx_echo("Installing provided requirements")
-        localized_requirements_path = self._file_uploader.upload_and_provide_path(self._requirements_file, as_fuse=True)
+        localized_requirements_path = self._file_uploader.upload_and_provide_path(
+            f"file:fuse://{self._requirements_file}"
+        )
         installation_command = f"%pip install -U -r {localized_requirements_path}"
         self._client.client.execute_command(installation_command, verbose=False)
         dbx_echo("Provided requirements installed")
@@ -84,7 +90,7 @@ class ExecutionController:
         if not self._core_package:
             raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
         dbx_echo("Uploading package")
-        driver_package_path = self._file_uploader.upload_and_provide_path(Path(self._core_package.whl), as_fuse=True)
+        driver_package_path = self._file_uploader.upload_and_provide_path(self._core_package.whl)
         dbx_echo(":white_check_mark: Uploading package - done")
 
         with Console().status("Installing package on the cluster 📦", spinner="dots"):

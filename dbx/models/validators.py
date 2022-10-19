@@ -55,7 +55,8 @@ def only_one_provided(suffix: str, values: Dict[str, Any]):
 
 
 def mutually_exclusive(fields_names: List[str], values: Dict[str, Any]):
-    _matching_fields = [f for f in fields_names if f in values]
+    non_empty_values = [key for key, item in values.items() if item]  # will coalesce both checks for None and []
+    _matching_fields = [f for f in fields_names if f in non_empty_values]
     if len(_matching_fields) > 1:
         raise ValueError(
             f"""

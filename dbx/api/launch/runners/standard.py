@@ -55,10 +55,10 @@ class StandardLauncher:
 
         if self._parameters:
             dbx_echo(f"Running the workload with the provided parameters {self._parameters.dict(exclude_none=True)}")
-            _additional_parameters = self._parameters.dict()
+            _additional_parameters = self._parameters.dict(exclude_none=True)
         else:
             _additional_parameters = {}
 
-        run_data = jobs_service.run_now(job_id=job_id, **_additional_parameters)
+        run_data = self.api_client.perform_query("POST", "/jobs/run-now", data=_additional_parameters)
 
         return run_data, job_id

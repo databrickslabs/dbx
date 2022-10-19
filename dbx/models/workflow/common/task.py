@@ -36,18 +36,22 @@ class SparkJarTask(FlexibleModel):
 class SparkPythonTask(BaseModel):
     python_file: str
     parameters: Optional[StringArray]
-    execute_file: Optional[Path]
 
-    @validator("execute_file")
-    def _strip_value(cls, v: str) -> Path:  # noqa
+    @validator("python_file")
+    def _not_fuse(cls, v):  # noqa
+        if v.startswith("file:fuse://"):
+            raise ValueError("The python_file property cannot be FUSE-based")
+        return v
 
-        if not v.startswith("file://"):
+    @property
+    def execute_file(self) -> Path:
+        if not self.python_file.startswith("file://"):
             raise ValueError("File for execute mode should be located locally and referenced via file:// prefix.")
 
-        _path = Path(v).relative_to("file://")
+        _path = Path(self.python_file).relative_to("file://")
 
         if not _path.exists():
-            raise ValueError(f"Provided file doesn't exist {v}")
+            raise ValueError(f"Provided file doesn't exist {_path}")
 
         return _path
 

@@ -59,20 +59,20 @@ class Deployment(FlexibleModel, WorkflowListMixin):
         _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
         return Deployment(**{"workflows": _w})
 
-    def get_deployable_workflows(
+    def select_relevant_or_all_workflows(
         self, workflow_name: Optional[str], workflow_names: Optional[List[str]]
     ) -> WorkflowList:
 
         if workflow_name and workflow_names:
             raise Exception("Workflow argument and --workflows (or --job and --jobs) cannot be provided together")
         elif workflow_name:
-            dbx_echo(f"The workflow {workflow_name} was selected for deployment")
+            dbx_echo(f"The workflow {workflow_name} was selected for further operations")
             return [self.get_workflow(workflow_name)]
         elif workflow_names:
-            dbx_echo(f"Workflows {workflow_names} were selected for deployment")
+            dbx_echo(f"Workflows {workflow_names} were selected for further operations")
             return [self.get_workflow(w) for w in workflow_names]
         else:
-            dbx_echo(f"All available workflows were chosen for deployment: {self.workflow_names}")
+            dbx_echo(f"All available workflows were selected for further operations: {self.workflow_names}")
             return self.workflows
 
 

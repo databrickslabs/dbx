@@ -140,7 +140,7 @@ def mlflow_file_uploader(mocker, mlflow_fixture):
             original_upload_function(file_path)
 
     mocker.patch.object(MlflowFileUploader, "_upload_file", MagicMock(side_effect=_custom_uploader))
-    mocker.patch.object(FileReferenceAdjuster, "_verify_reference", MagicMock(side_effect=lambda el, path: print(path)))
+    mocker.patch.object(MlflowFileUploader, "_verify_reference", MagicMock(side_effect=lambda el, path: print(path)))
 
 
 @pytest.fixture()

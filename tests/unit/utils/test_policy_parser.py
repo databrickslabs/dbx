@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 from dbx.api.adjuster.policy import PolicyAdjuster
 
 
@@ -20,6 +22,7 @@ def test_base_aws_policy():
             {"dbfs": {"destination": "dbfs:/some/init-scripts/sc2.sh"}},
         ],
     }
-    parser = PolicyParser(_policy)
-    _parsed = parser.parse()
-    assert _formatted == _parsed
+    api_client = MagicMock()
+    adj = PolicyAdjuster(api_client)
+    result = adj._traverse_policy(_policy)
+    assert result == _formatted

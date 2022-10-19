@@ -1,7 +1,7 @@
 import functools
 from abc import ABC, abstractmethod
 from pathlib import Path, PurePosixPath
-from typing import Optional
+from typing import Optional, Tuple
 
 import mlflow
 from retry import retry
@@ -30,8 +30,23 @@ class AbstractFileUploader(ABC):
         remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
         return remote_path
 
+    @staticmethod
+    def _preprocess_reference(ref: str) -> Tuple[Path, bool]:
+        _as_fuse = ref.startswith("file:fuse://")
+        _corrected = ref.replace("file:fuse://", "") if _as_fuse else ref.replace("file://", "")
+        _path = Path(_corrected)
+        return _path, _as_fuse
+
+    @staticmethod
+    def _verify_reference(ref, _path: Path):
+        if not _path.exists():
+            raise FileNotFoundError(f"Provided file reference: {ref} doesn't exist in the local FS")
+
     @functools.cache
-    def upload_and_provide_path(self, local_file_path: Path, as_fuse: Optional[bool] = False) -> str:
+    def upload_and_provide_path(self, file_reference: str) -> str:
+        local_file_path, as_fuse = self._preprocess_reference(file_reference)
+        self._verify_reference(file_reference, local_file_path)
+
         if as_fuse:
             self._verify_fuse_support()
 
