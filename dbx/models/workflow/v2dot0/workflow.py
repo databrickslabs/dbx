@@ -43,12 +43,12 @@ class Workflow(WorkflowBase, TaskMixin, AccessControlMixin):
         raise Exception("Provided workflow format is V2.0, and it doesn't support task format")
 
     def override_standard_launch_parameters(self, payload: StandardRunPayload):
-        pointer = self.__getattribute__(self.task_type)
+        pointer = getattr(self, self.task_type)
         pointer.__dict__.update(payload.dict(exclude_none=True))
 
     def override_asset_based_launch_parameters(self, payload: AssetBasedRunPayload):
         if self.task_type == TaskType.notebook_task:
             self.notebook_task.base_parameters = payload.base_parameters
         else:
-            pointer = self.__getattribute__(self.task_type)
+            pointer = getattr(self, self.task_type)
             pointer.__dict__.update(payload.dict(exclude_none=True))

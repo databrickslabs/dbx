@@ -26,7 +26,7 @@ class CorePackageManager:
             return Library(whl=f"file://{package_file}")
         else:
             dbx_echo(
-                "Package file was not found." "Please check the dist folder if you expect to use package-based imports"
+                "Package file was not found. Please check the dist folder if you expect to use package-based imports"
             )
 
     @staticmethod

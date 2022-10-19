@@ -44,7 +44,11 @@ DEV_REQUIREMENTS = [
     "mkdocs-glightbox>=0.2.1,<1.0",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
-    "prospector==1.7.0",
+    "pylint==2.15.4",
+    "pycodestyle==2.8.0",
+    "pyflakes==2.5.0",
+    "mccabe==0.6.1",
+    "prospector==1.7.7",
     "black>=22.3.0,<23.0.0",
     "MarkupSafe>=2.1.1,<3.0.0",
     # testing framework

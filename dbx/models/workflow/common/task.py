@@ -95,5 +95,5 @@ class BaseTaskMixin(FlexibleModel):
                     "`named_parameters` are not supported by spark_python_task. Please use `parameters` instead."
                 )
 
-            pointer = self.__getattribute__(self.task_type)
+            pointer = getattr(self, self.task_type)
             pointer.__dict__.update(payload.dict(exclude_none=True))

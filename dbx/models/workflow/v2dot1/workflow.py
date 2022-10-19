@@ -69,5 +69,5 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
                     f"Available tasks are: {self.task_names}"
                 )
 
-            pointer = _t.__getattribute__(_t.task_type)
+            pointer = getattr(_t, _t.task_type)
             pointer.__dict__.update(task_parameters.dict(exclude_none=True))

@@ -28,7 +28,7 @@ class ElementSetterMixin:
         if isinstance(parent, (dict, list)):
             parent[index] = element
         elif isinstance(parent, (BaseModel, FlexibleModel)):
-            parent.__setattr__(index, element)
+            setattr(parent, index, element)
         else:
             raise ValueError(
                 "Cannot apply reference to the parent structure."

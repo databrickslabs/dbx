@@ -42,7 +42,7 @@ class AbstractFileUploader(ABC):
         if not _path.exists():
             raise FileNotFoundError(f"Provided file reference: {ref} doesn't exist in the local FS")
 
-    @functools.cache
+    @functools.lru_cache(maxsize=3000)
     def upload_and_provide_path(self, file_reference: str) -> str:
         local_file_path, as_fuse = self._preprocess_reference(file_reference)
         self._verify_reference(file_reference, local_file_path)

@@ -184,7 +184,7 @@ class RemoteSyncer:
     async def _apply_file_puts(self, session: aiohttp.ClientSession, paths: List[str], msg: str) -> None:
         tasks = []
         op_count = 0
-        sem = asyncio.Semaphore(self.max_parallel_puts)
+        sem = asyncio.Semaphore(self.max_parallel_puts)  # noqa
         for path in sorted(paths):
             op_count += 1
             if not self.dry_run:
