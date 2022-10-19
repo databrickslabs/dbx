@@ -1,8 +1,8 @@
 from typing import Optional
 
-from dbx.models.workflow.common.flexible import FlexibleModel
-from dbx.models.exceptions import ValidationError
 from pydantic import root_validator, validator
+
+from dbx.models.workflow.common.flexible import FlexibleModel
 
 
 class AutoScale(FlexibleModel):
@@ -11,7 +11,7 @@ class AutoScale(FlexibleModel):
 
     @root_validator()
     def _validate(cls, values):  # noqa
-        assert values["max_workers"] > values["min_workers"], ValidationError(
+        assert values["max_workers"] > values["min_workers"], ValueError(
             f"""
         max_workers ({values["max_workers"]}) should be bigger than min_workers ({values["min_workers"]})
         """,

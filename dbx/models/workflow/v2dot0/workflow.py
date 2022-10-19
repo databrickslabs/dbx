@@ -1,14 +1,15 @@
 from typing import Optional, List, Union
 
+from pydantic import root_validator, validator
+
 from dbx.models.workflow.common.access_control import AccessControlMixin
+from dbx.models.workflow.common.libraries import Library
+from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.common.workflow import WorkflowBase
-from dbx.models.workflow.common.libraries import Library
-from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload, StandardRunPayload
 from dbx.models.workflow.v2dot0.task import TaskMixin, NotebookTask
-from pydantic import root_validator, validator
 
 ALLOWED_TASK_TYPES = Union[SparkPythonTask, NotebookTask, SparkJarTask, SparkSubmitTask]
 
@@ -38,7 +39,7 @@ class Workflow(WorkflowBase, TaskMixin, AccessControlMixin):
                 )
         return values
 
-    def get_task(self, name: str):
+    def get_task(self, task_key: str):
         raise Exception("Provided workflow format is V2.0, and it doesn't support task format")
 
     def override_standard_launch_parameters(self, payload: StandardRunPayload):

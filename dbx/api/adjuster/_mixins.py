@@ -1,6 +1,5 @@
 from abc import ABC
-from pathlib import Path
-from typing import Optional, Any, Tuple
+from typing import Optional, Any
 
 from databricks_cli.sdk import ApiClient
 from pydantic import BaseModel
@@ -26,7 +25,7 @@ class ElementSetterMixin:
         :param index: Position (or pointer) where element should be provided
         :return: None
         """
-        if isinstance(parent, dict) or isinstance(parent, list):
+        if isinstance(parent, (dict, list)):
             parent[index] = element
         elif isinstance(parent, (BaseModel, FlexibleModel)):
             parent.__setattr__(index, element)
@@ -62,11 +61,10 @@ class InstanceProfileAdjuster(ApiClientMixin):
 
 
 class FileReferenceAdjuster(ElementSetterMixin):
-    def __init__(self, file_uploader: AbstractFileUploader, **kwargs):
+    def __init__(self, file_uploader: AbstractFileUploader, **_):
         self._uploader = file_uploader
 
     def _adjust_file_ref(self, element: str, parent: Any, index: Any):
-
         _uploaded = self._uploader.upload_and_provide_path(element)
         self.set_element_at_parent(_uploaded, parent, index)
 

@@ -1,11 +1,10 @@
-import json
 from enum import Enum
 from typing import Optional, List, Dict, Any
 
-from dbx.models.exceptions import ValidationError
+from pydantic import root_validator, validator, BaseModel
+
 from dbx.models.validators import at_least_one_of
 from dbx.models.workflow.common.flexible import FlexibleModel
-from pydantic import root_validator, validator, BaseModel
 
 
 class PermissionLevel(str, Enum):
@@ -38,7 +37,7 @@ class AccessControlMixin(FlexibleModel):
         if acls:
             owner_info = [o for o in acls if o.permission_level == PermissionLevel.IS_OWNER]
             if len(owner_info) > 1 or not owner_info:
-                raise ValidationError(
+                raise ValueError(
                     f"""
                         Workflow should only have one owner, provided: {[o.dict() for o in owner_info]}
                     """

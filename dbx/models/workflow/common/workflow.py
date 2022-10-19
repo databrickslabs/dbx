@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.api_version import ApiVersionMixin
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications
 
 
@@ -22,7 +22,7 @@ class WorkflowBase(FlexibleModel, ApiVersionMixin, ABC):
     job_id: Optional[str]
 
     @abstractmethod
-    def get_task(self, name: str):
+    def get_task(self, task_key: str):
         """Abstract method to be implemented"""
 
     @abstractmethod

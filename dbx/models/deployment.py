@@ -65,7 +65,8 @@ class Deployment(FlexibleModel, WorkflowListMixin):
 
         if workflow_name and workflow_names:
             raise Exception("Workflow argument and --workflows (or --job and --jobs) cannot be provided together")
-        elif workflow_name:
+
+        if workflow_name:
             dbx_echo(f"The workflow {workflow_name} was selected for further operations")
             return [self.get_workflow(workflow_name)]
         elif workflow_names:

@@ -8,16 +8,6 @@ from dbx.api.adjuster._mixins import ApiClientMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
 
-"""
-This policy parser is based on:
-- API Doc: policy parser is based on API doc https://docs.databricks.com/dev-tools/api/latest/policies.html
-- Policy definition docs:
-    - AWS: https://docs.databricks.com/administration-guide/clusters/policies.html#cluster-policy-attribute-paths
-    - Azure: https://docs.microsoft.com/en-us/azure/databricks/administration-guide/clusters/policies
-    - GCP: Cluster policies were not supported at the moment of 0.1.3 release.
-Please note that only "fixed" values will be automatically added to the job definition.
-"""
-
 
 class Policy(FlexibleModel):
     policy_id: str
@@ -30,16 +20,42 @@ class PoliciesResponse(FlexibleModel):
     policies: List[Policy]
 
 
-class PolicyAdjuster(ApiClientMixin):
-    def _adjust_policy_ref(self, cluster: NewCluster):
-        self._policy_service = PolicyService(self.api_client)
-        self._cluster = cluster
-        self._policy = self._get_policy(cluster.policy_name, cluster.policy_id)
-        self._traversed_policy = self._traverse_policy(policy_payload=json.loads(self._policy.definition))
+def _get_policy(policy_service: PolicyService, policy_name: Optional[str], policy_id: Optional[str]) -> Policy:
+    policy_name = policy_name if policy_name else policy_id.replace("cluster-policy://", "")
+    all_policies = PoliciesResponse(**policy_service.list_policies())
+    relevant_policy = list(filter(lambda p: p.name == policy_name, all_policies.policies))
 
-        _updated_object = self._deep_update(cluster.dict(exclude_none=True), self._traversed_policy)
+    if relevant_policy:
+        if len(relevant_policy) != 1:
+            raise ValueError(
+                f"More than one cluster policy with name {policy_name} found." f"Available policies are: {all_policies}"
+            )
+        return relevant_policy[0]
+
+    raise ValueError(
+        f"No cluster policies were fund under name {policy_name}."
+        f"Available policy names are: {[p.name for p in all_policies.policies]}"
+    )
+
+
+class PolicyAdjuster(ApiClientMixin):
+    """
+    This policy parser is based on:
+    - API Doc: policy parser is based on API doc https://docs.databricks.com/dev-tools/api/latest/policies.html
+    - Policy definition docs:
+        - AWS: https://docs.databricks.com/administration-guide/clusters/policies.html#cluster-policy-attribute-paths
+        - Azure: https://docs.microsoft.com/en-us/azure/databricks/administration-guide/clusters/policies
+        - GCP: Cluster policies were not supported at the moment of 0.1.3 release.
+    Please note that only "fixed" values will be automatically added to the job definition.
+    """
+
+    def _adjust_policy_ref(self, cluster: NewCluster):
+        policy_service = PolicyService(self.api_client)
+        policy = _get_policy(policy_service, cluster.policy_name, cluster.policy_id)
+        traversed_policy = self._traverse_policy(policy_payload=json.loads(policy.definition))
+        _updated_object = self._deep_update(cluster.dict(exclude_none=True), traversed_policy)
         _updated_object = NewCluster(**_updated_object)
-        _updated_object.policy_id = self._policy.policy_id
+        _updated_object.policy_id = policy.policy_id
         return _updated_object
 
     @classmethod
@@ -59,24 +75,6 @@ class PolicyAdjuster(ApiClientMixin):
                         )
                 d[k] = v
         return d
-
-    def _get_policy(self, policy_name: Optional[str], policy_id: Optional[str]) -> Policy:
-        policy_name = policy_name if policy_name else policy_id.replace("cluster-policy://", "")
-        all_policies = PoliciesResponse(**self._policy_service.list_policies())
-        relevant_policy = list(filter(lambda p: p.name == policy_name, all_policies.policies))
-
-        if relevant_policy:
-            if len(relevant_policy) != 1:
-                raise ValueError(
-                    f"More than one cluster policy with name {policy_name} found."
-                    f"Available policies are: {all_policies}"
-                )
-            return relevant_policy[0]
-
-        raise ValueError(
-            f"No cluster policies were fund under name {policy_name}."
-            f"Available policy names are: {[p.name for p in all_policies.policies]}"
-        )
 
     @staticmethod
     def _traverse_policy(policy_payload: Dict[str, Any]) -> Dict[str, Any]:

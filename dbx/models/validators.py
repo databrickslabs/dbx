@@ -1,12 +1,10 @@
 from typing import Dict, Any, List
 
-from dbx.models.exceptions import ValidationError
-
 
 def at_least_one_by_suffix(suffix: str, values: Dict[str, Any]):
     _matching_fields = [f for f in values if f.endswith(suffix)]
     if not _matching_fields:
-        raise ValidationError(
+        raise ValueError(
             f"""
                 At least one field with suffix {suffix} should be provided.
                 Provided payload: {values}
@@ -20,7 +18,7 @@ def only_one_by_suffix(suffix: str, values: Dict[str, Any]):
 
     if len(_matching_fields) != 1:
         _filtered_values = {k: v for k, v in values.items() if v is not None}
-        raise ValidationError(
+        raise ValueError(
             f"""
                 Only one field with suffix {suffix} should be provided.
                 Provided payload: {_filtered_values}
@@ -38,7 +36,7 @@ def at_least_one_of(fields_names: List[str], values: Dict[str, Any]):
     """
     _matching_fields = [f for f in fields_names if f in values]
     if not _matching_fields:
-        raise ValidationError(
+        raise ValueError(
             f"""
             At least one of the following fields should be provided in the payload: {fields_names}.
             Provided payload: {values}

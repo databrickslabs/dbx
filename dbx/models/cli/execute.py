@@ -12,7 +12,7 @@ class ExecuteParametersPayload(ParametersMixin, NamedParametersMixin):
     """Parameters for execute"""
 
     @root_validator(pre=True)
-    def _validate(cls, values):
+    def _validate(cls, values):  # noqa
         at_least_one_of(["parameters", "named_parameters"], values)
         mutually_exclusive(["parameters", "named_parameters"], values)
         return values

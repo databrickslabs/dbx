@@ -88,6 +88,17 @@ class Adjuster(
                 if self.additional_libraries:
                     element.libraries += self.additional_libraries
 
+    def _new_cluster_handler(self, element: NewCluster):
+        # driver_instance_pool_name -> driver_instance_pool_id
+        if element.driver_instance_pool_name is not None:
+            self._adjust_legacy_driver_instance_pool_ref(element)
+        # instance_pool_name -> instance_pool_id
+        if element.instance_pool_name is not None:
+            self._adjust_legacy_instance_pool_ref(element)
+        # instance_profile_name -> instance_profile_arn
+        if element.aws_attributes is not None and element.aws_attributes.instance_profile_name is not None:
+            self._adjust_legacy_instance_profile_ref(element)
+
     def _main_traverse(self, workflows: WorkflowList):
         """
         This traverse applies all the transformations to the workflows
@@ -97,15 +108,7 @@ class Adjuster(
         for element, parent, index in self._traverse(workflows):
 
             if isinstance(element, NewCluster):
-                # driver_instance_pool_name -> driver_instance_pool_id
-                if element.driver_instance_pool_name is not None:
-                    self._adjust_legacy_driver_instance_pool_ref(element)
-                # instance_pool_name -> instance_pool_id
-                if element.instance_pool_name is not None:
-                    self._adjust_legacy_instance_pool_ref(element)
-                # instance_profile_name -> instance_profile_arn
-                if element.aws_attributes is not None and element.aws_attributes.instance_profile_name is not None:
-                    self._adjust_legacy_instance_profile_ref(element)
+                self._new_cluster_handler(element)
 
             if isinstance(element, str):
                 if element.startswith("file://") or element.startswith("file:fuse://"):
@@ -143,10 +146,8 @@ class Adjuster(
         :param workflows:
         :return: None
         """
-        for element, parent, index in self._traverse(workflows):
-            if (isinstance(parent, V2dot0Workflow) or isinstance(parent, JobTaskSettings)) and isinstance(
-                element, NewCluster
-            ):
+        for element, parent, _ in self._traverse(workflows):
+            if isinstance(parent, (V2dot0Workflow, JobTaskSettings)) and isinstance(element, NewCluster):
                 if element.policy_name is not None or (
                     isinstance(element, NewCluster)
                     and element.policy_id is not None
