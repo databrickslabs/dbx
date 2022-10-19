@@ -112,10 +112,10 @@ def deploy(
     environment_info = config.get_environment(environment_name, raise_if_not_found=True)
 
     workflow_name = workflow_name if workflow_name else job_name
-    workflow_names = workflow_names if workflow_names else job_names
+    workflow_names = workflow_names.split(",") if workflow_names else job_names.split(",") if job_names else []
 
     deployable_workflows = environment_info.payload.get_deployable_workflows(workflow_name, workflow_names)
-
+    environment_info.payload.workflows = deployable_workflows  # filter out the chosen set of workflows
     if no_rebuild:
         dbx_echo(
             """[yellow bold]
@@ -152,7 +152,7 @@ def deploy(
                     api_client.perform_query(
                         "PUT",
                         f"/permissions/jobs/{workflow.job_id}",
-                        data={"access_control_list": workflow.get_acl_payload()},
+                        data=workflow.get_acl_payload(),
                     )
                     dbx_echo(f"Permission settings were successfully set for job {job_name}")
 

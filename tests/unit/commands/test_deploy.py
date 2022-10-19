@@ -22,6 +22,7 @@ from dbx.commands.deploy import (  # noqa
 )
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.files.project import MlflowStorageProperties
+from dbx.models.workflow.v2dot1.workflow import Workflow
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import (
     get_path_with_relation_to_current_file,
@@ -143,46 +144,41 @@ def test_non_existent_env(mock_api_v2_client, temp_project):
     assert "not found in the deployment file" in str(deploy_result.exception)
 
 
-def test_deploy_only_chosen_workflow(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
+def test_deploy_only_chosen_workflow(
+    mlflow_file_uploader, mocker, mock_dbx_file_upload, mock_api_v2_client, temp_project
+):
+    mocker.patch("dbx.commands.deploy._create_job", MagicMock(return_value="aaa-bbb"))
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][0]
+    _chosen = deployment_info.payload.workflow_names[0]
     deploy_result = invoke_cli_runner(
         ["deploy", "--environment=default", f"--write-specs-to-file={result_file}", _chosen],
     )
     assert deploy_result.exit_code == 0
     _content = JsonUtils.read(Path(result_file))
-    assert _chosen in [j["name"] for j in _content["default"]["jobs"]]
+    assert [w["name"] for w in _content["default"]["workflows"]] == [_chosen]
 
 
-def test_deploy_only_chosen_jobs(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
+@pytest.mark.parametrize("workflow_arg", ["--workflows", "--jobs"])
+def test_deploy_only_chosen(
+    workflow_arg, mlflow_file_uploader, mocker, mock_dbx_file_upload, mock_api_v2_client, temp_project
+):
+    mocker.patch("dbx.commands.deploy._create_job", MagicMock(return_value="aaa-bbb"))
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
+    _chosen = deployment_info.payload.workflow_names[:2]
     deploy_result = invoke_cli_runner(
-        ["deploy", "--environment", "default", "--jobs", ",".join(_chosen), "--write-specs-to-file", result_file],
+        ["deploy", "--environment", "default", workflow_arg, ",".join(_chosen), "--write-specs-to-file", result_file],
     )
     assert deploy_result.exit_code == 0
     _content = JsonUtils.read(Path(result_file))
-    assert _chosen == [j["name"] for j in _content["default"]["jobs"]]
-
-
-def test_deploy_only_chosen_workflows(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
-    result_file = ".dbx/deployment-result.json"
-    deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
-    deploy_result = invoke_cli_runner(
-        ["deploy", "--environment", "default", "--workflows", ",".join(_chosen), "--write-specs-to-file", result_file],
-    )
-    assert deploy_result.exit_code == 0
-    _content = JsonUtils.read(Path(result_file))
-    assert _chosen == [j["name"] for j in _content["default"]["jobs"]]
+    assert [w["name"] for w in _content["default"]["workflows"]] == _chosen
 
 
 def test_negative_both_arguments(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
     result_file = ".dbx/deployment-result.json"
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen = [j["name"] for j in deployment_info.payload.workflows][:2]
+    _chosen = deployment_info.payload.workflow_names[0]
     deploy_result = invoke_cli_runner(
         [
             "deploy",
@@ -226,24 +222,25 @@ def test_deploy_with_requirements_and_branch(
 
 def test_smoke_update_job_positive():
     js = Mock(JobsService)
-    _update_job(js, "aa-bbb-ccc-111", {"name": 1})
+    _update_job(js, "aa-bbb-ccc-111", Workflow(**{"name": "some"}))
 
 
 def test_smoke_update_job_negative():
     js = Mock(JobsService)
     js.reset_job.side_effect = Mock(side_effect=HTTPError())
     with pytest.raises(HTTPError):
-        _update_job(js, "aa-bbb-ccc-111", {"name": 1})
+        _update_job(js, "aa-bbb-ccc-111", Workflow(**{"name": "some"}))
 
 
 def test_create_job_with_error():
     client = Mock(ApiClient)
     client.perform_query.side_effect = Mock(side_effect=HTTPError())
     with pytest.raises(HTTPError):
-        _create_job(client, {"name": "some-job"})
+        _create_job(client, Workflow(**{"name": "some"}))
 
 
-def test_with_permissions(mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
+def test_with_permissions(mocker, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client, temp_project):
+    mocker.patch("dbx.commands.deploy._create_job", MagicMock(return_value="aaa-bbb"))
     deployment_file = Path("conf/deployment.yml")
     deploy_content = yaml.safe_load(deployment_file.read_text())
 
@@ -274,19 +271,6 @@ def test_jinja_custom_path(mlflow_file_uploader, mock_dbx_file_upload, mock_api_
     shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
     deploy_result = invoke_cli_runner(["deploy", "--deployment-file", "../configs/09-jinja-include.json.j2"])
     assert deploy_result.exit_code == 0
-
-
-def test_update_job_v21_with_permissions():
-    _client = MagicMock(spec=ApiClient)
-    _jobs_service = JobsService(_client)
-    acl_definition = {"access_control_list": [{"user_name": "test@user.com", "permission_level": "IS_OWNER"}]}
-    job_definition = {
-        "name": "test",
-    }
-    job_definition.update(acl_definition)  # noqa
-
-    _update_job(_jobs_service, "1", job_definition)
-    _client.perform_query.assert_called_with("PUT", "/permissions/jobs/1", data=acl_definition)
 
 
 @pytest.mark.parametrize("inp,exp", [(None, typer.Exit), (["wf1"], Exception)])

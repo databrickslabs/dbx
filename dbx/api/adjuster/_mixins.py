@@ -1,6 +1,6 @@
 from abc import ABC
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional, Any, Tuple
 
 from databricks_cli.sdk import ApiClient
 from pydantic import BaseModel
@@ -65,15 +65,23 @@ class FileReferenceAdjuster(ElementSetterMixin):
     def __init__(self, file_uploader: AbstractFileUploader, **kwargs):
         self._uploader = file_uploader
 
-    def _adjust_file_ref(self, element: str, parent: Any, index: Any):
+    @staticmethod
+    def _preprocess_element(element: str) -> Tuple[Path, bool]:
         _as_fuse = element.startswith("file:fuse://")
         _corrected = element.replace("file:fuse://", "") if _as_fuse else element.replace("file://", "")
         _path = Path(_corrected)
+        return _path, _as_fuse
 
+    @staticmethod
+    def _verify_reference(element, _path: Path):
         if not _path.exists():
-            raise FileNotFoundError(f"Provided file reference: {_path} doesn't exist in the local FS")
+            raise FileNotFoundError(f"Provided file reference: {element} doesn't exist in the local FS")
 
-        _uploaded = self._uploader.upload_and_provide_path(_path, _as_fuse)
+    def _adjust_file_ref(self, element: str, parent: Any, index: Any):
+        _path, as_fuse = self._preprocess_element(element)
+        self._verify_reference(element, _path)
+
+        _uploaded = self._uploader.upload_and_provide_path(_path, as_fuse)
         self.set_element_at_parent(_uploaded, parent, index)
 
 

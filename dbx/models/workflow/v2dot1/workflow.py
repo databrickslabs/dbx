@@ -10,6 +10,7 @@ from dbx.models.workflow.common.workflow import WorkflowBase
 from dbx.models.workflow.v2dot1.job_cluster import JobClustersMixin
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
 from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload, StandardRunPayload
+from dbx.utils import dbx_echo
 
 
 class GitSource(FlexibleModel):
@@ -33,13 +34,18 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
     format: Optional[str]
 
     @validator("tasks")
-    def _validate_unique(cls, tasks: Optional[List[JobTaskSettings]]) -> Optional[List[JobTaskSettings]]:  # noqa
+    def _validate_tasks(cls, tasks: Optional[List[JobTaskSettings]]) -> Optional[List[JobTaskSettings]]:  # noqa
         if tasks:
             _duplicates = [
                 name for name, count in collections.Counter([t.task_key for t in tasks]).items() if count > 1
             ]
             if _duplicates:
                 raise ValueError(f"Duplicated task keys are not allowed. Provided payload: {tasks}")
+        else:
+            dbx_echo(
+                "[yellow bold]No task definitions were provided for workflow. "
+                "This might cause errors during deployment[/yellow bold]"
+            )
         return tasks
 
     def get_task(self, task_key: str) -> JobTaskSettings:

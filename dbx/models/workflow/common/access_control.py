@@ -47,6 +47,6 @@ class AccessControlMixin(FlexibleModel):
 
     def get_acl_payload(self) -> Dict[str, Any]:
         if self.access_control_list:
-            return {"access_control_list": json.dumps(self.access_control_list)}
+            return self.dict(exclude_none=True)
         elif self.permissions:
-            return {"access_control_list": json.dumps(self.permissions.access_control_list)}
+            return self.permissions.dict(exclude_none=True)
