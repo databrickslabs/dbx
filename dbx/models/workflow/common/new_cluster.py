@@ -32,9 +32,10 @@ class AwsAttributes(FlexibleModel):
 
 
 class NewCluster(FlexibleModel):
+    spark_version: str
+    node_type_id: Optional[str]
     num_workers: Optional[int]
     autoscale: Optional[AutoScale]
-    spark_version: str
     instance_pool_name: Optional[str]
     driver_instance_pool_name: Optional[str]
     aws_attributes: Optional[AwsAttributes]

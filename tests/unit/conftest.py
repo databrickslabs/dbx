@@ -88,7 +88,7 @@ def temp_project(tmp_path: Path, mocker: MockerFixture, request) -> Path:
         if "disable_auto_execute_mock" in request.keywords:
             logging.info("Disabling the execute_shell_command for specific test")
         else:
-            mocker.patch("dbx.api.build.execute_shell_command", generate_wheel)
+            mocker.patch("dbx.models.build.execute_shell_command", generate_wheel)
         yield project_path
 
 

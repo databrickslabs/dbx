@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.api_version import ApiVersionMixin
@@ -16,7 +16,7 @@ class WorkflowBase(FlexibleModel, ApiVersionMixin, ABC):
     # common fields between 2.0 and 2.1
     name: str
     email_notifications: Optional[JobEmailNotifications]
-    timeout_seconds: Optional[int]
+    timeout_seconds: Optional[Union[int, str]]
     schedule: Optional[CronSchedule]
     max_concurrent_runs: Optional[int]
     job_id: Optional[str]

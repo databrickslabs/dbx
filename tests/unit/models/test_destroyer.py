@@ -1,8 +1,6 @@
 from functools import partial
 from pathlib import Path
 
-import pytest
-
 from dbx.api.config_reader import ConfigReader
 from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 

@@ -4,16 +4,18 @@ import json
 
 from pydantic import root_validator
 
-from dbx.models.validators import mutually_exclusive
+from dbx.models.validators import mutually_exclusive, at_least_one_of
 from dbx.models.workflow.common.parameters import ParametersMixin, NamedParametersMixin
 
 
 class ExecuteParametersPayload(ParametersMixin, NamedParametersMixin):
     """Parameters for execute"""
 
-    _exclusive_check = root_validator(pre=True, allow_reuse=True)(
-        lambda _, values: mutually_exclusive(["parameters", "named_parameters"], values)
-    )
+    @root_validator(pre=True)
+    def _validate(cls, values):
+        at_least_one_of(["parameters", "named_parameters"], values)
+        mutually_exclusive(["parameters", "named_parameters"], values)
+        return values
 
     @staticmethod
     def from_json(raw: str) -> ExecuteParametersPayload:

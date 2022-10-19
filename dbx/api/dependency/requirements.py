@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, List
+from typing import List
 
 import pkg_resources
 
@@ -10,7 +10,7 @@ from dbx.utils import dbx_echo
 
 
 class RequirementsFileProcessor:
-    def __init__(self, requirements_file: Optional[Path]):
+    def __init__(self, requirements_file: Path):
         self._requirements_file = requirements_file
         self._libraries = self.parse_requirements()
 
