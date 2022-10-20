@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-from dbx.models.workflow.common.api_version import ApiVersionMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications
 
@@ -12,7 +11,7 @@ class CronSchedule(FlexibleModel):
     pause_status: str
 
 
-class WorkflowBase(FlexibleModel, ApiVersionMixin, ABC):
+class WorkflowBase(FlexibleModel, ABC):
     # common fields between 2.0 and 2.1
     name: str
     email_notifications: Optional[JobEmailNotifications]

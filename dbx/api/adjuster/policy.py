@@ -13,29 +13,11 @@ class Policy(FlexibleModel):
     policy_id: str
     name: str
     definition: str
-    description: str
+    description: Optional[str]
 
 
 class PoliciesResponse(FlexibleModel):
     policies: List[Policy]
-
-
-def _get_policy(policy_service: PolicyService, policy_name: Optional[str], policy_id: Optional[str]) -> Policy:
-    policy_name = policy_name if policy_name else policy_id.replace("cluster-policy://", "")
-    all_policies = PoliciesResponse(**policy_service.list_policies())
-    relevant_policy = list(filter(lambda p: p.name == policy_name, all_policies.policies))
-
-    if relevant_policy:
-        if len(relevant_policy) != 1:
-            raise ValueError(
-                f"More than one cluster policy with name {policy_name} found." f"Available policies are: {all_policies}"
-            )
-        return relevant_policy[0]
-
-    raise ValueError(
-        f"No cluster policies were fund under name {policy_name}."
-        f"Available policy names are: {[p.name for p in all_policies.policies]}"
-    )
 
 
 class PolicyAdjuster(ApiClientMixin):
@@ -51,12 +33,31 @@ class PolicyAdjuster(ApiClientMixin):
 
     def _adjust_policy_ref(self, cluster: NewCluster):
         policy_service = PolicyService(self.api_client)
-        policy = _get_policy(policy_service, cluster.policy_name, cluster.policy_id)
+        policy = self._get_policy(policy_service, cluster.policy_name, cluster.policy_id)
         traversed_policy = self._traverse_policy(policy_payload=json.loads(policy.definition))
         _updated_object = self._deep_update(cluster.dict(exclude_none=True), traversed_policy)
         _updated_object = NewCluster(**_updated_object)
         _updated_object.policy_id = policy.policy_id
         return _updated_object
+
+    @staticmethod
+    def _get_policy(policy_service: PolicyService, policy_name: Optional[str], policy_id: Optional[str]) -> Policy:
+        policy_name = policy_name if policy_name else policy_id.replace("cluster-policy://", "")
+        all_policies = PoliciesResponse(**policy_service.list_policies())
+        relevant_policy = list(filter(lambda p: p.name == policy_name, all_policies.policies))
+
+        if relevant_policy:
+            if len(relevant_policy) != 1:
+                raise ValueError(
+                    f"More than one cluster policy with name {policy_name} found."
+                    f"Available policies are: {all_policies}"
+                )
+            return relevant_policy[0]
+
+        raise ValueError(
+            f"No cluster policies were fund under name {policy_name}."
+            f"Available policy names are: {[p.name for p in all_policies.policies]}"
+        )
 
     @classmethod
     def _deep_update(cls, d: Dict, u: Mapping) -> Dict:
