@@ -68,12 +68,11 @@ class PolicyAdjuster(ApiClientMixin):
                 # if the key is already provided in deployment configuration, we need to verify the value
                 # if value exists, we verify that it's the same as in the policy
                 existing_value = d.get(k)
-                if existing_value:
-                    if existing_value != v:
-                        raise Exception(
-                            f"For key {k} there is a value in the cluster definition: {existing_value} \n"
-                            f"However this value is fixed in the policy and shall be equal to: {v}"
-                        )
+                if existing_value and existing_value != v:
+                    raise ValueError(
+                        f"For key {k} there is a value in the cluster definition: {existing_value} \n"
+                        f"However this value is fixed in the policy and shall be equal to: {v}"
+                    )
                 d[k] = v
         return d
 

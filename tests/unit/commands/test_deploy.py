@@ -2,7 +2,6 @@ import shutil
 from pathlib import Path
 from unittest.mock import Mock, MagicMock
 
-import mlflow
 import pytest
 import typer
 import yaml
@@ -101,11 +100,11 @@ def test_deploy_path_adjustment_json(
             ],
         )
         _content = JsonUtils.read(Path(".dbx/deployment-result.json"))
-        expected_prefix = mlflow.get_tracking_uri()
+        expected_prefix = "dbfs:/mocks/testing"
 
         assert _content["default"]["workflows"][0]["libraries"][0]["whl"].startswith(expected_prefix)
         assert _content["default"]["workflows"][0]["spark_python_task"]["python_file"].startswith(expected_prefix)
-        assert _content["default"]["workflows"][0]["spark_python_task"]["parameters"][0].startswith(expected_prefix)
+        assert _content["default"]["workflows"][0]["spark_python_task"]["parameters"][0].startswith("/dbfs/")
 
         assert deploy_result.exit_code == 0
 

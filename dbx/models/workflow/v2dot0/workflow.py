@@ -40,7 +40,7 @@ class Workflow(WorkflowBase, TaskMixin, AccessControlMixin):
         return values
 
     def get_task(self, task_key: str):
-        raise Exception("Provided workflow format is V2.0, and it doesn't support task format")
+        raise RuntimeError("Provided workflow format is V2.0, and it doesn't support task format")
 
     def override_standard_launch_parameters(self, payload: StandardRunPayload):
         pointer = getattr(self, self.task_type)

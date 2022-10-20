@@ -14,7 +14,6 @@ from databricks_cli.configure.provider import DatabricksConfig
 from pytest_mock import MockerFixture
 from typer.testing import CliRunner
 
-from dbx.api.adjuster._mixins import FileReferenceAdjuster
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.cli import app
@@ -128,19 +127,14 @@ def mlflow_fixture(session_mocker):
 @pytest.fixture(scope="function")
 def mlflow_file_uploader(mocker, mlflow_fixture):
     mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
-    from dbx.utils.file_uploader import MlflowFileUploader as Uploader
+    mocker.patch.object(MlflowFileUploader, "_upload_file", MagicMock())
 
-    original_upload_function = Uploader._upload_file
-    prefix_in_test_context = mlflow.get_tracking_uri().replace("file://", "")
+    def _mocked_processor(local_file_path: Path, as_fuse) -> str:
+        remote_path = "/".join(["dbfs:/mocks/testing", str(local_file_path.as_posix())])
+        remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
+        return remote_path
 
-    def _custom_uploader(file_path: Path):
-        if file_path.as_posix().startswith(prefix_in_test_context):
-            pass
-        else:
-            original_upload_function(file_path)
-
-    mocker.patch.object(MlflowFileUploader, "_upload_file", MagicMock(side_effect=_custom_uploader))
-    mocker.patch.object(MlflowFileUploader, "_verify_reference", MagicMock(side_effect=lambda el, path: print(path)))
+    mocker.patch.object(MlflowFileUploader, "_postprocess_path", MagicMock(side_effect=_mocked_processor))
 
 
 @pytest.fixture()
