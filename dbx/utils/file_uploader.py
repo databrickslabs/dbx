@@ -28,6 +28,11 @@ class AbstractFileUploader(ABC):
     def _postprocess_path(self, local_file_path: Path, as_fuse) -> str:
         remote_path = "/".join([self.base_uri, str(local_file_path.as_posix())])
         remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
+
+        if self.base_uri.startswith("wasbs://"):
+            remote_path = remote_path.replace("wasbs://", "abfss://")
+            remote_path = remote_path.replace(".blob.", ".dfs.")
+
         return remote_path
 
     @staticmethod

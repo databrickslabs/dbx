@@ -44,6 +44,7 @@ class ProjectInfo(BaseModel):
     environments: Dict[str, Union[EnvironmentInfo, LegacyEnvironmentInfo]]
     inplace_jinja_support: Optional[bool] = False
     failsafe_cluster_reuse_with_assets: Optional[bool] = False
+    context_based_upload_for_execute: Optional[bool] = False
 
     def get_environment(self, name: str) -> EnvironmentInfo:
         _env = self.environments.get(name)

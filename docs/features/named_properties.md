@@ -1,4 +1,4 @@
-# :material-rename-box: Named properties
+# :material-rename-box: Name-based properties referencing
 
 ## :material-cog-stop: Legacy approach
 
@@ -44,17 +44,18 @@ object-type://object-name
 
 The following references are supported:
 
-| Reference type (example)                  | Referencing target        | API Method used for reference resolution                                                                                           |
-|-------------------------------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| `instance-pool://`       | Instance Pools            | [ListInstancePools](https://docs.databricks.com/dev-tools/api/latest/instance-pools.html#list)                                     |
-| `instance-profile://` | Instance Profiles         | [ListInstanceProfiles](https://docs.databricks.com/dev-tools/api/latest/instance-profiles.html#list)                               |
-| `pipeline://`                | Delta Live Tables         | [ListPipelines](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-api-guide.html#list-pipelines)           |
-| `service-principal://`             | Service Principals        | [GetServicePrincipals (for workspaces)](https://docs.databricks.com/dev-tools/api/latest/scim/scim-sp.html#get-service-principals) |
-| `warehouse://`              | Databricks SQL Warehouses | [ListSqlWarehouses](https://docs.databricks.com/sql/api/sql-endpoints.html#list)                                                   |
-| `query://`                      | Databricks SQL Queries    | [GetSqlQueries](https://docs.databricks.com/sql/api/queries-dashboards.html#operation/sql-analytics-get-queries)                   |
-| `dashboard://`               | Databricks SQL Dashboards | [GetSqlDashboards](https://docs.databricks.com/sql/api/queries-dashboards.html#operation/get-sql-analytics-dashboards)             |
-| `alert://`                      | Databricks SQL Alerts     | [GetSqlAlerts](https://docs.databricks.com/sql/api/queries-dashboards.html#operation/databricks-sql-get-alerts)                    |
-| `cluster-policy://`            | Cluster Policies          | [ListClusterPolicies](https://docs.databricks.com/dev-tools/api/latest/policies.html#operation/list-cluster-policies)              |
+| Reference type (example)    | Referencing target        | API Method used for reference resolution                                                                                          |
+|-----------------------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `instance-pool://`          | Instance Pools            | [ListInstancePools](https://docs.databricks.com/dev-tools/api/latest/instance-pools.html#list)                                    |
+| `instance-profile://`       | Instance Profiles         | [ListInstanceProfiles](https://docs.databricks.com/dev-tools/api/latest/instance-profiles.html#list)                              |
+| `pipeline://`               | Delta Live Tables         | [ListPipelines](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-api-guide.html#list-pipelines)          |
+| `service-principal://`      | Service Principals        | [GetServicePrincipals (for workspaces)](https://docs.databricks.com/dev-tools/api/latest/scim/scim-sp.html#get-service-principals) |
+| `warehouse://`              | Databricks SQL Warehouses | [ListSqlWarehouses](https://docs.databricks.com/sql/api/sql-endpoints.html#list)                                                  |
+| `query://`                  | Databricks SQL Queries    | [GetSqlQueries](https://docs.databricks.com/sql/api/queries-dashboards.html#operation/sql-analytics-get-queries)                  |
+| `dashboard://`              | Databricks SQL Dashboards | [GetSqlDashboards](https://docs.databricks.com/sql/api/queries-dashboards.html#operation/get-sql-analytics-dashboards)            |
+| `alert://`                  | Databricks SQL Alerts     | [GetSqlAlerts](https://docs.databricks.com/sql/api/queries-dashboards.html#operation/databricks-sql-get-alerts)                   |
+| `cluster-policy://`         | Cluster Policies          | [ListClusterPolicies](https://docs.databricks.com/dev-tools/api/latest/policies.html#operation/list-cluster-policies)             |
+| `file://` or `file:fuse://` | Files                     | Please refer to the [file references documentation](./file_references.md)                                                         |
 
 We expect the provided object names to **unique**. If the name of the object is not unique, an error will be raised.
 

@@ -64,13 +64,28 @@ databricks --profile charming-aurora workspace ls /
 Now the preparation is done, let’s generate a project skeleton using [`dbx init`](../../reference/cli.md):
 
 ```bash
-dbx init -p \
-    "cicd_tool=GitHub Actions" \
+dbx init \
+    -p "cicd_tool=GitHub Actions" \
     -p "cloud=<your-cloud>" \
     -p "project_name=charming-aurora" \
     -p "profile=charming-aurora" \
     --no-input
 ```
+
+!!! warning "Choosing the artifact storage wisely"
+
+    Although for the quickstart we're using the standard `dbfs://`-based artifact location, it's **strictly recommended** to use
+    proper cloud-based storage for artifacts. Please read more in [this section](../../../features/file_references#artifact-storage-types).
+    To change the artifact location for this specific guide, add the following parameter to the command above:
+    ```bash
+    dbx init \
+    -p "cicd_tool=GitHub Actions" \
+    -p "cloud=<your-cloud>" \
+    -p "project_name=charming-aurora" \
+    -p "profile=charming-aurora" \
+    -p "artifact_location=<s3:// OR wasbs:// OR gs://>"
+    --no-input
+    ```
 
 Step into the newly generated folder:
 

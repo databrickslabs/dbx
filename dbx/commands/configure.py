@@ -47,6 +47,19 @@ def configure(
 
         Project file should exist, otherwise command will fail.""",
     ),
+    enable_context_based_upload_for_execute: bool = typer.Option(
+        False,
+        "--enable-context-based-upload-for-execute",
+        is_flag=True,
+        help="""
+        Enables failsafe behaviour for assets-based launches with definitions
+        that are based on shared job clusters feature.
+
+        This flag ignores any other flags.
+
+
+        Project file should exist, otherwise command will fail.""",
+    ),
 ):
     manager = ProjectConfigurationManager()
 
@@ -59,6 +72,11 @@ def configure(
         dbx_echo("Enabling failsafe cluster reuse with assets")
         manager.enable_failsafe_cluster_reuse()
         dbx_echo("✅ Enabling failsafe cluster reuse with assets")
+
+    elif enable_context_based_upload_for_execute:
+        dbx_echo("Enabling context-based upload for execute")
+        manager.enable_context_based_upload_for_execute()
+        dbx_echo("✅ Enabling context-based upload for execute")
 
     else:
         dbx_echo(f"Configuring new environment with name {environment}")

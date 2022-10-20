@@ -35,10 +35,12 @@ class ExecutionController:
         self._run = None
 
         if not self._upload_via_context:
+            dbx_echo("Context-based file uploader will be used")
+            self._file_uploader = ContextBasedUploader(self._client)
+        else:
+            dbx_echo("Mlflow-based file uploader will be used")
             self._run = mlflow.start_run()
             self._file_uploader = MlflowFileUploader(self._run.info.artifact_uri)
-        else:
-            self._file_uploader = ContextBasedUploader(self._client)
 
     def execute_entrypoint_file(self, _file: Path):
         dbx_echo("Starting entrypoint file execution")
@@ -75,7 +77,6 @@ class ExecutionController:
 
     def install_requirements_file(self):
         if not self._requirements_file.exists():
-
             raise Exception(f"Requirements file provided, but doesn't exist at path {self._requirements_file}")
 
         dbx_echo("Installing provided requirements")

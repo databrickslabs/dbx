@@ -67,6 +67,15 @@ class JsonFileBasedManager:
         _result = self._read_typed().failsafe_cluster_reuse_with_assets if self._file.exists() else False
         return _result
 
+    def enable_context_based_upload_for_execute(self):
+        _typed = self._read_typed()
+        _typed.context_based_upload_for_execute = True
+        JsonUtils.write(self._file, _typed.dict())
+
+    def get_context_based_upload_for_execute(self) -> bool:
+        _result = self._read_typed().context_based_upload_for_execute if self._file.exists() else False
+        return _result
+
 
 class ProjectConfigurationManager:
     def __init__(self):
@@ -92,3 +101,9 @@ class ProjectConfigurationManager:
 
     def get_failsafe_cluster_reuse(self) -> bool:
         return self._manager.get_failsafe_cluster_reuse()
+
+    def enable_context_based_upload_for_execute(self):
+        self._manager.enable_context_based_upload_for_execute()
+
+    def get_context_based_upload_for_execute(self) -> bool:
+        return self._manager.get_context_based_upload_for_execute()

@@ -5,6 +5,7 @@ import typer
 
 from dbx.api.cluster import ClusterController
 from dbx.api.config_reader import ConfigReader
+from dbx.api.configure import ProjectConfigurationManager
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.dependency.core_package import CorePackageManager
 from dbx.api.execute import ExecutionController
@@ -108,6 +109,12 @@ def execute(
     cluster_controller.awake_cluster()
 
     context_client = RichExecutionContextClient(api_client, cluster_id)
+
+    upload_via_context = (
+        upload_via_context
+        if upload_via_context
+        else ProjectConfigurationManager().get_context_based_upload_for_execute()
+    )
 
     execution_controller = ExecutionController(
         client=context_client,
