@@ -1,3 +1,4 @@
+import functools
 from typing import Any, List
 
 from databricks_cli.sdk import ApiClient
@@ -31,11 +32,11 @@ class ListServicePrincipals(FlexibleModel):
 class ServicePrincipalAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
-        self._principals = self._get_principals()
 
     def _adjust_service_principal_ref(self, element: str, parent: Any, index: Any):
         app_id = self._principals.get(element.replace("service-principal://", "")).application_id
         self.set_element_at_parent(app_id, parent, index)
 
-    def _get_principals(self) -> ListServicePrincipals:
+    @functools.cached_property
+    def _principals(self) -> ListServicePrincipals:
         return ListServicePrincipals(**self.api_client.perform_query("GET", path="/preview/scim/v2/ServicePrincipals"))

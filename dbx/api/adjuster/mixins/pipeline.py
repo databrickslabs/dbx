@@ -1,3 +1,4 @@
+import functools
 from typing import Any, List
 
 from databricks_cli.sdk import DeltaPipelinesService, ApiClient
@@ -31,10 +32,10 @@ class PipelineAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
         self._service = DeltaPipelinesService(api_client)
-        self._pipelines = self.get_pipelines()
         super().__init__(api_client)
 
-    def get_pipelines(self) -> ListPipelinesResponse:
+    @functools.cached_property
+    def _pipelines(self) -> ListPipelinesResponse:
         # TODO: add paginated calls
         return ListPipelinesResponse(**self._service.list())
 

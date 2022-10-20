@@ -1,3 +1,4 @@
+import functools
 from typing import Any, List
 
 from databricks_cli.sdk import ApiClient
@@ -71,7 +72,10 @@ class SqlPropertiesAdjuster(ApiClientMixin, ElementSetterMixin):
     # TODO: design of this class is a terrible copy-paste. It must be rewritten.
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
-        self._warehouses = WarehousesList(**self.api_client.perform_query("GET", path="/sql/warehouses/"))
+
+    @functools.cached_property
+    def _warehouses(self) -> WarehousesList:
+        return WarehousesList(**self.api_client.perform_query("GET", path="/sql/warehouses/"))
 
     def _adjust_warehouse_ref(self, element: str, parent: Any, index: Any):
         _id = self._warehouses.get(element.replace("warehouse://", "")).id

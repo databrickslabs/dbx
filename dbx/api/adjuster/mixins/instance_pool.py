@@ -1,3 +1,4 @@
+import functools
 from typing import Any, List, Optional
 
 from databricks_cli.sdk import InstancePoolService, ApiClient
@@ -30,9 +31,9 @@ class InstancePoolAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
         self._service = InstancePoolService(self.api_client)
-        self._instance_pools = self._get_pools()
 
-    def _get_pools(self) -> ListInstancePoolsResponse:
+    @functools.cached_property
+    def _instance_pools(self) -> ListInstancePoolsResponse:
         return ListInstancePoolsResponse(**self._service.list_instance_pools())
 
     def _adjust_legacy_driver_instance_pool_ref(self, element: NewCluster):

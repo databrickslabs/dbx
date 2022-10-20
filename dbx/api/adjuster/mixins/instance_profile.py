@@ -1,3 +1,4 @@
+import functools
 from typing import Optional, Any, List
 
 from databricks_cli.sdk import ApiClient
@@ -34,7 +35,6 @@ class ListInstancePoolsResponse(FlexibleModel):
 class InstanceProfileAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
-        self._instance_profiles = self._get_profiles()
 
     def _adjust_legacy_instance_profile_ref(self, element: NewCluster):
         _arn = self._instance_profiles.get(element.aws_attributes.instance_profile_name).instance_profile_arn
@@ -44,5 +44,6 @@ class InstanceProfileAdjuster(ApiClientMixin, ElementSetterMixin):
         _arn = self._instance_profiles.get(element.replace("instance-profile://", "")).instance_profile_arn
         self.set_element_at_parent(_arn, parent, index)
 
-    def _get_profiles(self) -> ListInstancePoolsResponse:
+    @functools.cached_property
+    def _instance_profiles(self) -> ListInstancePoolsResponse:
         return ListInstancePoolsResponse(**self.api_client.perform_query(method="GET", path="/instance-profiles/list"))

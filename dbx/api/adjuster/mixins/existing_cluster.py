@@ -1,3 +1,4 @@
+import functools
 from typing import Optional, List, Any
 
 from databricks_cli.sdk import ApiClient, ClusterService
@@ -32,7 +33,6 @@ class ExistingClusterAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
         self._service = ClusterService(self.api_client)
-        self._clusters = self._get_clusters()
 
     def _adjust_legacy_existing_cluster(self, element: V2dot0Workflow):
         element.existing_cluster_id = self._clusters.get_cluster(element.existing_cluster_name).cluster_id
@@ -41,5 +41,6 @@ class ExistingClusterAdjuster(ApiClientMixin, ElementSetterMixin):
         _id = self._clusters.get_cluster(element.replace("cluster://", "")).cluster_id
         self.set_element_at_parent(_id, parent, index)
 
-    def _get_clusters(self) -> ListClustersResponse:
+    @functools.cached_property
+    def _clusters(self) -> ListClustersResponse:
         return ListClustersResponse(**self._service.list_clusters())
