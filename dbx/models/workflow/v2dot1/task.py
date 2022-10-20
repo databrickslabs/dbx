@@ -55,7 +55,7 @@ class SqlTask(FlexibleModel):
 class DbtTask(FlexibleModel):
     project_directory: Optional[str]
     commands: List[str]
-    _schema: Field(alias="schema")  # noqa
+    _schema: str = Field(alias="schema")  # noqa
     warehouse_id: str
     profiles_directory: Optional[str]
 

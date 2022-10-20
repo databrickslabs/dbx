@@ -38,6 +38,8 @@ class NewCluster(FlexibleModel):
     autoscale: Optional[AutoScale]
     instance_pool_name: Optional[str]
     driver_instance_pool_name: Optional[str]
+    driver_instance_pool_id: Optional[str]
+    instance_pool_id: Optional[str]
     aws_attributes: Optional[AwsAttributes]
     policy_name: Optional[str]
     policy_id: Optional[str]

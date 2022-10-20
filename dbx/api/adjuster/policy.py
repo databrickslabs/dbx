@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Tuple, Union, Optional
 
 from databricks_cli.cluster_policies.api import PolicyService
 
-from dbx.api.adjuster._mixins import ApiClientMixin
+from dbx.api.adjuster.mixins.base import ApiClientMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
 

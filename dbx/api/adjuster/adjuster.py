@@ -1,19 +1,15 @@
 from typing import Any, Optional, Union, List
 
+from databricks_cli.sdk import ApiClient
 from pydantic import BaseModel
 
-from dbx.api.adjuster._mixins import (
-    InstancePoolAdjuster,
-    ExistingClusterAdjuster,
-    InstanceProfileAdjuster,
-    FileReferenceAdjuster,
-    PipelineAdjuster,
-    ServicePrincipalAdjuster,
-    WarehouseAdjuster,
-    QueryAdjuster,
-    DashboardAdjuster,
-    AlertAdjuster,
-)
+from dbx.api.adjuster.mixins.service_principal import ServicePrincipalAdjuster
+from dbx.api.adjuster.mixins.sql_properties import SqlPropertiesAdjuster
+from dbx.api.adjuster.mixins.pipeline import PipelineAdjuster
+from dbx.api.adjuster.mixins.instance_profile import InstanceProfileAdjuster
+from dbx.api.adjuster.mixins.file_reference import FileReferenceAdjuster
+from dbx.api.adjuster.mixins.existing_cluster import ExistingClusterAdjuster
+from dbx.api.adjuster.mixins.instance_pool import InstancePoolAdjuster
 from dbx.api.adjuster.policy import PolicyAdjuster
 from dbx.models.deployment import WorkflowList
 from dbx.models.workflow.common.flexible import FlexibleModel
@@ -22,39 +18,32 @@ from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
+from dbx.utils.file_uploader import AbstractFileUploader
 
 
-class Adjuster(
+class PropertyAdjuster(
     InstancePoolAdjuster,
     ExistingClusterAdjuster,
     InstanceProfileAdjuster,
-    FileReferenceAdjuster,
     PipelineAdjuster,
     ServicePrincipalAdjuster,
-    WarehouseAdjuster,
-    QueryAdjuster,
-    DashboardAdjuster,
-    AlertAdjuster,
+    SqlPropertiesAdjuster,
     PolicyAdjuster,
 ):
-    def __init__(self, additional_libraries: List[Library], **kwargs):
-        self.additional_libraries = additional_libraries
-        super().__init__(**kwargs)
-
-    def _traverse(self, _object: Any, parent: Optional[Any] = None, index_in_parent: Optional[Any] = None):
+    def traverse(self, _object: Any, parent: Optional[Any] = None, index_in_parent: Optional[Any] = None):
 
         # if element is a dictionary, simply continue traversing
         if isinstance(_object, dict):
             for key, item in _object.items():
                 yield item, _object, key
-                for _out in self._traverse(item, _object, index_in_parent):
+                for _out in self.traverse(item, _object, index_in_parent):
                     yield _out
 
         # if element is a list, simply continue traversing
         elif isinstance(_object, list):
             for idx, sub_item in enumerate(_object):
                 yield sub_item, _object, idx
-                for _out in self._traverse(sub_item, _object, idx):
+                for _out in self.traverse(sub_item, _object, idx):
                     yield _out
 
         # process any other kind of nested references
@@ -62,21 +51,21 @@ class Adjuster(
             for key, sub_element in _object.__dict__.items():
                 if sub_element is not None:
                     yield sub_element, _object, key
-                    for _out in self._traverse(sub_element, _object, key):
+                    for _out in self.traverse(sub_element, _object, key):
                         yield _out
         else:
             # yield the low-level objects
             yield _object, parent, index_in_parent
 
-    def _library_traverse(self, workflows: WorkflowList):
+    def library_traverse(self, workflows: WorkflowList, additional_libraries: List[Library]):
 
-        for element, parent, index in self._traverse(workflows):
+        for element, parent, index in self.traverse(workflows):
             print(element, parent, index)
             if isinstance(element, V2dot1Workflow):
                 # core package provisioning for V2.1 API
-                if self.additional_libraries:
+                if additional_libraries:
                     for task in element.tasks:
-                        task.libraries += self.additional_libraries
+                        task.libraries += additional_libraries
 
             if isinstance(element, V2dot0Workflow):
                 # legacy named conversion
@@ -85,8 +74,8 @@ class Adjuster(
                     self._adjust_legacy_existing_cluster(element)
 
                 # core package provisioning for V2.0 API
-                if self.additional_libraries:
-                    element.libraries += self.additional_libraries
+                if additional_libraries:
+                    element.libraries += additional_libraries
 
     def _new_cluster_handler(self, element: NewCluster):
         # driver_instance_pool_name -> driver_instance_pool_id
@@ -99,20 +88,21 @@ class Adjuster(
         if element.aws_attributes is not None and element.aws_attributes.instance_profile_name is not None:
             self._adjust_legacy_instance_profile_ref(element)
 
-    def _main_traverse(self, workflows: WorkflowList):
+    def property_traverse(self, workflows: WorkflowList):
         """
         This traverse applies all the transformations to the workflows
         :param workflows:
         :return: None
         """
-        for element, parent, index in self._traverse(workflows):
+        for element, parent, index in self.traverse(workflows):
 
             if isinstance(element, NewCluster):
                 self._new_cluster_handler(element)
 
             if isinstance(element, str):
-                if element.startswith("file://") or element.startswith("file:fuse://"):
-                    self._adjust_file_ref(element, parent, index)
+
+                if element.startswith("cluster://"):
+                    self._adjust_existing_cluster_ref(element, parent, index)
 
                 elif element.startswith("instance-profile://"):
                     self._adjust_instance_profile_ref(element, parent, index)
@@ -138,7 +128,7 @@ class Adjuster(
                 elif element.startswith("alert://"):
                     self._adjust_alert_ref(element, parent, index)
 
-    def _cluster_policy_traverse(self, workflows: WorkflowList):
+    def cluster_policy_traverse(self, workflows: WorkflowList):
         """
         This traverse applies only the policy_name OR policy_id traverse.
         Please note that this traverse should go STRICTLY after all other rules,
@@ -146,7 +136,7 @@ class Adjuster(
         :param workflows:
         :return: None
         """
-        for element, parent, _ in self._traverse(workflows):
+        for element, parent, _ in self.traverse(workflows):
             if isinstance(parent, (V2dot0Workflow, JobTaskSettings)) and isinstance(element, NewCluster):
                 if element.policy_name is not None or (
                     isinstance(element, NewCluster)
@@ -156,7 +146,28 @@ class Adjuster(
                     element = self._adjust_policy_ref(element)
                 parent.new_cluster = element
 
+    def file_traverse(self, workflows, file_adjuster: FileReferenceAdjuster):
+        for element, parent, index in self.traverse(workflows):
+            if isinstance(element, str):
+                if element.startswith("file://") or element.startswith("file:fuse://"):
+                    file_adjuster.adjust_file_ref(element, parent, index)
+
+
+class Adjuster:
+    def __init__(
+        self,
+        additional_libraries: List[Library],
+        no_package: bool,
+        file_uploader: AbstractFileUploader,
+        api_client: ApiClient,
+    ):
+        self.property_adjuster = PropertyAdjuster(api_client=api_client)
+        self.file_adjuster = FileReferenceAdjuster(file_uploader)
+        self.global_no_package = no_package
+        self.additional_libraries = additional_libraries
+
     def traverse(self, workflows: Union[WorkflowList, List[str]]):
-        self._library_traverse(workflows)
-        self._main_traverse(workflows)
-        self._cluster_policy_traverse(workflows)
+        self.property_adjuster.library_traverse(workflows, self.additional_libraries)
+        self.property_adjuster.file_traverse(workflows, self.file_adjuster)
+        self.property_adjuster.property_traverse(workflows)
+        self.property_adjuster.cluster_policy_traverse(workflows)

@@ -192,7 +192,7 @@ class RemoteSyncer:
                 async def task(p):
                     # Files can be created in parallel, but we limit how many are opened at a time
                     # so we don't use memory excessively.
-                    async with sem:
+                    async with sem:  # noqa
                         await self.client.put(get_relative_path(self.source, p), p, session=session)
 
                 tasks.append(task(path))
