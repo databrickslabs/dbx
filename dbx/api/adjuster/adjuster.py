@@ -67,11 +67,16 @@ class PropertyAdjuster(
     def _preprocess_libraries(
         element: Union[JobTaskSettings, V2dot0Workflow], additional_libraries: AdditionalLibrariesProvider
     ):
+        _element_string = (
+            f"workflow {element.name}" if isinstance(element, V2dot0Workflow) else f"task {element.task_key}"
+        )
+        dbx_echo(f"Processing libraries for {_element_string}")
         element.libraries += additional_libraries.libraries_from_requirements
         if additional_libraries.no_package or (element.deployment_config and element.deployment_config.no_package):
             pass
         else:
             element.libraries += [additional_libraries.core_package] if additional_libraries.core_package else []
+        dbx_echo(f"✅ Processing libraries for {_element_string} - done")
 
     def library_traverse(self, workflows: WorkflowList, additional_libraries: AdditionalLibrariesProvider):
 

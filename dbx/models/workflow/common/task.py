@@ -83,17 +83,16 @@ class BaseTaskMixin(FlexibleModel):
 
     def check_if_supported_in_execute(self):
         if self.task_type not in TASKS_SUPPORTED_IN_EXECUTE:
-            raise Exception(
+            raise RuntimeError(
                 f"Provided task type {self.task_type} is not supported in execute mode. "
                 f"Supported types are: {TASKS_SUPPORTED_IN_EXECUTE}"
             )
 
     def override_execute_parameters(self, payload: ExecuteParametersPayload):
-        if isinstance(payload, ExecuteParametersPayload):
-            if payload.named_parameters and self.task_type == TaskType.spark_python_task:
-                raise ValueError(
-                    "`named_parameters` are not supported by spark_python_task. Please use `parameters` instead."
-                )
+        if payload.named_parameters and self.task_type == TaskType.spark_python_task:
+            raise ValueError(
+                "`named_parameters` are not supported by spark_python_task. Please use `parameters` instead."
+            )
 
-            pointer = getattr(self, self.task_type)
-            pointer.__dict__.update(payload.dict(exclude_none=True))
+        pointer = getattr(self, self.task_type)
+        pointer.__dict__.update(payload.dict(exclude_none=True))

@@ -6,6 +6,7 @@ from pydantic import Field
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
+from dbx.utils import dbx_echo
 
 
 class ResourceInfo(FlexibleModel):
@@ -25,7 +26,7 @@ class ListServicePrincipals(FlexibleModel):
         assert _found, NameError(
             f"No service principals with name {name} were found, available objects are {self.names}"
         )
-        assert _found == 1, NameError(f"More than one service principal with name {name} was found: {_found}")
+        assert len(_found) == 1, NameError(f"More than one service principal with name {name} was found: {_found}")
         return _found[0]
 
 
@@ -34,8 +35,10 @@ class ServicePrincipalAdjuster(ApiClientMixin, ElementSetterMixin):
         super().__init__(api_client)
 
     def _adjust_service_principal_ref(self, element: str, parent: Any, index: Any):
+        dbx_echo(f"⏳ Processing reference {element}")
         app_id = self._principals.get(element.replace("service-principal://", "")).application_id
         self.set_element_at_parent(app_id, parent, index)
+        dbx_echo(f"✅ Processing reference {element} - done")
 
     @functools.cached_property
     def _principals(self) -> ListServicePrincipals:

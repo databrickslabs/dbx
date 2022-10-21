@@ -4,6 +4,7 @@
 
 - The interface for `--parameters` passing has been changed. Please check the [doc dedicated to parameter passing](./guides/general/passing_parameters.md).
 - `dbx deploy --write-specs-to-file` now generates a JSON payload which is `workflows` based (not `jobs`).
+- The `permissions` section is **not processed** anymore in the workflow definitions. Simply delete the `permissions` section and replace it with `access_control_list`.
 
 ## From 0.6.0 and earlier to 0.7.0
 

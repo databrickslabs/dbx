@@ -143,21 +143,21 @@ def deploy(
         adjuster.traverse(deployable_workflows)
 
         if not _assets_only:
-            dbx_echo("Updating job definitions")
+            dbx_echo("🤖 Updating workflow definitions via API")
             deployment_data = _create_workflows(deployable_workflows, api_client)
             _log_dbx_file(deployment_data, "deployments.json")
 
             for workflow in deployable_workflows:
-                if workflow.access_control_list or workflow.permissions:
-                    dbx_echo(f"Applying permission settings for workflow {workflow.name}")
+                if workflow.access_control_list:
+                    dbx_echo(f"🛂 Applying permission settings for workflow {workflow.name}")
                     api_client.perform_query(
                         "PUT",
                         f"/permissions/jobs/{workflow.job_id}",
                         data=workflow.get_acl_payload(),
                     )
-                    dbx_echo(f"Permission settings were successfully set for workflow {workflow.name}")
+                    dbx_echo(f"✅ Permission settings were successfully set for workflow {workflow.name}")
 
-            dbx_echo("Updating workflow definitions - done")
+            dbx_echo("✅ Updating workflow definitions - done")
 
         deployment_tags = {
             "dbx_action_type": "deploy",

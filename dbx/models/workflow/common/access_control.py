@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional, List, Dict, Any
 
-from pydantic import root_validator, validator, BaseModel
+from pydantic import root_validator, validator
 
 from dbx.models.validators import at_least_one_of
 from dbx.models.workflow.common.flexible import FlexibleModel
@@ -24,28 +24,17 @@ class AccessControlRequest(FlexibleModel):
     )
 
 
-class PermissionsAclStructure(BaseModel):
-    access_control_list: Optional[List[AccessControlRequest]]
-
-
 class AccessControlMixin(FlexibleModel):
     access_control_list: Optional[List[AccessControlRequest]]
-    permissions: Optional[PermissionsAclStructure]
 
     @validator("access_control_list")
-    def owner_is_provided(cls, acls: Optional[List[AccessControlRequest]]):  # noqa
-        if acls:
-            owner_info = [o for o in acls if o.permission_level == PermissionLevel.IS_OWNER]
-            if len(owner_info) > 1 or not owner_info:
-                raise ValueError(
-                    f"""
-                        Workflow should only have one owner, provided: {[o.dict() for o in owner_info]}
-                    """
-                )
-            return acls
+    def owner_is_provided(cls, acls: List[AccessControlRequest]):  # noqa
+        owner_info = [o for o in acls if o.permission_level == PermissionLevel.IS_OWNER]
+        if not owner_info:
+            raise ValueError("At least one owner (IS_OWNER) should be provided in the access control list")
+        if len(owner_info) > 1:
+            raise ValueError("Only one owner should be provided in the access control list")
+        return acls
 
     def get_acl_payload(self) -> Dict[str, Any]:
-        if self.access_control_list:
-            return self.dict(exclude_none=True)
-        elif self.permissions:
-            return self.permissions.dict(exclude_none=True)
+        return self.dict(exclude_none=True)

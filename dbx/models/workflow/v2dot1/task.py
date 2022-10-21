@@ -61,7 +61,6 @@ class DbtTask(FlexibleModel):
     _schema: str = Field(alias="schema")  # noqa
     warehouse_id: str
 
-
     _verify_dbt_commands = validator("commands", allow_reuse=True)(check_dbt_commands)
 
 
