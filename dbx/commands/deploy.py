@@ -11,7 +11,7 @@ from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
 from requests.exceptions import HTTPError
 
-from dbx.api.adjuster.adjuster import Adjuster
+from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
 from dbx.api.config_reader import ConfigReader
 from dbx.api.dependency.core_package import CorePackageManager
 from dbx.api.dependency.requirements import RequirementsFileProcessor
@@ -126,7 +126,6 @@ def deploy(
 
     core_package = None if config.build.no_build else CorePackageManager(build_config=config.build).core_package
     libraries_from_requirements = RequirementsFileProcessor(requirements_file).libraries if requirements_file else []
-    additional_libraries = libraries_from_requirements + [core_package] if core_package else libraries_from_requirements
 
     _assets_only = assets_only if assets_only else files_only
 
@@ -135,8 +134,11 @@ def deploy(
         adjuster = Adjuster(
             api_client=api_client,
             file_uploader=MlflowFileUploader(deployment_run.info.artifact_uri),
-            no_package=no_package,
-            additional_libraries=additional_libraries,
+            additional_libraries=AdditionalLibrariesProvider(
+                no_package=no_package,
+                core_package=core_package,
+                libraries_from_requirements=libraries_from_requirements,
+            ),
         )
         adjuster.traverse(deployable_workflows)
 
@@ -147,15 +149,15 @@ def deploy(
 
             for workflow in deployable_workflows:
                 if workflow.access_control_list or workflow.permissions:
-                    dbx_echo(f"Permission settings are provided for workflow {workflow.name}, applying")
+                    dbx_echo(f"Applying permission settings for workflow {workflow.name}")
                     api_client.perform_query(
                         "PUT",
                         f"/permissions/jobs/{workflow.job_id}",
                         data=workflow.get_acl_payload(),
                     )
-                    dbx_echo(f"Permission settings were successfully set for job {job_name}")
+                    dbx_echo(f"Permission settings were successfully set for workflow {workflow.name}")
 
-            dbx_echo("Updating job definitions - done")
+            dbx_echo("Updating workflow definitions - done")
 
         deployment_tags = {
             "dbx_action_type": "deploy",

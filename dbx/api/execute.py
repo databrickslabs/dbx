@@ -4,7 +4,7 @@ from typing import Optional, List
 import mlflow
 from rich.console import Console
 
-from dbx.api.adjuster.adjuster import Adjuster
+from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
 from dbx.api.context import RichExecutionContextClient
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.task_type import TaskType
@@ -25,10 +25,9 @@ class ExecutionController:
         task: ExecuteTask,
         pip_install_extras: Optional[str],
     ):
+        self.additional_libraries = AdditionalLibrariesProvider(no_package=no_package, core_package=core_package)
         self._client = client
         self._requirements_file = requirements_file
-        self._no_package = no_package
-        self._core_package = core_package
         self._task = task
         self._upload_via_context = upload_via_context
         self._pip_install_extras = pip_install_extras
@@ -58,7 +57,7 @@ class ExecutionController:
         if self._requirements_file:
             self.install_requirements_file()
 
-        if not self._no_package:
+        if not self.additional_libraries.no_package:
             self.install_package(self._pip_install_extras)
 
         if self._task.task_type == TaskType.spark_python_task:
@@ -88,10 +87,10 @@ class ExecutionController:
         dbx_echo("Provided requirements installed")
 
     def install_package(self, pip_install_extras: Optional[str]):
-        if not self._core_package:
+        if not self.additional_libraries.core_package:
             raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
         dbx_echo("Uploading package")
-        driver_package_path = self._file_uploader.upload_and_provide_path(self._core_package.whl)
+        driver_package_path = self._file_uploader.upload_and_provide_path(self.additional_libraries.core_package.whl)
         dbx_echo(":white_check_mark: Uploading package - done")
 
         with Console().status("Installing package on the cluster 📦", spinner="dots"):
@@ -104,8 +103,7 @@ class ExecutionController:
 
         Adjuster(
             api_client=self._client.api_client,
-            no_package=self._no_package,
-            additional_libraries=[],
+            additional_libraries=self.additional_libraries,
             file_uploader=self._file_uploader,
         ).traverse(parameters)
 

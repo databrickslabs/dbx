@@ -2,6 +2,7 @@
 
 Deployment file is one of the most important files for `dbx` functionality.
 
+## :material-format-columns: File format options
 It contains workflows definitions, as well as `build` configurations.
 
 The following file extensions are supported:
@@ -14,8 +15,9 @@ The following file extensions are supported:
 By default `dbx` commands will search for a `deployment.*` file in the `conf` directory of the project.
 Alternatively, all commands that require a deployment file support passing it explicitly via `--deployment-file` option.
 
+## :material-page-layout-header-footer: Layout
 
-Typical layout of this file looks like this:
+Typical layout of the deployment file looks like this:
 
 ```yaml title="conf/deployment.yml"
 
@@ -45,41 +47,64 @@ environments: #(2)
     As the project file, deployment file supports multiple environments.
     You can configure them by naming new environments under the `environments` section.
 
-The `workflows` section of the deployment file fully follows the [Databricks Jobs API structures](https://docs.databricks.com/dev-tools/api/latest/jobs.html).
+The `workflows` section of the deployment file fully follows the [Databricks Jobs API structures](https://docs.databricks.com/dev-tools/api/latest/jobs.html) with features described in [this section](../features/assets.md).
 
 ## :material-package-up: Advanced package dependency management
-
 
 By default `dbx` is heavily oriented towards Python package-based projects. However, for pure Notebook or JVM projects this might be not necessary.
 
 Therefore, to disable the default behaviour of `dbx` which tries to add the Python package dependency, use the `deployment_config` section inside the task definition:
 
-```yaml title="conf/deployment.yml" hl_lines="12-13"
-# some code omitted
-environments:
-  default:
-    workflows:
-      - name: "workflow1"
-        tasks:
-          - task_key: "task1"
-            python_wheel_task: #(1)
-              package_name: "some-pkg"
-              entry_point: "some-ep"
-          - task_key: "task2" #(2)
-            deployment_config:
-                no_package: true
-            notebook_task:
-                notebook_path: "/some/notebook/path"
-```
+=== "Latest - Jobs API :material-surround-sound-2-1:"
 
-1. Standard Python package-based payload, the python wheel dependency will be added by default
-2. In the notebook task, the Python package is not required since code is delivered together with the Notebook.
-   Therefore, we disable this behaviour by providing this property.
+    ```yaml title="conf/deployment.yml" hl_lines="12-13"
+      # some code omitted
+      environments:
+        default:
+          workflows:
+            - name: "workflow1"
+              tasks:
+                - task_key: "task1"
+                  python_wheel_task: #(1)
+                    package_name: "some-pkg"
+                    entry_point: "some-ep"
+                - task_key: "task2" #(2)
+                  deployment_config:
+                      no_package: true
+                  notebook_task:
+                      notebook_path: "/some/notebook/path"
+    ```
+
+    1. Standard Python package-based payload, the python wheel dependency will be added by default
+    2. In the notebook task, the Python package is not required since code is delivered together with the Notebook.
+       Therefore, we disable this behaviour by providing this property.
+
+=== "Legacy - Jobs API :material-surround-sound-2-0:"
+
+    ```yaml title="conf/deployment.yml" hl_lines="10-11"
+      # some code omitted
+      environments:
+        default:
+          workflows:
+            - name: "wheel-workflow"
+              python_wheel_task: #(1)
+                package_name: "some-pkg"
+                entry_point: "some-ep"
+            - name: "notebook-workflow" #(2)
+              deployment_config:
+                no_package: true
+              notebook_task:
+                notebook_path: "/some/notebook/path"
+    ```
+
+    1. Standard Python package-based payload, the python wheel dependency will be added by default
+    2. In the notebook task, the Python package is not required since code is delivered together with the Notebook.
+       Therefore, we disable this behaviour by providing this property.
 
 ## :material-folder-star-multiple: Examples
 
 This section contains various examples of the deployment file for various cases.
-Most of the examples below use inplace Jinja functionality which is [described here](../features/jinja_support.md#enable-inplace-jinja)
+Most of the examples below use inplace Jinja functionality which is [described here](../features/jinja_support.md#enable-inplace-jinja).
 
 ### :material-tag-plus: Tagging workflows
 
@@ -150,6 +175,22 @@ custom:
       - dbfs:
         destination: dbfs:/<enter your path>
 
+```
+
+### :material-dots-hexagon: Managing the workflow as a service principal
+
+This example uses the [named reference feature](../features/named_properties.md#reference-based-approach):
+
+```yaml title="conf/deployment.yml" hl_lines="5-7"
+environments:
+  default:
+    workflows:
+      - name: "example-workflow"
+        access_control_list:
+         - user_name: "service-principal://some-service-principal-name"
+           permission_level: "IS_OWNER"
+         - user_name: "some-real-user@email.com"
+           permission_level: "CAN_MANAGE"
 ```
 
 ### :material-code-array: Configuring complex deployments

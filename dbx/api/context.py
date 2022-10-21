@@ -76,7 +76,7 @@ class LowLevelExecutionContextClient:
             if verbose:
                 dbx_echo("Command successfully executed")
                 if result_data:
-                    print(result_data)
+                    dbx_echo(result_data)
 
             return result_data
 

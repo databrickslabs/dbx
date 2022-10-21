@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+from dbx.models.workflow.common.deployment_config import DbxDeploymentConfig
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
@@ -24,3 +25,4 @@ class JobTaskSettings(TaskMixin):
     max_retries: Optional[int]
     min_retry_interval_millis: Optional[int]
     retry_on_timeout: Optional[bool]
+    deployment_config: Optional[DbxDeploymentConfig]

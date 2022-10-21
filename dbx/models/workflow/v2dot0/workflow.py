@@ -3,6 +3,7 @@ from typing import Optional, List, Union
 from pydantic import root_validator, validator
 
 from dbx.models.workflow.common.access_control import AccessControlMixin
+from dbx.models.workflow.common.deployment_config import DbxDeploymentConfig
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask
@@ -20,10 +21,11 @@ class Workflow(WorkflowBase, TaskMixin, AccessControlMixin):
     existing_cluster_id: Optional[str]
     existing_cluster_name: Optional[str]  # deprecated field
     new_cluster: Optional[NewCluster]
-    libraries: Optional[List[Library]] = []
+    libraries: Optional[List[Library]]
     max_retries: Optional[int]
     min_retry_interval_millis: Optional[int]
     retry_on_timeout: Optional[bool]
+    deployment_config: Optional[DbxDeploymentConfig]
 
     @validator("existing_cluster_name")
     def _deprecated(cls, value):  # noqa

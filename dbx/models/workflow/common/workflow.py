@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
+from dbx.models.workflow.common.deployment_config import DbxDeploymentConfig
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications
 

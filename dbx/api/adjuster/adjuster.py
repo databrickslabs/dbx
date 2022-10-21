@@ -3,13 +3,13 @@ from typing import Any, Optional, Union, List
 from databricks_cli.sdk import ApiClient
 from pydantic import BaseModel
 
+from dbx.api.adjuster.mixins.existing_cluster import ExistingClusterAdjuster
+from dbx.api.adjuster.mixins.file_reference import FileReferenceAdjuster
+from dbx.api.adjuster.mixins.instance_pool import InstancePoolAdjuster
+from dbx.api.adjuster.mixins.instance_profile import InstanceProfileAdjuster
+from dbx.api.adjuster.mixins.pipeline import PipelineAdjuster
 from dbx.api.adjuster.mixins.service_principal import ServicePrincipalAdjuster
 from dbx.api.adjuster.mixins.sql_properties import SqlPropertiesAdjuster
-from dbx.api.adjuster.mixins.pipeline import PipelineAdjuster
-from dbx.api.adjuster.mixins.instance_profile import InstanceProfileAdjuster
-from dbx.api.adjuster.mixins.file_reference import FileReferenceAdjuster
-from dbx.api.adjuster.mixins.existing_cluster import ExistingClusterAdjuster
-from dbx.api.adjuster.mixins.instance_pool import InstancePoolAdjuster
 from dbx.api.adjuster.policy import PolicyAdjuster
 from dbx.models.deployment import WorkflowList
 from dbx.models.workflow.common.flexible import FlexibleModel
@@ -17,8 +17,14 @@ from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
-from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
+from dbx.utils import dbx_echo
 from dbx.utils.file_uploader import AbstractFileUploader
+
+
+class AdditionalLibrariesProvider(FlexibleModel):
+    no_package: bool
+    core_package: Optional[Library]
+    libraries_from_requirements: Optional[List[Library]] = []
 
 
 class PropertyAdjuster(
@@ -57,25 +63,22 @@ class PropertyAdjuster(
             # yield the low-level objects
             yield _object, parent, index_in_parent
 
-    def library_traverse(self, workflows: WorkflowList, additional_libraries: List[Library]):
+    @staticmethod
+    def _preprocess_libraries(
+        element: Union[JobTaskSettings, V2dot0Workflow], additional_libraries: AdditionalLibrariesProvider
+    ):
+        element.libraries += additional_libraries.libraries_from_requirements
+        if additional_libraries.no_package or (element.deployment_config and element.deployment_config.no_package):
+            pass
+        else:
+            element.libraries += [additional_libraries.core_package] if additional_libraries.core_package else []
+
+    def library_traverse(self, workflows: WorkflowList, additional_libraries: AdditionalLibrariesProvider):
 
         for element, parent, index in self.traverse(workflows):
-            print(element, parent, index)
-            if isinstance(element, V2dot1Workflow):
-                # core package provisioning for V2.1 API
-                if additional_libraries:
-                    for task in element.tasks:
-                        task.libraries += additional_libraries
 
-            if isinstance(element, V2dot0Workflow):
-                # legacy named conversion
-                # existing_cluster_name -> existing_cluster_id
-                if element.existing_cluster_name is not None:
-                    self._adjust_legacy_existing_cluster(element)
-
-                # core package provisioning for V2.0 API
-                if additional_libraries:
-                    element.libraries += additional_libraries
+            if isinstance(element, (V2dot0Workflow, JobTaskSettings)):
+                self._preprocess_libraries(element, additional_libraries)
 
     def _new_cluster_handler(self, element: NewCluster):
         # driver_instance_pool_name -> driver_instance_pool_id
@@ -95,6 +98,12 @@ class PropertyAdjuster(
         :return: None
         """
         for element, parent, index in self.traverse(workflows):
+
+            if isinstance(element, V2dot0Workflow):
+                # legacy named conversion
+                # existing_cluster_name -> existing_cluster_id
+                if element.existing_cluster_name is not None:
+                    self._adjust_legacy_existing_cluster(element)
 
             if isinstance(element, NewCluster):
                 self._new_cluster_handler(element)
@@ -156,18 +165,18 @@ class PropertyAdjuster(
 class Adjuster:
     def __init__(
         self,
-        additional_libraries: List[Library],
-        no_package: bool,
+        additional_libraries: AdditionalLibrariesProvider,
         file_uploader: AbstractFileUploader,
         api_client: ApiClient,
     ):
         self.property_adjuster = PropertyAdjuster(api_client=api_client)
         self.file_adjuster = FileReferenceAdjuster(file_uploader)
-        self.global_no_package = no_package
         self.additional_libraries = additional_libraries
 
     def traverse(self, workflows: Union[WorkflowList, List[str]]):
+        dbx_echo("Starting the traversal process")
         self.property_adjuster.library_traverse(workflows, self.additional_libraries)
         self.property_adjuster.file_traverse(workflows, self.file_adjuster)
         self.property_adjuster.property_traverse(workflows)
         self.property_adjuster.cluster_policy_traverse(workflows)
+        dbx_echo("Traversal process finished, all provided references were resolved")

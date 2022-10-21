@@ -18,7 +18,7 @@ class PythonBuild(str, Enum):
 
 class BuildConfiguration(BaseModel):
     no_build: Optional[bool] = False
-    commands: Optional[List[str]] = []
+    commands: Optional[List[str]]
     python: Optional[PythonBuild] = PythonBuild.pip
 
     def trigger_build_process(self):
