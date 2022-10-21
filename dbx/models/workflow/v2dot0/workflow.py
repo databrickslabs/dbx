@@ -9,7 +9,7 @@ from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.common.workflow import WorkflowBase
-from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload, StandardRunPayload
+from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload
 from dbx.models.workflow.v2dot0.task import TaskMixin, NotebookTask
 
 ALLOWED_TASK_TYPES = Union[SparkPythonTask, NotebookTask, SparkJarTask, SparkSubmitTask]
@@ -42,11 +42,7 @@ class Workflow(WorkflowBase, TaskMixin, AccessControlMixin):
         return values
 
     def get_task(self, task_key: str):
-        raise RuntimeError("Provided workflow format is V2.0, and it doesn't support task format")
-
-    def override_standard_launch_parameters(self, payload: StandardRunPayload):
-        pointer = getattr(self, self.task_type)
-        pointer.__dict__.update(payload.dict(exclude_none=True))
+        raise RuntimeError("Provided workflow format is V2.0, and it doesn't support tasks")
 
     def override_asset_based_launch_parameters(self, payload: AssetBasedRunPayload):
         if self.task_type == TaskType.notebook_task:

@@ -48,3 +48,5 @@ class BuildConfiguration(BaseModel):
             with Console().status("Building the package :hammer:", spinner="dots"):
                 execute_shell_command(**build_kwargs)
             dbx_echo(":white_check_mark: Python-based project build finished")
+        else:
+            dbx_echo("Neither commands nor python building configuration was provided, skipping the build stage")

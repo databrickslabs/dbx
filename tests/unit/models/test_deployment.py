@@ -1,7 +1,7 @@
 import pytest
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo
+from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo, WorkflowListMixin
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 
@@ -54,3 +54,19 @@ def test_legacy_build_conflict():
     with pytest.raises(ValueError) as exc_info:
         DeploymentConfig.from_legacy_json_payload({"build": {"some": "value"}})
     assert "Deployment file with a legacy syntax" in str(exc_info)
+
+
+def test_empty_spec():
+    with pytest.raises(ValueError):
+        EnvironmentDeploymentInfo.from_spec("test", {})
+
+
+def test_workflows_list_duplicates():
+    with pytest.raises(ValueError):
+        WorkflowListMixin(**{"workflows": [{"name": "a"}, {"name": "a"}]})
+
+
+def test_workflows_list_bad_get():
+    _wf = WorkflowListMixin(**{"workflows": [{"name": "a"}]})
+    with pytest.raises(ValueError):
+        _wf.get_workflow("b")

@@ -12,7 +12,13 @@ def test_empty(capsys):
     assert "No build actions will be performed" in res.out
 
 
-def test_commands(mocker: MockerFixture, capsys):
+def test_no_action(capsys):
+    BuildConfiguration(no_build=False, commands=None, python=None).trigger_build_process()
+    res = capsys.readouterr()
+    assert "skipping the build stage" in res.out
+
+
+def test_commands(temp_project, mocker: MockerFixture, capsys):
     exec_mock = MagicMock()
     mocker.patch("dbx.models.build.execute_shell_command", exec_mock)
     conf = BuildConfiguration(commands=["sleep 1", "sleep 2", "sleep 3"])
@@ -46,7 +52,7 @@ def test_poetry(temp_project):
     conf.trigger_build_process()
 
 
-def test_flit(mocker: MockerFixture):
+def test_flit(temp_project, mocker: MockerFixture):
     exec_mock = MagicMock()
     mocker.patch("dbx.models.build.execute_shell_command", exec_mock)
     conf = BuildConfiguration(python="flit")

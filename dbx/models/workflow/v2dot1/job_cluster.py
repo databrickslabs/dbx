@@ -1,3 +1,4 @@
+import collections
 from typing import Dict, Any, List, Optional
 
 from pydantic import root_validator
@@ -15,19 +16,20 @@ class JobClustersMixin(FlexibleModel):
     job_clusters: Optional[List[JobCluster]] = []
 
     @root_validator(pre=True)
-    def validator(cls, values: Dict[str, Any]):  # noqa
+    def _jc_validator(cls, values: Dict[str, Any]):  # noqa
         if values:
             job_clusters = values.get("job_clusters", [])
 
             # checks that structure is provided in expected format
             assert isinstance(job_clusters, list), f"Job clusters payload should be a list, provided: {job_clusters}"
 
-            cluster_keys = [JobCluster(**v).job_cluster_key for v in job_clusters]
-
-            # checks that there are no duplicates
-            for key in cluster_keys:
-                if cluster_keys.count(key) > 1:
-                    raise ValueError(f"Duplicated cluster key {key} found in the job_clusters section")
+            _duplicates = [
+                name
+                for name, count in collections.Counter([jc.get("job_cluster_key") for jc in job_clusters]).items()
+                if count > 1
+            ]
+            if _duplicates:
+                raise ValueError(f"Duplicated cluster keys {_duplicates} found in the job_clusters section")
         return values
 
     def get_job_cluster_definition(self, key: str) -> JobCluster:

@@ -50,7 +50,7 @@ def test_assert_based_v2dot0():
 
 def test_assert_based_v2dot0_not_unique():
     with pytest.raises(ValueError):
-        V2dot0AssetBasedRunPayload(**{"parameters": ["a"], "named_parameters": ["--a=1"]})
+        V2dot0AssetBasedRunPayload(**{"parameters": ["a"], "base_parameters": {"a": "b"}})
 
 
 @pytest.mark.parametrize(

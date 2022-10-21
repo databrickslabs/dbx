@@ -39,7 +39,7 @@ class WorkflowListMixin(BaseModel):
     def get_workflow(self, name) -> AnyWorkflow:
         _found = list(filter(lambda w: w.name == name, self.workflows))
         if not _found:
-            raise Exception(f"Workflow {name} not found. Available workflows are {self.workflow_names}")
+            raise ValueError(f"Workflow {name} not found. Available workflows are {self.workflow_names}")
         return _found[0]
 
 

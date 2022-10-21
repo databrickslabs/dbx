@@ -53,12 +53,12 @@ class StandardLauncher:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 cancel_run(self.api_client, run)
 
+        api_request_payload = {"job_id": job_id}
+
         if self._parameters:
             dbx_echo(f"Running the workload with the provided parameters {self._parameters.dict(exclude_none=True)}")
-            _additional_parameters = self._parameters.dict(exclude_none=True)
-        else:
-            _additional_parameters = {}
+            api_request_payload.update(self._parameters.dict(exclude_none=True))
 
-        run_data = self.api_client.perform_query("POST", "/jobs/run-now", data=_additional_parameters)
+        run_data = self.api_client.perform_query("POST", "/jobs/run-now", data=api_request_payload)
 
         return run_data, job_id

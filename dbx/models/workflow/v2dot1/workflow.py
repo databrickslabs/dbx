@@ -4,12 +4,12 @@ from typing import Optional, List, Dict, Any
 from pydantic import root_validator, validator
 
 from dbx.models.validators import at_least_one_of
-from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.access_control import AccessControlMixin
+from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.workflow import WorkflowBase
 from dbx.models.workflow.v2dot1.job_cluster import JobClustersMixin
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
-from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload, StandardRunPayload
+from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload
 from dbx.utils import dbx_echo
 
 
@@ -55,9 +55,6 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
     @property
     def task_names(self) -> List[str]:
         return [t.task_key for t in self.tasks]
-
-    def override_standard_launch_parameters(self, payload: StandardRunPayload):
-        pass
 
     def override_asset_based_launch_parameters(self, payload: AssetBasedRunPayload):
         for task_parameters in payload.elements:

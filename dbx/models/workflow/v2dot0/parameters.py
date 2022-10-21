@@ -8,7 +8,7 @@ class AssetBasedRunPayload(BaseParametersMixin, ParametersMixin):
     """"""
 
     _validate_unique = root_validator(pre=True)(
-        lambda _, values: mutually_exclusive(["parameters", "named_parameters"], values)
+        lambda _, values: mutually_exclusive(["base_parameters", "parameters"], values)
     )
 
 

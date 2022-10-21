@@ -47,17 +47,20 @@ class SqlTask(FlexibleModel):
     dashboard: Optional[SqlTaskDashboard]
     alert: Optional[SqlTaskAlert]
 
-    _unique_validation = root_validator(pre=True, allow_reuse=True)(
-        lambda _, values: at_least_one_of(["query", "dashboard", "alert"], values)
-    )
+    @root_validator(pre=True)
+    def _validate(cls, values):  # noqa
+        at_least_one_of(["query", "dashboard", "alert"], values)
+        mutually_exclusive(["query", "dashboard", "alert"], values)
+        return values
 
 
 class DbtTask(FlexibleModel):
     project_directory: Optional[str]
+    profiles_directory: Optional[str]
     commands: List[str]
     _schema: str = Field(alias="schema")  # noqa
     warehouse_id: str
-    profiles_directory: Optional[str]
+
 
     _verify_dbt_commands = validator("commands", allow_reuse=True)(check_dbt_commands)
 

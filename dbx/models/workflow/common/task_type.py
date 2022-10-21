@@ -16,6 +16,3 @@ class TaskType(str, Enum):
 
     # undefined handler for cases when a new task type is added
     undefined_task = "undefined_task"
-
-    def __repr__(self):
-        return self.value

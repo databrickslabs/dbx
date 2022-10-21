@@ -1,4 +1,6 @@
-from dbx.models.workflow.common.new_cluster import NewCluster
+import pytest
+
+from dbx.models.workflow.common.new_cluster import NewCluster, AutoScale
 
 
 def test_legacy_msg(capsys):
@@ -14,3 +16,8 @@ def test_legacy_msg(capsys):
     assert "instance-pool://" in out
     assert "driver_instance_pool_id" in out
     assert "instance-profile://" in out
+
+
+def test_autoscale():
+    with pytest.raises(ValueError):
+        AutoScale(min_workers=10, max_workers=5)
