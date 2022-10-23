@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Any
 
 from pydantic import root_validator, validator
 
-from dbx.models.validators import at_least_one_of
+from dbx.models.validators import at_least_one_of, mutually_exclusive
 from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.workflow import WorkflowBase
@@ -20,9 +20,11 @@ class GitSource(FlexibleModel):
     git_tag: Optional[str]
     git_commit: Optional[str]
 
-    _one_of_provided = root_validator(allow_reuse=True)(
-        lambda _, values: at_least_one_of(["git_branch", "git_tag", "git_commit"], values)
-    )
+    @root_validator(pre=True)
+    def _validate(cls, values):  # noqa
+        at_least_one_of(["git_branch", "git_tag", "git_commit"], values)
+        mutually_exclusive(["git_branch", "git_tag", "git_commit"], values)
+        return values
 
 
 class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):

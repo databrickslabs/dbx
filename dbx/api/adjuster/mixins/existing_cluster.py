@@ -6,7 +6,6 @@ from databricks_cli.sdk import ApiClient, ClusterService
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
-from dbx.utils import dbx_echo
 
 
 class ClusterInfo(FlexibleModel):
@@ -36,15 +35,11 @@ class ExistingClusterAdjuster(ApiClientMixin, ElementSetterMixin):
         self._service = ClusterService(self.api_client)
 
     def _adjust_legacy_existing_cluster(self, element: V2dot0Workflow):
-        dbx_echo("⏳ Processing the existing_cluster_name reference")
         element.existing_cluster_id = self._clusters.get_cluster(element.existing_cluster_name).cluster_id
-        dbx_echo("✅ Processing the existing_cluster_name reference - done")
 
     def _adjust_existing_cluster_ref(self, element: str, parent: Any, index: Any):
-        dbx_echo(f"⏳ Processing reference {element}")
         _id = self._clusters.get_cluster(element.replace("cluster://", "")).cluster_id
         self.set_element_at_parent(_id, parent, index)
-        dbx_echo(f"✅ Processing reference {element} - done")
 
     @functools.cached_property
     def _clusters(self) -> ListClustersResponse:

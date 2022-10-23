@@ -80,7 +80,7 @@ class PropertyAdjuster(
 
     def library_traverse(self, workflows: WorkflowList, additional_libraries: AdditionalLibrariesProvider):
 
-        for element, parent, index in self.traverse(workflows):
+        for element, _, __ in self.traverse(workflows):
 
             if isinstance(element, (V2dot0Workflow, JobTaskSettings)):
                 self._preprocess_libraries(element, additional_libraries)

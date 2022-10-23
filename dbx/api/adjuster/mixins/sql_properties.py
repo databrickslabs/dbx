@@ -2,11 +2,8 @@ import functools
 from abc import abstractmethod
 from typing import Any, List
 
-from databricks_cli.sdk import ApiClient
-
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
-from dbx.utils import dbx_echo
 
 
 class NamedModel(FlexibleModel):
@@ -89,45 +86,35 @@ class AlertsList(FlexibleModel, ResultsListGetterMixin):
 
 class SqlPropertiesAdjuster(ApiClientMixin, ElementSetterMixin):
     # TODO: design of this class is a terrible copy-paste. It must be rewritten.
-    def __init__(self, api_client: ApiClient):
-        super().__init__(api_client)
 
     @functools.cached_property
     def _warehouses(self) -> WarehousesList:
         return WarehousesList(**self.api_client.perform_query("GET", path="/sql/warehouses/"))
 
     def _adjust_warehouse_ref(self, element: str, parent: Any, index: Any):
-        dbx_echo(f"⏳ Processing reference {element}")
         _id = self._warehouses.get(element.replace("warehouse://", "")).id
         self.set_element_at_parent(_id, parent, index)
-        dbx_echo(f"✅ Processing reference {element} - done")
 
     def _adjust_query_ref(self, element: str, parent: Any, index: Any):
-        dbx_echo(f"⏳ Processing reference {element}")
         query_name = element.replace("query://", "")
         _relevant = QueriesList(
             **self.api_client.perform_query("GET", path="/preview/sql/queries", data={"q": query_name})
         )
         _id = _relevant.get(query_name).id
         self.set_element_at_parent(_id, parent, index)
-        dbx_echo(f"✅ Processing reference {element} - done")
 
     def _adjust_dashboard_ref(self, element: str, parent: Any, index: Any):
-        dbx_echo(f"⏳ Processing reference {element}")
         dashboard_name = element.replace("dashboard://", "")
         _relevant = DashboardsList(
             **self.api_client.perform_query("GET", path="/preview/sql/dashboards", data={"q": dashboard_name})
         )
         _id = _relevant.get(dashboard_name).id
         self.set_element_at_parent(_id, parent, index)
-        dbx_echo(f"✅ Processing reference {element} - done")
 
     def _adjust_alert_ref(self, element: str, parent: Any, index: Any):
-        dbx_echo(f"⏳ Processing reference {element}")
         alert_name = element.replace("alert://", "")
         _relevant = DashboardsList(
             **self.api_client.perform_query("GET", path="/preview/sql/alerts", data={"q": alert_name})
         )
         _id = _relevant.get(alert_name).id
         self.set_element_at_parent(_id, parent, index)
-        dbx_echo(f"✅ Processing reference {element} - done")

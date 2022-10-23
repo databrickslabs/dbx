@@ -6,7 +6,6 @@ from databricks_cli.sdk import InstancePoolService, ApiClient
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
-from dbx.utils import dbx_echo
 
 
 class InstancePoolInfo(FlexibleModel):
@@ -38,19 +37,13 @@ class InstancePoolAdjuster(ApiClientMixin, ElementSetterMixin):
         return ListInstancePoolsResponse(**self._service.list_instance_pools())
 
     def _adjust_legacy_driver_instance_pool_ref(self, element: NewCluster):
-        dbx_echo("⏳ Processing the driver_instance_pool_name reference")
         element.driver_instance_pool_id = self._instance_pools.get_pool(
             element.driver_instance_pool_name
         ).instance_pool_id
-        dbx_echo("✅ Processing the driver_instance_pool_name reference - done")
 
     def _adjust_legacy_instance_pool_ref(self, element: NewCluster):
-        dbx_echo("⏳ Processing the instance_pool_name reference")
         element.instance_pool_name = self._instance_pools.get_pool(element.instance_pool_name).instance_pool_id
-        dbx_echo("✅ Processing the instance_pool_name reference - done")
 
     def _adjust_instance_pool_ref(self, element: str, parent: Any, index: Any):
-        dbx_echo(f"⏳ Processing reference {element}")
         pool_id = self._instance_pools.get_pool(element.replace("instance-pool://", "")).instance_pool_id
         self.set_element_at_parent(pool_id, parent, index)
-        dbx_echo(f"✅ Processing reference {element} - done")
