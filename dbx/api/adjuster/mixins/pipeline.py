@@ -1,7 +1,7 @@
 import functools
 from typing import Any, List
 
-from databricks_cli.sdk import DeltaPipelinesService, ApiClient
+from databricks_cli.sdk import DeltaPipelinesService
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
@@ -29,14 +29,12 @@ class ListPipelinesResponse(FlexibleModel):
 
 
 class PipelineAdjuster(ApiClientMixin, ElementSetterMixin):
-    def __init__(self, api_client: ApiClient):
-        super().__init__(api_client)
-        self._service = DeltaPipelinesService(api_client)
 
     @functools.cached_property
     def _pipelines(self) -> ListPipelinesResponse:
         # TODO: add paginated calls
-        return ListPipelinesResponse(**self._service.list())
+        _service = DeltaPipelinesService(self.api_client)
+        return ListPipelinesResponse(**_service.list())
 
     def _adjust_pipeline_ref(self, element: str, parent: Any, index: Any):
         _pipeline_id = self._pipelines.get(element.replace("pipeline://", "")).pipeline_id
