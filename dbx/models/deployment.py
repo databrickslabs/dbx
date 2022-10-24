@@ -4,6 +4,7 @@ import collections
 from typing import Optional, Dict, Any, List, Union
 
 from pydantic import BaseModel, validator
+from rich.markup import escape
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.models.build import BuildConfiguration
@@ -67,13 +68,16 @@ class Deployment(FlexibleModel, WorkflowListMixin):
             raise Exception("Workflow argument and --workflows (or --job and --jobs) cannot be provided together")
 
         if workflow_name:
-            dbx_echo(f"The workflow {workflow_name} was selected for further operations")
+            dbx_echo(f"The workflow {escape(workflow_name)} was selected for further operations")
             return [self.get_workflow(workflow_name)]
         elif workflow_names:
-            dbx_echo(f"Workflows {workflow_names} were selected for further operations")
+            dbx_echo(f"Workflows {[escape(w) for w in workflow_names]} were selected for further operations")
             return [self.get_workflow(w) for w in workflow_names]
         else:
-            dbx_echo(f"All available workflows were selected for further operations: {self.workflow_names}")
+            dbx_echo(
+                f"All available workflows were selected for further operations: "
+                f"{[escape(w) for w in self.workflow_names]}"
+            )
             return self.workflows
 
 

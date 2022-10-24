@@ -10,6 +10,7 @@ import typer
 from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
 from requests.exceptions import HTTPError
+from rich.markup import escape
 
 from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
 from dbx.api.config_reader import ConfigReader
@@ -149,13 +150,13 @@ def deploy(
 
             for workflow in deployable_workflows:
                 if workflow.access_control_list:
-                    dbx_echo(f"🛂 Applying permission settings for workflow {workflow.name}")
+                    dbx_echo(f"🛂 Applying permission settings for workflow {escape(workflow.name)}")
                     api_client.perform_query(
                         "PUT",
                         f"/permissions/jobs/{workflow.job_id}",
                         data=workflow.get_acl_payload(),
                     )
-                    dbx_echo(f"✅ Permission settings were successfully set for workflow {workflow.name}")
+                    dbx_echo(f"✅ Permission settings were successfully set for workflow {escape(workflow.name)}")
 
             dbx_echo("✅ Updating workflow definitions - done")
 
@@ -228,7 +229,7 @@ def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_work
 def _create_workflows(workflows: WorkflowList, api_client: ApiClient) -> Dict[str, int]:
     deployment_data = {}
     for workflow in workflows:
-        dbx_echo(f"Processing deployment for workflow: {workflow.name}")
+        dbx_echo(f"Processing deployment for workflow: {escape(workflow.name)}")
         jobs_service = JobsService(api_client)
         matching_job = find_job_by_name(jobs_service, workflow.name)
 
@@ -244,7 +245,7 @@ def _create_workflows(workflows: WorkflowList, api_client: ApiClient) -> Dict[st
 
 
 def _create_job(api_client: ApiClient, workflow: AnyWorkflow) -> str:
-    dbx_echo(f"Creating a new job with name {workflow.name}")
+    dbx_echo(f"Creating a new workflow with name {escape(workflow.name)}")
     workflow_definition = workflow.dict(exclude_none=True)
     try:
         jobs_api = JobsApi(api_client)
@@ -257,7 +258,7 @@ def _create_job(api_client: ApiClient, workflow: AnyWorkflow) -> str:
 
 
 def _update_job(jobs_service: JobsService, job_id: str, workflow: AnyWorkflow) -> str:
-    dbx_echo(f"Updating existing job with id: {job_id} and name: {workflow.name}")
+    dbx_echo(f"Updating existing job with id: {job_id} and name: {escape(workflow.name)}")
     workflow_definition = workflow.dict(exclude_none=True)
     try:
         jobs_service.reset_job(job_id, workflow_definition)

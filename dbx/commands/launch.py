@@ -4,6 +4,7 @@ from typing import Optional
 import mlflow
 import typer
 from databricks_cli.jobs.api import JobsService
+from rich.markup import escape
 
 from dbx.api.launch.functions import find_deployment_run
 from dbx.api.launch.runners.asset_based import AssetBasedLauncher
@@ -106,7 +107,7 @@ def launch(
     if not workflow_name:
         raise Exception("Please provide workflow name as an argument")
 
-    dbx_echo(f"Launching workflow {workflow_name} on environment {environment_name}")
+    dbx_echo(f"Launching workflow {escape(workflow_name)} on environment {environment_name}")
 
     api_client = prepare_environment(environment_name)
     additional_tags = parse_multiple(tags)
