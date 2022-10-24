@@ -29,7 +29,6 @@ class ListPipelinesResponse(FlexibleModel):
 
 
 class PipelineAdjuster(ApiClientMixin, ElementSetterMixin):
-
     @functools.cached_property
     def _pipelines(self) -> ListPipelinesResponse:
         # TODO: add paginated calls

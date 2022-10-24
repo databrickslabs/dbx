@@ -281,11 +281,13 @@ def test_preprocess_empty_info(inp, exp):
 
 
 def test_deploy_empty_workflows_list(temp_project, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
-    payload = textwrap.dedent("""\
+    payload = textwrap.dedent(
+        """\
     environments:
       default:
         workflows: []
-    """)
+    """
+    )
     Path("conf/deployment.yml").write_text(payload)
     deploy_result = invoke_cli_runner("deploy")
     assert deploy_result.exit_code == 0
