@@ -32,7 +32,6 @@ class PipelineAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
         self._service = DeltaPipelinesService(api_client)
-        super().__init__(api_client)
 
     @functools.cached_property
     def _pipelines(self) -> ListPipelinesResponse:
