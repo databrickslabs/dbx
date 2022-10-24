@@ -1,4 +1,5 @@
 import shutil
+import textwrap
 from pathlib import Path
 from unittest.mock import Mock, MagicMock
 
@@ -277,3 +278,14 @@ def test_preprocess_empty_info(inp, exp):
     _info = EnvironmentDeploymentInfo(name="some", payload={"workflows": []})
     with pytest.raises(exp):
         _preprocess_deployment(_info, inp)
+
+
+def test_deploy_empty_workflows_list(temp_project, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):
+    payload = textwrap.dedent("""\
+    environments:
+      default:
+        workflows: []
+    """)
+    Path("conf/deployment.yml").write_text(payload)
+    deploy_result = invoke_cli_runner("deploy")
+    assert deploy_result.exit_code == 0
