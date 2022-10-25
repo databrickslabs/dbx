@@ -14,7 +14,7 @@ class InstanceProfileInfo(FlexibleModel):
         return self.instance_profile_arn.split("/")[-1]
 
 
-class ListInstancePoolsResponse(FlexibleModel):
+class ListInstanceProfilesResponse(FlexibleModel):
     instance_profiles: Optional[List[InstanceProfileInfo]] = []
 
     @property
@@ -40,5 +40,7 @@ class InstanceProfileAdjuster(ApiClientMixin, ElementSetterMixin):
         self.set_element_at_parent(_arn, parent, index)
 
     @functools.cached_property
-    def _instance_profiles(self) -> ListInstancePoolsResponse:
-        return ListInstancePoolsResponse(**self.api_client.perform_query(method="GET", path="/instance-profiles/list"))
+    def _instance_profiles(self) -> ListInstanceProfilesResponse:
+        return ListInstanceProfilesResponse(
+            **self.api_client.perform_query(method="GET", path="/instance-profiles/list")
+        )
