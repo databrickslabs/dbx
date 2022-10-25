@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import typer
 from databricks_cli.configure.provider import DEFAULT_SECTION
 
@@ -59,7 +57,8 @@ JINJA_VARIABLES_FILE_OPTION = typer.Option(
 )
 
 REQUIREMENTS_FILE_OPTION = typer.Option(
-    Path("requirements.txt"),
+    None,
+    "--requirements-file",
     help="""
     This option is deprecated.
 

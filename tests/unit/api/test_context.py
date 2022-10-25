@@ -1,5 +1,5 @@
 from dbx.api.context import LocalContextManager
-from dbx.models.context import ContextInfo
+from dbx.models.files.context import ContextInfo
 
 
 def test_local_context_serde(temp_project):

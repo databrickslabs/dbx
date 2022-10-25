@@ -6,7 +6,7 @@ from mlflow.protos.databricks_pb2 import ErrorCode, INVALID_PARAMETER_VALUE, INT
 from pytest_mock import MockerFixture
 
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
-from dbx.models.project import EnvironmentInfo, MlflowStorageProperties
+from dbx.models.files.project import EnvironmentInfo, MlflowStorageProperties
 
 
 def test_url_strip():

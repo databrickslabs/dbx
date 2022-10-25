@@ -184,7 +184,7 @@ class RemoteSyncer:
     async def _apply_file_puts(self, session: aiohttp.ClientSession, paths: List[str], msg: str) -> None:
         tasks = []
         op_count = 0
-        sem = asyncio.Semaphore(self.max_parallel_puts)
+        sem = asyncio.Semaphore(self.max_parallel_puts)  # noqa
         for path in sorted(paths):
             op_count += 1
             if not self.dry_run:
@@ -192,7 +192,7 @@ class RemoteSyncer:
                 async def task(p):
                     # Files can be created in parallel, but we limit how many are opened at a time
                     # so we don't use memory excessively.
-                    async with sem:
+                    async with sem:  # noqa
                         await self.client.put(get_relative_path(self.source, p), p, session=session)
 
                 tasks.append(task(path))

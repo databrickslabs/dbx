@@ -1,7 +1,7 @@
 import pytest
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo
+from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo, WorkflowListMixin
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 
@@ -38,14 +38,14 @@ def test_raise_if_not_found():
 
 
 def test_build_payload(capsys):
-    _payload = DeploymentConfig.prepare_build({"build": {"commands": ["sleep 5"]}})
+    _payload = DeploymentConfig._prepare_build({"build": {"commands": ["sleep 5"]}})
     res = capsys.readouterr()
     assert "No build logic defined in the deployment file" not in res.out
     assert _payload.commands is not None
 
 
 def test_build_payload_warning(capsys):
-    _payload = DeploymentConfig.prepare_build({})
+    _payload = DeploymentConfig._prepare_build({})
     res = capsys.readouterr()
     assert "No build logic defined in the deployment file" in res.out
 
@@ -54,3 +54,19 @@ def test_legacy_build_conflict():
     with pytest.raises(ValueError) as exc_info:
         DeploymentConfig.from_legacy_json_payload({"build": {"some": "value"}})
     assert "Deployment file with a legacy syntax" in str(exc_info)
+
+
+def test_empty_spec():
+    with pytest.raises(ValueError):
+        EnvironmentDeploymentInfo.from_spec("test", {})
+
+
+def test_workflows_list_duplicates():
+    with pytest.raises(ValueError):
+        WorkflowListMixin(**{"workflows": [{"name": "a"}, {"name": "a"}]})
+
+
+def test_workflows_list_bad_get():
+    _wf = WorkflowListMixin(**{"workflows": [{"name": "a"}]})
+    with pytest.raises(ValueError):
+        _wf.get_workflow("b")

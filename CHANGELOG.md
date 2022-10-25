@@ -10,8 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+### Changed
+- ♻️ Introduce model matching for workflow object
+- ♻️ Heavily refactor parameter passing logic
+- ♻️ Heavily refactor the models used by `dbx` internal APIs
+- 🪄 Make empty `workflows` list a noop instead of error
+
 ### Added
-- 📖 documentation on the differences between `dbx execute` and `dbx launch`
+- 📖 Documentation on the differences between `dbx execute` and `dbx launch`
+- 📖 Documentation on how to use parameter passing in various cases
+- 📖 Documentation on how to enable Photon
+- 📖 Documentation on artifact storage
+- 🪄 Functionality to automatically enable context-based upload
+- 🪄 Automatic conversion from `wasbs://` to `abfss://` references when using ADLS as artifact storage.
 
 ### Fixed
 

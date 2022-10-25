@@ -10,9 +10,13 @@ import typer
 from databricks_cli.jobs.api import JobsService, JobsApi
 from databricks_cli.sdk.api_client import ApiClient
 from requests.exceptions import HTTPError
+from rich.markup import escape
 
+from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import EnvironmentDeploymentInfo
+from dbx.api.dependency.core_package import CorePackageManager
+from dbx.api.dependency.requirements import RequirementsFileProcessor
+from dbx.models.deployment import EnvironmentDeploymentInfo, WorkflowList, AnyWorkflow
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -26,13 +30,11 @@ from dbx.options import (
     WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.adjuster import adjust_job_definitions
 from dbx.utils.common import (
     prepare_environment,
     parse_multiple,
     get_current_branch_name,
 )
-from dbx.utils.dependency_manager import DependencyManager
 from dbx.utils.file_uploader import MlflowFileUploader
 from dbx.utils.job_listing import find_job_by_name
 
@@ -40,21 +42,21 @@ from dbx.utils.job_listing import find_job_by_name
 def deploy(
     workflow_name: str = WORKFLOW_ARGUMENT,
     deployment_file: Path = DEPLOYMENT_FILE_OPTION,
-    job: Optional[str] = typer.Option(
+    job_name: Optional[str] = typer.Option(
         None,
         "--job",
         help="This option is deprecated, please use workflow name as argument instead.",
         show_default=False,
     ),
-    jobs: Optional[str] = typer.Option(
+    job_names: Optional[str] = typer.Option(
         None, "--jobs", help="This option is deprecated, please use `--workflows` instead.", show_default=False
     ),
-    workflows: Optional[str] = typer.Option(
+    workflow_names: Optional[str] = typer.Option(
         None, "--workflows", help="Comma-separated list of workflow names to be deployed", show_default=False
     ),
     requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
     tags: Optional[List[str]] = TAGS_OPTION,
-    environment: str = ENVIRONMENT_OPTION,
+    environment_name: str = ENVIRONMENT_OPTION,
     no_rebuild: bool = NO_REBUILD_OPTION,
     no_package: bool = NO_PACKAGE_OPTION,
     files_only: bool = typer.Option(
@@ -69,6 +71,7 @@ def deploy(
         is_flag=True,
         help="""When provided, will **only** upload assets
         (📁 referenced files, 📦 core package and workflow definition) to the artifact storage.
+
 
         ⚠️ A workflow(s) won't be created or updated in the Jobs UI.
 
@@ -96,9 +99,9 @@ def deploy(
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
-    dbx_echo(f"Starting new deployment for environment {environment}")
+    dbx_echo(f"Starting new deployment for environment {environment_name}")
 
-    api_client = prepare_environment(environment)
+    api_client = prepare_environment(environment_name)
     additional_tags = parse_multiple(tags)
 
     if not branch_name:
@@ -107,18 +110,13 @@ def deploy(
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
     config = config_reader.get_config()
 
-    deployment = config.get_environment(environment, raise_if_not_found=True)
+    environment_info = config.get_environment(environment_name, raise_if_not_found=True)
 
-    if workflow_name:
-        job = workflow_name
+    workflow_name = workflow_name if workflow_name else job_name
+    workflow_names = workflow_names.split(",") if workflow_names else job_names.split(",") if job_names else []
 
-    if workflows:
-        jobs = workflows
-
-    requested_jobs = _define_deployable_jobs(job, jobs)
-
-    _preprocess_deployment(deployment, requested_jobs)
-
+    deployable_workflows = environment_info.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
+    environment_info.payload.workflows = deployable_workflows  # filter out the chosen set of workflows
     if no_rebuild:
         dbx_echo(
             """[yellow bold]
@@ -127,40 +125,48 @@ def deploy(
         )
         config.build.no_build = True
 
-    dependency_manager = DependencyManager(config.build, no_package, requirements_file)
+    core_package = None if config.build.no_build else CorePackageManager(build_config=config.build).core_package
+    libraries_from_requirements = RequirementsFileProcessor(requirements_file).libraries if requirements_file else []
 
     _assets_only = assets_only if assets_only else files_only
 
     with mlflow.start_run() as deployment_run:
 
-        artifact_base_uri = deployment_run.info.artifact_uri
-        _file_uploader = MlflowFileUploader(artifact_base_uri)
-
-        adjust_job_definitions(deployment.payload.workflows, dependency_manager, _file_uploader, api_client)
+        adjuster = Adjuster(
+            api_client=api_client,
+            file_uploader=MlflowFileUploader(deployment_run.info.artifact_uri),
+            additional_libraries=AdditionalLibrariesProvider(
+                no_package=no_package,
+                core_package=core_package,
+                libraries_from_requirements=libraries_from_requirements,
+            ),
+        )
+        adjuster.traverse(deployable_workflows)
 
         if not _assets_only:
-            dbx_echo("Updating job definitions")
-            deployment_data = _create_jobs(deployment.payload.workflows, api_client)
+            dbx_echo("🤖 Updating workflow definitions via API")
+            deployment_data = _create_workflows(deployable_workflows, api_client)
             _log_dbx_file(deployment_data, "deployments.json")
 
-            for job_spec in deployment.payload.workflows:
-                permissions = job_spec.get("permissions")
-                if permissions:
-                    job_name = job_spec.get("name")
-                    dbx_echo(f"Permission settings are provided for job {job_name}, setting it up")
-                    job_id = deployment_data.get(job_spec.get("name"))
-                    api_client.perform_query("PUT", f"/permissions/jobs/{job_id}", data=permissions)
-                    dbx_echo(f"Permission settings were successfully set for job {job_name}")
+            for workflow in deployable_workflows:
+                if workflow.access_control_list:
+                    dbx_echo(f"🛂 Applying permission settings for workflow {escape(workflow.name)}")
+                    api_client.perform_query(
+                        "PUT",
+                        f"/permissions/jobs/{workflow.job_id}",
+                        data=workflow.get_acl_payload(),
+                    )
+                    dbx_echo(f"✅ Permission settings were successfully set for workflow {escape(workflow.name)}")
 
-            dbx_echo("Updating job definitions - done")
+            dbx_echo("✅ Updating workflow definitions - done")
 
         deployment_tags = {
             "dbx_action_type": "deploy",
-            "dbx_environment": environment,
+            "dbx_environment": environment_name,
             "dbx_status": "SUCCESS",
         }
 
-        deployment_spec = deployment.to_spec()
+        environment_spec = environment_info.to_spec()
 
         deployment_tags.update(additional_tags)
 
@@ -170,10 +176,10 @@ def deploy(
         if _assets_only:
             deployment_tags["dbx_deploy_type"] = "files_only"
 
-        _log_dbx_file(deployment_spec, "deployment-result.json")
+        _log_dbx_file(environment_spec, "deployment-result.json")
 
         mlflow.set_tags(deployment_tags)
-        dbx_echo(f":sparkles: Deployment for environment {environment} finished successfully")
+        dbx_echo(f":sparkles: Deployment for environment {environment_name} finished successfully")
 
         if write_specs_to_file:
             dbx_echo("Writing final job specifications into file")
@@ -182,7 +188,7 @@ def deploy(
             if specs_file.exists():
                 specs_file.unlink()
 
-            specs_file.write_text(json.dumps(deployment_spec, indent=4), encoding="utf-8")
+            specs_file.write_text(json.dumps(environment_spec, indent=4), encoding="utf-8")
 
 
 def _log_dbx_file(content: Dict[Any, Any], name: str):
@@ -194,93 +200,71 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
     shutil.rmtree(temp_dir)
 
 
-def _define_deployable_jobs(job: str, jobs: str) -> Optional[List[str]]:
-    if jobs and job:
-        raise Exception("Both --job and --jobs cannot be provided together")
+def define_workflow_names(workflow_name: str, workflow_names: str) -> Optional[List[str]]:
+    if workflow_names and workflow_name:
+        raise Exception("Both workflow argument and --workflows (or --job and --jobs) cannot be provided together")
 
-    if job:
-        requested_jobs = [job]
-    elif jobs:
-        requested_jobs = jobs.split(",")
+    if workflow_name:
+        _workflow_names = [workflow_name]
+    elif workflow_names:
+        _workflow_names = workflow_names.split(",")
     else:
-        requested_jobs = None
+        _workflow_names = None
 
-    return requested_jobs
+    return _workflow_names
 
 
-def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_jobs: Union[List[str], None]):
+def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_workflows: Union[List[str], None]):
     if not deployment.payload.workflows:
         dbx_echo("[yellow bold]🤷 No workflows were provided in the deployment file![/yellow bold]")
-        if requested_jobs:
+        if requested_workflows:
             raise Exception(
-                f"The following workflows were requested: {requested_jobs}, "
+                f"The following workflows were requested: {requested_workflows}, "
                 f"but no workflows are defined in the deployment file."
             )
 
         raise typer.Exit()
 
-    deployment.payload.workflows = _preprocess_jobs(deployment.payload.workflows, requested_jobs)
 
-
-def _preprocess_jobs(jobs: List[Dict[str, Any]], requested_jobs: Union[List[str], None]) -> List[Dict[str, Any]]:
-    job_names = [job["name"] for job in jobs]
-    if requested_jobs:
-        dbx_echo(f"Deployment will be performed only for the following jobs: {requested_jobs}")
-        for requested_job_name in requested_jobs:
-            if requested_job_name not in job_names:
-                raise Exception(
-                    f"""
-                Workflow {requested_job_name} was requested, but not provided in deployment file.
-                Available workflows are: {job_names}
-                """
-                )
-        preprocessed_jobs = [job for job in jobs if job["name"] in requested_jobs]
-    else:
-        preprocessed_jobs = jobs
-    return preprocessed_jobs
-
-
-def _create_jobs(jobs: List[Dict[str, Any]], api_client: ApiClient) -> Dict[str, int]:
+def _create_workflows(workflows: WorkflowList, api_client: ApiClient) -> Dict[str, int]:
     deployment_data = {}
-    for job in jobs:
-        dbx_echo(f'Processing deployment for job: {job["name"]}')
+    for workflow in workflows:
+        dbx_echo(f"Processing deployment for workflow: {escape(workflow.name)}")
         jobs_service = JobsService(api_client)
-        matching_job = find_job_by_name(jobs_service, job["name"])
+        matching_job = find_job_by_name(jobs_service, workflow.name)
 
         if not matching_job:
-            job_id = _create_job(api_client, job)
+            job_id = _create_job(api_client, workflow)
         else:
             job_id = matching_job["job_id"]
-            _update_job(jobs_service, job_id, job)
+            _update_job(jobs_service, job_id, workflow)
 
-        deployment_data[job["name"]] = job_id
+        deployment_data[workflow.name] = job_id
+        workflow.job_id = job_id
     return deployment_data
 
 
-def _create_job(api_client: ApiClient, job: Dict[str, Any]) -> str:
-    dbx_echo(f'Creating a new job with name {job["name"]}')
+def _create_job(api_client: ApiClient, workflow: AnyWorkflow) -> str:
+    dbx_echo(f"Creating a new workflow with name {escape(workflow.name)}")
+    workflow_definition = workflow.dict(exclude_none=True)
     try:
         jobs_api = JobsApi(api_client)
-        job_id = jobs_api.create_job(job)["job_id"]
+        job_id = jobs_api.create_job(workflow_definition)["job_id"]
     except HTTPError as e:
         dbx_echo(":boom: Failed to create job with definition:")
-        dbx_echo(job)
+        dbx_echo(workflow_definition)
         raise e
     return job_id
 
 
-def _update_job(jobs_service: JobsService, job_id: str, job: Dict[str, Any]) -> str:
-    dbx_echo(f'Updating existing job with id: {job_id} and name: {job["name"]}')
+def _update_job(jobs_service: JobsService, job_id: str, workflow: AnyWorkflow) -> str:
+    dbx_echo(f"Updating existing job with id: {job_id} and name: {escape(workflow.name)}")
+    workflow_definition = workflow.dict(exclude_none=True)
     try:
-        jobs_service.reset_job(job_id, job)
+        jobs_service.reset_job(job_id, workflow_definition)
     except HTTPError as e:
         dbx_echo(":boom: Failed to update job with definition:")
-        dbx_echo(job)
+        dbx_echo(workflow_definition)
         raise e
-
-    _acl = job.get("access_control_list")
-    if _acl:
-        _client = jobs_service.client
-        _client.perform_query("PUT", f"/permissions/jobs/{job_id}", data={"access_control_list": _acl})
 
     return job_id

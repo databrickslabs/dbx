@@ -11,6 +11,7 @@ max-line-length: 120
 
 pylint:
   disable:
+    - too-many-ancestors # in dbx we pretty comfortable having a lot of mixins
     - too-many-branches
     - too-many-statements
     - too-many-instance-attributes
@@ -31,13 +32,10 @@ pylint:
     - broad-except
     - arguments-differ
 
-pep8:
+pycodestyle:
   # W293: disabled because we have newlines in docstrings
   # E203: disabled because pep8 and black disagree on whitespace before colon in some cases
   disable: W293,E203
-
-pycodestyle:
-  disable: E203 # conflicts with black formatting
 
 mccabe:
   disable:

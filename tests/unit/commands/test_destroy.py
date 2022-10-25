@@ -9,7 +9,7 @@ from pytest_mock import MockerFixture
 from dbx.api.config_reader import ConfigReader
 from dbx.api.destroyer import Destroyer
 from dbx.commands.destroy import ask_for_confirmation
-from dbx.models.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 from tests.unit.conftest import invoke_cli_runner
 
 

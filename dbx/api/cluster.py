@@ -8,12 +8,13 @@ from rich.status import Status
 
 
 class ClusterController:
-    def __init__(self, api_client: ApiClient):
+    def __init__(self, api_client: ApiClient, cluster_name: Optional[str], cluster_id: Optional[str]):
         self._cluster_service = ClusterService(api_client)
+        self.cluster_id = self.preprocess_cluster_args(cluster_name, cluster_id)
 
-    def awake_cluster(self, cluster_id):
-        with Console().status("Preparing the all-purpose cluster", spinner="dots") as status:
-            self._awake_cluster(cluster_id, status)
+    def awake_cluster(self):
+        with Console().status("Preparing the all-purpose cluster to accept commands", spinner="dots") as status:
+            self._awake_cluster(self.cluster_id, status)
 
     def _awake_cluster(self, cluster_id, status: Status):
         cluster_info = self._cluster_service.get_cluster(cluster_id)

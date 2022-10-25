@@ -1,6 +1,6 @@
 # :material-language-python: :material-airplane-takeoff: Python quickstart
 
-In this guide we're going to walkthough a typical setup for development purposes.
+In this guide we're going to walk through a typical setup for development purposes.
 
 In the end of this guide you'll have a prepared local environment, as well as capabilities to:
 
@@ -64,13 +64,29 @@ databricks --profile charming-aurora workspace ls /
 Now the preparation is done, let’s generate a project skeleton using [`dbx init`](../../reference/cli.md):
 
 ```bash
-dbx init -p \
-    "cicd_tool=GitHub Actions" \
+dbx init \
+    -p "cicd_tool=GitHub Actions" \
     -p "cloud=<your-cloud>" \
     -p "project_name=charming-aurora" \
     -p "profile=charming-aurora" \
     --no-input
 ```
+
+!!! warning "Choosing the artifact storage wisely"
+
+    Although for the quickstart we're using the standard `dbfs://`-based artifact location, it's **strictly recommended** to use
+    proper cloud-based storage for artifacts. Please read more in [this section](../../concepts/artifact_storage.md).
+
+    To change the artifact location for this specific guide, add the following parameter to the command above:
+    ```bash
+    dbx init \
+    -p "cicd_tool=GitHub Actions" \
+    -p "cloud=<your-cloud>" \
+    -p "project_name=charming-aurora" \
+    -p "profile=charming-aurora" \
+    -p "artifact_location=<s3://some/path OR wasbs://some/path OR gs://some/path>"
+    --no-input
+    ```
 
 Step into the newly generated folder:
 
@@ -101,7 +117,7 @@ pip install -e ".[local,test]"
     ```
     Use the [`findspark`](https://github.com/minrk/findspark) package in your local unit tests to correctly identify Apache Spark on the local path.
 
-After installing all of the dependencies, it's time to run local unit tests:
+After installing all the dependencies, it's time to run local unit tests:
 
 ```bash
 pytest tests/unit --cov

@@ -3,21 +3,26 @@ from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
 
-from dbx.api.build import prepare_build
-from dbx.models.deployment import BuildConfiguration
+from dbx.models.build import BuildConfiguration
 
 
 def test_empty(capsys):
-    prepare_build(BuildConfiguration(no_build=True))
+    BuildConfiguration(no_build=True).trigger_build_process()
     res = capsys.readouterr()
     assert "No build actions will be performed" in res.out
 
 
-def test_commands(mocker: MockerFixture, capsys):
+def test_no_action(capsys):
+    BuildConfiguration(no_build=False, commands=None, python=None).trigger_build_process()
+    res = capsys.readouterr()
+    assert "skipping the build stage" in res.out
+
+
+def test_commands(temp_project, mocker: MockerFixture, capsys):
     exec_mock = MagicMock()
-    mocker.patch("dbx.api.build.execute_shell_command", exec_mock)
+    mocker.patch("dbx.models.build.execute_shell_command", exec_mock)
     conf = BuildConfiguration(commands=["sleep 1", "sleep 2", "sleep 3"])
-    prepare_build(conf)
+    conf.trigger_build_process()
     res = capsys.readouterr()
     assert "Running the build commands" in res.out
     assert exec_mock.call_count == 3
@@ -44,12 +49,12 @@ def test_poetry(temp_project):
 
     (temp_project / "pyproject.toml").write_text(inspect.cleandoc(pyproject_content))
     conf = BuildConfiguration(python="poetry")
-    prepare_build(conf)
+    conf.trigger_build_process()
 
 
-def test_flit(mocker: MockerFixture):
+def test_flit(temp_project, mocker: MockerFixture):
     exec_mock = MagicMock()
-    mocker.patch("dbx.api.build.execute_shell_command", exec_mock)
+    mocker.patch("dbx.models.build.execute_shell_command", exec_mock)
     conf = BuildConfiguration(python="flit")
-    prepare_build(conf)
+    conf.trigger_build_process()
     exec_mock.assert_called_once_with(cmd="-m flit build --format wheel", with_python_executable=True)

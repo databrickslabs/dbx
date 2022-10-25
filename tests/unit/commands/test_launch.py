@@ -19,7 +19,7 @@ def deploy_and_get_job_name(deploy_args: Optional[List[str]] = None) -> str:
     deploy_result = invoke_cli_runner(["deploy"] + deploy_args)
     assert deploy_result.exit_code == 0
     deployment_info = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
-    _chosen_job = deployment_info.payload.workflows[0]["name"]
+    _chosen_job = deployment_info.payload.workflows[0].name
     return _chosen_job
 
 
@@ -143,7 +143,7 @@ def test_launch_run_submit(
     deployment_result = Path(".dbx/deployment-result.json")
     _chosen_job = deploy_and_get_job_name(["--files-only", "--write-specs-to-file", deployment_result])
     mocked_result = JsonUtils.read(deployment_result)
-    mocker.patch("dbx.api.launch.runners.load_dbx_file", MagicMock(return_value=mocked_result))
+    mocker.patch("dbx.api.launch.runners.asset_based.load_dbx_file", MagicMock(return_value=mocked_result))
     launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--as-run-submit"])
     assert launch_result.exit_code == 0
 

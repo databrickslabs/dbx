@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pkg_resources
 
+from dbx.models.workflow.common.task_type import TaskType
+
 DBX_PATH = Path(".dbx")
 PROJECT_INFO_FILE_PATH = DBX_PATH / "project.json"
 LOCK_FILE_PATH = DBX_PATH / "lock.json"
@@ -17,3 +19,4 @@ TEMPLATE_ROOT_PATH = Path(pkg_resources.resource_filename("dbx", PROJECTS_RELATI
 # would want to sync these, so we don't make this configurable.
 DBX_SYNC_DEFAULT_IGNORES = [".git/", ".dbx", "*.isorted"]
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
+TASKS_SUPPORTED_IN_EXECUTE = [TaskType.spark_python_task, TaskType.python_wheel_task]
