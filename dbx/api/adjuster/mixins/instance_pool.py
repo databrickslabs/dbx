@@ -1,7 +1,7 @@
 import functools
 from typing import Any, List, Optional
 
-from databricks_cli.sdk import InstancePoolService, ApiClient
+from databricks_cli.sdk import InstancePoolService
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
@@ -28,9 +28,6 @@ class ListInstancePoolsResponse(FlexibleModel):
 
 
 class InstancePoolAdjuster(ApiClientMixin, ElementSetterMixin):
-    def __init__(self, api_client: ApiClient):
-        super().__init__(api_client)
-
     @functools.cached_property
     def _instance_pools(self) -> ListInstancePoolsResponse:
         _service = InstancePoolService(self.api_client)

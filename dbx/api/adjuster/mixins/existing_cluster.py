@@ -1,7 +1,7 @@
 import functools
 from typing import Optional, List, Any
 
-from databricks_cli.sdk import ApiClient, ClusterService
+from databricks_cli.sdk import ClusterService
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
@@ -30,9 +30,6 @@ class ListClustersResponse(FlexibleModel):
 
 
 class ExistingClusterAdjuster(ApiClientMixin, ElementSetterMixin):
-    def __init__(self, api_client: ApiClient):
-        super().__init__(api_client)
-
     def _adjust_legacy_existing_cluster(self, element: V2dot0Workflow):
         element.existing_cluster_id = self._clusters.get_cluster(element.existing_cluster_name).cluster_id
 
