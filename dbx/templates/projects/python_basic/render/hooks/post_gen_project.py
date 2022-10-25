@@ -1,5 +1,5 @@
 import pathlib
-from typing import Callable, Dict, Optional, Any
+from typing import Any, Callable, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -99,6 +99,7 @@ class PostProcessor:
             enable_inplace_jinja_support=False,
             enable_failsafe_cluster_reuse_with_assets=False,
             enable_context_based_upload_for_execute=False,
+            enable_custom_init_scripts=False,
         )
 
         env = Environment(loader=FileSystemLoader(COMPONENTS_PATH))

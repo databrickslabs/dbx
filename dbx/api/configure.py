@@ -76,6 +76,14 @@ class JsonFileBasedManager:
         _result = self._read_typed().context_based_upload_for_execute if self._file.exists() else False
         return _result
 
+    def enable_custom_init_scripts(self):
+        _typed = self._read_typed()
+        _typed.custom_init_scripts = True
+        JsonUtils.write(self._file, _typed.dict())
+
+    def get_custom_init_scripts(self) -> bool:
+        return self._read_typed().custom_init_scripts if self._file.exists() else False
+
 
 class ProjectConfigurationManager:
     def __init__(self):
@@ -107,3 +115,9 @@ class ProjectConfigurationManager:
 
     def get_context_based_upload_for_execute(self) -> bool:
         return self._manager.get_context_based_upload_for_execute()
+
+    def enable_custom_init_scripts(self):
+        self._manager.enable_custom_init_scripts()
+
+    def get_custom_init_scripts(self) -> bool:
+        return self._manager.get_custom_init_scripts()

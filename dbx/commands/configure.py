@@ -1,9 +1,9 @@
 import typer
 
-from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
+from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
 from dbx.models.files.project import MlflowStorageProperties, StorageType
 from dbx.options import ENVIRONMENT_OPTION, PROFILE_OPTION
-from dbx.utils import dbx_echo, current_folder_name
+from dbx.utils import current_folder_name, dbx_echo
 
 
 def configure(
@@ -29,9 +29,6 @@ def configure(
         help="""Enables inplace jinja support for deployment files.
 
 
-        This flag ignores any other flags.
-
-
         Project file should exist, otherwise command will fail.""",
     ),
     enable_failsafe_cluster_reuse_with_assets: bool = typer.Option(
@@ -41,6 +38,7 @@ def configure(
         help="""
         Enables failsafe behaviour for assets-based launches with definitions
         that are based on shared job clusters feature.
+
 
         This flag ignores any other flags.
 
@@ -52,16 +50,30 @@ def configure(
         "--enable-context-based-upload-for-execute",
         is_flag=True,
         help="""
-        Enables failsafe behaviour for assets-based launches with definitions
-        that are based on shared job clusters feature.
+        Enables context based file uploader instead of MLflow file uploader.
+
 
         This flag ignores any other flags.
 
 
         Project file should exist, otherwise command will fail.""",
     ),
+    enable_custom_init_scripts: bool = typer.Option(
+        False,
+        "--enable-custom-init-scripts",
+        help="""Enables the merge of the init scripts from the cluster policy and
+        those from the `new_cluster.init_scripts` key.
+
+
+        Project file should exist, otherwise command will fail.""",
+    ),
 ):
     manager = ProjectConfigurationManager()
+
+    if enable_custom_init_scripts:
+        dbx_echo("Enabling custom init scripts")
+        manager.enable_custom_init_scripts()
+        dbx_echo("✅ Enabling custom init scripts")
 
     if enable_inplace_jinja_support:
         dbx_echo("Enabling jinja support")

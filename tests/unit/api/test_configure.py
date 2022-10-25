@@ -16,3 +16,9 @@ def test_configure_jinja_support(temp_project: Path):
     _manager = ProjectConfigurationManager()
     _manager.enable_jinja_support()
     assert _manager.get_jinja_support()
+
+
+def test_configure_enable_custom_init_scripts(temp_project: Path):
+    _manager = ProjectConfigurationManager()
+    _manager.enable_custom_init_scripts()
+    assert _manager.get_custom_init_scripts()

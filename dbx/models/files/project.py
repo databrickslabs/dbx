@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Union, Optional
+from typing import Dict, Optional, Union
 
 from pydantic import BaseModel
 
@@ -45,6 +45,7 @@ class ProjectInfo(BaseModel):
     inplace_jinja_support: Optional[bool] = False
     failsafe_cluster_reuse_with_assets: Optional[bool] = False
     context_based_upload_for_execute: Optional[bool] = False
+    custom_init_scripts: Optional[bool] = False
 
     def get_environment(self, name: str) -> EnvironmentInfo:
         _env = self.environments.get(name)

@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -11,19 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [UNRELEASED] - YYYY-MM-DD
 
 ### Changed
+
 - ♻️ Introduce model matching for workflow object
 - ♻️ Heavily refactor parameter passing logic
 - ♻️ Heavily refactor the models used by `dbx` internal APIs
-- 🪄 Make empty `workflows` list a noop instead of error
-- 🪄 Handle `pytest` exit code in cookiecutter project integration test entrypoint
+- ♻️ Make empty `workflows` list a noop instead of error
+- ♻️ Handle `pytest` exit code in cookiecutter project integration test entrypoint
 
 ### Added
+
 - 📖 Documentation on the differences between `dbx execute` and `dbx launch`
 - 📖 Documentation on how to use parameter passing in various cases
 - 📖 Documentation on how to enable Photon
 - 📖 Documentation on artifact storage
-- 🪄 Functionality to automatically enable context-based upload
-- 🪄 Automatic conversion from `wasbs://` to `abfss://` references when using ADLS as artifact storage.
+- ✨ Functionality to automatically enable context-based upload
+- ✨ Automatic conversion from `wasbs://` to `abfss://` references when using ADLS as artifact storage.
+- ✨ Add option to append workflow custom init scripts, can be configured via `dbx configure --enable-custom-init-scripts`
 
 ### Fixed
 
