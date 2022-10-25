@@ -20,7 +20,7 @@ class ListServicePrincipals(FlexibleModel):
         return [p.display_name for p in self.Resources]
 
     def get(self, name: str) -> ResourceInfo:
-        _found = list(filter(lambda p: p.name == name, self.Resources))
+        _found = list(filter(lambda p: p.display_name == name, self.Resources))
         assert _found, NameError(
             f"No service principals with name {name} were found, available objects are {self.names}"
         )
