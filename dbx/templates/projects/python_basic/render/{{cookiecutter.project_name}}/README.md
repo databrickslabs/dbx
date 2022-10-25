@@ -83,7 +83,7 @@ To start working with your notebooks from a Repos, do the following steps:
 databricks repos create --url <your repo URL> --provider <your-provider>
 ```
 This command will create your personal repository under `/Repos/<username>/{{cookiecutter.project_slug}}`.
-3. Use `git_source` in your job definition as described [here](https://dbx.readthedocs.io/en/latest/examples/notebook_remote.html)
+3. Use `git_source` in your job definition as described [here](https://dbx.readthedocs.io/en/latest/guides/python/devops/notebook/?h=git_source#using-git_source-to-specify-the-remote-source)
 
 ## CI/CD pipeline settings
 

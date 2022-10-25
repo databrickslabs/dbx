@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - 🐛 Message with rich markup [] is properly displayed now
+- 📖 Broken link in the generated README.md in Python template
 
 ----
 > Unreleased changes must be tracked above this line.
