@@ -32,7 +32,6 @@ class ListClustersResponse(FlexibleModel):
 class ExistingClusterAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
-        self._service = ClusterService(self.api_client)
 
     def _adjust_legacy_existing_cluster(self, element: V2dot0Workflow):
         element.existing_cluster_id = self._clusters.get_cluster(element.existing_cluster_name).cluster_id
@@ -43,4 +42,5 @@ class ExistingClusterAdjuster(ApiClientMixin, ElementSetterMixin):
 
     @functools.cached_property
     def _clusters(self) -> ListClustersResponse:
-        return ListClustersResponse(**self._service.list_clusters())
+        _service = ClusterService(self.api_client)
+        return ListClustersResponse(**_service.list_clusters())

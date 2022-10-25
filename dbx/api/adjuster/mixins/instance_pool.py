@@ -30,11 +30,11 @@ class ListInstancePoolsResponse(FlexibleModel):
 class InstancePoolAdjuster(ApiClientMixin, ElementSetterMixin):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
-        self._service = InstancePoolService(self.api_client)
 
     @functools.cached_property
     def _instance_pools(self) -> ListInstancePoolsResponse:
-        return ListInstancePoolsResponse(**self._service.list_instance_pools())
+        _service = InstancePoolService(self.api_client)
+        return ListInstancePoolsResponse(**_service.list_instance_pools())
 
     def _adjust_legacy_driver_instance_pool_ref(self, element: NewCluster):
         element.driver_instance_pool_id = self._instance_pools.get_pool(

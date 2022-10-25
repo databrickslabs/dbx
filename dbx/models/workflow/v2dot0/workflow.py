@@ -21,7 +21,7 @@ class Workflow(WorkflowBase, TaskMixin, AccessControlMixin):
     existing_cluster_id: Optional[str]
     existing_cluster_name: Optional[str]  # deprecated field
     new_cluster: Optional[NewCluster]
-    libraries: Optional[List[Library]]
+    libraries: Optional[List[Library]] = []
     max_retries: Optional[int]
     min_retry_interval_millis: Optional[int]
     retry_on_timeout: Optional[bool]
