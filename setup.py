@@ -21,7 +21,7 @@ INSTALL_REQUIRES = [
     "cookiecutter>=1.7.2, <3.0.0",
     # file formats and models
     "pyyaml>=6.0",
-    "pydantic>=1.9.1",
+    "pydantic>=1.9.1,<=2.0.0",
     "Jinja2>=2.11.2",
     # misc - enforced to avoid issues with dependent libraries
     "cryptography>=3.3.1,<39.0.0",
@@ -44,15 +44,19 @@ DEV_REQUIREMENTS = [
     "mkdocs-glightbox>=0.2.1,<1.0",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
-    "prospector==1.7.0",
+    "pylint==2.15.4",
+    "pycodestyle==2.8.0",
+    "pyflakes==2.5.0",
+    "mccabe==0.6.1",
+    "prospector==1.7.7",
     "black>=22.3.0,<23.0.0",
     "MarkupSafe>=2.1.1,<3.0.0",
     # testing framework
-    "pytest>=7.1.2,<8.0.0",
+    "pytest>=7.1.3,<8.0.0",
     "pytest-mock>=3.8.2,<3.11.0",
     "pytest-xdist[psutil]>=2.5.0,<3.0.0",
     "pytest-asyncio>=0.18.3,<1.0.0",
-    "pytest-cov>=3.0.0,<5.0.0",
+    "pytest-cov>=4.0.0,<5.0.0",
     "pytest-timeout>=2.1.0,<3.0.0",
     "pytest-clarity>=1.0.1,<2.0.0",
     "poetry>=1.2.0",

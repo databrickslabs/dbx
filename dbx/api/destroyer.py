@@ -9,11 +9,12 @@ import mlflow
 from databricks_cli.jobs.api import JobsApi
 from databricks_cli.sdk import ApiClient
 from mlflow.entities import Run
+from rich.markup import escape
 from rich.progress import track
 from typer.rich_utils import _get_rich_console  # noqa
 
-from dbx.models.destroyer import DestroyerConfig, DeletionMode
-from dbx.models.project import EnvironmentInfo
+from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.files.project import EnvironmentInfo
 from dbx.utils import dbx_echo
 
 
@@ -30,21 +31,23 @@ class WorkflowEraser(Eraser):
         self._dry_run = dry_run
 
     def _delete_workflow(self, workflow):
-        dbx_echo(f"Job object {workflow} will be deleted")
+        dbx_echo(f"Job object {escape(workflow)} will be deleted")
         api = JobsApi(self._client)
         found = api._list_jobs_by_name(workflow)  # noqa
 
         if len(found) > 1:
-            raise Exception(f"More than one job with name {workflow} was found, please check the duplicates in the UI")
+            raise Exception(
+                f"More than one job with name {escape(workflow)} was found, please check the duplicates in the UI"
+            )
         if len(found) == 0:
-            dbx_echo(f"Job with name {workflow} doesn't exist, no deletion is required")
+            dbx_echo(f"Workflow with name {escape(workflow)} doesn't exist, no deletion is required")
         else:
             _job = found[0]
             if self._dry_run:
-                dbx_echo(f"Job {workflow} with definition {_job} would be deleted in case of a real run")
+                dbx_echo(f"Workflow {escape(workflow)} with definition would be deleted in case of a real run")
             else:
                 api.delete_job(_job["job_id"])
-                dbx_echo(f"Job object with name {workflow} was successfully deleted ✅")
+                dbx_echo(f"Job object with name {escape(workflow)} was successfully deleted ✅")
 
     def erase(self):
         for w in self._workflows:
@@ -125,7 +128,7 @@ class Destroyer:
         self._config = config
 
     def _get_workflow_eraser(self) -> WorkflowEraser:
-        return WorkflowEraser(self._client, self._config.workflows, self._config.dry_run)
+        return WorkflowEraser(self._client, self._config.workflow_names, self._config.dry_run)
 
     def _get_asset_eraser(self) -> AssetEraser:
         env_info = self._config.deployment.get_project_info()

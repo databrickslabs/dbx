@@ -3,11 +3,12 @@ from base64 import b64encode
 from pathlib import Path
 from typing import Optional, List, Any
 
+import typer
 from databricks_cli.sdk import ApiClient
 
 from dbx.api.client_provider import ApiV1Client
 from dbx.constants import LOCK_FILE_PATH
-from dbx.models.context import ContextInfo
+from dbx.models.files.context import ContextInfo
 from dbx.utils import dbx_echo
 from dbx.utils.json import JsonUtils
 
@@ -69,13 +70,14 @@ class LowLevelExecutionContextClient:
             final_result = execution_result["results"]["resultType"]
             if final_result == "error":
                 dbx_echo("Execution failed, please follow the given error")
-                raise RuntimeError(
-                    "Command execution failed. Traceback from cluster: \n" f'{execution_result["results"]["cause"]}'
-                )
+                _traceback = execution_result["results"]["cause"]
+                print(_traceback)
+                raise typer.Exit(1)
 
             if verbose:
                 dbx_echo("Command successfully executed")
                 if result_data:
+                    dbx_echo("🔊 stdout from the execution is shown below:")
                     print(result_data)
 
             return result_data
@@ -118,6 +120,7 @@ class LowLevelExecutionContextClient:
 
 class RichExecutionContextClient:
     def __init__(self, v2_client: ApiClient, cluster_id: str, language: str = "python"):
+        self.api_client = v2_client
         self._client = LowLevelExecutionContextClient(v2_client, cluster_id, language)
 
     def install_package(self, package_file: str, pip_install_extras: Optional[str]):

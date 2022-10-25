@@ -1,8 +1,10 @@
 import textwrap
 from pathlib import Path
 
-from dbx.models.deployment import BuildConfiguration
-from dbx.utils.dependency_manager import DependencyManager
+import pytest
+
+from dbx.api.dependency.requirements import RequirementsFileProcessor
+from dbx.models.workflow.common.libraries import Library, PythonPyPiLibrary
 
 
 def write_requirements(parent: Path, content: str) -> Path:
@@ -11,98 +13,30 @@ def write_requirements(parent: Path, content: str) -> Path:
     return _file
 
 
-def test_simple_requirements_file(tmp_path: Path):
-    requirements_txt = write_requirements(
-        tmp_path,
+@pytest.mark.parametrize(
+    "req_payload",
+    [
         """\
         tqdm
         rstcheck
         prospector>=1.3.1,<1.7.0""",
-    )
-
-    dm = DependencyManager(
-        BuildConfiguration(no_package=True),
-        global_no_package=True,
-        requirements_file=requirements_txt.resolve(),
-    )
-    assert dm._requirements_references == [
-        {"pypi": {"package": "tqdm"}},
-        {"pypi": {"package": "rstcheck"}},
-        {"pypi": {"package": "prospector<1.7.0,>=1.3.1"}},
-    ]
-
-
-def test_requirements_with_comments(tmp_path: Path):
-    requirements_txt = write_requirements(
-        tmp_path,
         """\
         # simple comment
         tqdm
         rstcheck # use this library
         prospector>=1.3.1,<1.7.0""",
-    )
-
-    dm = DependencyManager(
-        BuildConfiguration(no_package=True),
-        global_no_package=True,
-        requirements_file=requirements_txt.resolve(),
-    )
-    assert dm._requirements_references == [
-        {"pypi": {"package": "tqdm"}},
-        {"pypi": {"package": "rstcheck"}},
-        {"pypi": {"package": "prospector<1.7.0,>=1.3.1"}},
-    ]
-
-
-def test_requirements_with_empty_line(tmp_path):
-    requirements_txt = write_requirements(
-        tmp_path,
         """\
         tqdm
         rstcheck
         prospector>=1.3.1,<1.7.0""",
-    )
+    ],
+)
+def test_simple_requirements_file(req_payload, tmp_path: Path):
+    requirements_txt = write_requirements(tmp_path, req_payload)
 
-    dm = DependencyManager(
-        BuildConfiguration(no_package=True),
-        global_no_package=True,
-        requirements_file=requirements_txt.resolve(),
-    )
-    assert dm._requirements_references == [
-        {"pypi": {"package": "tqdm"}},
-        {"pypi": {"package": "rstcheck"}},
-        {"pypi": {"package": "prospector<1.7.0,>=1.3.1"}},
+    parsed = RequirementsFileProcessor(requirements_txt).parse_requirements()
+    assert parsed == [
+        Library(pypi=PythonPyPiLibrary(package="tqdm")),
+        Library(pypi=PythonPyPiLibrary(package="rstcheck")),
+        Library(pypi=PythonPyPiLibrary(package="prospector<1.7.0,>=1.3.1")),
     ]
-
-
-def test_requirements_with_filtered_pyspark(tmp_path):
-    requirements_txt = write_requirements(
-        tmp_path,
-        """\
-        tqdm
-        pyspark==1.2.3
-        rstcheck
-        prospector>=1.3.1,<1.7.0""",
-    )
-
-    dm = DependencyManager(
-        BuildConfiguration(no_package=True),
-        global_no_package=True,
-        requirements_file=requirements_txt.resolve(),
-    )
-    assert dm._requirements_references == [
-        {"pypi": {"package": "tqdm"}},
-        {"pypi": {"package": "rstcheck"}},
-        {"pypi": {"package": "prospector<1.7.0,>=1.3.1"}},
-    ]
-
-
-def test_not_matching_conditions(tmp_path, capsys):
-
-    dm = DependencyManager(BuildConfiguration(no_package=True), global_no_package=True, requirements_file=None)
-
-    reference = {"deployment_config": {"no_package": False}}
-
-    dm.process_dependencies(reference)
-    captured = capsys.readouterr()
-    assert "--no-package option is set to true" in captured.out

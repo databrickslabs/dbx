@@ -9,7 +9,7 @@ from pytest_mock import MockerFixture
 
 from dbx.api.destroyer import Destroyer, WorkflowEraser, AssetEraser
 from dbx.models.deployment import EnvironmentDeploymentInfo
-from dbx.models.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 from tests.unit.conftest import invoke_cli_runner
 
 test_env_info = EnvironmentDeploymentInfo(name="default", payload={"workflows": [{"name": "w1"}]})

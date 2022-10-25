@@ -16,7 +16,7 @@ install(suppress=[click])
 
 typer.rich_utils._get_help_text = _get_custom_help_text
 
-app = typer.Typer(rich_markup_mode="markdown")
+app = typer.Typer(rich_markup_mode="markdown", pretty_exceptions_show_locals=False)
 
 app.callback(
     name="dbx",

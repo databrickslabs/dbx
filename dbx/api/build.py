@@ -3,9 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Union, List, Optional
-from rich.console import Console
 
-from dbx.models.deployment import BuildConfiguration, PythonBuild
 from dbx.utils import dbx_echo
 
 
@@ -29,32 +27,3 @@ def execute_shell_command(
     except subprocess.CalledProcessError as exc:
         dbx_echo("\n💥Command execution failed")
         raise exc
-
-
-def prepare_build(build_config: BuildConfiguration):
-    if build_config.no_build:
-        dbx_echo("No build actions will be performed.")
-    else:
-        dbx_echo("Following the provided build logic")
-
-        if build_config.commands:
-            dbx_echo("Running the build commands")
-            for command in build_config.commands:
-                with Console().status(f"🔨Running command {command}", spinner="dots"):
-                    execute_shell_command(command)
-        elif build_config.python:
-            dbx_echo("🐍 Building a Python-based project")
-            cleanup_dist()
-
-            if build_config.python == PythonBuild.poetry:
-                build_kwargs = {"cmd": "poetry build -f wheel"}
-            elif build_config.python == PythonBuild.flit:
-                command = "-m flit build --format wheel"
-                build_kwargs = {"cmd": command, "with_python_executable": True}
-            else:
-                command = "-m pip wheel -w dist -e . --prefer-binary --no-deps"
-                build_kwargs = {"cmd": command, "with_python_executable": True}
-
-            with Console().status("Building the package :hammer:", spinner="dots"):
-                execute_shell_command(**build_kwargs)
-            dbx_echo(":white_check_mark: Python-based project build finished")
