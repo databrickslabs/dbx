@@ -44,7 +44,7 @@ object-type://object-name
 
 The following references are supported:
 
-| Reference type (example)    | Referencing target        | API Method used for reference resolution                                                                                          |
+| Reference prefix            | Referencing target        | API Method used for reference resolution                                                                                          |
 |-----------------------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `instance-pool://`          | Instance Pools            | [ListInstancePools](https://docs.databricks.com/dev-tools/api/latest/instance-pools.html#list)                                    |
 | `instance-profile://`       | Instance Profiles         | [ListInstanceProfiles](https://docs.databricks.com/dev-tools/api/latest/instance-profiles.html#list)                              |
