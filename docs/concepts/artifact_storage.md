@@ -32,7 +32,7 @@ When project is configured by default, the definition looks like this:
 
     To ensure protected R/W access to the deployed objects we **recommend** using `s3://` or `wasbs://` or `gs://` artifact locations.
 
-    **By default, any file stored in such `dbfs://` location could be accessed in R/W mode by any user of the same workspace.**
+    **By default, any file stored in the `dbfs://` non-mounted location could be accessed in R/W mode by any user of the same workspace.**
 
     Therefore, we recommend storing your deployment artifacts in `s3://`, `wasbs://` or `gs://`-based artifact locations.
     By doing so you'll ensure that only the relevant people will be able to work with this location.
