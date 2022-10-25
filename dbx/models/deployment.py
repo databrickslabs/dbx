@@ -3,18 +3,20 @@ from __future__ import annotations
 import collections
 from typing import Optional, Dict, Any, List, Union
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 from rich.markup import escape
+from typing_extensions import Annotated
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.models.build import BuildConfiguration
 from dbx.models.files.project import EnvironmentInfo
 from dbx.models.workflow.common.flexible import FlexibleModel
+from dbx.models.workflow.common.pipeline import Pipeline
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from dbx.utils import dbx_echo
 
-AnyWorkflow = Union[V2dot0Workflow, V2dot1Workflow]
+AnyWorkflow = Annotated[Union[V2dot0Workflow, V2dot1Workflow, Pipeline], Field(discriminator="workflow_type")]
 WorkflowList = List[AnyWorkflow]
 
 

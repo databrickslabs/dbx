@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🪄 Make empty `workflows` list a noop instead of error
 
 ### Added
+- 🔥 Delta Live Tables support
 - 📖 Documentation on the differences between `dbx execute` and `dbx launch`
 - 📖 Documentation on how to use parameter passing in various cases
 - 📖 Documentation on how to enable Photon
