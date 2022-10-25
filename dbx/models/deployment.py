@@ -54,13 +54,18 @@ class Deployment(FlexibleModel, WorkflowListMixin):
                 "[yellow bold]Usage of jobs keyword in deployment file is deprecated. "
                 "Please use [bold]workflows[bold] instead (simply rename this section to workflows).[/yellow bold]"
             )
-        _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
-        return Deployment(**{"workflows": _w})
+        return Deployment.from_spec_remote(raw_spec)
 
     @staticmethod
     def from_spec_remote(raw_spec: Dict[str, Any]) -> Deployment:
-        _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
-        return Deployment(**{"workflows": _w})
+        _wfs = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
+        assert isinstance(_wfs, list), ValueError(f"Provided payload is not a list {_wfs}")
+
+        for workflow_def in _wfs:
+            if not workflow_def.get("workflow_type"):
+                workflow_def["workflow_type"] = "job"
+
+        return Deployment(**{"workflows": _wfs})
 
     def select_relevant_or_all_workflows(
         self, workflow_name: Optional[str], workflow_names: Optional[List[str]]
