@@ -42,7 +42,7 @@ class InstancePoolAdjuster(ApiClientMixin, ElementSetterMixin):
         ).instance_pool_id
 
     def _adjust_legacy_instance_pool_ref(self, element: NewCluster):
-        element.instance_pool_name = self._instance_pools.get_pool(element.instance_pool_name).instance_pool_id
+        element.instance_pool_id = self._instance_pools.get_pool(element.instance_pool_name).instance_pool_id
 
     def _adjust_instance_pool_ref(self, element: str, parent: Any, index: Any):
         pool_id = self._instance_pools.get_pool(element.replace("instance-pool://", "")).instance_pool_id

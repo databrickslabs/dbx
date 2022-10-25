@@ -79,6 +79,7 @@ nav:
       - DevOps for workflows: concepts/devops.md
       - Testing workflows: concepts/testing.md
       - Cluster types for various flows: concepts/cluster_types.md
+      - Artifact storage: concepts/artifact_storage.md
   - Guides:
       - General:
           - Dependency management: guides/general/dependency_management.md
