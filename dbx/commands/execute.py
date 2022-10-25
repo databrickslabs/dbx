@@ -105,7 +105,7 @@ def execute(
 
     cluster_controller.awake_cluster()
 
-    context_client = RichExecutionContextClient(api_client, cluster_id)
+    context_client = RichExecutionContextClient(api_client, cluster_controller.cluster_id)
 
     upload_via_context = (
         upload_via_context

@@ -33,7 +33,7 @@ class ExecutionController:
         self._pip_install_extras = pip_install_extras
         self._run = None
 
-        if not self._upload_via_context:
+        if self._upload_via_context:
             dbx_echo("Context-based file uploader will be used")
             self._file_uploader = ContextBasedUploader(self._client)
         else:
@@ -90,11 +90,12 @@ class ExecutionController:
         if not self.additional_libraries.core_package:
             raise FileNotFoundError("Project package was not found. Please check that /dist directory exists.")
         dbx_echo("Uploading package")
-        driver_package_path = self._file_uploader.upload_and_provide_path(self.additional_libraries.core_package.whl)
+        stripped_package_path = self.additional_libraries.core_package.whl.replace("file://", "")
+        localized_package_path = self._file_uploader.upload_and_provide_path(f"file:fuse://{stripped_package_path}")
         dbx_echo(":white_check_mark: Uploading package - done")
 
         with Console().status("Installing package on the cluster 📦", spinner="dots"):
-            self._client.install_package(driver_package_path, pip_install_extras)
+            self._client.install_package(localized_package_path, pip_install_extras)
 
         dbx_echo(":white_check_mark: Installing package - done")
 
