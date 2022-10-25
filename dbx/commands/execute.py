@@ -98,9 +98,6 @@ def execute(
     task: ExecuteTask = workflow.get_task(task_name) if task_name else workflow
 
     task.check_if_supported_in_execute()
-
-    config.build.trigger_build_process()
-
     core_package = CorePackageManager(config.build).core_package if not no_package else None
 
     if parameters:

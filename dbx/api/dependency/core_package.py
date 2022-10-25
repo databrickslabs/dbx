@@ -18,7 +18,7 @@ class CorePackageManager:
     def core_package(self) -> Optional[Library]:
         return self._core_package
 
-    def prepare_core_package(self):
+    def prepare_core_package(self) -> Library:
         self.build_config.trigger_build_process()
         package_file = self.get_package_file()
 
