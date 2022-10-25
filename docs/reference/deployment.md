@@ -179,6 +179,8 @@ custom:
 
 ### :material-dots-hexagon: Managing the workflow as a service principal
 
+<img src="https://img.shields.io/badge/available%20since-0.8.0-green?style=for-the-badge" alt="Available since 0.8.0"/>
+
 This example uses the [named reference feature](../features/named_properties.md#reference-based-approach):
 
 ```yaml title="conf/deployment.yml" hl_lines="5-7"
