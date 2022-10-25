@@ -15,7 +15,7 @@ To manage permissions for Jobs API 2.1, provide the following payload at the wor
 environments:
   default:
     workflows:
-      - name": "some-workflow"
+      - name: "some-workflow"
         access_control_list:
           - user_name: "some_user@example.com"
             permission_level: "IS_OWNER"
