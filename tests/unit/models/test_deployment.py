@@ -67,7 +67,7 @@ def test_empty_spec():
 
 def test_workflows_list_duplicates():
     with pytest.raises(ValueError):
-        WorkflowListMixin(**{"workflows": [{"name": "a"}, {"name": "a"}]})
+        WorkflowListMixin(**{"workflows": [{"name": "a", "workflow_type": "job-v2.1"}, {"name": "a", "workflow_type": "job-v2.1"}]})
 
 
 def test_workflows_list_bad_get():
