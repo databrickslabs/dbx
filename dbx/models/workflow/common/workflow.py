@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Literal
+from typing import Optional, Union
 
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications
@@ -19,7 +19,6 @@ class WorkflowBase(FlexibleModel, ABC):
     schedule: Optional[CronSchedule]
     max_concurrent_runs: Optional[int]
     job_id: Optional[str]
-    workflow_type: Literal["job"]
 
     @abstractmethod
     def get_task(self, task_key: str):

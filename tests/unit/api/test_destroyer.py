@@ -12,7 +12,9 @@ from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 from tests.unit.conftest import invoke_cli_runner
 
-test_env_info = EnvironmentDeploymentInfo(name="default", payload={"workflows": [{"name": "w1"}]})
+test_env_info = EnvironmentDeploymentInfo(
+    name="default", payload={"workflows": [{"name": "w1", "workflow_type": "job-v2.0", "some_task": "t"}]}
+)
 basic_config = partial(DestroyerConfig, deployment=test_env_info)
 
 

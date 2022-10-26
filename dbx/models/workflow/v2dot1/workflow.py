@@ -1,5 +1,5 @@
 import collections
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 
 from pydantic import root_validator, validator
 
@@ -7,6 +7,7 @@ from dbx.models.validators import at_least_one_of, mutually_exclusive
 from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.workflow import WorkflowBase
+from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.models.workflow.v2dot1.job_cluster import JobClustersMixin
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
 from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload
@@ -34,6 +35,7 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
     tasks: Optional[List[JobTaskSettings]]
     git_source: Optional[GitSource]
     format: Optional[str]
+    workflow_type: Literal[WorkflowType.job_v2d1] = WorkflowType.job_v2d1
 
     @validator("tasks")
     def _validate_tasks(cls, tasks: Optional[List[JobTaskSettings]]) -> Optional[List[JobTaskSettings]]:  # noqa

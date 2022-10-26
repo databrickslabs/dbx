@@ -12,6 +12,7 @@ from dbx.models.build import BuildConfiguration
 from dbx.models.files.project import EnvironmentInfo
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.pipeline import Pipeline
+from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from dbx.utils import dbx_echo
@@ -63,8 +64,9 @@ class Deployment(FlexibleModel, WorkflowListMixin):
 
         for workflow_def in _wfs:
             if not workflow_def.get("workflow_type"):
-                workflow_def["workflow_type"] = "job"
-
+                workflow_def["workflow_type"] = (
+                    WorkflowType.job_v2d1 if "tasks" in workflow_def else WorkflowType.job_v2d0
+                )
         return Deployment(**{"workflows": _wfs})
 
     def select_relevant_or_all_workflows(
