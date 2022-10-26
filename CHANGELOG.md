@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ♻️ Heavily refactor parameter passing logic
 - ♻️ Heavily refactor the models used by `dbx` internal APIs
 - 🪄 Make empty `workflows` list a noop instead of error
+- 🪄 Handle `pytest` exit code in cookiecutter project integration test entrypoint
 
 ### Added
 - 🔥 Delta Live Tables support
