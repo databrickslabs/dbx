@@ -70,7 +70,7 @@ databricks repos update --path="/Repos/some/path" --tag="specific-tag"
 ## :material-hexagon-multiple-outline: Launching DLT pipelines using `dbx`
 
 
-To launch a DLT pipeline, simply use the `dbx launch`command:
+To launch a DLT pipeline, simply use the `dbx launch` command:
 
 ```bash
 dbx launch <pipeline-name>
