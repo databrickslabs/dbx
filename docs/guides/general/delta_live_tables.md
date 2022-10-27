@@ -26,18 +26,22 @@ environments:
           spark_conf:
             "spark.property1": "value"
             "spark.property2": "value2"
-            aws_attributes:
-              ...
-            instance_pool_id: "instance-pool://some-pool"
-            driver_instance_pool_id: "instance-pool://some-pool"
-            policy_id: "cluster-policy://some-policy"
-      libraries: #(5)
+          aws_attributes:
+            ...
+          instance_pool_id: "instance-pool://some-pool"
+          driver_instance_pool_id: "instance-pool://some-pool"
+          policy_id: "cluster-policy://some-policy"
+          autoscale:
+            min_workers: 1
+            max_workers: 4
+            mode: "legacy" #(6)
+      libraries: #(7)
         - notebook:
             path: "/Repos/some/path"
         - notebook:
             path: "/Repos/some/other/path"
       target: "some_target_db"
-      ... #(7)
+      ... #(8)
 ```
 
 1. [REQUIRED] If not provided, `dbx` will try to parse the workflow definition as a workflow in Jobs format.
@@ -45,8 +49,9 @@ environments:
 3. [OPTIONAL] A list of key-value pairs to add to the Spark configuration of the cluster that will run the pipeline.
 4. [OPTIONAL] If this is not specified, the system will select a default cluster configuration for the pipeline.
 5. Follow documentation for this section [here](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-api-guide.html#pipelinesnewcluster).
-6. [REQUIRED] The notebooks containing the pipeline code and any dependencies required to run the pipeline.
-7. Follow the [official documentation page](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-api-guide.html#pipelinesettings) for other fields and properties
+6. Also could be `mode: "enchanced"`, read more on [this feature here](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-concepts.html#databricks-enhanced-autoscaling).
+7. [REQUIRED] The notebooks containing the pipeline code and any dependencies required to run the pipeline.
+8. Follow the [official documentation page](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-api-guide.html#pipelinesettings) for other fields and properties
 
 !!! tip "Payload structure for DLT pipelines"
 
