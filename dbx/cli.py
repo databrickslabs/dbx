@@ -191,3 +191,7 @@ click_app = get_click_app()
 
 def entrypoint():
     app()
+
+
+if __name__ == "__main__":
+    app()
