@@ -5,7 +5,7 @@ from typing import Dict, Optional, Union
 
 from pydantic import BaseModel
 
-from dbx.constants import PROJECT_INFO_FILE_PATH
+from dbx.constants import DBX_CONFIGURE_DEFAULTS, PROJECT_INFO_FILE_PATH
 from dbx.utils import dbx_echo
 
 
@@ -45,7 +45,7 @@ class ProjectInfo(BaseModel):
     inplace_jinja_support: Optional[bool] = False
     failsafe_cluster_reuse_with_assets: Optional[bool] = False
     context_based_upload_for_execute: Optional[bool] = False
-    custom_init_scripts: Optional[bool] = False
+    append_init_scripts: Optional[bool] = DBX_CONFIGURE_DEFAULTS["append_init_scripts"]
 
     def get_environment(self, name: str) -> EnvironmentInfo:
         _env = self.environments.get(name)

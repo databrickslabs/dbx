@@ -1,7 +1,7 @@
 import shutil
 import textwrap
 from pathlib import Path
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 import typer
@@ -11,14 +11,14 @@ from pytest_mock import MockerFixture
 from requests import HTTPError
 
 from dbx.api.config_reader import ConfigReader
-from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
+from dbx.api.configure import EnvironmentInfo
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.commands.deploy import (  # noqa
     _create_job,
     _log_dbx_file,
+    _preprocess_deployment,
     _update_job,
     deploy,
-    _preprocess_deployment,
 )
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.files.project import MlflowStorageProperties
@@ -130,14 +130,18 @@ def test_incorrect_location(tmp_path):
 
 def test_non_existent_env(mock_api_v2_client, temp_project):
     env_name = "configured-but-not-provided"
-    ProjectConfigurationManager().create_or_update(
-        env_name,
-        EnvironmentInfo(
-            profile="test",
-            properties=MlflowStorageProperties(
-                workspace_directory="/Shared/dbx/test", artifact_location="dbfs:/dbx/test"
-            ),
-        ),
+    invoke_cli_runner(
+        [
+            "configure",
+            "--environment",
+            env_name,
+            "--workspace-dir",
+            "/Shared/dbx/test",
+            "--artifact-location",
+            "dbfs:/dbx/test",
+            "--profile",
+            "test",
+        ]
     )
     deploy_result = invoke_cli_runner(["deploy", "--environment", env_name], expected_error=True)
     assert isinstance(deploy_result.exception, NameError)

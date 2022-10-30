@@ -36,12 +36,16 @@ def get_path_with_relation_to_current_file(p: str):
     return Path(__file__).parent.joinpath(str(p)).resolve()
 
 
-def invoke_cli_runner(*args, **kwargs):
+def invoke_cli_runner(args, **kwargs):
     """
     Helper method to invoke the CliRunner while asserting that the exit code is actually 0.
     """
     expected_error = kwargs.pop("expected_error") if "expected_error" in kwargs else None
-    res = CliRunner().invoke(app, *args, **kwargs)
+
+    # in case we have some empty strings in args, especially during pytest parametrize.
+    # for e.g.: test_configure_param_append_init_scripts()
+    args_without_empty_string = [arg for arg in args if arg] if not isinstance(args, str) else args
+    res = CliRunner().invoke(app, args_without_empty_string, **kwargs)
 
     if res.exit_code != 0:
         if not expected_error:

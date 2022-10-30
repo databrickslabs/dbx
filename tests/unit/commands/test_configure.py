@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from dbx.constants import PROJECT_INFO_FILE_PATH
 from dbx.utils.common import ProjectConfigurationManager
 from dbx.utils.json import JsonUtils
@@ -43,16 +45,21 @@ def test_configure_and_enable_failsafe_cluster_reuse(temp_project) -> None:
     assert ProjectConfigurationManager().get_failsafe_cluster_reuse()
 
 
-def test_configure_and_enable_custom_init_scripts(temp_project) -> None:
+@pytest.mark.parametrize(
+    "param, expected",
+    [
+        ("", True),
+        ("--append-init-scripts", True),
+        ("--no-append-init-scripts", False),
+    ],
+)
+def test_configure_param_append_init_scripts(param, expected, temp_project) -> None:
     Path(PROJECT_INFO_FILE_PATH).unlink()
-    first_result = invoke_cli_runner(
-        ["configure", "--environment", "dev", "--profile", temp_project.name],
-    )
-    invoke_cli_runner(["configure", "--enable-custom-init-scripts"])
-    assert first_result.exit_code == 0
+    result = invoke_cli_runner(["configure", "--environment", "dev", "--profile", temp_project.name, param])
+    assert result.exit_code == 0
     env = ProjectConfigurationManager().get("dev")
     assert env is not None
-    assert ProjectConfigurationManager().get_custom_init_scripts()
+    assert expected == ProjectConfigurationManager().get_param_value("append_init_scripts")
 
 
 def test_configure_custom_location(temp_project: Path):

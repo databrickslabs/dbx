@@ -63,7 +63,7 @@ class PolicyAdjuster(ApiClientMixin):
         )
 
     @staticmethod
-    def _merge_init_scripts(policy_init_scripts: List, existing_init_scripts: List) -> List:
+    def _append_init_scripts(policy_init_scripts: List, existing_init_scripts: List) -> List:
         final_init_scripts = deepcopy(policy_init_scripts)
         flat_policy_init_scripts = defaultdict(list)
         for script in policy_init_scripts:
@@ -85,8 +85,8 @@ class PolicyAdjuster(ApiClientMixin):
                 # if the key is already provided in deployment configuration, we need to verify the value
                 # if value exists, we verify that it's the same as in the policy
                 if existing_value := d.get(k):
-                    if k == "init_scripts" and ProjectConfigurationManager().get_custom_init_scripts():
-                        d[k] = PolicyAdjuster._merge_init_scripts(v, existing_value)
+                    if k == "init_scripts" and ProjectConfigurationManager().get_param_value("append_init_scripts"):
+                        d[k] = PolicyAdjuster._append_init_scripts(v, existing_value)
                         continue
                     if existing_value != v:
                         err_msg = (

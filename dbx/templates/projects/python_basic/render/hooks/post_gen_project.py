@@ -2,8 +2,10 @@ import pathlib
 from typing import Any, Callable, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader
+from typer.testing import CliRunner
 
 from dbx.api.build import execute_shell_command
+from dbx.cli import app
 from dbx.commands.configure import configure
 from dbx.constants import TEMPLATE_ROOT_PATH
 
@@ -90,16 +92,20 @@ class PostProcessor:
 
     @staticmethod
     def process():
-
-        configure(
-            environment="default",
-            workspace_dir=WORKSPACE_DIR,
-            artifact_location=ARTIFACT_LOCATION,
-            profile=PROFILE,
-            enable_inplace_jinja_support=False,
-            enable_failsafe_cluster_reuse_with_assets=False,
-            enable_context_based_upload_for_execute=False,
-            enable_custom_init_scripts=False,
+        runner = CliRunner()
+        runner.invoke(
+            app,
+            [
+                "configure",
+                "--environment",
+                "default",
+                "--workspace-dir",
+                WORKSPACE_DIR,
+                "--artifact-location",
+                ARTIFACT_LOCATION,
+                "--profile",
+                PROFILE,
+            ],
         )
 
         env = Environment(loader=FileSystemLoader(COMPONENTS_PATH))

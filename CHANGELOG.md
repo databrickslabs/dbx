@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📖 Documentation on artifact storage
 - ✨ Functionality to automatically enable context-based upload
 - ✨ Automatic conversion from `wasbs://` to `abfss://` references when using ADLS as artifact storage.
-- ✨ Add option to append workflow custom init scripts, can be configured via `dbx configure --enable-custom-init-scripts`
+- ✨ `dbx configure` enables by default appending workflow custom init scripts, or explicitly by `dbx configure --append-init-scripts`.
 
 ### Fixed
 

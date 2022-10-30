@@ -1,12 +1,14 @@
 import typer
 
 from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
+from dbx.constants import DBX_CONFIGURE_DEFAULTS
 from dbx.models.files.project import MlflowStorageProperties, StorageType
 from dbx.options import ENVIRONMENT_OPTION, PROFILE_OPTION
 from dbx.utils import current_folder_name, dbx_echo
 
 
 def configure(
+    typer_ctx: typer.Context,
     environment: str = ENVIRONMENT_OPTION,
     workspace_dir: str = typer.Option(
         f"/Shared/dbx/projects/{current_folder_name()}",
@@ -58,22 +60,13 @@ def configure(
 
         Project file should exist, otherwise command will fail.""",
     ),
-    enable_custom_init_scripts: bool = typer.Option(
-        False,
-        "--enable-custom-init-scripts",
-        help="""Enables the merge of the init scripts from the cluster policy and
-        those from the `new_cluster.init_scripts` key.
-
-
-        Project file should exist, otherwise command will fail.""",
+    append_init_scripts: bool = typer.Option(  # handled by manager.create_or_update # pylint: disable=unused-argument
+        DBX_CONFIGURE_DEFAULTS["append_init_scripts"],
+        help="""Enables the merge of the custom init scripts from the cluster policy and
+        those from the `new_cluster.init_scripts` key.""",
     ),
 ):
     manager = ProjectConfigurationManager()
-
-    if enable_custom_init_scripts:
-        dbx_echo("Enabling custom init scripts")
-        manager.enable_custom_init_scripts()
-        dbx_echo("✅ Enabling custom init scripts")
 
     if enable_inplace_jinja_support:
         dbx_echo("Enabling jinja support")
@@ -101,5 +94,6 @@ def configure(
                     workspace_directory=workspace_dir, artifact_location=artifact_location
                 ),
             ),
+            typer_ctx,
         )
         dbx_echo("Environment configuration successfully finished")

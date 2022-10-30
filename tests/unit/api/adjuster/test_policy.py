@@ -152,41 +152,41 @@ def test_negative_cases(cluster_def, policy_mock):
         ),
     ],
 )
-def test_merge_init_scripts(existing_init_scripts, expected):
+def test_append_init_scripts(existing_init_scripts, expected):
     policy_init_scripts = [
         {"dbfs": {"destination": "dbfs1"}},
         {"dbfs": {"destination": "dbfs2"}},
         {"s3": {"destination": "s31"}},
         {"s3": {"destination": "s32"}},
     ]
-    assert expected == PolicyAdjuster._merge_init_scripts(policy_init_scripts, existing_init_scripts)
+    assert expected == PolicyAdjuster._append_init_scripts(policy_init_scripts, existing_init_scripts)
 
 
 @pytest.mark.parametrize(
-    "conf_custom_init_scripts, called_merge_init_scripts",
+    "append_init_scripts, called_append_init_scripts",
     [
         (True, True),
         (False, False),
     ],
 )
 @patch(f"{TEST_MODULE_PATH}.ProjectConfigurationManager")
-@patch(f"{TEST_MODULE_PATH}.PolicyAdjuster._merge_init_scripts")
-def test_deep_update_with_merge_init_scripts(
-    mock_merge_init_scripts,
+@patch(f"{TEST_MODULE_PATH}.PolicyAdjuster._append_init_scripts")
+def test_deep_update_with_append_init_scripts(
+    mock_append_init_scripts,
     mock_project_configuration_manager,
-    conf_custom_init_scripts,
-    called_merge_init_scripts,
+    append_init_scripts,
+    called_append_init_scripts,
 ):
-    mock_project_configuration_manager.return_value.get_custom_init_scripts.return_value = conf_custom_init_scripts
+    mock_project_configuration_manager.return_value.get_param_value.return_value = append_init_scripts
     old_scripts = MagicMock()
     new_scripts = MagicMock()
     old = {"init_scripts": old_scripts}
     new = {"init_scripts": new_scripts}
-    if called_merge_init_scripts:
+    if called_append_init_scripts:
         PolicyAdjuster._deep_update(old, new)
-        mock_merge_init_scripts.assert_called_once_with(new_scripts, old_scripts)
-        assert old["init_scripts"] == mock_merge_init_scripts.return_value
+        mock_append_init_scripts.assert_called_once_with(new_scripts, old_scripts)
+        assert old["init_scripts"] == mock_append_init_scripts.return_value
     else:
         with pytest.raises(ValueError):
             PolicyAdjuster._deep_update(old, new)
-            mock_merge_init_scripts.assert_not_called()
+            mock_append_init_scripts.assert_not_called()
