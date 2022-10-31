@@ -45,7 +45,7 @@ DEV_REQUIREMENTS = [
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
     "pylint==2.15.4",
-    "pycodestyle==2.8.0",
+    "pycodestyle==2.9.1",
     "pyflakes==2.5.0",
     "mccabe==0.6.1",
     "prospector==1.7.7",
