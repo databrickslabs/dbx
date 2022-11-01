@@ -44,7 +44,7 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
                 name for name, count in collections.Counter([t.task_key for t in tasks]).items() if count > 1
             ]
             if _duplicates:
-                raise ValueError(f"Duplicated task keys are not allowed. Provided payload: {tasks}")
+                raise ValueError(f"Duplicated task keys are not allowed.")
         else:
             dbx_echo(
                 "[yellow bold]No task definitions were provided for workflow. "
@@ -54,6 +54,10 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
 
     def get_task(self, task_key: str) -> JobTaskSettings:
         _found = list(filter(lambda t: t.task_key == task_key, self.tasks))
+        assert len(_found) == 1, ValueError(
+            f"Requested task key {task_key} doesn't exist in the workflow definition."
+            f"Available tasks are: {self.task_names}"
+        )
         return _found[0]
 
     @property
@@ -63,12 +67,5 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
     def override_asset_based_launch_parameters(self, payload: AssetBasedRunPayload):
         for task_parameters in payload.elements:
             _t = self.get_task(task_parameters.task_key)
-
-            if not _t:
-                raise ValueError(
-                    f"Provided task key {task_parameters.task_key} doesn't exist in the workflow definition."
-                    f"Available tasks are: {self.task_names}"
-                )
-
             pointer = getattr(_t, _t.task_type)
             pointer.__dict__.update(task_parameters.dict(exclude_none=True))

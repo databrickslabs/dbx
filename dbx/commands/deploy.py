@@ -147,7 +147,7 @@ def deploy(
 
         if not _assets_only:
             wf_manager = WorkflowDeploymentManager(api_client, deployable_workflows)
-            wf_manager.update()
+            wf_manager.apply()
 
         deployment_tags = {
             "dbx_action_type": "deploy",

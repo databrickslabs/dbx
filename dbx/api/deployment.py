@@ -28,11 +28,11 @@ class WorkflowDeploymentManager(ApiClientMixin):
         else:
             service_instance.update(obj_id, wf)
 
-    def update(self):
-        dbx_echo("🤖 Updating workflow definitions via API")
+    def apply(self):
+        dbx_echo("🤖 Applying workflow definitions via API")
 
         for wf in self._wfs:
             self._deploy(wf)
             self._apply_permissions(wf)
 
-        dbx_echo("✅ Updating workflow definitions - done")
+        dbx_echo("✅ Applying workflow definitions - done")

@@ -10,14 +10,22 @@ from dbx.utils import dbx_echo
 
 
 class NamedPipelinesService(WorkflowBaseService):
+    def find_by_name_strict(self, name: str):
+        _response = ListPipelinesResponse(
+            **self.api_client.perform_query(method="GET", path="/pipelines/", data={"filter": f"name like '{name}'"})
+        )
+        _found = _response.get(name, strict_exist=True)
+        return _found.pipeline_id
+
     def find_by_name(self, name: str) -> Optional[str]:
         _response = ListPipelinesResponse(
             **self.api_client.perform_query(method="GET", path="/pipelines/", data={"filter": f"name like '{name}'"})
         )
-        return _response.get(name).pipeline_id
+        _found = _response.get(name, strict_exist=False)
+        return _found.pipeline_id if _found else None
 
     def create(self, wf: Pipeline):
-        dbx_echo(f"Creating a new workflow with name {escape(wf.name)} in format of {wf.workflow_type}")
+        dbx_echo(f"🪄 Creating new DLT pipeline with name {escape(wf.name)}")
         payload = wf.dict(exclude_none=True)
         try:
             _response = self.api_client.perform_query("POST", path="/pipelines", data=payload)
@@ -28,6 +36,7 @@ class NamedPipelinesService(WorkflowBaseService):
             raise e
 
     def update(self, object_id: int, wf: Pipeline):
+        dbx_echo(f"🪄 Updating existing DLT pipeline with name {escape(wf.name)} and id: {object_id}")
         payload = wf.dict(exclude_none=True)
         try:
             self.api_client.perform_query("PUT", path=f"/pipelines/{wf.pipeline_id}", data=payload)
@@ -49,10 +58,14 @@ class ListPipelinesResponse(FlexibleModel):
     def pipeline_names(self) -> List[str]:
         return [p.name for p in self.statuses]
 
-    def get(self, name: str) -> PipelineStateInfo:
+    def get(self, name: str, strict_exist: bool = True) -> Optional[PipelineStateInfo]:
         _found = list(filter(lambda p: p.name == name, self.statuses))
-        assert _found, NameError(
-            f"No pipelines with name {name} were found, available pipelines are {self.pipeline_names}"
-        )
-        assert len(_found) == 1, NameError(f"More than one pipeline with name {name} was found: {_found}")
-        return _found[0]
+
+        if strict_exist:
+            assert _found, NameError(f"No pipelines with name {name} were found!")
+
+        if not _found:
+            return None
+        else:
+            assert len(_found) == 1, NameError(f"More than one pipeline with name {name} was found: {_found}")
+            return _found[0]

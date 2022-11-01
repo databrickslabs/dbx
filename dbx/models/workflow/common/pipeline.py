@@ -2,6 +2,7 @@ from typing import Optional, Dict, List, Any, Literal
 
 from pydantic import validator
 
+from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.utils import dbx_echo
@@ -38,7 +39,7 @@ class PipelineLibrary(FlexibleModel):
     notebook: NotebookLibrary
 
 
-class Pipeline(FlexibleModel):
+class Pipeline(AccessControlMixin):
     name: str
     pipeline_id: Optional[str]
     workflow_type: Literal["pipeline"]

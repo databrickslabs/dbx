@@ -31,9 +31,9 @@ class ListJobsResponse(FlexibleModel):
 
 class NamedJobsService(WorkflowBaseService):
     DEFAULT_LIST_LIMIT = 25
+    JOBS_API_VERSION_FOR_SEARCH = "2.1"
 
     def __init__(self, api_client: ApiClient):
-        api_client.jobs_api_version = "2.1"
         super().__init__(api_client)
         self._service = JobsService(api_client)
 
@@ -44,7 +44,11 @@ class NamedJobsService(WorkflowBaseService):
         with Console().status(f"Searching for a job with name {name}", spinner="dots"):
             while True:
                 time.sleep(1)  # to avoid bursting out the jobs API
-                _response = ListJobsResponse(**self._service.list_jobs(limit=self.DEFAULT_LIST_LIMIT, offset=offset))
+                _response = ListJobsResponse(
+                    **self._service.list_jobs(
+                        limit=self.DEFAULT_LIST_LIMIT, offset=offset, version=self.JOBS_API_VERSION_FOR_SEARCH
+                    )
+                )
                 all_jobs.extend(_response.jobs)
                 offset += self.DEFAULT_LIST_LIMIT
                 if not _response.has_more:
@@ -68,7 +72,7 @@ class NamedJobsService(WorkflowBaseService):
         Please note that this method adjusts the provided workflow definition
         by setting the job_id field value on it
         """
-        dbx_echo(f"Creating a new workflow with name {escape(wf.name)} in format of {wf.workflow_type}")
+        dbx_echo(f"🪄 Creating new workflow with name {escape(wf.name)}")
         payload = wf.dict(exclude_none=True)
         try:
             _response = self.api_client.perform_query("POST", "/jobs/create", data=payload)
@@ -79,6 +83,7 @@ class NamedJobsService(WorkflowBaseService):
             raise e
 
     def update(self, object_id: int, wf: AnyJob):
+        dbx_echo(f"🪄 Updating existing workflow with name {escape(wf.name)} and id: {object_id}")
         payload = wf.dict(exclude_none=True)
         try:
             self._service.reset_job(object_id, payload)
