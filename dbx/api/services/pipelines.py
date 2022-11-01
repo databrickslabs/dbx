@@ -25,7 +25,7 @@ class NamedPipelinesService(WorkflowBaseService):
         return _found.pipeline_id if _found else None
 
     def create(self, wf: Pipeline):
-        dbx_echo(f"🪄 Creating new DLT pipeline with name {escape(wf.name)}")
+        dbx_echo(f"🪄  Creating new DLT pipeline with name {escape(wf.name)}")
         payload = wf.dict(exclude_none=True)
         try:
             _response = self.api_client.perform_query("POST", path="/pipelines", data=payload)
@@ -36,10 +36,10 @@ class NamedPipelinesService(WorkflowBaseService):
             raise e
 
     def update(self, object_id: int, wf: Pipeline):
-        dbx_echo(f"🪄 Updating existing DLT pipeline with name {escape(wf.name)} and id: {object_id}")
+        dbx_echo(f"🪄  Updating existing DLT pipeline with name [yellow]{escape(wf.name)}[/yellow] and id: {object_id}")
         payload = wf.dict(exclude_none=True)
         try:
-            self.api_client.perform_query("PUT", path=f"/pipelines/{wf.pipeline_id}", data=payload)
+            self.api_client.perform_query("PUT", path=f"/pipelines/{object_id}", data=payload)
         except HTTPError as e:
             dbx_echo(":boom: Failed to edit pipeline with definition:")
             dbx_echo(payload)

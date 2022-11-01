@@ -67,7 +67,7 @@ databricks repos update --path="/Repos/some/path" --branch="specific-branch"
 databricks repos update --path="/Repos/some/path" --tag="specific-tag"
 ```
 
-## :material-hexagon-multiple-outline: Launching DLT pipelines using `dbx`
+## :material-rocket-launch: Launching DLT pipelines using `dbx`
 
 
 To launch a DLT pipeline, simply use the `dbx launch` command:
@@ -78,8 +78,9 @@ dbx launch <pipeline-name>
 
 !!! danger "Assets-based launch is not supported in DLT pipelines"
 
-     Please note that assets-based launch is not supported in DLT pipelines.<br/>
-     Use the properties of the DLT pipeline, such as `target` and ` development` if you're looking for CI launch capability.
+     Please note that [assets-based launch](../../features/assets.md) is **not supported for DLT pipelines**.
+
+     Use the properties of the DLT pipeline, such as `target` and `development` if you're looking for capabilities to launch a specific branch.
 
 ## :material-code-brackets: Passing parameters to DLT pipelines during launch
 
@@ -93,3 +94,41 @@ dbx launch <pipeline-name> --parameters='{
   "full_refresh_selection": ["customers", "sales_orders_raw"]
 }' # start a full update of selected tables
 ```
+
+## :material-link-plus: Referencing DLT pipelines inside multitask workflows
+
+Sometimes you might need to chain various tasks around the DLT pipeline. In this case you can use the `pipeline_task` capabilities of the Databricks Workflows.
+For example, your deployment file definition could look like this:
+
+```yaml title="conf/deployment.yml" hl_lines="21-22"
+environments:
+  default:
+    workflows:
+      - name: "some-pipeline"
+        workflow_type: "pipeline"
+        libraries:
+          - notebook:
+              path: "/Repos/some/project"
+      - name: "dbx-pipeline-chain"
+        job_clusters:
+          - job_cluster_key: "main"
+            <<: *basic-static-cluster
+        tasks:
+          - task_key: "one"
+            python_wheel_task:
+              entry_point: "some-ep"
+              package_name: "some-pkg"
+          - task_key: "two"
+            depends_on:
+              - task_key: "one"
+            pipeline_task:
+              pipeline_id: "pipeline://some-pipeline" #(1)
+```
+
+1. Read more on the reference syntax [here](../../features/named_properties.md).
+
+!!! tip "Order of the definitions"
+
+    Please note that if you're planning to reference the pipeline definition, you should explicitly put them first in the deployment file `workflows` section, **prior to the reference**.
+
+    Without the proper order you'll run into a situation where your DLT pipeline wasn't yet deployed, therefore the reference won't be resolved which will cause an error.

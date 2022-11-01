@@ -72,7 +72,7 @@ class NamedJobsService(WorkflowBaseService):
         Please note that this method adjusts the provided workflow definition
         by setting the job_id field value on it
         """
-        dbx_echo(f"🪄 Creating new workflow with name {escape(wf.name)}")
+        dbx_echo(f"🪄  Creating new workflow with name {escape(wf.name)}")
         payload = wf.dict(exclude_none=True)
         try:
             _response = self.api_client.perform_query("POST", "/jobs/create", data=payload)
@@ -83,7 +83,7 @@ class NamedJobsService(WorkflowBaseService):
             raise e
 
     def update(self, object_id: int, wf: AnyJob):
-        dbx_echo(f"🪄 Updating existing workflow with name {escape(wf.name)} and id: {object_id}")
+        dbx_echo(f"🪄  Updating existing workflow with name {escape(wf.name)} and id: {object_id}")
         payload = wf.dict(exclude_none=True)
         try:
             self._service.reset_job(object_id, payload)
