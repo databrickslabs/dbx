@@ -96,12 +96,15 @@ def execute(
 
     workflow = environment_config.payload.get_workflow(workflow_name)
 
+    if workflow.workflow_type == WorkflowType.pipeline:
+        raise Exception("DLT pipelines are not supported in the execute mode.")
+
     if not task_name and workflow.workflow_type == WorkflowType.job_v2d1:
         if len(workflow.task_names) == 1:
             dbx_echo("Task key wasn't provided, automatically picking it since there is only one task in the workflow")
             task_name = workflow.task_names[0]
         else:
-            raise ValueError("Task key is not provided and there is more than one task in the workflow")
+            raise ValueError("Task key is not provided and there is more than one task in the workflow.")
 
     task: ExecuteTask = workflow.get_task(task_name) if task_name else workflow
 
