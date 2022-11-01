@@ -44,7 +44,7 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
                 name for name, count in collections.Counter([t.task_key for t in tasks]).items() if count > 1
             ]
             if _duplicates:
-                raise ValueError(f"Duplicated task keys are not allowed.")
+                raise ValueError("Duplicated task keys are not allowed.")
         else:
             dbx_echo(
                 "[yellow bold]No task definitions were provided for workflow. "
