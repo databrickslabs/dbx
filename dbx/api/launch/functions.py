@@ -1,32 +1,20 @@
-import tempfile
 import time
-from pathlib import Path
 from typing import Dict, Any, List
 
 import mlflow
 from databricks_cli.sdk import ApiClient, JobsService
 from mlflow.entities import Run
-from mlflow.tracking import MlflowClient
 from rich.console import Console
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.constants import TERMINAL_RUN_LIFECYCLE_STATES
 from dbx.utils import dbx_echo, format_dbx_message
-from dbx.utils.json import JsonUtils
 
 
 def cancel_run(api_client: ApiClient, run_data: Dict[str, Any]):
     jobs_service = JobsService(api_client)
     jobs_service.cancel_run(run_data["run_id"])
     wait_run(api_client, run_data)
-
-
-def load_dbx_file(run_id: str, file_name: str) -> Dict[Any, Any]:
-    client = MlflowClient()
-    with tempfile.TemporaryDirectory() as tmp:
-        dbx_file_path = f".dbx/{file_name}"
-        client.download_artifacts(run_id, dbx_file_path, tmp)
-        return JsonUtils.read(Path(tmp) / dbx_file_path)
 
 
 def wait_run(api_client: ApiClient, run_data: Dict[str, Any]) -> Dict[str, Any]:

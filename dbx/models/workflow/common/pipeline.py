@@ -40,6 +40,7 @@ class PipelineLibrary(FlexibleModel):
 
 class Pipeline(FlexibleModel):
     name: str
+    pipeline_id: Optional[str]
     workflow_type: Literal["pipeline"]
     storage: Optional[str]
     target: Optional[str]

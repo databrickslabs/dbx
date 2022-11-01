@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 import mlflow
 from pytest_mock import MockerFixture
 
-from dbx.api.launch.functions import cancel_run, load_dbx_file, wait_run
+from dbx.api.launch.functions import cancel_run, wait_run
+from dbx.api.storage.io import StorageIO
 from dbx.utils.json import JsonUtils
 
 
@@ -34,5 +35,5 @@ def test_load_file(tmp_path):
         _file = tmp_path / "conf.json"
         JsonUtils.write(_file, content)
         mlflow.log_artifact(str(_file.absolute()), ".dbx")
-        _result = load_dbx_file(test_run.info.run_id, "conf.json")
+        _result = StorageIO.load(test_run.info.run_id, "conf.json")
         assert _result == content

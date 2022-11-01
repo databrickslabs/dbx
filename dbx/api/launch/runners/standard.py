@@ -4,11 +4,11 @@ from typing import Optional, Union, Tuple, Dict, Any
 from databricks_cli.sdk import ApiClient, JobsService
 
 from dbx.api.launch.functions import wait_run, cancel_run
+from dbx.api.services.jobs import NamedJobsService
 from dbx.models.cli.options import ExistingRunsOption
-from dbx.utils import dbx_echo
-from dbx.utils.job_listing import find_job_by_name
 from dbx.models.workflow.v2dot0.parameters import StandardRunPayload as V2dot0StandardRunPayload
 from dbx.models.workflow.v2dot1.parameters import StandardRunPayload as V2dot1StandardRunPayload
+from dbx.utils import dbx_echo
 
 
 class StandardLauncher:
@@ -31,27 +31,26 @@ class StandardLauncher:
         else:
             return V2dot1StandardRunPayload(**_payload)
 
-    def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
+    def launch(self) -> Tuple[Dict[Any, Any], int]:
         dbx_echo("Launching job via run now API")
-        jobs_service = JobsService(self.api_client)
-        job_data = find_job_by_name(jobs_service, self.workflow_name)
+        named_service = NamedJobsService(self.api_client)
+        standard_service = JobsService(self.api_client)
+        job_id = named_service.find_by_name(self.workflow_name)
 
-        if not job_data:
-            raise Exception(f"Job with name {self.workflow_name} not found")
+        if not job_id:
+            raise Exception(f"Workflow with name {self.workflow_name} not found")
 
-        job_id = job_data["job_id"]
-
-        active_runs = jobs_service.list_runs(job_id, active_only=True).get("runs", [])
+        active_runs = standard_service.list_runs(job_id, active_only=True).get("runs", [])
 
         for run in active_runs:
-            if self.existing_runs == ExistingRunsOption.pass_:
-                dbx_echo("Passing the existing runs status check")
-            elif self.existing_runs == ExistingRunsOption.wait:
+            if self.existing_runs == ExistingRunsOption.wait:
                 dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
                 wait_run(self.api_client, run)
             elif self.existing_runs == ExistingRunsOption.cancel:
                 dbx_echo(f'Cancelling run with id {run["run_id"]}')
                 cancel_run(self.api_client, run)
+            else:
+                dbx_echo("Passing the existing runs status check")
 
         api_request_payload = {"job_id": job_id}
 

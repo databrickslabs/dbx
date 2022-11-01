@@ -5,7 +5,7 @@ from typing import Optional, Union, Tuple, Dict, Any
 from databricks_cli.sdk import ApiClient, JobsService
 
 from dbx.api.configure import ProjectConfigurationManager
-from dbx.api.launch.functions import load_dbx_file
+from dbx.api.storage.io import StorageIO
 from dbx.api.launch.processors import ClusterReusePreprocessor
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload as V2dot0AssetBasedParametersPayload
@@ -46,7 +46,7 @@ class AssetBasedLauncher:
         )
 
         service = JobsService(self.api_client)
-        env_spec = load_dbx_file(self.run_id, "deployment-result.json")
+        env_spec = StorageIO.load(self.run_id, "deployment-result.json")
         _config = EnvironmentDeploymentInfo.from_spec(
             self.environment_name, env_spec.get(self.environment_name), reader_type="remote"
         )
