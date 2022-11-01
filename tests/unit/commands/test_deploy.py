@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest.mock import Mock, MagicMock
 
 import pytest
-import typer
 import yaml
 from databricks_cli.sdk import ApiClient, JobsService
 from pytest_mock import MockerFixture
@@ -18,9 +17,7 @@ from dbx.commands.deploy import (  # noqa
     _log_dbx_file,
     _update_job,
     deploy,
-    _preprocess_deployment,
 )
-from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.files.project import MlflowStorageProperties
 from dbx.models.workflow.v2dot1.workflow import Workflow
 from dbx.utils.json import JsonUtils
@@ -271,13 +268,6 @@ def test_jinja_custom_path(mlflow_file_uploader, mock_dbx_file_upload, mock_api_
     shutil.copy(samples_path / "placeholder_1.py", Path("./placeholder_1.py"))
     deploy_result = invoke_cli_runner(["deploy", "--deployment-file", "../configs/09-jinja-include.json.j2"])
     assert deploy_result.exit_code == 0
-
-
-@pytest.mark.parametrize("inp,exp", [(None, typer.Exit), (["wf1"], Exception)])
-def test_preprocess_empty_info(inp, exp):
-    _info = EnvironmentDeploymentInfo(name="some", payload={"workflows": []})
-    with pytest.raises(exp):
-        _preprocess_deployment(_info, inp)
 
 
 def test_deploy_empty_workflows_list(temp_project, mlflow_file_uploader, mock_dbx_file_upload, mock_api_v2_client):

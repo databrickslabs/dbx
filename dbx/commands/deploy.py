@@ -2,7 +2,7 @@ import json
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Any, Union, Optional
+from typing import Dict, Any, Optional
 from typing import List
 
 import mlflow
@@ -16,7 +16,8 @@ from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
 from dbx.api.config_reader import ConfigReader
 from dbx.api.dependency.core_package import CorePackageManager
 from dbx.api.dependency.requirements import RequirementsFileProcessor
-from dbx.models.deployment import EnvironmentDeploymentInfo, WorkflowList, AnyWorkflow
+from dbx.models.deployment import WorkflowList, AnyWorkflow
+from dbx.models.workflow.common.pipeline import Pipeline
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -130,6 +131,11 @@ def deploy(
 
     _assets_only = assets_only if assets_only else files_only
 
+    if _assets_only:
+        any_pipelines = [w for w in deployable_workflows if isinstance(w, Pipeline)]
+        if any_pipelines:
+            raise Exception(f"Assets-only mode is not supported for DLT pipelines: {[p.name for p in any_pipelines]}")
+
     with mlflow.start_run() as deployment_run:
 
         adjuster = Adjuster(
@@ -200,36 +206,11 @@ def _log_dbx_file(content: Dict[Any, Any], name: str):
     shutil.rmtree(temp_dir)
 
 
-def define_workflow_names(workflow_name: str, workflow_names: str) -> Optional[List[str]]:
-    if workflow_names and workflow_name:
-        raise Exception("Both workflow argument and --workflows (or --job and --jobs) cannot be provided together")
-
-    if workflow_name:
-        _workflow_names = [workflow_name]
-    elif workflow_names:
-        _workflow_names = workflow_names.split(",")
-    else:
-        _workflow_names = None
-
-    return _workflow_names
-
-
-def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_workflows: Union[List[str], None]):
-    if not deployment.payload.workflows:
-        dbx_echo("[yellow bold]🤷 No workflows were provided in the deployment file![/yellow bold]")
-        if requested_workflows:
-            raise Exception(
-                f"The following workflows were requested: {requested_workflows}, "
-                f"but no workflows are defined in the deployment file."
-            )
-
-        raise typer.Exit()
-
-
 def _create_workflows(workflows: WorkflowList, api_client: ApiClient) -> Dict[str, int]:
     deployment_data = {}
     for workflow in workflows:
         dbx_echo(f"Processing deployment for workflow: {escape(workflow.name)}")
+
         jobs_service = JobsService(api_client)
         matching_job = find_job_by_name(jobs_service, workflow.name)
 
@@ -241,6 +222,7 @@ def _create_workflows(workflows: WorkflowList, api_client: ApiClient) -> Dict[st
 
         deployment_data[workflow.name] = job_id
         workflow.job_id = job_id
+
     return deployment_data
 
 
