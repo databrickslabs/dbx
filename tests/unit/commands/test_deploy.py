@@ -24,16 +24,29 @@ def test_deploy_smoke_default(temp_project: Path, mlflow_file_uploader, mock_sto
     assert deploy_result.exit_code == 0
 
 
-def test_deploy_files_only_smoke_default(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):
-    deploy_result = invoke_cli_runner(["deploy", "--files-only"])
-    assert deploy_result.exit_code == 0
-
-
+@pytest.mark.parametrize("argset", [["--files-only"], ["--assets-only"], ["--no-rebuild"]])
 def test_deploy_assets_only_smoke_default(
-    temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client
+    argset, temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client
 ):
-    deploy_result = invoke_cli_runner(["deploy", "--assets-only"])
+    deploy_result = invoke_cli_runner(["deploy"] + argset)
     assert deploy_result.exit_code == 0
+
+
+def test_deploy_assets_pipeline(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):
+    (temp_project / "conf" / "deployment.yml").write_text(
+        """
+    environments:
+      default:
+        workflows:
+          - name: "pipe"
+            workflow_type: "pipeline"
+            libraries:
+              - notebook:
+                  path: "/some/path"
+    """
+    )
+    deploy_result = invoke_cli_runner(["deploy", "--assets-only"], expected_error=True)
+    assert "not supported for DLT pipelines" in str(deploy_result.exception)
 
 
 def test_deploy_multitask_smoke(

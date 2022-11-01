@@ -153,17 +153,14 @@ def deploy(
             "dbx_action_type": "deploy",
             "dbx_environment": environment_name,
             "dbx_status": "SUCCESS",
+            "dbx_branch_name": branch_name,
         }
 
-        environment_spec = environment_info.to_spec()
-
         deployment_tags.update(additional_tags)
-
-        if branch_name:
-            deployment_tags["dbx_branch_name"] = branch_name
-
         if _assets_only:
             deployment_tags["dbx_deploy_type"] = "files_only"
+
+        environment_spec = environment_info.to_spec()
 
         StorageIO.save(environment_spec, "deployment-result.json")
 
