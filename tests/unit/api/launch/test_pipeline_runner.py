@@ -7,8 +7,8 @@ TEST_PIPELINE_ID = "aaa-bbb"
 TEST_PIPELINE_UPDATE_PAYLOAD = {"update_id": "u1", "request_id": "r1"}
 
 
-def test_basic(launch_mock):
-    launcher = PipelineLauncher("some", api_client=launch_mock)
+def test_basic(pipeline_launch_mock):
+    launcher = PipelineLauncher("some", api_client=pipeline_launch_mock)
     process_info, object_id = launcher.launch()
     assert object_id == TEST_PIPELINE_ID
     assert process_info == PipelineUpdateResponse(**TEST_PIPELINE_UPDATE_PAYLOAD)
@@ -25,7 +25,7 @@ def test_basic(launch_mock):
         ),
     ],
 )
-def test_with_parameters(payload, expected, launch_mock):
-    launcher = PipelineLauncher("some", api_client=launch_mock, parameters=payload)
+def test_with_parameters(payload, expected, pipeline_launch_mock):
+    launcher = PipelineLauncher("some", api_client=pipeline_launch_mock, parameters=payload)
     assert launcher.parameters is not None
     assert launcher.parameters == expected
