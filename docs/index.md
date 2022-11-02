@@ -66,7 +66,7 @@ Depending on your developer journey and overall tasks, you might use `dbx` in va
   Connect](https://docs.databricks.com/dev-tools/databricks-connect.html), and then use
   `dbx` for deployment operations.
 - [Delta Live
-  Tables](https://databricks.com/product/delta-live-tables) currently are not supported. We plan do add support for DLT deployments in near future.
+  Tables](https://databricks.com/product/delta-live-tables) are supported for deployment and launch. The interactive execution mode is not supported. Please read more on DLT with `dbx` in [this guide](guides/general/delta_live_tables.md).
 
 ## :octicons-law-24: Legal Information
 

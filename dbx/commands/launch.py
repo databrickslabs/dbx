@@ -177,6 +177,7 @@ def launch(
                     raise Exception(
                         f"Tracked pipeline {object_id} failed during execution, please check the UI for details."
                     )
+                status = final_state
                 additional_tags = {"pipeline_id": object_id}
         else:
             status = "NOT_TRACKED"

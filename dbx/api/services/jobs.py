@@ -85,6 +85,7 @@ class NamedJobsService(WorkflowBaseService):
     def update(self, object_id: int, wf: AnyJob):
         dbx_echo(f"🪄  Updating existing workflow with name {escape(wf.name)} and id: {object_id}")
         payload = wf.dict(exclude_none=True)
+        wf.job_id = object_id
         try:
             self._service.reset_job(object_id, payload)
         except HTTPError as e:

@@ -40,6 +40,7 @@ class NamedPipelinesService(WorkflowBaseService):
         payload = wf.dict(exclude_none=True)
         try:
             self.api_client.perform_query("PUT", path=f"/pipelines/{object_id}", data=payload)
+            wf.pipeline_id = object_id
         except HTTPError as e:
             dbx_echo(":boom: Failed to edit pipeline with definition:")
             dbx_echo(payload)

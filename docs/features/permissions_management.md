@@ -1,6 +1,6 @@
 # :fontawesome-solid-users-gear: Permissions management
 
-`dbx` supports permissions management both for Jobs API 2.0 and Jobs API 2.1.
+`dbx` supports permissions management for Jobs API :material-surround-sound-2-0: and Jobs API :material-surround-sound-2-1: as well as for workflows in the format of :material-table-heart: Delta Live Tables.
 
 !!! tip
 
@@ -9,13 +9,27 @@
 
 ## :material-file-check: Providing the permissions
 
-To manage permissions for Jobs API 2.1, provide the following payload at the workflow level:
+To manage permissions provide the following payload at the workflow level:
 
 ```yaml
 environments:
   default:
     workflows:
+      # example for DLT pipeline
+      - name: "some-dlt-pipeline"
+        libraries:
+          - notebook:
+              path: "/some/repos"
+        access_control_list:
+          - user_name: "some_user@example.com"
+            permission_level: "IS_OWNER"
+          - group_name: "some-user-group"
+            permission_level: "CAN_VIEW"
+
+      # example for multitask workflow
       - name: "some-workflow"
+        tasks:
+          ...
         access_control_list:
           - user_name: "some_user@example.com"
             permission_level: "IS_OWNER"
