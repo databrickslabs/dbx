@@ -10,6 +10,11 @@ def test_empty_tasks(capsys):
     assert "might cause errors" in capsys.readouterr().out
 
 
+def test_task_not_provided():
+    with pytest.raises(ValidationError):
+        Workflow(name="test", tasks=[{"some": "a"}, {"other": "b"}])
+
+
 def test_duplicated_tasks(capsys):
     with pytest.raises(ValidationError):
         Workflow(tasks=[{"task_key": "d", "some_task": "prop"}, {"task_key": "d", "some_task": "prop"}], name="empty")

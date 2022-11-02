@@ -1,13 +1,19 @@
+import textwrap
 from pathlib import Path
 from typing import List, Optional
 from unittest.mock import MagicMock, PropertyMock
 
+import pytest
 from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.config_reader import ConfigReader
-from dbx.api.launch.tracer import RunTracer
+from dbx.api.launch.pipeline_models import PipelineUpdateState
+from dbx.api.launch.runners.base import PipelineUpdateResponse
+from dbx.api.launch.runners.pipeline import PipelineLauncher
+from dbx.api.launch.tracer import RunTracer, PipelineTracer
+from dbx.api.services.pipelines import NamedPipelinesService
 from dbx.api.storage.io import StorageIO
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import invoke_cli_runner
@@ -213,6 +219,41 @@ def test_launch_with_trace(
     prepare_tracing_mock(mocker, "SUCCESS")
     launch_result = invoke_cli_runner(["launch", "--job", _chosen_job] + ["--tags", "soup=beautiful", "--trace"])
     assert launch_result.exit_code == 0
+
+
+@pytest.mark.parametrize("state, err", [(PipelineUpdateState.COMPLETED, None), (PipelineUpdateState.FAILED, Exception)])
+def test_launch_pipeline(
+    state, err, mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client
+):
+    (temp_project / "conf" / "deployment.yml").write_text(
+        textwrap.dedent(
+            """
+    environments:
+      default:
+        workflows:
+          - name: "some"
+            workflow_type: "pipeline"
+            target: "some"
+            libraries:
+              - notebook:
+                  path: "/Repos/some/path"
+    """
+        )
+    )
+    mocker.patch.object(NamedPipelinesService, "find_by_name_strict", MagicMock(return_value=1))
+    mocker.patch.object(
+        PipelineLauncher, "launch", MagicMock(return_value=(PipelineUpdateResponse(update_id="a", request_id="a"), 1))
+    )
+    invoke_cli_runner(["deploy", "some"])
+
+    mocker.patch.object(PipelineTracer, "start", MagicMock(return_value=state))
+
+    if err:
+        launch_result = invoke_cli_runner(["launch", "some", "-p", "--trace"], expected_error=True)
+        assert "failed during execution" in str(launch_result.exception)
+    else:
+        launch_result = invoke_cli_runner(["launch", "some", "-p", "--trace"])
+        assert launch_result.exit_code == 0
 
 
 def test_launch_with_trace_failed(

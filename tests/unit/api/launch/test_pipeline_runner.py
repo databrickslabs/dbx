@@ -1,29 +1,10 @@
-from unittest.mock import MagicMock
-
 import pytest
-from pytest_mock import MockerFixture
 
-from dbx.api.launch.pipeline_models import PipelineGlobalState
 from dbx.api.launch.runners.base import PipelineUpdateResponse
 from dbx.api.launch.runners.pipeline import PipelineLauncher, PipelinesRunPayload
 
 TEST_PIPELINE_ID = "aaa-bbb"
 TEST_PIPELINE_UPDATE_PAYLOAD = {"update_id": "u1", "request_id": "r1"}
-
-
-@pytest.fixture
-def launch_mock(mocker: MockerFixture):
-    client = MagicMock()
-    client.perform_query = MagicMock(
-        side_effect=[
-            {"statuses": [{"pipeline_id": TEST_PIPELINE_ID, "name": "some"}]},  # get pipeline
-            {"state": PipelineGlobalState.RUNNING},  # get current state
-            {},  # stop pipeline
-            {"state": PipelineGlobalState.IDLE},  # second verification get
-            TEST_PIPELINE_UPDATE_PAYLOAD,  # start pipeline
-        ]
-    )
-    return client
 
 
 def test_basic(launch_mock):
