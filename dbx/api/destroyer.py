@@ -17,7 +17,7 @@ from dbx.api.services.pipelines import NamedPipelinesService
 from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 from dbx.models.deployment import AnyWorkflow
 from dbx.models.files.project import EnvironmentInfo
-from dbx.models.workflow.common.pipeline import Pipeline
+from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.utils import dbx_echo
 
 
@@ -32,11 +32,14 @@ class WorkflowEraser(Eraser):
         self._client = api_client
         self._workflows = workflows
         self._dry_run = dry_run
+        self._pipeline_service = NamedPipelinesService(self._client)
+        self._jobs_service = NamedJobsService(self._client)
 
     def _delete_workflow(self, workflow: AnyWorkflow):
         dbx_echo(f"Workflow {escape(workflow.name)} will be deleted")
-        operator_service = NamedPipelinesService if isinstance(workflow, Pipeline) else NamedJobsService
-        service_instance = operator_service(self._client)
+        service_instance = (
+            self._jobs_service if not workflow.workflow_type == WorkflowType.pipeline else self._pipeline_service
+        )
         obj_id = service_instance.find_by_name(workflow.name)
 
         if not obj_id:

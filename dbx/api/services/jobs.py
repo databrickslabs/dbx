@@ -37,6 +37,7 @@ class NamedJobsService(WorkflowBaseService):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
         self._service = JobsService(api_client)
+        dbx_echo(f"Total jobs in the workspace: {len(self.all_jobs)}")
 
     @property
     @lru_cache(maxsize=2000)
