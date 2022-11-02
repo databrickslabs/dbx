@@ -198,7 +198,9 @@ test: ## Run the tests. (option): file=tests/path/to/file.py
 	@echo ""
 	@echo "${YELLOW}Running tests:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pytest -vv --cov dbx $(file) -n auto
+	$(PYTHON) -m pytest -vv --cov dbx $(file) -n auto \
+		--cov-report=xml \
+		--cov-report=term-missing:skip-covered
 
 test-with-html-report: ## Run all tests with html reporter.
 	@echo ""

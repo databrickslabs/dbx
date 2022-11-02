@@ -1,6 +1,8 @@
 import json
+from collections import defaultdict
 from collections.abc import Mapping
-from typing import Dict, Any, List, Tuple, Union, Optional
+from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from databricks_cli.cluster_policies.api import PolicyService
 
@@ -59,6 +61,23 @@ class PolicyAdjuster(ApiClientMixin):
             f"Available policy names are: {[p.name for p in all_policies.policies]}"
         )
 
+    @staticmethod
+    def _append_init_scripts(policy_init_scripts: List, existing_init_scripts: List) -> List:
+        final_init_scripts = deepcopy(policy_init_scripts)
+        flat_policy_init_scripts = defaultdict(list)
+        for script in policy_init_scripts:
+            for k, v in script.items():
+                flat_policy_init_scripts[k].append(v["destination"])
+        for script in existing_init_scripts:
+            for k, v in script.items():
+                if not v or not v.get("destination"):
+                    raise Exception("init_scripts section format is incorrect in the deployment file")
+                destination = v["destination"]
+                if destination not in flat_policy_init_scripts.get(k, []):
+                    # deduplication and ensure init scripts from policy to run firstly
+                    final_init_scripts.append(script)
+        return final_init_scripts
+
     @classmethod
     def _deep_update(cls, d: Dict, u: Mapping) -> Dict:
         for k, v in u.items():
@@ -67,12 +86,16 @@ class PolicyAdjuster(ApiClientMixin):
             else:
                 # if the key is already provided in deployment configuration, we need to verify the value
                 # if value exists, we verify that it's the same as in the policy
-                existing_value = d.get(k)
-                if existing_value and existing_value != v:
-                    raise ValueError(
-                        f"For key {k} there is a value in the cluster definition: {existing_value} \n"
-                        f"However this value is fixed in the policy and shall be equal to: {v}"
-                    )
+                if existing_value := d.get(k):
+                    if k == "init_scripts":
+                        d[k] = PolicyAdjuster._append_init_scripts(v, existing_value)
+                        continue
+                    if existing_value != v:
+                        err_msg = (
+                            f"For key {k} there is a value in the cluster definition: {existing_value} \n"
+                            f"However this value is fixed in the policy and shall be equal to: {v}."
+                        )
+                        raise ValueError(err_msg)
                 d[k] = v
         return d
 
