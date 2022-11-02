@@ -15,11 +15,13 @@ from pytest_mock import MockerFixture
 from typer.testing import CliRunner
 
 from dbx.api.client_provider import DatabricksClientProvider
+from dbx.api.launch.pipeline_models import PipelineGlobalState
+from dbx.api.storage.io import StorageIO
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.cli import app
-from dbx.commands.deploy import _log_dbx_file
 from dbx.commands.init import init
 from dbx.utils.file_uploader import MlflowFileUploader
+from tests.unit.api.launch.test_pipeline_runner import TEST_PIPELINE_ID, TEST_PIPELINE_UPDATE_PAYLOAD
 
 TEST_HOST = "https:/dbx.cloud.databricks.com"
 TEST_TOKEN = "dapiDBXTEST"
@@ -142,9 +144,8 @@ def mlflow_file_uploader(mocker, mlflow_fixture):
 
 
 @pytest.fixture()
-def mock_dbx_file_upload(mocker):
-    func = _log_dbx_file
-    mocker.patch(extract_function_name(func), MagicMock())
+def mock_storage_io(mocker):
+    mocker.patch.object(StorageIO, "save", MagicMock())
 
 
 @pytest.fixture()
@@ -155,3 +156,18 @@ def mock_api_v2_client(mocker):
 @pytest.fixture()
 def mock_api_v1_client(mocker):
     mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+
+
+@pytest.fixture
+def pipeline_launch_mock(mocker: MockerFixture):
+    client = MagicMock()
+    client.perform_query = MagicMock(
+        side_effect=[
+            {"statuses": [{"pipeline_id": TEST_PIPELINE_ID, "name": "some"}]},  # get pipeline
+            {"state": PipelineGlobalState.RUNNING},  # get current state
+            {},  # stop pipeline
+            {"state": PipelineGlobalState.IDLE},  # second verification get
+            TEST_PIPELINE_UPDATE_PAYLOAD,  # start pipeline
+        ]
+    )
+    return client

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from typing import Optional
 
 import mlflow
@@ -7,9 +7,12 @@ from databricks_cli.jobs.api import JobsService
 from rich.markup import escape
 
 from dbx.api.launch.functions import find_deployment_run
+from dbx.api.launch.pipeline_models import PipelineUpdateState
 from dbx.api.launch.runners.asset_based import AssetBasedLauncher
+from dbx.api.launch.runners.base import RunData
+from dbx.api.launch.runners.pipeline import PipelineLauncher
 from dbx.api.launch.runners.standard import StandardLauncher
-from dbx.api.launch.tracer import RunTracer
+from dbx.api.launch.tracer import RunTracer, PipelineTracer
 from dbx.api.output_provider import OutputProvider
 from dbx.models.cli.options import ExistingRunsOption, IncludeOutputOption
 from dbx.options import (
@@ -37,6 +40,13 @@ def launch(
         "--job",
         help="This option is deprecated, please use workflow name as argument instead.",
         show_default=False,
+    ),
+    is_pipeline: bool = typer.Option(
+        False,
+        "--pipeline",
+        "-p",
+        is_flag=True,
+        help="Search for the workflow in the DLT pipelines instead of standard job objects.",
     ),
     trace: bool = typer.Option(False, "--trace", help="Trace the workload until it finishes.", is_flag=True),
     kill_on_sigterm: bool = typer.Option(
@@ -107,6 +117,9 @@ def launch(
     if not workflow_name:
         raise Exception("Please provide workflow name as an argument")
 
+    if is_pipeline and from_assets:
+        raise Exception("DLT pipelines cannot be launched in the asset-based mode")
+
     dbx_echo(f"Launching workflow {escape(workflow_name)} on environment {environment_name}")
 
     api_client = prepare_environment(environment_name)
@@ -124,56 +137,88 @@ def launch(
 
         with mlflow.start_run(nested=True):
 
-            if not _from_assets:
-                launcher = StandardLauncher(
-                    workflow_name=workflow_name,
-                    api_client=api_client,
-                    existing_runs=existing_runs,
-                    parameters=parameters,
-                )
+            if is_pipeline:
+                launcher = PipelineLauncher(workflow_name=workflow_name, api_client=api_client, parameters=parameters)
             else:
-                launcher = AssetBasedLauncher(
-                    workflow_name=workflow_name,
-                    api_client=api_client,
-                    deployment_run_id=last_deployment_run.info.run_id,
-                    environment_name=environment_name,
-                    parameters=parameters,
-                )
-
-            run_data, job_id = launcher.launch()
-
-            jobs_service = JobsService(api_client)
-            run_info = jobs_service.get_run(run_data["run_id"])
-            run_url = run_info.get("run_page_url")
-            dbx_echo(f"Run URL: {run_url}")
-            if trace:
-                dbx_status, final_run_state = RunTracer.start(kill_on_sigterm, api_client, run_data)
-                if include_output:
-                    log_provider = OutputProvider(jobs_service, final_run_state)
-                    dbx_echo(f"Run output provisioning requested with level {include_output.value}")
-                    log_provider.provide(include_output)
-
-                if dbx_status == "ERROR":
-                    raise Exception(
-                        "Tracked run failed during execution. "
-                        "Please check the status and logs of the run for details."
+                if not _from_assets:
+                    launcher = StandardLauncher(
+                        workflow_name=workflow_name,
+                        api_client=api_client,
+                        existing_runs=existing_runs,
+                        parameters=parameters,
                     )
+                else:
+                    launcher = AssetBasedLauncher(
+                        workflow_name=workflow_name,
+                        api_client=api_client,
+                        deployment_run_id=last_deployment_run.info.run_id,
+                        environment_name=environment_name,
+                        parameters=parameters,
+                    )
+
+            process_info, object_id = launcher.launch()
+
+            if isinstance(process_info, RunData):
+                jobs_service = JobsService(api_client)
+                run_info = jobs_service.get_run(process_info.run_id)
+                run_url = run_info.get("run_page_url")
+                dbx_echo(f"Run URL: {run_url}")
             else:
-                dbx_status = "NOT_TRACKED"
-                dbx_echo(
-                    "Run successfully launched in non-tracking mode :rocket:. "
-                    "Please check Databricks UI for job status :eyes:"
+                dbx_echo("DLT pipeline launched successfully")
+
+        if trace:
+            if isinstance(process_info, RunData):
+                status = trace_workflow_object(api_client, process_info, include_output, kill_on_sigterm)
+                additional_tags = {
+                    "job_id": object_id,
+                    "run_id": process_info.run_id,
+                }
+            else:
+                final_state = PipelineTracer.start(
+                    api_client=api_client, process_info=process_info, pipeline_id=object_id
                 )
+                if final_state == PipelineUpdateState.FAILED:
+                    raise Exception(
+                        f"Tracked pipeline {object_id} failed during execution, please check the UI for details."
+                    )
+                status = final_state
+                additional_tags = {"pipeline_id": object_id}
+        else:
+            status = "NOT_TRACKED"
+            dbx_echo(
+                "Workflow successfully launched in the non-tracking mode 🚀. "
+                "Please check Databricks UI for job status 👀"
+            )
+        log_launch_info(additional_tags, status, environment_name, branch_name)
 
-            deployment_tags = {
-                "job_id": job_id,
-                "run_id": run_data.get("run_id"),
-                "dbx_action_type": "launch",
-                "dbx_status": dbx_status,
-                "dbx_environment": environment_name,
-            }
 
-            if branch_name:
-                deployment_tags["dbx_branch_name"] = branch_name
+def trace_workflow_object(
+    api_client,
+    run_data: RunData,
+    include_output,
+    kill_on_sigterm,
+):
+    dbx_status, final_run_state = RunTracer.start(kill_on_sigterm, api_client, run_data)
+    js = JobsService(api_client)
+    if include_output:
+        log_provider = OutputProvider(js, final_run_state)
+        dbx_echo(f"Run output provisioning requested with level {include_output.value}")
+        log_provider.provide(include_output)
 
-            mlflow.set_tags(deployment_tags)
+    if dbx_status == "ERROR":
+        raise Exception("Tracked run failed during execution. Please check the status and logs of the run for details.")
+    return dbx_status
+
+
+def log_launch_info(additional_tags: Dict[str, Any], dbx_status, environment_name, branch_name):
+    deployment_tags = {
+        "dbx_action_type": "launch",
+        "dbx_status": dbx_status,
+        "dbx_environment": environment_name,
+    }
+
+    if branch_name:
+        deployment_tags["dbx_branch_name"] = branch_name
+
+    deployment_tags.update(additional_tags)
+    mlflow.set_tags(deployment_tags)

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from rich.markup import escape
 from rich.prompt import Prompt
 from typer.rich_utils import _get_rich_console  # noqa
 
@@ -33,10 +34,10 @@ def destroy(
         help="""Deletion mode.
 
 
-        If `assets-only`, will only delete the stored assets in the artifact storage, but won't affect job objects.
+        If `assets-only`, will only delete the stored assets in the artifact storage, but won't affect workflow objects.
 
 
-        If `workflows-only`, will only delete the defined job objects, but won't affect job objects.
+        If `workflows-only`, will only delete the defined workflow objects, but won't affect the artifact storage.
 
 
         If `all`, will delete everything.""",
@@ -62,7 +63,7 @@ def destroy(
     relevant_workflows = env_config.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
 
     _d_config = DestroyerConfig(
-        workflow_names=[w.name for w in relevant_workflows],
+        workflow_names=relevant_workflows,
         deletion_mode=deletion_mode,
         dracarys=dracarys,
         deployment=env_config,
@@ -92,14 +93,13 @@ def ask_for_confirmation(conf: DestroyerConfig):
         🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨
     """
 
+    wf_names = [escape(w.name) for w in conf.workflows]
     if conf.deletion_mode == DeletionMode.assets_only:
         deletion_message = "All assets will de deleted, but the workflow definitions won't be affected."
     elif conf.deletion_mode == DeletionMode.workflows_only:
-        deletion_message = (
-            f"The following workflows are marked for deletion: {conf.workflow_names}, assets won't be affected"
-        )
+        deletion_message = f"The following workflows are marked for deletion: {wf_names}, assets won't be affected"
     else:
-        deletion_message = f"""The following workflows are marked for deletion: {conf.workflow_names}.
+        deletion_message = f"""The following workflows are marked for deletion: {wf_names}.
             [bold]All assets are also marked for deletion.[/bold]"""
 
     _c = _get_rich_console()

@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-from dbx.models.deployment import EnvironmentDeploymentInfo
+from dbx.models.deployment import EnvironmentDeploymentInfo, AnyWorkflow
 
 
 class DeletionMode(str, Enum):
@@ -13,7 +13,7 @@ class DeletionMode(str, Enum):
 
 
 class DestroyerConfig(BaseModel):
-    workflow_names: Optional[List[str]]
+    workflows: Optional[List[AnyWorkflow]] = []
     deletion_mode: DeletionMode
     dry_run: Optional[bool] = False
     dracarys: Optional[bool] = False

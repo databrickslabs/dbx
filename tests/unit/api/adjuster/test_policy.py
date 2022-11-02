@@ -1,11 +1,15 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+import yaml
 from databricks_cli.sdk import PolicyService
 from pytest_mock import MockerFixture
 
+from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
 from dbx.api.adjuster import policy as test_module
 from dbx.api.adjuster.policy import PolicyAdjuster
+from dbx.models.deployment import DeploymentConfig
+from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
 
 TEST_MODULE_PATH = test_module.__name__
@@ -106,6 +110,57 @@ def test_negative_cases(cluster_def, policy_mock):
     _adj = PolicyAdjuster(api_client=MagicMock())
     with pytest.raises(ValueError):
         _obj = _adj._adjust_policy_ref(cluster_def)
+
+
+TEST_DEFINITIONS = yaml.safe_load(
+    """
+environments:
+  default:
+    workflows:
+      - name: "legacy-definition"
+        some_task: "here"
+        new_cluster:
+          spark_version: "some"
+          policy_id: "cluster-policy://good-policy"
+      - name: "v2.1-inplace"
+        job_clusters:
+          - job_cluster_key: "base"
+            new_cluster:
+              spark_version: "some"
+              policy_id: "cluster-policy://good-policy"
+        tasks:
+          - task_key: "inplace"
+            new_cluster:
+              spark_version: "some"
+              policy_id: "cluster-policy://good-policy"
+            some_task: "here"
+          - task_key: "from-job-clusters"
+            job_cluster_key: "base"
+            some_task: "here"
+"""
+)
+
+TEST_CONFIG = DeploymentConfig.from_payload(TEST_DEFINITIONS)
+ENVIRONMENT_DEFINITION = TEST_CONFIG.get_environment("default")
+
+
+def test_locations(policy_mock):
+    wfs = TEST_CONFIG.get_environment("default").payload.workflows
+    core_pkg = Library(whl="/some/local/file")
+    client_mock = MagicMock()
+    _adj = Adjuster(
+        additional_libraries=AdditionalLibrariesProvider(core_package=core_pkg),
+        file_uploader=MagicMock(),
+        api_client=client_mock,
+    )
+    _adj.traverse(wfs)
+    for element in [
+        wfs[0].new_cluster,
+        wfs[1].get_task("inplace").new_cluster,
+        wfs[1].get_job_cluster_definition("base").new_cluster,
+    ]:
+        assert getattr(element, "spark_conf").get("spark.my.conf") == "my_value"
+        assert element.policy_id == "1"
 
 
 @pytest.mark.parametrize(

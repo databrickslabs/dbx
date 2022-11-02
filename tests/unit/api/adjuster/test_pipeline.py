@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from databricks_cli.sdk import DeltaPipelinesService
 from pytest_mock import MockerFixture
 
 from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
@@ -34,26 +33,24 @@ TEST_PAYLOADS = {
 
 @pytest.fixture
 def pipelines_mock(mocker: MockerFixture):
-    mocker.patch.object(
-        DeltaPipelinesService,
-        "list",
-        MagicMock(
-            return_value={
-                "statuses": [
-                    {"pipeline_id": "some-id", "name": "some-pipeline"},
-                    {"pipeline_id": "some-id-1", "name": "some-duplicated-pipeline"},
-                    {"pipeline_id": "some-id-2", "name": "some-duplicated-pipeline"},
-                ]
-            }
-        ),
+    client = MagicMock()
+    client.perform_query = MagicMock(
+        return_value={
+            "statuses": [
+                {"pipeline_id": "some-id", "name": "some-pipeline"},
+                {"pipeline_id": "some-id-1", "name": "some-duplicated-pipeline"},
+                {"pipeline_id": "some-id-2", "name": "some-duplicated-pipeline"},
+            ]
+        }
     )
+    return client
 
 
 @pytest.mark.parametrize("key", list(TEST_PAYLOADS.keys()))
 def test_pipelines(key, pipelines_mock):
     _wf = convert_to_workflow(TEST_PAYLOADS[key])
     _adj = Adjuster(
-        api_client=MagicMock(),
+        api_client=pipelines_mock,
         additional_libraries=AdditionalLibrariesProvider(core_package=None),
         file_uploader=MagicMock(),
     )

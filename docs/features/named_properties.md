@@ -23,9 +23,14 @@ The following properties are supported:
 
 By this simplification, you don't need to look-up for these id-based properties, you can simply provide the names.
 
-!!! warning
+!!! warning "Name verification"
 
     `dbx` will automatically check if the provided name exists and is unique, and if it's doesn't or it's non-unique you'll get an exception.
+
+!!! danger "DLT support"
+
+    Please note that `*_name`-based legacy properties **will not work** with DLT. Use the reference-based approach described below.
+
 
 ## :material-vector-link: Reference-based approach
 
@@ -57,7 +62,7 @@ The following references are supported:
 | `cluster-policy://`         | Cluster Policies          | [ListClusterPolicies](https://docs.databricks.com/dev-tools/api/latest/policies.html#operation/list-cluster-policies)             |
 | `file://` or `file:fuse://` | Files                     | Please refer to the [file references documentation](./file_references.md)                                                         |
 
-We expect the provided object names to **unique**. If the name of the object is not unique, an error will be raised.
+The provided object references are expected to be **unique**. If the name of the object is not unique, an error will be raised.
 
 ## :material-list-status: Cluster policies resolution
 

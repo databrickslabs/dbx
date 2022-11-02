@@ -21,13 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- 🔥 Delta Live Tables support
 - 📖 Documentation on the differences between `dbx execute` and `dbx launch`
 - 📖 Documentation on how to use parameter passing in various cases
 - 📖 Documentation on how to enable Photon
 - 📖 Documentation on artifact storage
-- ✨ Functionality to automatically enable context-based upload
-- ✨ Automatic conversion from `wasbs://` to `abfss://` references when using ADLS as artifact storage.
-- ✨ `dbx configure` enables by default appending workflow custom init scripts, or explicitly by `dbx configure --append-init-scripts`.
+- 🪄 Functionality to automatically enable context-based upload
+- 🪄 Automatic conversion from `wasbs://` to `abfss://` references when using ADLS as artifact storage.
 
 ### Fixed
 

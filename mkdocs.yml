@@ -84,6 +84,7 @@ nav:
       - General:
           - Dependency management: guides/general/dependency_management.md
           - Passing parameters: guides/general/passing_parameters.md
+          - Delta Live Tables: guides/general/delta_live_tables.md
       - Python:
           - Python quickstart: guides/python/python_quickstart.md
           - Development loop:

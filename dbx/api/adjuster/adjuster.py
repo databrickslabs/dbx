@@ -16,6 +16,7 @@ from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
+from dbx.models.workflow.v2dot1.job_cluster import JobCluster
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
 from dbx.utils import dbx_echo
 from dbx.utils.file_uploader import AbstractFileUploader
@@ -151,7 +152,7 @@ class PropertyAdjuster(
         :return: None
         """
         for element, parent, _ in self.traverse(workflows):
-            if isinstance(parent, (V2dot0Workflow, JobTaskSettings)) and isinstance(element, NewCluster):
+            if isinstance(parent, (V2dot0Workflow, JobTaskSettings, JobCluster)) and isinstance(element, NewCluster):
                 if element.policy_name is not None or (
                     isinstance(element, NewCluster)
                     and element.policy_id is not None
