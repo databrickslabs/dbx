@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from databricks_cli.sdk import JobsService
+from databricks_cli.sdk import JobsService, ApiClient
 from pytest_mock import MockerFixture
 
 from dbx.api.launch.runners.standard import StandardLauncher
@@ -27,10 +27,11 @@ def test_not_found(mocker: MockerFixture):
 def test_with_behaviours(behaviour, msg, mocker: MockerFixture, capsys):
     mocker.patch("dbx.api.launch.runners.standard.wait_run", MagicMock())
     mocker.patch("dbx.api.launch.runners.standard.cancel_run", MagicMock())
-
+    client = MagicMock()
+    client.perform_query = MagicMock(return_value={"run_id": 1})
     mocker.patch.object(NamedJobsService, "find_by_name", MagicMock(return_value=1))
     mocker.patch.object(JobsService, "list_runs", MagicMock(return_value={"runs": [{"run_id": 1}]}))
 
-    launcher = StandardLauncher("non-existent", api_client=MagicMock(), existing_runs=behaviour)
+    launcher = StandardLauncher("non-existent", api_client=client, existing_runs=behaviour)
     launcher.launch()
     assert msg in capsys.readouterr().out

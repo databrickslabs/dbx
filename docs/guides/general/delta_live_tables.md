@@ -70,10 +70,10 @@ databricks repos update --path="/Repos/some/path" --tag="specific-tag"
 ## :material-rocket-launch: Launching DLT pipelines using `dbx`
 
 
-To launch a DLT pipeline, simply use the `dbx launch` command:
+To launch a DLT pipeline, simply use the `dbx launch` command with `-p` or `--pipeline` switch:
 
 ```bash
-dbx launch <pipeline-name>
+dbx launch <pipeline-name> -p # also could be --pipeline instead of -p
 ```
 
 !!! danger "Assets-based launch is not supported in DLT pipelines"

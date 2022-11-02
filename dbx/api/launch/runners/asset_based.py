@@ -5,8 +5,9 @@ from typing import Optional, Union, Tuple, Dict, Any
 from databricks_cli.sdk import ApiClient, JobsService
 
 from dbx.api.configure import ProjectConfigurationManager
-from dbx.api.storage.io import StorageIO
 from dbx.api.launch.processors import ClusterReusePreprocessor
+from dbx.api.launch.runners.base import RunData
+from dbx.api.storage.io import StorageIO
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload as V2dot0AssetBasedParametersPayload
 from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload as V2dot1AssetBasedParametersPayload
@@ -39,7 +40,7 @@ class AssetBasedLauncher:
         else:
             return V2dot1AssetBasedParametersPayload.from_string(payload)
 
-    def launch(self) -> Tuple[Dict[Any, Any], Optional[str]]:
+    def launch(self) -> Tuple[RunData, Optional[int]]:
         dbx_echo(
             f"Launching workflow in assets-based mode "
             f"(via RunSubmit method, Jobs API V{self.api_client.jobs_api_version})"
@@ -62,11 +63,10 @@ class AssetBasedLauncher:
             workflow.override_asset_based_launch_parameters(self._parameters)
 
         final_spec = workflow.dict(exclude_none=True, exclude_unset=True)
-
         cleaned_spec = self._cleanup_unsupported_properties(final_spec)
         run_data = service.submit_run(**cleaned_spec)
 
-        return run_data, None
+        return RunData(**run_data), None
 
     @staticmethod
     def _cleanup_unsupported_properties(spec: Dict[str, Any]) -> Dict[str, Any]:

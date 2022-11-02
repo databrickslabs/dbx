@@ -43,7 +43,7 @@ class NamedJobsService(WorkflowBaseService):
 
         with Console().status(f"Searching for a job with name {name}", spinner="dots"):
             while True:
-                time.sleep(1)  # to avoid bursting out the jobs API
+                time.sleep(0.5)  # to avoid bursting out the jobs API
                 _response = ListJobsResponse(
                     **self._service.list_jobs(
                         limit=self.DEFAULT_LIST_LIMIT, offset=offset, version=self.JOBS_API_VERSION_FOR_SEARCH

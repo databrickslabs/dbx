@@ -1,9 +1,10 @@
 import json
-from typing import Optional, Union, Tuple, Dict, Any
+from typing import Optional, Union, Tuple
 
 from databricks_cli.sdk import ApiClient, JobsService
 
 from dbx.api.launch.functions import wait_run, cancel_run
+from dbx.api.launch.runners.base import RunData
 from dbx.api.services.jobs import NamedJobsService
 from dbx.models.cli.options import ExistingRunsOption
 from dbx.models.workflow.v2dot0.parameters import StandardRunPayload as V2dot0StandardRunPayload
@@ -31,7 +32,7 @@ class StandardLauncher:
         else:
             return V2dot1StandardRunPayload(**_payload)
 
-    def launch(self) -> Tuple[Dict[Any, Any], int]:
+    def launch(self) -> Tuple[RunData, int]:
         dbx_echo("Launching job via run now API")
         named_service = NamedJobsService(self.api_client)
         standard_service = JobsService(self.api_client)
@@ -60,4 +61,4 @@ class StandardLauncher:
 
         run_data = self.api_client.perform_query("POST", "/jobs/run-now", data=api_request_payload)
 
-        return run_data, job_id
+        return RunData(**run_data), job_id

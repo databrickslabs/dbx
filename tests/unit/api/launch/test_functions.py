@@ -4,6 +4,7 @@ import mlflow
 from pytest_mock import MockerFixture
 
 from dbx.api.launch.functions import cancel_run, wait_run
+from dbx.api.launch.runners.base import RunData
 from dbx.api.storage.io import StorageIO
 from dbx.utils.json import JsonUtils
 
@@ -11,7 +12,7 @@ from dbx.utils.json import JsonUtils
 def test_cancel(mocker: MockerFixture):
     wait_mock = mocker.patch("dbx.api.launch.functions.wait_run", MagicMock())
     client = MagicMock()
-    cancel_run(client, {"run_id": 1})
+    cancel_run(client, RunData(run_id=1))
     wait_mock.assert_called()
 
 
@@ -26,7 +27,7 @@ def test_wait_run(mocker: MockerFixture):
         ),
     )
     client = MagicMock()
-    wait_run(client, {"run_id": 1})
+    wait_run(client, RunData(**{"run_id": 1}))
 
 
 def test_load_file(tmp_path):
