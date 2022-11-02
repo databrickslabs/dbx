@@ -18,7 +18,8 @@ def base_config(temp_project):
     config_reader = ConfigReader(Path("conf/deployment.yml"), None)
     config = config_reader.get_config()
     deployment = config.get_environment("default", raise_if_not_found=True)
-    return partial(DestroyerConfig, dracarys=False, deployment=deployment)
+    wfs = deployment.payload.select_relevant_or_all_workflows()
+    return partial(DestroyerConfig, dracarys=False, deployment=deployment, workflows=wfs)
 
 
 def test_ask_for_confirmation_positive(monkeypatch, base_config):

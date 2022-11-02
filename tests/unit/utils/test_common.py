@@ -3,22 +3,17 @@ import shutil
 from pathlib import Path
 from subprocess import CalledProcessError
 from unittest import mock
-from unittest.mock import MagicMock
 
 import pytest
-from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
 from dbx.models.build import BuildConfiguration
-
 from dbx.utils.common import (
     generate_filter_string,
     get_current_branch_name,
     get_environment_data,
 )
-
-from dbx.utils.job_listing import find_job_by_name
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")
@@ -203,27 +198,3 @@ def test_handle_package_no_setup(temp_project):
 def test_filter_string():
     output = generate_filter_string(env="test", branch_name=None)
     assert "dbx_branch_name" not in output
-
-
-def test_job_listing_duplicates():
-    duplicated_name = "some-name"
-    jobs_payload = {
-        "jobs": [
-            {
-                "settings": {
-                    "name": duplicated_name,
-                },
-                "job_id": 1,
-            },
-            {
-                "settings": {
-                    "name": duplicated_name,
-                },
-                "job_id": 2,
-            },
-        ]
-    }
-    js = JobsService(MagicMock())
-    js.list_jobs = MagicMock(return_value=jobs_payload)
-    with pytest.raises(Exception):
-        find_job_by_name(js, duplicated_name)

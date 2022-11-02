@@ -1,5 +1,5 @@
 import collections
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 
 from pydantic import root_validator, validator
 
@@ -7,6 +7,7 @@ from dbx.models.validators import at_least_one_of, mutually_exclusive
 from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.workflow import WorkflowBase
+from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.models.workflow.v2dot1.job_cluster import JobClustersMixin
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
 from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload
@@ -34,6 +35,7 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
     tasks: Optional[List[JobTaskSettings]]
     git_source: Optional[GitSource]
     format: Optional[str]
+    workflow_type: Literal[WorkflowType.job_v2d1] = WorkflowType.job_v2d1
 
     @validator("tasks")
     def _validate_tasks(cls, tasks: Optional[List[JobTaskSettings]]) -> Optional[List[JobTaskSettings]]:  # noqa
@@ -42,7 +44,7 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
                 name for name, count in collections.Counter([t.task_key for t in tasks]).items() if count > 1
             ]
             if _duplicates:
-                raise ValueError(f"Duplicated task keys are not allowed. Provided payload: {tasks}")
+                raise ValueError("Duplicated task keys are not allowed.")
         else:
             dbx_echo(
                 "[yellow bold]No task definitions were provided for workflow. "
@@ -52,6 +54,10 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
 
     def get_task(self, task_key: str) -> JobTaskSettings:
         _found = list(filter(lambda t: t.task_key == task_key, self.tasks))
+        assert len(_found) == 1, ValueError(
+            f"Requested task key {task_key} doesn't exist in the workflow definition."
+            f"Available tasks are: {self.task_names}"
+        )
         return _found[0]
 
     @property
@@ -61,12 +67,5 @@ class Workflow(WorkflowBase, AccessControlMixin, JobClustersMixin):
     def override_asset_based_launch_parameters(self, payload: AssetBasedRunPayload):
         for task_parameters in payload.elements:
             _t = self.get_task(task_parameters.task_key)
-
-            if not _t:
-                raise ValueError(
-                    f"Provided task key {task_parameters.task_key} doesn't exist in the workflow definition."
-                    f"Available tasks are: {self.task_names}"
-                )
-
             pointer = getattr(_t, _t.task_type)
             pointer.__dict__.update(task_parameters.dict(exclude_none=True))

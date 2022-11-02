@@ -1,7 +1,11 @@
 import pytest
+import yaml
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo, WorkflowListMixin
+from dbx.models.deployment import DeploymentConfig, EnvironmentDeploymentInfo, WorkflowListMixin, Deployment
+from dbx.models.workflow.common.pipeline import Pipeline
+from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
+from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 
@@ -63,10 +67,32 @@ def test_empty_spec():
 
 def test_workflows_list_duplicates():
     with pytest.raises(ValueError):
-        WorkflowListMixin(**{"workflows": [{"name": "a"}, {"name": "a"}]})
+        WorkflowListMixin(
+            **{"workflows": [{"name": "a", "workflow_type": "job-v2.1"}, {"name": "a", "workflow_type": "job-v2.1"}]}
+        )
 
 
 def test_workflows_list_bad_get():
-    _wf = WorkflowListMixin(**{"workflows": [{"name": "a"}]})
+    _wf = WorkflowListMixin(**{"workflows": [{"name": "a", "workflow_type": "job-v2.1"}]})
     with pytest.raises(ValueError):
         _wf.get_workflow("b")
+
+
+def test_various_workflow_definitions():
+    test_payload = """
+    workflows:
+    - name: "dlt-pipeline"
+      workflow_type: "pipeline"
+    - name: "job-v21"
+      tasks:
+        - task_key: "first"
+          spark_python_task:
+            python_file: "/some/file"
+    - name: "job-v20"
+      spark_python_task:
+        python_file: "/some/file"
+    """
+    _dep = Deployment.from_spec_remote(yaml.safe_load(test_payload))
+    assert isinstance(_dep.get_workflow("dlt-pipeline"), Pipeline)
+    assert isinstance(_dep.get_workflow("job-v21"), V2dot1Workflow)
+    assert isinstance(_dep.get_workflow("job-v20"), V2dot0Workflow)

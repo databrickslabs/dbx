@@ -147,7 +147,11 @@ All parameters should be provided in a form of a JSON-compatible payload (see ex
     dbx launch <workflow_name> --parameters='{"python_params":["john doe","35"]}' # spark_python_task or python_wheel_task
     dbx launch <workflow_name> --parameters='{"spark_submit_params": ["--class", "org.apache.spark.examples.SparkPi"]}' # spark_submit_task
     dbx launch <workflow_name> --parameters='{"python_named_params": {"name": "task", "data": "dbfs:/path/to/data.json"}}' # python_wheel_task
-    dbx launch <workflow_name> --parameters='{"pipeline_params": {"full_refresh": true}}' # pipeline_task
+    dbx launch <workflow_name> --parameters='{"pipeline_params": {"full_refresh": true}}' # pipeline_task as a part of a workflow
     dbx launch <workflow_name> --parameters='{"sql_params": {"name": "john doe", "age": "35"}}' # sql_task
     dbx launch <workflow_name> --parameters='{"dbt_commands": ["dbt deps", "dbt seed", "dbt run"]}' # dbt_task
     ```
+
+!!! tip "Passing parameters for DLT pipelines"
+
+    Please follow the [Delta Live Tables guide](./delta_live_tables.md) to pass parameters that are specific for DLT pipelines.

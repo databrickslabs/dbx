@@ -3,18 +3,21 @@ from __future__ import annotations
 import collections
 from typing import Optional, Dict, Any, List, Union
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 from rich.markup import escape
+from typing_extensions import Annotated
 
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.models.build import BuildConfiguration
 from dbx.models.files.project import EnvironmentInfo
 from dbx.models.workflow.common.flexible import FlexibleModel
+from dbx.models.workflow.common.pipeline import Pipeline
+from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow
 from dbx.utils import dbx_echo
 
-AnyWorkflow = Union[V2dot0Workflow, V2dot1Workflow]
+AnyWorkflow = Annotated[Union[V2dot0Workflow, V2dot1Workflow, Pipeline], Field(discriminator="workflow_type")]
 WorkflowList = List[AnyWorkflow]
 
 
@@ -52,16 +55,22 @@ class Deployment(FlexibleModel, WorkflowListMixin):
                 "[yellow bold]Usage of jobs keyword in deployment file is deprecated. "
                 "Please use [bold]workflows[bold] instead (simply rename this section to workflows).[/yellow bold]"
             )
-        _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
-        return Deployment(**{"workflows": _w})
+        return Deployment.from_spec_remote(raw_spec)
 
     @staticmethod
     def from_spec_remote(raw_spec: Dict[str, Any]) -> Deployment:
-        _w = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
-        return Deployment(**{"workflows": _w})
+        _wfs = raw_spec.get("jobs") if "jobs" in raw_spec else raw_spec.get("workflows")
+        assert isinstance(_wfs, list), ValueError(f"Provided payload is not a list {_wfs}")
+
+        for workflow_def in _wfs:
+            if not workflow_def.get("workflow_type"):
+                workflow_def["workflow_type"] = (
+                    WorkflowType.job_v2d1 if "tasks" in workflow_def else WorkflowType.job_v2d0
+                )
+        return Deployment(**{"workflows": _wfs})
 
     def select_relevant_or_all_workflows(
-        self, workflow_name: Optional[str], workflow_names: Optional[List[str]]
+        self, workflow_name: Optional[str] = None, workflow_names: Optional[List[str]] = None
     ) -> WorkflowList:
 
         if workflow_name and workflow_names:
