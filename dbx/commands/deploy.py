@@ -154,6 +154,7 @@ def deploy(
                 wf_manager = WorkflowDeploymentManager(api_client, elements)
                 wf_manager.apply()
         else:
+            adjuster.traverse(deployable_workflows)
             if not _assets_only:
                 wf_manager = WorkflowDeploymentManager(api_client, deployable_workflows)
                 wf_manager.apply()
