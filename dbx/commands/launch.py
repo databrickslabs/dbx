@@ -42,7 +42,8 @@ def launch(
         show_default=False,
     ),
     is_pipeline: bool = typer.Option(
-        False, "--pipeline", "-p", is_flag=True, help="Search for the workflow in the DLT pipelines"
+        False, "--pipeline", "-p", is_flag=True,
+        help="Search for the workflow in the DLT pipelines instead of standard job objects."
     ),
     trace: bool = typer.Option(False, "--trace", help="Trace the workload until it finishes.", is_flag=True),
     kill_on_sigterm: bool = typer.Option(
