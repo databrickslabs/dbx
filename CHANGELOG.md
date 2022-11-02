@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [0.8.1] - 2022-11-02
+
 ## [0.8.0] - 2022-11-02
 
 ### Changed

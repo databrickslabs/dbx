@@ -1,5 +1,5 @@
 import time
-from functools import cache
+from functools import lru_cache
 from typing import List, Optional, Union
 
 from databricks_cli.sdk import ApiClient, JobsService
@@ -39,7 +39,7 @@ class NamedJobsService(WorkflowBaseService):
         self._service = JobsService(api_client)
 
     @property
-    @cache
+    @lru_cache(maxsize=2000)
     def all_jobs(self) -> List[JobResponse]:
         offset = 0
         all_jobs = []
