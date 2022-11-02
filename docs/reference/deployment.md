@@ -271,7 +271,7 @@ custom:
     runtime_engine: STANDARD
     init_scripts:
       - dbfs:
-        destination: dbfs:/<enter your path>
+          destination: dbfs:/<enter your path>
 
   basic-auto-scale-props: &basic-auto-scale-props
     autoscale:
@@ -285,9 +285,9 @@ custom:
 
   basic-autoscale-cluster: &basic-autoscale-cluster
     new_cluster:
-       <<: # merge these two maps and place them here.
-         - *basic-cluster-props
-         - *basic-auto-scale-props
+      <<: # merge these two maps and place them here.
+        - *basic-cluster-props
+        - *basic-auto-scale-props
 
 environments:
   default:
@@ -298,12 +298,13 @@ environments:
           on_start: [ "user@email.com" ]
           on_success: [ "user@email.com" ]
           on_failure: [ "user@email.com" ]
-          no_alert_for_skipped_runs: false
+
+        no_alert_for_skipped_runs: false
 
         schedule:
-           quartz_cron_expression: "00 25 03 * * ?" #(1)
-           timezone_id: "UTC"
-           pause_status: "PAUSED"
+          quartz_cron_expression: "00 25 03 * * ?" #(1)
+          timezone_id: "UTC"
+          pause_status: "PAUSED"
 
         tags:
           your-key: "your-value"
@@ -311,18 +312,17 @@ environments:
 
         format: MULTI_TASK #(2)
 
-        permissions:
-          access_control_list:
-            - user_name: "user@email.com"
-              permission_level: "IS_OWNER"
-            - group_name: "your-group-name"
-              permission_level: "CAN_VIEW"
+        access_control_list:
+          - user_name: "service-principal://some-service-principal"
+            permission_level: "IS_OWNER"
+          - group_name: "your-group-name"
+            permission_level: "CAN_VIEW"
 
         job_clusters:
           - job_cluster_key: "basic-cluster"
-              <<: *basic-static-cluster
+            <<: *basic-static-cluster
           - job_cluster_key: "basic-autoscale-cluster"
-              <<: *basic-autoscale-cluster
+            <<: *basic-autoscale-cluster
 
         tasks:
           - task_key: "your-task-01"
@@ -350,12 +350,28 @@ environments:
             depends_on:
               - task_key: "your-task-01"
 
-          - task_key: "your-task-02"
+          - task_key: "your-task-03"
             job_cluster_key: "basic-cluster"
             notebook_task:
               notebook_path: "/Repos/some/project/notebook"
             depends_on:
               - task_key: "your-task-01"
+
+          - task_key: "example_sql_task"
+            job_cluster_key: "basic-cluster"
+            sql_task:
+              query: "query://some-query-name"
+              warehouse_id: "warehouse://some-warehouse-id"
+
+          - task_key: "example_dbt_task"
+            job_cluster_key: "basic-cluster"
+            dbt_task:
+              project_directory: "/some/project/dir"
+              profiles_directory: "/some/profiles/dir"
+              warehouse_id: "warehouse://some-warehouse-id"
+              commands:
+                - "dbt cmd1"
+                - "dbt cmd2"
 ```
 
 1. Read more about scheduling in [this section](./deployment.md#scheduling-workflows)
