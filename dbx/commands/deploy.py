@@ -143,11 +143,21 @@ def deploy(
                 libraries_from_requirements=libraries_from_requirements,
             ),
         )
-        adjuster.traverse(deployable_workflows)
 
-        if not _assets_only:
-            wf_manager = WorkflowDeploymentManager(api_client, deployable_workflows)
-            wf_manager.apply()
+        pipelines = [p for p in deployable_workflows if p.workflow_type == WorkflowType.pipeline]
+        workflows = [w for w in deployable_workflows if w.workflow_type != WorkflowType.pipeline]
+
+        if pipelines:
+            dbx_echo("Found DLT pipelines definition, applying them first for proper reference resolution")
+            for elements in [pipelines, workflows]:
+                adjuster.traverse(elements)
+                wf_manager = WorkflowDeploymentManager(api_client, elements)
+                wf_manager.apply()
+        else:
+            adjuster.traverse(deployable_workflows)
+            if not _assets_only:
+                wf_manager = WorkflowDeploymentManager(api_client, deployable_workflows)
+                wf_manager.apply()
 
         deployment_tags = {
             "dbx_action_type": "deploy",
