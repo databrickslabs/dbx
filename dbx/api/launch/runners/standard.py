@@ -44,12 +44,13 @@ class StandardLauncher:
         active_runs = standard_service.list_runs(job_id, active_only=True).get("runs", [])
 
         for run in active_runs:
+            _run_data = RunData(**run)
             if self.existing_runs == ExistingRunsOption.wait:
-                dbx_echo(f'Waiting for job run with id {run["run_id"]} to be finished')
-                wait_run(self.api_client, run)
+                dbx_echo(f"Waiting for job run with id {_run_data.run_id} to be finished")
+                wait_run(self.api_client, _run_data)
             elif self.existing_runs == ExistingRunsOption.cancel:
-                dbx_echo(f'Cancelling run with id {run["run_id"]}')
-                cancel_run(self.api_client, run)
+                dbx_echo(f"Cancelling run with id {_run_data.run_id}")
+                cancel_run(self.api_client, _run_data)
             else:
                 dbx_echo("Passing the existing runs status check")
 
