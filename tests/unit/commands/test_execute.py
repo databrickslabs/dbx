@@ -39,7 +39,7 @@ def test_smoke_execute(
     mock_api_v2_client,
     mock_local_context_manager,
     mlflow_file_uploader,
-    mock_dbx_file_upload,
+    mock_storage_io,
 ):  # noqa
     with patch(
         "dbx.api.client_provider.ApiV1Client.get_command_status",
@@ -72,7 +72,7 @@ def test_smoke_execute_workflow(
     mock_api_v2_client,
     mock_local_context_manager,
     mlflow_file_uploader,
-    mock_dbx_file_upload,
+    mock_storage_io,
 ):  # noqa
     with patch(
         "dbx.api.client_provider.ApiV1Client.get_command_status",
@@ -101,7 +101,7 @@ def test_smoke_execute_spark_python_task(
     mock_api_v2_client,
     mock_local_context_manager,
     mlflow_file_uploader,
-    mock_dbx_file_upload,
+    mock_storage_io,
     mocker,
 ):  # noqa
     mocker.patch(
@@ -138,7 +138,7 @@ def test_smoke_execute_python_wheel_task(
     mock_api_v2_client,
     mock_local_context_manager,
     mlflow_file_uploader,
-    mock_dbx_file_upload,
+    mock_storage_io,
 ):  # noqa
     with patch(
         "dbx.api.client_provider.ApiV1Client.get_command_status",
@@ -174,7 +174,7 @@ def test_smoke_execute_python_wheel_task_with_params(
     mock_api_v2_client,
     mock_local_context_manager,
     mlflow_file_uploader,
-    mock_dbx_file_upload,
+    mock_storage_io,
 ):  # noqa
     mock_retval = {
         "status": "Finished",
@@ -211,7 +211,7 @@ def test_smoke_execute_spark_python_task_with_params(
     mock_api_v2_client,
     mock_local_context_manager,
     mlflow_file_uploader,
-    mock_dbx_file_upload,
+    mock_storage_io,
 ):  # noqa
     mock_retval = {
         "status": "Finished",

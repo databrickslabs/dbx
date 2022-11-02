@@ -1,22 +1,18 @@
 import json
-import shutil
-import tempfile
 from pathlib import Path
-from typing import Dict, Any, Union, Optional
 from typing import List
+from typing import Optional
 
 import mlflow
 import typer
-from databricks_cli.jobs.api import JobsService, JobsApi
-from databricks_cli.sdk.api_client import ApiClient
-from requests.exceptions import HTTPError
-from rich.markup import escape
 
 from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
 from dbx.api.config_reader import ConfigReader
 from dbx.api.dependency.core_package import CorePackageManager
 from dbx.api.dependency.requirements import RequirementsFileProcessor
-from dbx.models.deployment import EnvironmentDeploymentInfo, WorkflowList, AnyWorkflow
+from dbx.api.deployment import WorkflowDeploymentManager
+from dbx.api.storage.io import StorageIO
+from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
@@ -36,7 +32,6 @@ from dbx.utils.common import (
     get_current_branch_name,
 )
 from dbx.utils.file_uploader import MlflowFileUploader
-from dbx.utils.job_listing import find_job_by_name
 
 
 def deploy(
@@ -130,6 +125,13 @@ def deploy(
 
     _assets_only = assets_only if assets_only else files_only
 
+    if _assets_only:
+        any_pipelines = [w for w in deployable_workflows if w.workflow_type == WorkflowType.pipeline]
+        if any_pipelines:
+            raise Exception(
+                f"Assets-only deployment mode is not supported for DLT pipelines: {[p.name for p in any_pipelines]}"
+            )
+
     with mlflow.start_run() as deployment_run:
 
         adjuster = Adjuster(
@@ -144,39 +146,23 @@ def deploy(
         adjuster.traverse(deployable_workflows)
 
         if not _assets_only:
-            dbx_echo("🤖 Updating workflow definitions via API")
-            deployment_data = _create_workflows(deployable_workflows, api_client)
-            _log_dbx_file(deployment_data, "deployments.json")
-
-            for workflow in deployable_workflows:
-                if workflow.access_control_list:
-                    dbx_echo(f"🛂 Applying permission settings for workflow {escape(workflow.name)}")
-                    api_client.perform_query(
-                        "PUT",
-                        f"/permissions/jobs/{workflow.job_id}",
-                        data=workflow.get_acl_payload(),
-                    )
-                    dbx_echo(f"✅ Permission settings were successfully set for workflow {escape(workflow.name)}")
-
-            dbx_echo("✅ Updating workflow definitions - done")
+            wf_manager = WorkflowDeploymentManager(api_client, deployable_workflows)
+            wf_manager.apply()
 
         deployment_tags = {
             "dbx_action_type": "deploy",
             "dbx_environment": environment_name,
             "dbx_status": "SUCCESS",
+            "dbx_branch_name": branch_name,
         }
 
-        environment_spec = environment_info.to_spec()
-
         deployment_tags.update(additional_tags)
-
-        if branch_name:
-            deployment_tags["dbx_branch_name"] = branch_name
-
         if _assets_only:
             deployment_tags["dbx_deploy_type"] = "files_only"
 
-        _log_dbx_file(environment_spec, "deployment-result.json")
+        environment_spec = environment_info.to_spec()
+
+        StorageIO.save(environment_spec, "deployment-result.json")
 
         mlflow.set_tags(deployment_tags)
         dbx_echo(f":sparkles: Deployment for environment {environment_name} finished successfully")
@@ -189,82 +175,3 @@ def deploy(
                 specs_file.unlink()
 
             specs_file.write_text(json.dumps(environment_spec, indent=4), encoding="utf-8")
-
-
-def _log_dbx_file(content: Dict[Any, Any], name: str):
-    temp_dir = tempfile.mkdtemp()
-    serialized_data = json.dumps(content, indent=4)
-    temp_path = Path(temp_dir, name)
-    temp_path.write_text(serialized_data, encoding="utf-8")
-    mlflow.log_artifact(str(temp_path), ".dbx")
-    shutil.rmtree(temp_dir)
-
-
-def define_workflow_names(workflow_name: str, workflow_names: str) -> Optional[List[str]]:
-    if workflow_names and workflow_name:
-        raise Exception("Both workflow argument and --workflows (or --job and --jobs) cannot be provided together")
-
-    if workflow_name:
-        _workflow_names = [workflow_name]
-    elif workflow_names:
-        _workflow_names = workflow_names.split(",")
-    else:
-        _workflow_names = None
-
-    return _workflow_names
-
-
-def _preprocess_deployment(deployment: EnvironmentDeploymentInfo, requested_workflows: Union[List[str], None]):
-    if not deployment.payload.workflows:
-        dbx_echo("[yellow bold]🤷 No workflows were provided in the deployment file![/yellow bold]")
-        if requested_workflows:
-            raise Exception(
-                f"The following workflows were requested: {requested_workflows}, "
-                f"but no workflows are defined in the deployment file."
-            )
-
-        raise typer.Exit()
-
-
-def _create_workflows(workflows: WorkflowList, api_client: ApiClient) -> Dict[str, int]:
-    deployment_data = {}
-    for workflow in workflows:
-        dbx_echo(f"Processing deployment for workflow: {escape(workflow.name)}")
-        jobs_service = JobsService(api_client)
-        matching_job = find_job_by_name(jobs_service, workflow.name)
-
-        if not matching_job:
-            job_id = _create_job(api_client, workflow)
-        else:
-            job_id = matching_job["job_id"]
-            _update_job(jobs_service, job_id, workflow)
-
-        deployment_data[workflow.name] = job_id
-        workflow.job_id = job_id
-    return deployment_data
-
-
-def _create_job(api_client: ApiClient, workflow: AnyWorkflow) -> str:
-    dbx_echo(f"Creating a new workflow with name {escape(workflow.name)}")
-    workflow_definition = workflow.dict(exclude_none=True)
-    try:
-        jobs_api = JobsApi(api_client)
-        job_id = jobs_api.create_job(workflow_definition)["job_id"]
-    except HTTPError as e:
-        dbx_echo(":boom: Failed to create job with definition:")
-        dbx_echo(workflow_definition)
-        raise e
-    return job_id
-
-
-def _update_job(jobs_service: JobsService, job_id: str, workflow: AnyWorkflow) -> str:
-    dbx_echo(f"Updating existing job with id: {job_id} and name: {escape(workflow.name)}")
-    workflow_definition = workflow.dict(exclude_none=True)
-    try:
-        jobs_service.reset_job(job_id, workflow_definition)
-    except HTTPError as e:
-        dbx_echo(":boom: Failed to update job with definition:")
-        dbx_echo(workflow_definition)
-        raise e
-
-    return job_id

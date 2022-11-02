@@ -49,6 +49,64 @@ environments: #(2)
 
 The `workflows` section of the deployment file fully follows the [Databricks Jobs API structures](https://docs.databricks.com/dev-tools/api/latest/jobs.html) with features described in [this section](../features/assets.md).
 
+## :material-alpha-t-box-outline: Various workflow types
+
+<img src="https://img.shields.io/badge/available%20since-0.8.0-green?style=for-the-badge" alt="Available since 0.8.0"/>
+
+`dbx` supports the following workflow types:
+
+- Workflows in [Jobs API :material-surround-sound-2-0: format](https://docs.databricks.com/dev-tools/api/2.0/jobs.html)
+- Workflows in [Jobs API :material-surround-sound-2-1: format](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsCreate)
+- Workflows in [:material-table-heart: Delta Live Tables pipeline format](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsCreate)
+
+If the `workflow_type` property is not specified on the workflow level, `dbx` will define the type based on the following rules:
+
+- If `tasks` section is provided, then the workflow type is `jobs-v2.1`.
+- If this section is not provided, workflow will be parsed as a `jobs-v2.0`.
+
+Allowed values for the `workflow_type` field are:
+
+- `jobs-v2.1`
+- `jobs-v2.0`
+- `pipeline`
+
+Examples below demonstrate how to define various workflow types:
+
+```yaml title="conf/deployment.yml"
+
+build:
+  python: "pip"
+
+environments:
+  default:
+    workflows:
+
+      ################################################
+      - name: "workflow-in-v2.1-format"
+        tasks:
+          - task_key: "task1"
+            python_wheel_task:
+              package_name: "some-pkg"
+              entry_point: "some-ep"
+
+      ################################################
+      - name: "workflow-in-v2.0-format"
+        spark_python_task:
+          python_file: "file://some/file.py"
+
+      ################################################
+      - name: "workflow-in-pipeline-format"
+        target: "some-target-db"
+        workflow_type: "pipeline" # enforces the recognition
+        libraries:
+          - notebook:
+              path: "/Repos/some/path"
+```
+
+!!! tip "DLT with `dbx` guide"
+
+    Read more on the topic of DLT pipelines with `dbx` [here](../guides/general/delta_live_tables.md).
+
 ## :material-package-up: Advanced package dependency management
 
 By default `dbx` is heavily oriented towards Python package-based projects. However, for pure Notebook or JVM projects this might be not necessary.

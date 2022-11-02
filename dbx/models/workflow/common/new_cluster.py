@@ -16,6 +16,7 @@ class AutoScale(FlexibleModel):
         max_workers ({values["max_workers"]}) should be bigger than min_workers ({values["min_workers"]})
         """,
         )
+        return values
 
 
 class AwsAttributes(FlexibleModel):
