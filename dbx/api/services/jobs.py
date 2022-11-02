@@ -1,4 +1,5 @@
 import time
+from functools import cache
 from typing import List, Optional, Union
 
 from databricks_cli.sdk import ApiClient, JobsService
@@ -37,24 +38,28 @@ class NamedJobsService(WorkflowBaseService):
         super().__init__(api_client)
         self._service = JobsService(api_client)
 
-    def find_by_name(self, name: str) -> Optional[int]:
+    @property
+    @cache
+    def all_jobs(self) -> List[JobResponse]:
         offset = 0
         all_jobs = []
-
-        with Console().status(f"Searching for a job with name {name}", spinner="dots"):
+        with Console().status("Listing all available jobs", spinner="dots") as st:
             while True:
-                time.sleep(0.5)  # to avoid bursting out the jobs API
+                time.sleep(0.05)  # to avoid bursting out the jobs API
                 _response = ListJobsResponse(
                     **self._service.list_jobs(
                         limit=self.DEFAULT_LIST_LIMIT, offset=offset, version=self.JOBS_API_VERSION_FOR_SEARCH
                     )
                 )
                 all_jobs.extend(_response.jobs)
+                st.update(f"Listing all available jobs, total jobs checked {len(all_jobs)}")
                 offset += self.DEFAULT_LIST_LIMIT
                 if not _response.has_more:
                     break
+        return all_jobs
 
-        _found_ids = [j.job_id for j in all_jobs if j.settings.name == name]
+    def find_by_name(self, name: str) -> Optional[int]:
+        _found_ids = [j.job_id for j in self.all_jobs if j.settings.name == name]
 
         if len(_found_ids) > 1:
             raise Exception(
