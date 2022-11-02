@@ -11,7 +11,7 @@ from dbx.utils import dbx_echo
 class PipelinesNewCluster(NewCluster):
     label: Optional[str]
     spark_version: Optional[str] = None
-    init_scripts: List[Any] = None
+    init_scripts: List[Any] = []
 
     @staticmethod
     def _omit_msg(property_name: str):
@@ -24,6 +24,7 @@ class PipelinesNewCluster(NewCluster):
     def _validate_init_scripts(cls, value):  # noqa
         if value:
             cls._omit_msg("init_scripts")
+        return []
 
     @validator("spark_version", pre=True)
     def _validate_spark_version(cls, value):  # noqa
