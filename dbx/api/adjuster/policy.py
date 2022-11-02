@@ -72,11 +72,10 @@ class PolicyAdjuster(ApiClientMixin):
             for k, v in script.items():
                 if not v or not v.get("destination"):
                     raise Exception("init_scripts section format is incorrect in the deployment file")
-                else:
-                    destination = v["destination"]
-                    if destination not in flat_policy_init_scripts.get(k, []):
-                        # deduplication and ensure init scripts from policy to run firstly
-                        final_init_scripts.append(script)
+                destination = v["destination"]
+                if destination not in flat_policy_init_scripts.get(k, []):
+                    # deduplication and ensure init scripts from policy to run firstly
+                    final_init_scripts.append(script)
         return final_init_scripts
 
     @classmethod

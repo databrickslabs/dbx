@@ -107,7 +107,7 @@ The following logic is then applied to the policy and cluster definition:
 workflow environment before the workflow is running.
 
 A very common use case is
-to [setup the Python pip.conf](https://learn.microsoft.com/en-us/azure/databricks/kb/clusters/install-private-pypi-repo)
+to [setup the Python pip.conf](https://kb.databricks.com/en_US/clusters/install-private-pypi-repo)
 if the workflow needs some private packages, then you don't need to declare it in
 each [pip install](https://docs.databricks.com/libraries/notebooks-python-libraries.html#install-a-private-package-with-credentials-managed-by-databricks-secrets-with-pip)
 .
@@ -115,13 +115,17 @@ each [pip install](https://docs.databricks.com/libraries/notebooks-python-librar
 To properly resolve init scripts together with the policy settings, dbx will merge in order and with deduplication the
 init scripts from the cluster policy and those from the key `new_cluster.init_scripts`.
 
-For instance, there is a policy that enforces adding an `init_script` for `pip.conf`:
-```json5 title="cluster-policy.json"
-// policy name: policy-with-pip-install-script
-
+For instance, assuming there is a policy `policy-with-pip-install-script` that enforces adding an `init_script`:
+```json title="cluster-policy.json"
+{
+  "init_scripts.0.dbfs.destination": {
+    "type": "fixed",
+    "value": "dbfs://some/path/script.sh"
+  }
+}
 ```
 
-With the following deployment file referencing this policy [:material-file-code: deployment file](../reference/deployment.md):
+With the following [:material-file-code: deployment file](../reference/deployment.md) that references this policy:
 
 ```yaml title="conf/deployment.yml" linenums="1" hl_lines="8 12"
 # irrelevant parts are omitted
@@ -139,4 +143,22 @@ environments:
          ...
 ```
 
-1. This cluster policy contains an init script as a fixed property.
+`dbx` will correctly resolve the `init_scripts` array and turn it into the following definition:
+
+```json title="playload-for-api.json"
+{
+    "policy_id": "AAABBBCCCDDDD",
+    "init_scripts": [
+        {
+            "dbfs": {
+                "destination": "dbfs://some/path/script.sh"
+            }
+        },
+        {
+            "dbfs": {
+                "destination": "dbfs:/some/path/install_sql_driver.sh"
+            }
+        }
+    ]
+}
+```

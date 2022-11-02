@@ -20,7 +20,7 @@
 
 Since `dbx` primary interface is CLI, it's easy to use it in various CI/CD pipelines, independent of the CI provider.
 
-Read more about the place of `dbx` and potential use-cases in the [Ecosystem section](concepts/ecosystem.md).
+Read more about the place of `dbx` and potential use-cases in the [ecosystem section](concepts/ecosystem.md).
 
 ## :thinking: Differences from other tools
 
@@ -31,7 +31,7 @@ Read more about the place of `dbx` and potential use-cases in the [Ecosystem sec
 | [Databricks Terraform Provider](https://github.com/databrickslabs/terraform-provider-databricks) | While dbx is primarily oriented on versioned job management, Databricks Terraform Provider provides much wider set of infrastructure settings. In comparison, dbx doesn't provide infrastructure management capabilities, but brings more flexible deployment and launch options. |
 | [Databricks Stack CLI](https://docs.databricks.com/dev-tools/cli/stack-cli.html)                 | Databricks Stack CLI is a great component for managing a stack of objects. dbx concentrates on the versioning and packaging jobs together, not treating files and notebooks as a separate component.                                                                              |
 
-Read more about the place of `dbx` and potential use-cases in the concepts section.
+Read more about the differences between `dbx` and other instruments in the [ecosystem section](concepts/ecosystem.md).
 
 ## :octicons-link-external-24: Next steps
 
