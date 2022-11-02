@@ -1,11 +1,8 @@
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
-import typer
-
-from dbx.constants import DBX_CONFIGURE_DEFAULTS, PROJECT_INFO_FILE_PATH
+from dbx.constants import PROJECT_INFO_FILE_PATH
 from dbx.models.files.project import EnvironmentInfo, ProjectInfo
-from dbx.utils import dbx_echo
 from dbx.utils.json import JsonUtils
 
 
@@ -23,39 +20,29 @@ class JsonFileBasedManager:
         _typed = ProjectInfo(**_content)
         return _typed
 
-    @staticmethod
-    def _update_project_info_by_cli_params(project_info: ProjectInfo, typer_ctx: typer.Context):
-        for param_name in DBX_CONFIGURE_DEFAULTS:
-            value_from_cli = typer_ctx.params[param_name]
-            dbx_echo(f'Setting "{param_name}" to: {value_from_cli}')
-            setattr(project_info, param_name, value_from_cli)
-            dbx_echo(f'✅ Setting "{param_name}" to: {value_from_cli}')
-
-    def update(self, name: str, environment_info: EnvironmentInfo, typer_ctx: typer.Context):
+    def update(self, name: str, environment_info: EnvironmentInfo):
         # for file-based manager it's the same logic
-        self.create(name, environment_info, typer_ctx)
+        self.create(name, environment_info)
 
     def get(self, name: str) -> EnvironmentInfo:
         _typed = self._read_typed()
         return _typed.get_environment(name)
 
-    def create(self, name: str, environment_info: EnvironmentInfo, typer_ctx: typer.Context):
+    def create(self, name: str, environment_info: EnvironmentInfo):
         if self._file.exists():
             _info = self._read_typed()
-            JsonFileBasedManager._update_project_info_by_cli_params(_info, typer_ctx)
             _info.environments.update({name: environment_info})
         else:
             _info = ProjectInfo(environments={name: environment_info})
-            JsonFileBasedManager._update_project_info_by_cli_params(_info, typer_ctx)
             if not self._file.parent.exists():
                 self._file.parent.mkdir(parents=True)
         JsonUtils.write(self._file, _info.dict())
 
-    def create_or_update(self, name: str, environment_info: EnvironmentInfo, typer_ctx: typer.Context):
+    def create_or_update(self, name: str, environment_info: EnvironmentInfo):
         if self._file.exists():
-            self.update(name, environment_info, typer_ctx)
+            self.update(name, environment_info)
         else:
-            self.create(name, environment_info, typer_ctx)
+            self.create(name, environment_info)
 
     def enable_jinja_support(self):
         _typed = self._read_typed()
@@ -89,16 +76,13 @@ class JsonFileBasedManager:
         _result = self._read_typed().context_based_upload_for_execute if self._file.exists() else False
         return _result
 
-    def get_param_value(self, param_name: str) -> Any:
-        return getattr(self._read_typed(), param_name) if self._file.exists() else DBX_CONFIGURE_DEFAULTS[param_name]
-
 
 class ProjectConfigurationManager:
     def __init__(self):
         self._manager = JsonFileBasedManager()
 
-    def create_or_update(self, environment_name: str, environment_info: EnvironmentInfo, typer_ctx: typer.Context):
-        self._manager.create_or_update(environment_name, environment_info, typer_ctx)
+    def create_or_update(self, environment_name: str, environment_info: EnvironmentInfo):
+        self._manager.create_or_update(environment_name, environment_info)
 
     def get(self, environment_name: str) -> EnvironmentInfo:
         return self._manager.get(environment_name)
@@ -123,6 +107,3 @@ class ProjectConfigurationManager:
 
     def get_context_based_upload_for_execute(self) -> bool:
         return self._manager.get_context_based_upload_for_execute()
-
-    def get_param_value(self, param_name: str) -> Any:
-        return self._manager.get_param_value(param_name)

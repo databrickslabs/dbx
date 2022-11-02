@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from databricks_cli.cluster_policies.api import PolicyService
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin
-from dbx.api.configure import ProjectConfigurationManager
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
 
@@ -85,7 +84,7 @@ class PolicyAdjuster(ApiClientMixin):
                 # if the key is already provided in deployment configuration, we need to verify the value
                 # if value exists, we verify that it's the same as in the policy
                 if existing_value := d.get(k):
-                    if k == "init_scripts" and ProjectConfigurationManager().get_param_value("append_init_scripts"):
+                    if k == "init_scripts":
                         d[k] = PolicyAdjuster._append_init_scripts(v, existing_value)
                         continue
                     if existing_value != v:
@@ -93,11 +92,6 @@ class PolicyAdjuster(ApiClientMixin):
                             f"For key {k} there is a value in the cluster definition: {existing_value} \n"
                             f"However this value is fixed in the policy and shall be equal to: {v}."
                         )
-                        if k == "init_scripts":
-                            err_msg = (
-                                f"{err_msg} If you want to append additional custom init scripts, "
-                                "please check this link: https://dbx.readthedocs.io/en/latest/features/init_scripts/"
-                            )
                         raise ValueError(err_msg)
                 d[k] = v
         return d

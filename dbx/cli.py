@@ -182,16 +182,5 @@ app.command(
 )(destroy)
 
 
-def get_click_app():
-    return typer.main.get_command(app)
-
-
-click_app = get_click_app()
-
-
 def entrypoint():
-    app()
-
-
-if __name__ == "__main__":
     app()

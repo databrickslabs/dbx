@@ -20,6 +20,3 @@ TEMPLATE_ROOT_PATH = Path(pkg_resources.resource_filename("dbx", PROJECTS_RELATI
 DBX_SYNC_DEFAULT_IGNORES = [".git/", ".dbx", "*.isorted"]
 TERMINAL_RUN_LIFECYCLE_STATES = ["TERMINATED", "SKIPPED", "INTERNAL_ERROR"]
 TASKS_SUPPORTED_IN_EXECUTE = [TaskType.spark_python_task, TaskType.python_wheel_task]
-
-# Cli options default value
-DBX_CONFIGURE_DEFAULTS = {"append_init_scripts": True}

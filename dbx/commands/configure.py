@@ -1,14 +1,12 @@
 import typer
 
-from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
-from dbx.constants import DBX_CONFIGURE_DEFAULTS
+from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
 from dbx.models.files.project import MlflowStorageProperties, StorageType
 from dbx.options import ENVIRONMENT_OPTION, PROFILE_OPTION
-from dbx.utils import current_folder_name, dbx_echo
+from dbx.utils import dbx_echo, current_folder_name
 
 
 def configure(
-    typer_ctx: typer.Context,
     environment: str = ENVIRONMENT_OPTION,
     workspace_dir: str = typer.Option(
         f"/Shared/dbx/projects/{current_folder_name()}",
@@ -31,6 +29,9 @@ def configure(
         help="""Enables inplace jinja support for deployment files.
 
 
+        This flag ignores any other flags.
+
+
         Project file should exist, otherwise command will fail.""",
     ),
     enable_failsafe_cluster_reuse_with_assets: bool = typer.Option(
@@ -40,7 +41,6 @@ def configure(
         help="""
         Enables failsafe behaviour for assets-based launches with definitions
         that are based on shared job clusters feature.
-
 
         This flag ignores any other flags.
 
@@ -52,18 +52,13 @@ def configure(
         "--enable-context-based-upload-for-execute",
         is_flag=True,
         help="""
-        Enables context based file uploader instead of MLflow file uploader.
-
+        Enables failsafe behaviour for assets-based launches with definitions
+        that are based on shared job clusters feature.
 
         This flag ignores any other flags.
 
 
         Project file should exist, otherwise command will fail.""",
-    ),
-    append_init_scripts: bool = typer.Option(  # handled by manager.create_or_update # pylint: disable=unused-argument
-        DBX_CONFIGURE_DEFAULTS["append_init_scripts"],
-        help="""Enables the merge of the custom init scripts from the cluster policy and
-        those from the `new_cluster.init_scripts` key.""",
     ),
 ):
     manager = ProjectConfigurationManager()
@@ -94,6 +89,5 @@ def configure(
                     workspace_directory=workspace_dir, artifact_location=artifact_location
                 ),
             ),
-            typer_ctx,
         )
         dbx_echo("Environment configuration successfully finished")
