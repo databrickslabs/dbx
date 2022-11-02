@@ -13,7 +13,7 @@ class DeletionMode(str, Enum):
 
 
 class DestroyerConfig(BaseModel):
-    workflows: Optional[List[AnyWorkflow]]
+    workflows: Optional[List[AnyWorkflow]] = []
     deletion_mode: DeletionMode
     dry_run: Optional[bool] = False
     dracarys: Optional[bool] = False

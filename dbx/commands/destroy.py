@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from rich.markup import escape
 from rich.prompt import Prompt
 from typer.rich_utils import _get_rich_console  # noqa
 
@@ -92,14 +93,13 @@ def ask_for_confirmation(conf: DestroyerConfig):
         🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨
     """
 
+    wf_names = [escape(w.name) for w in conf.workflows]
     if conf.deletion_mode == DeletionMode.assets_only:
         deletion_message = "All assets will de deleted, but the workflow definitions won't be affected."
     elif conf.deletion_mode == DeletionMode.workflows_only:
-        deletion_message = (
-            f"The following workflows are marked for deletion: {conf.workflow_names}, assets won't be affected"
-        )
+        deletion_message = f"The following workflows are marked for deletion: {wf_names}, assets won't be affected"
     else:
-        deletion_message = f"""The following workflows are marked for deletion: {conf.workflow_names}.
+        deletion_message = f"""The following workflows are marked for deletion: {wf_names}.
             [bold]All assets are also marked for deletion.[/bold]"""
 
     _c = _get_rich_console()

@@ -70,7 +70,7 @@ class Deployment(FlexibleModel, WorkflowListMixin):
         return Deployment(**{"workflows": _wfs})
 
     def select_relevant_or_all_workflows(
-        self, workflow_name: Optional[str], workflow_names: Optional[List[str]]
+        self, workflow_name: Optional[str] = None, workflow_names: Optional[List[str]] = None
     ) -> WorkflowList:
 
         if workflow_name and workflow_names:
