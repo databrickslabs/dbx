@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
-## [UNRELEASED] - YYYY-MM-DD
+## [0.8.0] - 2022-11-02
 
 ### Changed
 
