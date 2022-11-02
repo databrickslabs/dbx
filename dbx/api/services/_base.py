@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, Any
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin
 from dbx.models.deployment import AnyWorkflow
@@ -17,3 +17,7 @@ class WorkflowBaseService(ApiClientMixin):
     @abstractmethod
     def update(self, object_id: int, wf: AnyWorkflow):
         """Updates the workflow by provided id"""
+
+    @abstractmethod
+    def delete(self, object_id: Any):
+        """Deletes the workflow by provided id"""

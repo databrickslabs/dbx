@@ -10,6 +10,9 @@ from dbx.utils import dbx_echo
 
 
 class NamedPipelinesService(WorkflowBaseService):
+    def delete(self, object_id: str):
+        self.api_client.perform_query("DELETE", path=f"/pipelines/{object_id}")
+
     def find_by_name_strict(self, name: str):
         _response = ListPipelinesResponse(
             **self.api_client.perform_query(method="GET", path="/pipelines/", data={"filter": f"name like '{name}'"})

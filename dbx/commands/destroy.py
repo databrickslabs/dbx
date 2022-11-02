@@ -33,10 +33,10 @@ def destroy(
         help="""Deletion mode.
 
 
-        If `assets-only`, will only delete the stored assets in the artifact storage, but won't affect job objects.
+        If `assets-only`, will only delete the stored assets in the artifact storage, but won't affect workflow objects.
 
 
-        If `workflows-only`, will only delete the defined job objects, but won't affect job objects.
+        If `workflows-only`, will only delete the defined workflow objects, but won't affect the artifact storage.
 
 
         If `all`, will delete everything.""",
@@ -62,7 +62,7 @@ def destroy(
     relevant_workflows = env_config.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
 
     _d_config = DestroyerConfig(
-        workflow_names=[w.name for w in relevant_workflows],
+        workflow_names=relevant_workflows,
         deletion_mode=deletion_mode,
         dracarys=dracarys,
         deployment=env_config,

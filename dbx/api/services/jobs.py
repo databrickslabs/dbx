@@ -92,3 +92,6 @@ class NamedJobsService(WorkflowBaseService):
             dbx_echo(":boom: Failed to update job with definition:")
             dbx_echo(payload)
             raise e
+
+    def delete(self, object_id: int):
+        self._service.delete_job(object_id)

@@ -6,15 +6,18 @@ from abc import ABC, abstractmethod
 from typing import List
 
 import mlflow
-from databricks_cli.jobs.api import JobsApi
 from databricks_cli.sdk import ApiClient
 from mlflow.entities import Run
 from rich.markup import escape
 from rich.progress import track
 from typer.rich_utils import _get_rich_console  # noqa
 
+from dbx.api.services.jobs import NamedJobsService
+from dbx.api.services.pipelines import NamedPipelinesService
 from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.deployment import AnyWorkflow
 from dbx.models.files.project import EnvironmentInfo
+from dbx.models.workflow.common.pipeline import Pipeline
 from dbx.utils import dbx_echo
 
 
@@ -25,29 +28,25 @@ class Eraser(ABC):
 
 
 class WorkflowEraser(Eraser):
-    def __init__(self, api_client: ApiClient, workflows: List[str], dry_run: bool):
+    def __init__(self, api_client: ApiClient, workflows: List[AnyWorkflow], dry_run: bool):
         self._client = api_client
         self._workflows = workflows
         self._dry_run = dry_run
 
-    def _delete_workflow(self, workflow):
-        dbx_echo(f"Job object {escape(workflow)} will be deleted")
-        api = JobsApi(self._client)
-        found = api._list_jobs_by_name(workflow)  # noqa
+    def _delete_workflow(self, workflow: AnyWorkflow):
+        dbx_echo(f"Workflow {escape(workflow.name)} will be deleted")
+        operator_service = NamedPipelinesService if isinstance(workflow, Pipeline) else NamedJobsService
+        service_instance = operator_service(self._client)
+        obj_id = service_instance.find_by_name(workflow.name)
 
-        if len(found) > 1:
-            raise Exception(
-                f"More than one job with name {escape(workflow)} was found, please check the duplicates in the UI"
-            )
-        if len(found) == 0:
-            dbx_echo(f"Workflow with name {escape(workflow)} doesn't exist, no deletion is required")
+        if not obj_id:
+            dbx_echo(f"Workflow with name {escape(workflow.name)} doesn't exist, no deletion is required")
         else:
-            _job = found[0]
             if self._dry_run:
-                dbx_echo(f"Workflow {escape(workflow)} with definition would be deleted in case of a real run")
+                dbx_echo(f"Workflow {escape(workflow.name)} with definition would be deleted in case of a real run")
             else:
-                api.delete_job(_job["job_id"])
-                dbx_echo(f"Job object with name {escape(workflow)} was successfully deleted ✅")
+                service_instance.delete(obj_id)
+                dbx_echo(f"Workflow object with name {escape(workflow.name)} was successfully deleted ✅")
 
     def erase(self):
         for w in self._workflows:
@@ -128,7 +127,7 @@ class Destroyer:
         self._config = config
 
     def _get_workflow_eraser(self) -> WorkflowEraser:
-        return WorkflowEraser(self._client, self._config.workflow_names, self._config.dry_run)
+        return WorkflowEraser(self._client, self._config.workflows, self._config.dry_run)
 
     def _get_asset_eraser(self) -> AssetEraser:
         env_info = self._config.deployment.get_project_info()
