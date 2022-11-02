@@ -49,7 +49,7 @@ def deployment_file_callback(_, value: Optional[str]) -> Path:
 def version_callback(value: bool):
     if value:
         dbx_echo(
-            f":brick:[red]Databricks[/red] e[red]X[/red]tensions aka [red]dbx[/red], "
+            f":brick: [red]Databricks[/red] e[red]X[/red]tensions aka [red]dbx[/red], "
             f"version ~> [green]{__version__}[/green]"
         )
         raise typer.Exit()
