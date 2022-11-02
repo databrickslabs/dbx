@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.1] - 2022-11-02
 
+## Changed
+- 📖 Reference documentation for deployment file
+- ♻️ Add extensive caching for job listing
+
 ## [0.8.0] - 2022-11-02
 
 ### Changed
