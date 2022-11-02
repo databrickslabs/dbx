@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [0.8.2] - 2022-11-02
+
+## Fixed
+- 🩹 Deletion logic in the workflow eraser
+
+
 ## [0.8.1] - 2022-11-02
 
 ## Changed
+
 - 📖 Reference documentation for deployment file
 - ♻️ Add extensive caching for job listing
 

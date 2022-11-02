@@ -63,7 +63,7 @@ def destroy(
     relevant_workflows = env_config.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
 
     _d_config = DestroyerConfig(
-        workflow_names=relevant_workflows,
+        workflows=relevant_workflows,
         deletion_mode=deletion_mode,
         dracarys=dracarys,
         deployment=env_config,
