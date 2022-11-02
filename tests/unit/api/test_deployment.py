@@ -11,6 +11,9 @@ from dbx.models.deployment import EnvironmentDeploymentInfo
 TEST_PAYLOAD = """
     workflows:
       - name: "some-wf"
+        access_control_list:
+          - user_name: "some@email.com"
+            permission_level: "IS_OWNER"
         tasks:
           - task_key: "some-task"
             python_wheel_task:
