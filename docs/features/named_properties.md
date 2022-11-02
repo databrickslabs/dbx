@@ -31,7 +31,6 @@ By this simplification, you don't need to look-up for these id-based properties,
 
     Please note that `*_name`-based legacy properties **will not work** with DLT. Use the reference-based approach described below.
 
-
 ## :material-vector-link: Reference-based approach
 
 <img src="https://img.shields.io/badge/available%20since-0.8.0-green?style=for-the-badge" alt="Available since 0.8.0"/>
@@ -62,9 +61,18 @@ The following references are supported:
 | `cluster-policy://`         | Cluster Policies          | [ListClusterPolicies](https://docs.databricks.com/dev-tools/api/latest/policies.html#operation/list-cluster-policies)             |
 | `file://` or `file:fuse://` | Files                     | Please refer to the [file references documentation](./file_references.md)                                                         |
 
-The provided object references are expected to be **unique**. If the name of the object is not unique, an error will be raised.
+The provided object references are expected to be **unique**. If the name of the object is not unique, an error will be
+raised.
 
 ## :material-list-status: Cluster policies resolution
+
+[Cluster policies](https://docs.databricks.com/administration-guide/clusters/policies.html) is a very convenient
+interface that allows generalizing specific rules to a wide set of clusters.
+
+`dbx` provides capabilities to reference the policy name in the cluster definition, and some of the policy
+properties will be automatically added to the cluster definition during deployment step.
+
+### :material-format-list-checks: Resolution logic for properties
 
 Please note that cluster policies are only resolved in the following cases:
 
@@ -73,10 +81,11 @@ Please note that cluster policies are only resolved in the following cases:
 
 The following logic is then applied to the policy and cluster definition:
 
-1. Policy definition is traversed and transformed into Jobs API compatible format. Only the `fixed` properties are selected during traversal.
-2. Policy definition deeply updates the cluster definition. If there are any keys provided in the cluster definition that are fixed in the policy, an error will be thrown.
+1. Policy definition is traversed and transformed into Jobs API compatible format. Only the `fixed` properties are
+   selected during traversal.
+2. Policy definition deeply updates the cluster definition. If there are any keys provided in the cluster definition
+   that are fixed in the policy, an error will be thrown.
 3. Updated cluster definition goes back to the overall workflow definition
-
 
 !!! warning "Other policy elements"
 
@@ -90,4 +99,44 @@ The following logic is then applied to the policy and cluster definition:
 
     They will only be resolved during the workflow deployment API call.
 
+### :material-script: Init scripts resolution logic
 
+<img src="https://img.shields.io/badge/available%20since-0.8.0-green?style=for-the-badge" alt="Available since 0.8.0"/>
+
+[Init scripts](https://docs.databricks.com/clusters/init-scripts.html) is a powerful tool in Databricks to setup the
+workflow environment before the workflow is running.
+
+A very common use case is
+to [setup the Python pip.conf](https://learn.microsoft.com/en-us/azure/databricks/kb/clusters/install-private-pypi-repo)
+if the workflow needs some private packages, then you don't need to declare it in
+each [pip install](https://docs.databricks.com/libraries/notebooks-python-libraries.html#install-a-private-package-with-credentials-managed-by-databricks-secrets-with-pip)
+.
+
+To properly resolve init scripts together with the policy settings, dbx will merge in order and with deduplication the
+init scripts from the cluster policy and those from the key `new_cluster.init_scripts`.
+
+For instance, there is a policy that enforces adding an `init_script` for `pip.conf`:
+```json5 title="cluster-policy.json"
+// policy name: policy-with-pip-install-script
+
+```
+
+With the following deployment file referencing this policy [:material-file-code: deployment file](../reference/deployment.md):
+
+```yaml title="conf/deployment.yml" linenums="1" hl_lines="8 12"
+# irrelevant parts are omitted
+environments:
+  default:
+    workflows:
+      - name: workflow_name
+        job_clusters:
+        - new_cluster:
+            policy_id: "cluster-policy://policy-with-pip-install-script"
+            init_scripts:
+            - dbfs:
+                destination: dbfs:/some/path/install_sql_driver.sh
+        tasks:
+         ...
+```
+
+1. This cluster policy contains an init script as a fixed property.

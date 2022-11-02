@@ -103,7 +103,6 @@ nav:
       - Assets-based deployment and launch: features/assets.md
       - File references: features/file_references.md
       - Build management: features/build_management.md
-      - Init scripts: features/init_scripts.md
       - Jinja support: features/jinja_support.md
       - Named properties: features/named_properties.md
       - Permissions management: features/permissions_management.md
