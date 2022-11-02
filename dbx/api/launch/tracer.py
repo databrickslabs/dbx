@@ -4,7 +4,7 @@ from databricks_cli.sdk import ApiClient
 from rich.console import Console
 
 from dbx.api.launch.functions import trace_run, cancel_run
-from dbx.api.launch.pipeline_models import PipelineState, PipelineUpdateStatus
+from dbx.api.launch.pipeline_models import PipelineUpdateState, PipelineUpdateStatus
 from dbx.api.launch.runners.base import RunData, PipelineUpdateResponse
 from dbx.utils import dbx_echo
 
@@ -29,10 +29,12 @@ class RunTracer:
 
 
 class PipelineTracer:
-    TERMINAL_STATES = [PipelineState.COMPLETED, PipelineState.FAILED, PipelineState.CANCELED]
+    TERMINAL_STATES = [PipelineUpdateState.COMPLETED, PipelineUpdateState.FAILED, PipelineUpdateState.CANCELED]
 
     @classmethod
-    def start(cls, api_client: ApiClient, process_info: PipelineUpdateResponse, pipeline_id: str) -> PipelineState:
+    def start(
+        cls, api_client: ApiClient, process_info: PipelineUpdateResponse, pipeline_id: str
+    ) -> PipelineUpdateState:
         _path = f"/pipelines/{pipeline_id}/requests/{process_info.request_id}"
         with Console().status(f"Tracing the DLT pipeline with id {pipeline_id}", spinner="dots") as display:
             while True:

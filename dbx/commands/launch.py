@@ -7,7 +7,7 @@ from databricks_cli.jobs.api import JobsService
 from rich.markup import escape
 
 from dbx.api.launch.functions import find_deployment_run
-from dbx.api.launch.pipeline_models import PipelineState
+from dbx.api.launch.pipeline_models import PipelineUpdateState
 from dbx.api.launch.runners.asset_based import AssetBasedLauncher
 from dbx.api.launch.runners.base import RunData
 from dbx.api.launch.runners.pipeline import PipelineLauncher
@@ -177,7 +177,7 @@ def launch(
                 final_state = PipelineTracer.start(
                     api_client=api_client, process_info=process_info, pipeline_id=object_id
                 )
-                if final_state == PipelineState.FAILED:
+                if final_state == PipelineUpdateState.FAILED:
                     raise Exception(
                         f"Tracked pipeline {object_id} failed during execution, please check the UI for details."
                     )

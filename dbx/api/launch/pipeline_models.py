@@ -14,7 +14,7 @@ class PipelineGlobalState(str, Enum):
     RUNNING = "RUNNING"
 
 
-class PipelineState(str, Enum):
+class PipelineUpdateState(str, Enum):
     QUEUED = "QUEUED"
     CREATED = "CREATED"
     WAITING_FOR_RESOURCES = "WAITING_FOR_RESOURCES"
@@ -39,7 +39,7 @@ class StartCause(str, Enum):
 
 class LatestUpdate(BaseModel):
     update_id: str
-    state: PipelineState
+    state: PipelineUpdateState
     cause: Optional[StartCause]
 
 
