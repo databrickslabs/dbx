@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 📖 Documentation on artifact storage
 - 🪄 Functionality to automatically enable context-based upload
 - 🪄 Automatic conversion from `wasbs://` to `abfss://` references when using ADLS as artifact storage.
+- ♻️ New init scripts append logic in case when `cluster-policy://` resolution is used.
 
 ### Fixed
 

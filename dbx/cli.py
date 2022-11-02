@@ -182,5 +182,14 @@ app.command(
 )(destroy)
 
 
+# click app object here is used in the mkdocs.
+# Don't delete it!
+def get_click_app():
+    return typer.main.get_command(app)
+
+
+click_app = get_click_app()
+
+
 def entrypoint():
     app()
