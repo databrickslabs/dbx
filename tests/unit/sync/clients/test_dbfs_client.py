@@ -16,7 +16,8 @@ def client(mock_config) -> DBFSClient:
 
 def test_init(client):
     assert client.api_token == "fake-token"
-    assert client.host == "http://fakehost.asdf/base"
+    assert client.host == "http://fakehost.asdf"
+    assert client.api_base_path == "http://fakehost.asdf/api/2.0/dbfs"
 
 
 def test_delete(client: DBFSClient):
@@ -27,7 +28,7 @@ def test_delete(client: DBFSClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
     assert "ssl" not in session.post.call_args[1]
     assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
@@ -35,7 +36,7 @@ def test_delete(client: DBFSClient):
 
 
 def test_delete_secure(client: DBFSClient):
-    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=False)
+    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/", insecure=False)
     client = DBFSClient(base_path="/tmp/foo", config=mock_config)
     session = MagicMock()
     resp = MagicMock()
@@ -44,13 +45,13 @@ def test_delete_secure(client: DBFSClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
     assert session.post.call_args[1]["ssl"] is True
 
 
 def test_delete_secure(client: DBFSClient):
-    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=True)
+    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/", insecure=True)
     client = DBFSClient(base_path="/tmp/foo", config=mock_config)
     session = MagicMock()
     resp = MagicMock()
@@ -59,7 +60,7 @@ def test_delete_secure(client: DBFSClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
     assert session.post.call_args[1]["ssl"] is False
 
@@ -87,7 +88,7 @@ def test_delete_recursive(client: DBFSClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session, recursive=True))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar", "recursive": True}
 
 
@@ -106,7 +107,7 @@ def test_delete_rate_limited(client: DBFSClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
 
 
@@ -125,7 +126,7 @@ def test_delete_rate_limited_retry_after(client: DBFSClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/delete"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
 
 
@@ -151,7 +152,7 @@ def test_mkdirs(client: DBFSClient):
     asyncio.run(client.mkdirs(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/mkdirs"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
     assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
     assert is_dbfs_user_agent(session.post.call_args[1]["headers"]["user-agent"])
@@ -187,7 +188,7 @@ def test_mkdirs_rate_limited(client: DBFSClient):
     asyncio.run(client.mkdirs(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/mkdirs"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
 
 
@@ -206,7 +207,7 @@ def test_mkdirs_rate_limited_retry_after(client: DBFSClient):
     asyncio.run(client.mkdirs(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/mkdirs"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "dbfs:/tmp/foo/foo/bar"}
 
 
@@ -233,7 +234,7 @@ def test_put(client: DBFSClient, dummy_file_path: str):
     asyncio.run(client.put(sub_path="foo/bar", full_source_path=dummy_file_path, session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/put"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/put"
     assert session.post.call_args[1]["json"] == {
         "path": "dbfs:/tmp/foo/foo/bar",
         "contents": base64.b64encode(b"yo").decode("ascii"),
@@ -275,7 +276,7 @@ def test_put_rate_limited(client: DBFSClient, dummy_file_path: str):
     asyncio.run(client.put(sub_path="foo/bar", full_source_path=dummy_file_path, session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/put"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/put"
     assert session.post.call_args[1]["json"] == {
         "path": "dbfs:/tmp/foo/foo/bar",
         "contents": base64.b64encode(b"yo").decode("ascii"),
@@ -298,7 +299,7 @@ def test_put_rate_limited_retry_after(client: DBFSClient, dummy_file_path: str):
     asyncio.run(client.put(sub_path="foo/bar", full_source_path=dummy_file_path, session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/put"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/put"
     assert session.post.call_args[1]["json"] == {
         "path": "dbfs:/tmp/foo/foo/bar",
         "contents": base64.b64encode(b"yo").decode("ascii"),
