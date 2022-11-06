@@ -8,7 +8,7 @@ from dbx.models.workflow.common.job_email_notifications import JobEmailNotificat
 class CronSchedule(FlexibleModel):
     quartz_cron_expression: str
     timezone_id: str
-    pause_status: str
+    pause_status: Optional[str]
 
 
 class WorkflowBase(FlexibleModel, ABC):

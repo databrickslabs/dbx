@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🩹 Wheel dependency for setup has been removed
 - 🩹 Add host cleanup logic to `dbx sync` commands
 - 🩹 Return auto-add functionality from `dist` folder
-
+- 🩹 Make `pause_status` property optional
 
 ## Changed
 
