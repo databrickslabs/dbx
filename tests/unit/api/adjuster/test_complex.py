@@ -110,3 +110,36 @@ def test_complex(complex_instance_pool_mock, named_pipeline_mock):
     assert wfs[1].workflow_type == WorkflowType.job_v2d1
     assert core_pkg in wfs[1].get_task("first").libraries
     assert core_pkg not in wfs[1].get_task("second").libraries
+
+
+TEST_ARBITRARY_TRVS_PAYLOAD = yaml.safe_load(
+    """
+environments:
+  default:
+    workflows:
+      - name: "sample-wf"
+        tags:
+          key: "instance-pool://pool-1"
+        tasks:
+         - task_key: "some-task"
+           some_task:
+             list_props:
+               - "instance-pool://pool-1"
+             nested_props:
+               nested_key: "instance-pool://pool-1"
+"""
+)
+
+
+def test_arbitrary_traversals(complex_instance_pool_mock):
+    default = DeploymentConfig.from_payload(TEST_ARBITRARY_TRVS_PAYLOAD).get_environment("default")
+    _adj = Adjuster(
+        additional_libraries=AdditionalLibrariesProvider(core_package=None),
+        file_uploader=MagicMock(),
+        api_client=MagicMock(),
+    )
+    _adj.traverse(default.payload.workflows)
+    _wf = default.payload.get_workflow("sample-wf")
+    assert _wf.tags["key"] == "some-id-1"
+    assert getattr(_wf.get_task("some-task"), "some_task")["list_props"][0] == "some-id-1"
+    assert getattr(_wf.get_task("some-task"), "some_task")["nested_props"]["nested_key"] == "some-id-1"

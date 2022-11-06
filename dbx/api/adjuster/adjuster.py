@@ -41,7 +41,8 @@ class PropertyAdjuster(
 
         # if element is a dictionary, simply continue traversing
         if isinstance(_object, dict):
-            for key, item in _object.items():
+            for key in list(_object.keys()):
+                item = _object[key]
                 yield item, _object, key
                 for _out in self.traverse(item, _object, index_in_parent):
                     yield _out
