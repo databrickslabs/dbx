@@ -9,14 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [UNRELEASED] - YYYY-MM-DD
+
+## Fixed
+
+- 🩹 Wheel dependency for setup has been removed
+- 🩹 Add host cleanup logic to `dbx sync` commands
+- 🩹 Return auto-add functionality from `dist` folder
+
+
+## Changed
+
+- ⚡️ Use improved method for job search
+
 ## [0.8.2] - 2022-11-02
 
 ## Fixed
 
 - 🩹 Deletion logic in the workflow eraser
-- 🩹 Wheel dependency for setup has been removed
-- 🩹 Add host cleanup logic to `dbx sync` commands
-- 🩹 Return auto-add functionality from `dist` folder
 
 ## [0.8.1] - 2022-11-02
 

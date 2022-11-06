@@ -13,6 +13,7 @@ from dbx.api.launch.pipeline_models import PipelineUpdateState
 from dbx.api.launch.runners.base import PipelineUpdateResponse
 from dbx.api.launch.runners.pipeline import PipelineLauncher
 from dbx.api.launch.tracer import RunTracer, PipelineTracer
+from dbx.api.services.jobs import JobListing, ListJobsResponse
 from dbx.api.services.pipelines import NamedPipelinesService
 from dbx.api.storage.io import StorageIO
 from dbx.utils.json import JsonUtils
@@ -41,7 +42,8 @@ def prepare_job_service_mock(mocker: MockFixture, job_name):
             }
         ]
     }
-    mocker.patch.object(JobsService, "list_jobs", MagicMock(return_value=jobs_payload))
+    response = ListJobsResponse(**jobs_payload)
+    mocker.patch.object(JobListing, "by_name", MagicMock(return_value=response))
 
 
 def prepare_tracing_mock(mocker: MockFixture, final_result_state: str):

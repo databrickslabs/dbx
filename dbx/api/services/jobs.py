@@ -1,12 +1,10 @@
-import time
-from functools import lru_cache
 from typing import List, Optional, Union
 
 from databricks_cli.sdk import ApiClient, JobsService
 from requests import HTTPError
-from rich.console import Console
 from rich.markup import escape
 
+from dbx.api.adjuster.mixins.base import ApiClientMixin
 from dbx.api.services._base import WorkflowBaseService
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
@@ -30,6 +28,12 @@ class ListJobsResponse(FlexibleModel):
     jobs: Optional[List[JobResponse]] = []
 
 
+class JobListing(ApiClientMixin):
+    def by_name(self, name) -> ListJobsResponse:
+        raw = self.api_client.perform_query(method="get", version="2.1", path="/jobs/list", data={"name": name})
+        return ListJobsResponse(**raw)
+
+
 class NamedJobsService(WorkflowBaseService):
     DEFAULT_LIST_LIMIT = 25
     JOBS_API_VERSION_FOR_SEARCH = "2.1"
@@ -37,41 +41,20 @@ class NamedJobsService(WorkflowBaseService):
     def __init__(self, api_client: ApiClient):
         super().__init__(api_client)
         self._service = JobsService(api_client)
-        dbx_echo(f"Total jobs in the workspace: {len(self.all_jobs)}")
-
-    @property
-    @lru_cache(maxsize=2000)
-    def all_jobs(self) -> List[JobResponse]:
-        offset = 0
-        all_jobs = []
-        with Console().status("Listing all available jobs", spinner="dots") as st:
-            while True:
-                time.sleep(0.05)  # to avoid bursting out the jobs API
-                _response = ListJobsResponse(
-                    **self._service.list_jobs(
-                        limit=self.DEFAULT_LIST_LIMIT, offset=offset, version=self.JOBS_API_VERSION_FOR_SEARCH
-                    )
-                )
-                all_jobs.extend(_response.jobs)
-                st.update(f"Listing all available jobs, total jobs checked {len(all_jobs)}")
-                offset += self.DEFAULT_LIST_LIMIT
-                if not _response.has_more:
-                    break
-        return all_jobs
 
     def find_by_name(self, name: str) -> Optional[int]:
-        _found_ids = [j.job_id for j in self.all_jobs if j.settings.name == name]
+        response = JobListing(self.api_client).by_name(name)
 
-        if len(_found_ids) > 1:
+        if len(response.jobs) > 1:
             raise Exception(
                 f"""There are more than one jobs with name {name}.
                     Please delete duplicated jobs first."""
             )
 
-        if not _found_ids:
+        if not response.jobs:
             return None
         else:
-            return _found_ids[0]
+            return response.jobs[0].job_id
 
     def create(self, wf: AnyJob):
         """
