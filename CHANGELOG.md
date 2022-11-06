@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+----
+> Unreleased changes must be tracked above this line.
+> When releasing, Copy the changelog to below this line, with proper version and date.
+> And empty the **[Unreleased]** section above.
+----
+
+## [0.8.3] - 2022-11-06
+
 ## Fixed
 
 - 🩹 Wheel dependency for setup has been removed
@@ -62,11 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐛 Message with rich markup [] is properly displayed now
 - 📖 Broken link in the generated README.md in Python template
 
-----
-> Unreleased changes must be tracked above this line.
-> When releasing, Copy the changelog to below this line, with proper version and date.
-> And empty the **[Unreleased]** section above.
-----
 
 ## [0.7.6] - 2022-10-05
 
