@@ -120,7 +120,7 @@ def deploy(
         )
         config.build.no_build = True
 
-    core_package = None if config.build.no_build else CorePackageManager(build_config=config.build).core_package
+    core_package = CorePackageManager(build_config=config.build).core_package
     libraries_from_requirements = RequirementsFileProcessor(requirements_file).libraries if requirements_file else []
 
     _assets_only = assets_only if assets_only else files_only
