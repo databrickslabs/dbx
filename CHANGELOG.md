@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🩹 Add host cleanup logic to `dbx sync` commands
 - 🩹 Return auto-add functionality from `dist` folder
 - 🩹 Make `pause_status` property optional
+- 🚨 Make traversal process fail-safe for dictionaries
 
 ## Changed
 
