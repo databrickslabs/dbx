@@ -8,6 +8,7 @@ from databricks_cli.configure.provider import DatabricksConfig
 from databricks_cli.version import version as databricks_cli_version
 
 from dbx.utils import dbx_echo
+from dbx.utils.url import strip_databricks_url
 
 
 class ClientError(Exception):
@@ -38,7 +39,7 @@ def get_user(config: DatabricksConfig) -> dict:
               or isn't supported
     """
     api_token = config.token
-    host = config.host.rstrip("/")
+    host = strip_databricks_url(config.host)
     headers = get_headers(api_token)
     url = f"{host}/api/2.0/preview/scim/v2/Me"
     resp = requests.get(url, headers=headers, timeout=10)
@@ -158,7 +159,7 @@ class DBFSClient(BaseClient):
         check_path(base_path)
         self.base_path = "dbfs:" + base_path.rstrip("/")
         self.api_token = config.token
-        self.host = config.host.rstrip("/")
+        self.host = strip_databricks_url(config.host)
         self.api_base_path = f"{self.host}/api/2.0/dbfs"
         if config.insecure is None:
             self.ssl = None
@@ -216,7 +217,7 @@ class ReposClient(BaseClient):
             raise ValueError("repo_name is required")
         self.base_path = f"/Repos/{user}/{repo_name}"
         self.api_token = config.token
-        self.host = config.host.rstrip("/")
+        self.host = strip_databricks_url(config.host)
         self.workspace_api_base_path = f"{self.host}/api/2.0/workspace"
         self.workspace_files_api_base_path = f"{self.host}/api/2.0/workspace-files/import-file"
         if config.insecure is None:

@@ -16,7 +16,9 @@ def client(mock_config):
 def test_init(mock_config):
     client = ReposClient(user="foo@somewhere.com", repo_name="my-repo", config=mock_config)
     assert client.api_token == "fake-token"
-    assert client.host == "http://fakehost.asdf/base"
+    assert client.host == "http://fakehost.asdf"
+    assert client.workspace_api_base_path == "http://fakehost.asdf/api/2.0/workspace"
+    assert client.workspace_files_api_base_path == "http://fakehost.asdf/api/2.0/workspace-files/import-file"
     assert client.base_path == "/Repos/foo@somewhere.com/my-repo"
 
     with pytest.raises(ValueError):
@@ -37,7 +39,7 @@ def test_delete(client: ReposClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
     assert "ssl" not in session.post.call_args[1]
     assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
@@ -45,7 +47,7 @@ def test_delete(client: ReposClient):
 
 
 def test_delete_secure(client: ReposClient):
-    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=False)
+    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/", insecure=False)
     client = ReposClient(user="foo@somewhere.com", repo_name="my-repo", config=mock_config)
     session = MagicMock()
     resp = MagicMock()
@@ -54,13 +56,13 @@ def test_delete_secure(client: ReposClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
     assert session.post.call_args[1]["ssl"] is True
 
 
 def test_delete_insecure(client: ReposClient):
-    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=True)
+    mock_config = mocked_props(token="fake-token", host="http://fakehost.asdf/", insecure=True)
     client = ReposClient(user="foo@somewhere.com", repo_name="my-repo", config=mock_config)
     session = MagicMock()
     resp = MagicMock()
@@ -69,7 +71,7 @@ def test_delete_insecure(client: ReposClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
     assert session.post.call_args[1]["ssl"] is False
 
@@ -97,7 +99,7 @@ def test_delete_recursive(client: ReposClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session, recursive=True))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar", "recursive": True}
 
 
@@ -116,7 +118,7 @@ def test_delete_rate_limited(client: ReposClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
 
 
@@ -135,7 +137,7 @@ def test_delete_rate_limited_retry_after(client: ReposClient):
     asyncio.run(client.delete(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/delete"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/delete"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
 
 
@@ -161,7 +163,7 @@ def test_mkdirs(client: ReposClient):
     asyncio.run(client.mkdirs(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 1
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/mkdirs"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
     assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
     assert is_repos_user_agent(session.post.call_args[1]["headers"]["user-agent"])
@@ -197,7 +199,7 @@ def test_mkdirs_rate_limited(client: ReposClient):
     asyncio.run(client.mkdirs(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/mkdirs"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
 
 
@@ -216,7 +218,7 @@ def test_mkdirs_rate_limited_retry_after(client: ReposClient):
     asyncio.run(client.mkdirs(sub_path="foo/bar", session=session))
 
     assert session.post.call_count == 2
-    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/base/api/2.0/workspace/mkdirs"
+    assert session.post.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/workspace/mkdirs"
     assert session.post.call_args[1]["json"] == {"path": "/Repos/foo@somewhere.com/my-repo/foo/bar"}
 
 
@@ -245,7 +247,7 @@ def test_put(client: ReposClient, dummy_file_path: str):
     assert session.post.call_count == 1
     assert (
         session.post.call_args[1]["url"]
-        == "http://fakehost.asdf/base/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
+        == "http://fakehost.asdf/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
     )
     assert session.post.call_args[1]["data"] == b"yo"
     assert session.post.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
@@ -286,7 +288,7 @@ def test_put_rate_limited(client: ReposClient, dummy_file_path: str):
     assert session.post.call_count == 2
     assert (
         session.post.call_args[1]["url"]
-        == "http://fakehost.asdf/base/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
+        == "http://fakehost.asdf/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
     )
     assert session.post.call_args[1]["data"] == b"yo"
 
@@ -308,7 +310,7 @@ def test_put_rate_limited_retry_after(client: ReposClient, dummy_file_path: str)
     assert session.post.call_count == 2
     assert (
         session.post.call_args[1]["url"]
-        == "http://fakehost.asdf/base/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
+        == "http://fakehost.asdf/api/2.0/workspace-files/import-file/Repos/foo@somewhere.com/my-repo/foo/bar"
     )
     assert session.post.call_args[1]["data"] == b"yo"
 

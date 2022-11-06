@@ -7,10 +7,11 @@ from pytest_mock import MockerFixture
 
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.models.files.project import EnvironmentInfo, MlflowStorageProperties
+from dbx.utils.url import strip_databricks_url
 
 
 def test_url_strip():
-    _stripped = MlflowStorageConfigurationManager._strip_url("https://some-location.com/with/some-postfix")
+    _stripped = strip_databricks_url("https://some-location.com/with/some-postfix")
     assert _stripped == "https://some-location.com"
 
 
