@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🩹 Deletion logic in the workflow eraser
 - 🩹 Wheel dependency for setup has been removed
 - 🩹 Add host cleanup logic to `dbx sync` commands
+- 🩹 Return auto-add functionality from `dist` folder
 
 ## [0.8.1] - 2022-11-02
 
