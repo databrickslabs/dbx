@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## Changed
+
+- ⬆️ Bump typer to 0.7.0
+
+
 ## [0.8.4] - 2022-11-07
 
 ## Fixed
