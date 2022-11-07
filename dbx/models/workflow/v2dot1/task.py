@@ -67,8 +67,8 @@ class DbtTask(FlexibleModel):
 class PythonWheelTask(BaseModel):
     package_name: str
     entry_point: str
-    parameters: Optional[List[str]]
-    named_parameters: Optional[List[str]]
+    parameters: Optional[List[str]] = []
+    named_parameters: Optional[List[str]] = []
 
     _validate_exclusive = root_validator(pre=True, allow_reuse=True)(
         lambda _, values: mutually_exclusive(["parameters", "named_parameters"], values)
