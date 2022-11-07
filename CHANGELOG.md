@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.8.4] - 2022-11-07
+
+## Fixed
+
+- 🩹 Argument parsing logic in `dbx execute` without any arguments
+
 ## [0.8.3] - 2022-11-06
 
 ## Fixed

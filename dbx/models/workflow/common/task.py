@@ -35,7 +35,7 @@ class SparkJarTask(FlexibleModel):
 
 class SparkPythonTask(BaseModel):
     python_file: str
-    parameters: Optional[StringArray]
+    parameters: Optional[StringArray] = []
 
     @validator("python_file")
     def _not_fuse(cls, v):  # noqa
