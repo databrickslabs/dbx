@@ -1,3 +1,7 @@
 .nowrap {
     white-space: nowrap ;
 }
+
+.margined {
+    margin-top: 10vh;
+}

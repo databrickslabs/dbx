@@ -9,6 +9,7 @@ Currently, `dbx` only supports MLflow-based API for file operations.
 MLflow-based artifact storage properties are specified per environment in the [project configuration file](../reference/project.md).
 
 When project is configured by default, the definition looks like this:
+
 ```json title="project.json" hl_lines="6-8"
 {
     "environments": {
@@ -16,8 +17,8 @@ When project is configured by default, the definition looks like this:
             "profile": "some-profile",
             "storage_type": "mlflow",
             "properties": {
-                "workspace_directory": "/Shared/dbx/some-project-name", #(1)
-                "artifact_location": "dbfs:/Shared/dbx/projects/some-project-name" #(2)
+                "workspace_directory": "/Shared/dbx/some-project-name",
+                "artifact_location": "dbfs:/Shared/dbx/projects/some-project-name"
             }
         }
     }
@@ -27,6 +28,7 @@ When project is configured by default, the definition looks like this:
 1. Workspace directory points to an MLflow experiment which will be used as a basis for Mlflow-based operations.
    There is no need to create a new experiment before running any `dbx` commands. Please note that for security purposes to protect this experiment use the experiment permissions model.
 2. Artifact location is one of the locations supported by MLflow on Databricks, namely: `dbfs://` (both mounts and root container are supported), `s3://`, `wasbs://` and `gs://`.
+
 
 !!! warning "Security of the experiment files and the artifact storage"
 

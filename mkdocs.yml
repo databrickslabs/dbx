@@ -5,6 +5,7 @@ copyright: © Copyright 2022, Databricks Inc.
 
 theme:
   name: material
+  custom_dir: docs/overrides
   font:
     text: DM Sans
     code: DM Mono
@@ -12,14 +13,14 @@ theme:
     - media: '(prefers-color-scheme: light)'
       scheme: default
       primary: black
-      accent: amber
+      accent: indigo
       toggle:
         icon: material/lightbulb
         name: Switch to light mode
     - media: '(prefers-color-scheme: dark)'
       scheme: slate
       primary: black
-      accent: amber
+      accent: indigo
       toggle:
         icon: material/lightbulb-outline
         name: Switch to dark mode
@@ -45,7 +46,8 @@ plugins:
   - glightbox
   - search
 
-extra_css: [ custom/custom.css ]
+extra_css:
+  - extras/styles.css
 
 markdown_extensions:
   - attr_list
