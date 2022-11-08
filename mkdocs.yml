@@ -43,8 +43,13 @@ repo_name: databrickslabs/dbx
 repo_url: https://github.com/databrickslabs/dbx
 
 plugins:
-  - glightbox
   - search
+  - glightbox
+  - git-revision-date-localized:
+      type: timeago
+      enable_creation_date: true
+      exclude:
+        - index.md
 
 extra_css:
   - extras/styles.css

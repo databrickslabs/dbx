@@ -5,3 +5,8 @@
 .margined {
     margin-top: 10vh;
 }
+
+.centered_text {
+    display:inline-block;
+    vertical-align: middle;
+}
