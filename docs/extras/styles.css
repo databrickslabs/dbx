@@ -1,0 +1,177 @@
+.nowrap {
+    white-space: nowrap;
+}
+
+.margined {
+    margin-top: 10vh;
+}
+
+.centered_text {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.date-tooltip {
+    position: relative; /* making the .tooltip span a container for the tooltip text */
+}
+
+.date-tooltip:before {
+    content: attr(data-text); /* here's the magic */
+    position:absolute;
+
+    /* vertically center */
+    /*top:50%;*/
+    transform:translateY(60%);
+
+    /*left:100%;*/
+    margin-top:15px; /* and add a small left margin */
+
+    /* basic styles */
+    width:100px;
+    padding:4px;
+    border-radius:10px;
+    text-align:center;
+    color: var(--md-primary-bg-color);
+    background: var(--md-primary-fg-color);
+    display:none; /* hide by default */
+}
+
+.date-tooltip:hover:before {
+    display:block;
+}
+
+
+
+
+.index_separator {
+    border-right: rgb(255, 54, 33) solid 0.3em;
+    display: inline-block;
+    animation-name: line_animation;
+    animation-duration: 1.4s;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+
+@keyframes line_animation {
+    from {
+        height: 0px;
+    }
+    to {
+        height: 200px;
+    }
+}
+
+.title_element {
+    font-size: 4em;
+    margin: 0 !important;
+    font-family: DM Mono;
+    animation-name: text_appear;
+    animation-duration: 1.4s;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+.desc_element {
+    font-size: 1em !important;
+    font-family: DM Mono;
+    animation-name: text_appear;
+    animation-duration: 1.4s;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes text_appear {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+.bounce {
+    -moz-animation: bounce 3s infinite;
+    -webkit-animation: bounce 3s infinite;
+    animation: bounce 3s infinite;
+}
+@-moz-keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        -moz-transform: translateY(0);
+        transform: translateY(0);
+    }
+    40% {
+        -moz-transform: translateY(-30px);
+        transform: translateY(-30px);
+    }
+    60% {
+        -moz-transform: translateY(-15px);
+        transform: translateY(-15px);
+    }
+}
+@-webkit-keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+    }
+    40% {
+        -webkit-transform: translateY(-30px);
+        transform: translateY(-30px);
+    }
+    60% {
+        -webkit-transform: translateY(-15px);
+        transform: translateY(-15px);
+    }
+}
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        -moz-transform: translateY(0);
+        -ms-transform: translateY(0);
+        -webkit-transform: translateY(0);
+        transform: translateY(0);
+    }
+    40% {
+        -moz-transform: translateY(-30px);
+        -ms-transform: translateY(-30px);
+        -webkit-transform: translateY(-30px);
+        transform: translateY(-30px);
+    }
+    60% {
+        -moz-transform: translateY(-15px);
+        -ms-transform: translateY(-15px);
+        -webkit-transform: translateY(-15px);
+        transform: translateY(-15px);
+    }
+}
+
+.cards-container {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    padding-right: 5rem;
+    padding-left: 5rem;
+    font-size: 0.5em;
+}
+
+.card-element-title {
+    padding-top: 0.1em;
+    font-size: 1em;
+    margin-bottom: 0.5em;
+}
+
+.card-element {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex: 50%;
+    flex-direction: column;
+    padding: 0.5em;
+    border: hsla(232, 62%, 95%, 0.66) solid 1px;
+    margin: 1em;
+    min-height: 10em;
+    border-radius: 5px;
+}
+
+.card-element:hover {
+    border: rgb(255, 54, 33) solid 1px;
+ }

@@ -5,6 +5,7 @@ copyright: © Copyright 2022, Databricks Inc.
 
 theme:
   name: material
+  custom_dir: docs/overrides
   font:
     text: DM Sans
     code: DM Mono
@@ -12,14 +13,14 @@ theme:
     - media: '(prefers-color-scheme: light)'
       scheme: default
       primary: black
-      accent: amber
+      accent: indigo
       toggle:
         icon: material/lightbulb
         name: Switch to light mode
     - media: '(prefers-color-scheme: dark)'
       scheme: slate
       primary: black
-      accent: amber
+      accent: indigo
       toggle:
         icon: material/lightbulb-outline
         name: Switch to dark mode
@@ -32,6 +33,7 @@ theme:
     - toc.follow
     - navigation.sections
     - navigation.tabs
+    - navigation.top
   icon:
     repo: fontawesome/brands/github
   logo: img/logo.svg
@@ -40,12 +42,19 @@ theme:
 
 repo_name: databrickslabs/dbx
 repo_url: https://github.com/databrickslabs/dbx
+edit_uri: edit/main/docs
 
 plugins:
-  - glightbox
   - search
+  - glightbox
+  - git-revision-date-localized:
+      type: timeago
+      enable_creation_date: true
+      exclude:
+        - index.md
 
-extra_css: [ custom/custom.css ]
+extra_css:
+  - extras/styles.css
 
 markdown_extensions:
   - attr_list
@@ -73,7 +82,8 @@ markdown_extensions:
       custom_checkbox: true
 
 nav:
-  - Home: index.md
+  - 'index.md'
+  - Intro: intro.md
   - Concepts:
       - Place of dbx in the ecosystem: concepts/ecosystem.md
       - DevOps for workflows: concepts/devops.md
