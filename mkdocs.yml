@@ -33,6 +33,7 @@ theme:
     - toc.follow
     - navigation.sections
     - navigation.tabs
+    - navigation.top
   icon:
     repo: fontawesome/brands/github
   logo: img/logo.svg
@@ -49,7 +50,7 @@ plugins:
       type: timeago
       enable_creation_date: true
       exclude:
-        - index.md
+        - intro.md
 
 extra_css:
   - extras/styles.css
@@ -80,7 +81,8 @@ markdown_extensions:
       custom_checkbox: true
 
 nav:
-  - Home: index.md
+  - 'index.md'
+  - Intro: intro.md
   - Concepts:
       - Place of dbx in the ecosystem: concepts/ecosystem.md
       - DevOps for workflows: concepts/devops.md

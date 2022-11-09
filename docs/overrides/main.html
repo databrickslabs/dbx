@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+
+<!--disable all other blocks-->
+
+{% block header %}
+{% endblock %}
+
+{% block site_nav %}
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+{% block container %}
+<div xmlns="http://www.w3.org/1999/html">
+
+
+    <!--    landing page part with logo-->
+    <div style="padding-top: 10vh; height: 100vh; padding-bottom: 5vh; display: flex; flex-direction: column">
+        <div style="display: flex; justify-content: center; align-items: center">
+            <div style="flex:20%; display: flex; justify-content: right; align-items: center; padding-right: 1rem">
+                <a href="https://dbx.readthedocs.io/">
+                    <img src="https://raw.githubusercontent.com/databrickslabs/dbx/master/images/logo.svg"
+                         class="align-center"
+                         width="200" height="200" alt="logo"/>
+                </a>
+            </div>
+            <span class="index_separator"></span>
+            <div style="flex: 50%; padding-left: 1rem">
+                <h1 class="title_element">
+                    <code>dbx</code> by <span class="nowrap">Databricks Labs</span>
+                </h1>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center; padding-top: 5vh; padding-right: 5rem; padding-left: 5rem">
+            <h2 style="text-align: center" class="desc_element">
+                🧱 Databricks CLI eXtensions - aka <code>dbx</code> is a CLI tool for development and advanced Databricks
+                workflows
+                management.
+            </h2>
+        </div>
+        <div style="display: flex; justify-content: center; width: 100%; margin-top: auto">
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24" class="bounce">
+                <path fill="currentColor" d="M22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12M6,10L12,16L18,10L16.6,8.6L12,13.2L7.4,8.6L6,10Z" />
+            </svg>
+        </div>
+    </div>
+
+    <!--choices section-->
+    <div style="padding-top: 10vh; height: 100vh; padding-bottom: 5vh; display: flex; flex-direction: column">
+        <div style="display: flex; justify-content: center; align-items: center; padding-top: 5vh; padding-right: 5rem; padding-left: 5rem">
+            <h2 style="text-align: center; font-size: 4em" class="desc_element">
+                What's next?
+            </h2>
+        </div>
+        <div class="cards-container">
+            <div class="card-element">
+                <div class="card-element-title">Discover the <span class="nowrap">concepts &rAarr;</span></div>
+                <p>Learn more about tooling, ecosystem and DevOps for Workflows.</p>
+            </div>
+            <div class="card-element">
+                <div class="card-element-title">Python quickstart in your <span class="nowrap">IDE &rAarr;</span></div>
+                <p>Step-by-step guide on how to set up your local environment and start developing in the IDE.</p>
+            </div>
+        </div>
+
+        <div class="cards-container">
+            <div class="card-element">
+                <div class="card-element-title"><span class="nowrap">All about configurations &rAarr;</span></div>
+                <p>Looking for flexible and efficient Databricks Workflows configuration? Click here.</p>
+            </div>
+
+            <div class="card-element">
+                <div class="card-element-title">Check the <span class="nowrap">reference &rAarr;</span></div>
+                <p>What was that option name? Find all commands and their arguments and parameters here.</p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center; padding-top: 5vh; padding-right: 5rem; padding-left: 5rem">
+            <h2 style="text-align: center; font-size: 2em">
+                Didn't find what you're looking for? Start with the <a href="/">intro</a>.
+            </h2>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tabs %}
+{% endblock %}
+
+<!--leave scripts alive to make everything else work nicely-->
+{% block scripts %}
+{{ super() }}
+{% endblock %}
