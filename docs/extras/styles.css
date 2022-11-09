@@ -40,9 +40,7 @@
     display:block;
 }
 
-.md-tabs__item:nth-child(1) {
-    display: none;
-}
+
 
 
 .index_separator {
@@ -66,6 +64,7 @@
 
 .title_element {
     font-size: 4em;
+    margin: 0 !important;
     font-family: DM Mono;
     animation-name: text_appear;
     animation-duration: 1.4s;
@@ -74,7 +73,7 @@
 }
 
 .desc_element {
-    font-size: 2em;
+    font-size: 1em !important;
     font-family: DM Mono;
     animation-name: text_appear;
     animation-duration: 1.4s;
@@ -152,12 +151,12 @@
     justify-content: center;
     padding-right: 5rem;
     padding-left: 5rem;
-    font-size: 1.5em;
+    font-size: 0.5em;
 }
 
 .card-element-title {
     padding-top: 0.1em;
-    font-size: 1.8em;
+    font-size: 1em;
     margin-bottom: 0.5em;
 }
 

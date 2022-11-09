@@ -42,6 +42,7 @@ theme:
 
 repo_name: databrickslabs/dbx
 repo_url: https://github.com/databrickslabs/dbx
+edit_uri: edit/main/docs
 
 plugins:
   - search
@@ -50,7 +51,7 @@ plugins:
       type: timeago
       enable_creation_date: true
       exclude:
-        - intro.md
+        - index.md
 
 extra_css:
   - extras/styles.css
