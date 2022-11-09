@@ -17,10 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.8.5] - 2022-11-09
+
 ## Changed
 
 - ⬆️ Bump typer to 0.7.0
-
+- 👔 improve docs and add landing page
 
 ## [0.8.4] - 2022-11-07
 
