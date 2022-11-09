@@ -175,3 +175,7 @@
 .card-element:hover {
     border: rgb(255, 54, 33) solid 1px;
  }
+
+.rst-current-version {
+    display: none;
+}

@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.8.6] - 2022-11-09
+
+## Changed
+
+- ♻️ Allow `init_scripts` in DLT pipelines
+- 🔇 Hide the rst version overlay from read the docs
+
 ## [0.8.5] - 2022-11-09
 
 ## Changed

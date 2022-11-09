@@ -20,12 +20,6 @@ class PipelinesNewCluster(NewCluster):
             "Provided value will be omitted.[/yellow bold]"
         )
 
-    @validator("init_scripts", pre=True)
-    def _validate_init_scripts(cls, value):  # noqa
-        if value:
-            cls._omit_msg("init_scripts")
-        return []
-
     @validator("spark_version", pre=True)
     def _validate_spark_version(cls, value):  # noqa
         if value:
