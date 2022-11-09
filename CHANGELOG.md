@@ -24,11 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⬆️ Bump typer to 0.7.0
 - 👔 improve docs and add landing page
 
+
 ## [0.8.4] - 2022-11-07
 
 ## Fixed
 
 - 🩹 Argument parsing logic in `dbx execute` without any arguments
+
 
 ## [0.8.3] - 2022-11-06
 
@@ -50,12 +52,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🩹 Deletion logic in the workflow eraser
 
+
 ## [0.8.1] - 2022-11-02
 
 ## Changed
 
 - 📖 Reference documentation for deployment file
 - ♻️ Add extensive caching for job listing
+
 
 ## [0.8.0] - 2022-11-02
 
