@@ -19,14 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.6] - 2022-11-09
 
-## Changed
+### Changed
 
 - ♻️ Allow `init_scripts` in DLT pipelines
 - 🔇 Hide the rst version overlay from read the docs
 
+
 ## [0.8.5] - 2022-11-09
 
-## Changed
+### Changed
 
 - ⬆️ Bump typer to 0.7.0
 - 👔 improve docs and add landing page
@@ -34,14 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.4] - 2022-11-07
 
-## Fixed
+### Fixed
 
 - 🩹 Argument parsing logic in `dbx execute` without any arguments
 
 
 ## [0.8.3] - 2022-11-06
 
-## Fixed
+### Fixed
 
 - 🩹 Wheel dependency for setup has been removed
 - 🩹 Add host cleanup logic to `dbx sync` commands
@@ -49,20 +50,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🩹 Make `pause_status` property optional
 - 🚨 Make traversal process fail-safe for dictionaries
 
-## Changed
+### Changed
 
 - ⚡️ Use improved method for job search
 
 ## [0.8.2] - 2022-11-02
 
-## Fixed
+### Fixed
 
 - 🩹 Deletion logic in the workflow eraser
 
 
 ## [0.8.1] - 2022-11-02
 
-## Changed
+### Changed
 
 - 📖 Reference documentation for deployment file
 - ♻️ Add extensive caching for job listing

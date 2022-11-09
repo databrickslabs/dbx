@@ -49,7 +49,7 @@ environments:
 3. [OPTIONAL] A list of key-value pairs to add to the Spark configuration of the cluster that will run the pipeline.
 4. [OPTIONAL] If this is not specified, the system will select a default cluster configuration for the pipeline.
 5. Follow documentation for this section [here](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-api-guide.html#pipelinesnewcluster).
-6. Also could be `mode: "enchanced"`, read more on [this feature here](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-concepts.html#databricks-enhanced-autoscaling).
+6. Also, could be `mode: "enchanced"`, read more on [this feature here](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-concepts.html#databricks-enhanced-autoscaling).
 7. [REQUIRED] The notebooks containing the pipeline code and any dependencies required to run the pipeline.
 8. Follow the [official documentation page](https://docs.databricks.com/workflows/delta-live-tables/delta-live-tables-api-guide.html#pipelinesettings) for other fields and properties
 
