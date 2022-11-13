@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask, BaseTaskMixin
@@ -32,6 +33,13 @@ def test_spark_python_task_positive(temp_project: Path):
     _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
     _t = SparkPythonTask(**_payload)
     assert isinstance(_t.execute_file, Path)
+
+
+def test_spark_python_task_non_py_file(temp_project: Path):
+    py_file = f"file://{temp_project.name}/tasks/sample_etl_task.ipynb"
+    _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
+    with pytest.raises(ValidationError):
+        SparkPythonTask(**_payload)
 
 
 def test_sql_task_non_unique():
