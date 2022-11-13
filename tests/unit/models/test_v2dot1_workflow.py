@@ -23,7 +23,7 @@ def test_duplicated_tasks(capsys):
 def test_override_positive():
     wf = Workflow(
         name="some",
-        tasks=[{"task_key": "one", "spark_python_task": {"python_file": "/some/file", "parameters": ["a"]}}],
+        tasks=[{"task_key": "one", "spark_python_task": {"python_file": "/some/file.py", "parameters": ["a"]}}],
     )
     override_payload = AssetBasedRunPayload.from_string(
         """[
