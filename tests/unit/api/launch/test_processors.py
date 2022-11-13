@@ -9,11 +9,11 @@ def test_preprocessor_positive():
         "name": "name",
         "job_clusters": [{"job_cluster_key": "main", "new_cluster": nc_payload}],
         "tasks": [
-            {"task_key": "some-task", "job_cluster_key": "main", "spark_python_task": {"python_file": "here"}},
+            {"task_key": "some-task", "job_cluster_key": "main", "spark_python_task": {"python_file": "here.py"}},
             {
                 "task_key": "some-other-task",
                 "new_cluster": nc_untouched_payload,
-                "spark_python_task": {"python_file": "here"},
+                "spark_python_task": {"python_file": "here.py"},
             },
         ],
     }

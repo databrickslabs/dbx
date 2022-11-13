@@ -87,10 +87,10 @@ def test_various_workflow_definitions():
       tasks:
         - task_key: "first"
           spark_python_task:
-            python_file: "/some/file"
+            python_file: "/some/file.py"
     - name: "job-v20"
       spark_python_task:
-        python_file: "/some/file"
+        python_file: "/some/file.py"
     """
     _dep = Deployment.from_spec_remote(yaml.safe_load(test_payload))
     assert isinstance(_dep.get_workflow("dlt-pipeline"), Pipeline)

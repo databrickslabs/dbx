@@ -28,7 +28,7 @@ def test_validation(wf_def):
 
 
 def test_v2dot0_overrides_parameters():
-    wf = Workflow(**{"name": "test", "spark_python_task": {"python_file": "some/file", "parameters": ["a"]}})
+    wf = Workflow(**{"name": "test", "spark_python_task": {"python_file": "some/file.py", "parameters": ["a"]}})
     wf.override_asset_based_launch_parameters(AssetBasedRunPayload(parameters=["b"]))
     assert wf.spark_python_task.parameters == ["b"]
 

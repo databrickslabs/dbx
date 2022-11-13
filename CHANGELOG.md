@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 
 - 📖 Documentation on how to use custom templates
+- 🦺 Add explicit Python file extension validation for `spark_python_task`
+
 
 ## [0.8.6] - 2022-11-09
 

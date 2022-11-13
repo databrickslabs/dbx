@@ -41,6 +41,8 @@ class SparkPythonTask(BaseModel):
     def _not_fuse(cls, v):  # noqa
         if v.startswith("file:fuse://"):
             raise ValueError("The python_file property cannot be FUSE-based")
+        if not v.endswith(".py"):
+            raise ValueError(f"Only a .py file can be used in this property, provided: {v}")
         return v
 
     @property
