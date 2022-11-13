@@ -71,7 +71,7 @@ def test_spark_python_task_not_fuse(temp_project: Path):
 def test_spark_python_task_execute_incorrect(temp_project: Path):
     py_file = f"file://{temp_project.name}/tasks/sample_etl_task.py"
     _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
-    _payload["python_file"] = "dbfs:/some/path"
+    _payload["python_file"] = "dbfs:/some/path.py"
     with pytest.raises(ValueError):
         _st = SparkPythonTask(**_payload)
         _st.execute_file  # noqa
