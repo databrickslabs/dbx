@@ -21,12 +21,7 @@ class BuildConfiguration(BaseModel):
     commands: Optional[List[str]]
     python: Optional[PythonBuild] = PythonBuild.pip
 
-    def trigger_build_process(self):
-        if self.no_build:
-            dbx_echo("No build actions will be performed.")
-        else:
-            dbx_echo("Following the provided build logic")
-
+    def _build_process(self):
         if self.commands:
             dbx_echo("Running the build commands")
             for command in self.commands:
@@ -50,3 +45,10 @@ class BuildConfiguration(BaseModel):
             dbx_echo(":white_check_mark: Python-based project build finished")
         else:
             dbx_echo("Neither commands nor python building configuration was provided, skipping the build stage")
+
+    def trigger_build_process(self):
+        if self.no_build:
+            dbx_echo("No build actions will be performed.")
+        else:
+            dbx_echo("Following the provided build logic")
+            self._build_process()

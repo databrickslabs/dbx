@@ -17,10 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > And empty the **[Unreleased]** section above.
 ----
 
+## [0.8.7] - 2022-11-14
+
 ## Added
 
 - 📖 Documentation on how to use custom templates
 - 🦺 Add explicit Python file extension validation for `spark_python_task`
+
+## Fixed
+
+- 🩹 Build logic in case when `no_build` is specified
 
 
 ## [0.8.6] - 2022-11-09
