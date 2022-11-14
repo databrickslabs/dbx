@@ -6,6 +6,7 @@ from typing import List, Optional, Dict, Any
 
 import jinja2
 import yaml
+from pydantic import BaseModel
 
 import dbx.api.jinja as dbx_jinja
 from dbx.api._module_loader import load_module_from_source
@@ -19,9 +20,9 @@ from dbx.utils.json import JsonUtils
 class _AbstractConfigReader(ABC):
     def __init__(self, path: Path):
         self._path = path
-        self.config = self._get_config()
+        self.config = self.get_config()
 
-    def _get_config(self) -> DeploymentConfig:
+    def get_config(self) -> DeploymentConfig:
         return self._read_file()
 
     @abstractmethod
@@ -103,6 +104,11 @@ class Jinja2ConfigReader(_AbstractConfigReader):
             raise Exception(f"Unexpected extension for Jinja reader: {self._ext}")
 
 
+class BuildProperties(BaseModel):
+    potential_build: bool = False
+    no_rebuild: bool = False
+
+
 class ConfigReader:
     """
     Entrypoint for reading the raw configurations from files.
@@ -114,6 +120,11 @@ class ConfigReader:
         self._jinja_vars_file = jinja_vars_file
         self._path = path
         self._reader = self._define_reader()
+        self._build_properties = BuildProperties()
+
+    def with_build_properties(self, build_properties: BuildProperties):
+        self._build_properties = build_properties
+        return self
 
     def _define_reader(self) -> _AbstractConfigReader:
         if len(self._path.suffixes) > 1:
@@ -146,7 +157,25 @@ class ConfigReader:
         )
 
     def get_config(self) -> DeploymentConfig:
-        return self._reader.config
+
+        if self._build_properties.potential_build:
+            dbx_echo("Reading the build config section first to identify build steps")
+            build_config = self._reader.config.build
+
+            if self._build_properties.no_rebuild:
+                dbx_echo(
+                    """[yellow bold]
+                Legacy [code]--no-rebuild[/code] flag has been used.
+                Please specify build logic in the build section of the deployment file instead.[/yellow bold]"""
+                )
+                build_config.no_build = True
+                return self._reader.config
+
+            build_config.trigger_build_process()
+            dbx_echo("🔄 Build process finished, reloading the config to catch changes if any")
+            return self._reader.get_config()  # reload config after build
+        else:
+            return self._reader.config
 
     def get_environment(self, environment: str) -> Optional[EnvironmentDeploymentInfo]:
         """

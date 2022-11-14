@@ -7,7 +7,7 @@ import mlflow
 import typer
 
 from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
-from dbx.api.config_reader import ConfigReader
+from dbx.api.config_reader import ConfigReader, BuildProperties
 from dbx.api.dependency.core_package import CorePackageManager
 from dbx.api.dependency.requirements import RequirementsFileProcessor
 from dbx.api.deployment import WorkflowDeploymentManager
@@ -103,7 +103,9 @@ def deploy(
         branch_name = get_current_branch_name()
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
-    config = config_reader.get_config()
+    config = config_reader.with_build_properties(
+        BuildProperties(potential_build=True, no_rebuild=no_rebuild)
+    ).get_config()
 
     environment_info = config.get_environment(environment_name, raise_if_not_found=True)
 
@@ -112,15 +114,8 @@ def deploy(
 
     deployable_workflows = environment_info.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
     environment_info.payload.workflows = deployable_workflows  # filter out the chosen set of workflows
-    if no_rebuild:
-        dbx_echo(
-            """[yellow bold]
-        Legacy [code]--no-rebuild[/code] flag has been used.
-        Please specify build logic in the build section of the deployment file instead.[/yellow bold]"""
-        )
-        config.build.no_build = True
 
-    core_package = CorePackageManager(build_config=config.build).core_package
+    core_package = CorePackageManager().core_package
     libraries_from_requirements = RequirementsFileProcessor(requirements_file).libraries if requirements_file else []
 
     _assets_only = assets_only if assets_only else files_only
