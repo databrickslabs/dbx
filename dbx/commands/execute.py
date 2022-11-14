@@ -4,7 +4,7 @@ from typing import Optional
 import typer
 
 from dbx.api.cluster import ClusterController
-from dbx.api.config_reader import ConfigReader
+from dbx.api.config_reader import ConfigReader, BuildProperties
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.dependency.core_package import CorePackageManager
@@ -83,16 +83,11 @@ def execute(
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
-    config = config_reader.get_config()
-    environment_config = config.get_environment(environment, raise_if_not_found=True)
+    config = config_reader.with_build_properties(
+        BuildProperties(potential_build=True, no_rebuild=no_rebuild)
+    ).get_config()
 
-    if no_rebuild:
-        dbx_echo(
-            """[yellow bold]
-        Legacy [code]--no-rebuild[/code] flag has been used.
-        Please specify build logic in the build section of the deployment file instead.[/yellow bold]"""
-        )
-        config.build.no_build = True
+    environment_config = config.get_environment(environment, raise_if_not_found=True)
 
     workflow = environment_config.payload.get_workflow(workflow_name)
 
@@ -109,7 +104,7 @@ def execute(
     task: ExecuteTask = workflow.get_task(task_name) if task_name else workflow
 
     task.check_if_supported_in_execute()
-    core_package = CorePackageManager(config.build).core_package if not no_package else None
+    core_package = CorePackageManager().core_package if not no_package else None
 
     if parameters:
         task.override_execute_parameters(ExecuteParametersPayload.from_json(parameters))

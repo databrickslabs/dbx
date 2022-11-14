@@ -4,14 +4,12 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from dbx.models.build import BuildConfiguration
 from dbx.models.workflow.common.libraries import Library
 from dbx.utils import dbx_echo
 
 
 class CorePackageManager:
-    def __init__(self, build_config: BuildConfiguration):
-        self.build_config = build_config
+    def __init__(self):
         self._core_package: Optional[Library] = self.prepare_core_package()
 
     @property
@@ -19,7 +17,6 @@ class CorePackageManager:
         return self._core_package
 
     def prepare_core_package(self) -> Optional[Library]:
-        self.build_config.trigger_build_process()
         package_file = self.get_package_file()
 
         if package_file:
