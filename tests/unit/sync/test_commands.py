@@ -1,10 +1,12 @@
+import asyncio
 import os
-from unittest.mock import patch, call, MagicMock
+from unittest.mock import patch, call, MagicMock, AsyncMock
 
 import click
 import pytest
 from databricks_cli.configure.provider import ProfileConfigProvider
 
+from dbx.commands.sync.sync import repo_exists
 from dbx.commands.sync.functions import get_user_name, get_source_base_name
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
@@ -50,10 +52,12 @@ def test_repo_no_opts(mock_main_loop):
     assert "Missing option" in res.output
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_environment(mock_main_loop, mock_get_user_name, temp_project):
+def test_repo_environment(mock_main_loop, mock_get_user_name, mock_repo_exists, temp_project):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
         mock_get_user_name.return_value = "me"
 
         with patch.object(ProfileConfigProvider, "get_config") as config_mock:
@@ -79,10 +83,12 @@ def test_dbfs_environment(mock_main_loop, mock_get_user_name, temp_project):
             assert config_mock.call_count == 1
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_basic_opts(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_basic_opts(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
         mock_get_user_name.return_value = "me"
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo"])
@@ -109,10 +115,12 @@ def test_repo_basic_opts(mock_main_loop, mock_get_user_name, mock_get_config):
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_unknown_user(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_unknown_user(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
         mock_get_user_name.return_value = None
 
         res = invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo"], expected_error=True)
@@ -124,10 +132,30 @@ def test_repo_unknown_user(mock_main_loop, mock_get_user_name, mock_get_config):
         assert "Destination repo path can't be automatically determined because the user is" in res.output
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_dry_run(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_unknown_repo(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = False
+        mock_get_user_name.return_value = "me"
+
+        res = invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo"], expected_error=True)
+
+        assert mock_main_loop.call_count == 0
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 1
+
+        assert "lease create the repo" in res.output
+
+
+@patch("dbx.commands.sync.sync.repo_exists")
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_repo_dry_run(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
+    with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--dry-run"])
 
         assert mock_main_loop.call_count == 1
@@ -152,10 +180,12 @@ def test_repo_dry_run(mock_main_loop, mock_get_user_name, mock_get_config):
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_polling(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_polling(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
         mock_get_user_name.return_value = "me"
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "--polling-interval", "2"])
@@ -183,10 +213,13 @@ def test_repo_polling(mock_main_loop, mock_get_user_name, mock_get_config):
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_include_dir(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_include_dir(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
@@ -213,10 +246,13 @@ def test_repo_include_dir(mock_main_loop, mock_get_user_name, mock_get_config):
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_force_include_dir(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_force_include_dir(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fi", "foo"])
@@ -243,10 +279,13 @@ def test_repo_force_include_dir(mock_main_loop, mock_get_user_name, mock_get_con
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_include_pattern(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_include_pattern(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ip", "foo/*.py"])
@@ -273,10 +312,13 @@ def test_repo_include_pattern(mock_main_loop, mock_get_user_name, mock_get_confi
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_force_include_pattern(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_force_include_pattern(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fip", "foo/*.py"])
@@ -303,10 +345,13 @@ def test_repo_force_include_pattern(mock_main_loop, mock_get_user_name, mock_get
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_exclude_dir(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_exclude_dir(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-e", "foo"])
@@ -333,10 +378,13 @@ def test_repo_exclude_dir(mock_main_loop, mock_get_user_name, mock_get_config):
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_exclude_pattern(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_exclude_pattern(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ep", "foo/**/*.py"])
@@ -365,10 +413,13 @@ def test_repo_exclude_pattern(mock_main_loop, mock_get_user_name, mock_get_confi
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_include_dir_not_exists(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_include_dir_not_exists(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         # we don't create the "foo" subdir, so it should produce an error
 
         res = invoke_cli_runner(["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"], expected_error=True)
@@ -380,10 +431,13 @@ def test_repo_include_dir_not_exists(mock_main_loop, mock_get_user_name, mock_ge
         assert "does not exist" in res.output
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_inferred_source(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_inferred_source(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir, pushd(tempdir):
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, ".git"))
 
         invoke_cli_runner(["repo", "-d", "the-repo", "-u", "me"])
@@ -410,10 +464,13 @@ def test_repo_inferred_source(mock_main_loop, mock_get_user_name, mock_get_confi
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_inferred_source_no_git(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_inferred_source_no_git(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir, pushd(tempdir):
+        mock_repo_exists.return_value = True
+
         # source can only be inferred when the cwd contains a .git subdir
 
         res = invoke_cli_runner(["repo", "-d", "the-repo", "-u", "me"], expected_error=True)
@@ -425,10 +482,12 @@ def test_repo_inferred_source_no_git(mock_main_loop, mock_get_user_name, mock_ge
         assert "Must specify source" in res.output
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_allow_delete_unmatched(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_allow_delete_unmatched(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
 
         invoke_cli_runner(
             ["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--unmatched-behaviour=allow-delete-unmatched"]
@@ -454,10 +513,12 @@ def test_repo_allow_delete_unmatched(mock_main_loop, mock_get_user_name, mock_ge
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_disallow_delete_unmatched(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_disallow_delete_unmatched(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
 
         invoke_cli_runner(
             ["repo", "-s", tempdir, "-d", "the-repo", "-u", "me", "--unmatched-behaviour=disallow-delete-unmatched"]
@@ -664,10 +725,13 @@ def test_dbfs_no_root(mock_main_loop, mock_get_user_name, mock_get_config):
         assert "Destination cannot be the root path" in res.output
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_use_gitignore(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_use_gitignore(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         # .gitignore will be used by default for ignore patterns
@@ -701,10 +765,13 @@ def test_repo_use_gitignore(mock_main_loop, mock_get_user_name, mock_get_config)
         assert client.base_path == "/Repos/me/the-repo"
 
 
+@patch("dbx.commands.sync.sync.repo_exists")
 @patch("dbx.commands.sync.sync.get_user_name")
 @patch("dbx.commands.sync.sync.main_loop")
-def test_repo_no_use_gitignore(mock_main_loop, mock_get_user_name, mock_get_config):
+def test_repo_no_use_gitignore(mock_main_loop, mock_get_user_name, mock_repo_exists, mock_get_config):
     with temporary_directory() as tempdir:
+        mock_repo_exists.return_value = True
+
         os.mkdir(os.path.join(tempdir, "foo"))
 
         # .gitignore will be used by default for ignore patterns
@@ -734,3 +801,9 @@ def test_repo_no_use_gitignore(mock_main_loop, mock_get_user_name, mock_get_conf
 
         assert isinstance(client, ReposClient)
         assert client.base_path == "/Repos/me/the-repo"
+
+
+def test_repo_exists():
+    client = AsyncMock()
+    asyncio.run(repo_exists(client))
+    assert client.exists.call_count == 1

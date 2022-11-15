@@ -1,5 +1,7 @@
+import asyncio
 from typing import List, Optional
 
+import aiohttp
 import click
 import typer
 from databricks_cli.configure.provider import ProfileConfigProvider
@@ -231,6 +233,12 @@ def dbfs(
     )
 
 
+async def repo_exists(client: ReposClient) -> bool:
+    connector = aiohttp.TCPConnector(limit=1)
+    async with aiohttp.ClientSession(connector=connector, trust_env=True) as session:
+        return await client.exists(session=session)
+
+
 @sync_app.command(
     short_help="""
     🔀 Syncs from a source directory to a Databricks Repo
@@ -314,6 +322,14 @@ def repo(
     )
 
     client = ReposClient(user=user_name, repo_name=dest_repo, config=config)
+
+    if not asyncio.run(repo_exists(client)):
+        raise click.UsageError(
+            f"Destination repo {dest_repo} does not exist.  "
+            "Please create the repo using the Databricks UI and try again.  You can create an empty repo by "
+            "clicking 'Add Repo', unchecking the 'Create repo by cloning a Git repository' option, and providing "
+            f"{dest_repo} as the repository name."
+        )
 
     main_loop(
         source=source,
