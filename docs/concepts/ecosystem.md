@@ -63,7 +63,7 @@ orchestration solution (e.g. Airflow, Prefect, Flyte).
 One can consider `dbx` as a solution in between the `databricks-cli` and Terraform, with laser focus on the topic of
 workflows development and deployment.
 
-It's core idea is simple - high level, easy-to-use CLI interface to manage **workflows**, **tasks** and their code
+Its core idea is simple - high level, easy-to-use CLI interface to manage **workflows**, **tasks** and their code
 without a need to know an advanced configuration language.
 
 `dbx` achieves this by the following:
