@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Any
 from typing import Optional
 
-from pydantic import BaseModel, validator
-
-from dbx.models.validators import named_parameters_check
+from pydantic import BaseModel
 
 ParamPair = Optional[Dict[str, str]]
 StringArray = Optional[List[str]]
@@ -16,9 +14,7 @@ class ParametersMixin(BaseModel):
 
 
 class NamedParametersMixin(BaseModel):
-    named_parameters: Optional[StringArray]
-
-    _named_check = validator("named_parameters", allow_reuse=True)(named_parameters_check)
+    named_parameters: Optional[Dict[str, Any]]
 
 
 class PipelineTaskParametersPayload(BaseModel):
