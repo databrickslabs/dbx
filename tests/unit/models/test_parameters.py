@@ -23,7 +23,7 @@ def test_params_execute():
 
 
 def test_named_params_execute():
-    _p = ExecuteParametersPayload(**{"named_parameters": ["--a=1", "--b=2"]})
+    _p = ExecuteParametersPayload(**{"named_parameters": {"a": 1}})
     assert _p.named_parameters is not None
 
 
@@ -58,7 +58,7 @@ def test_assert_based_v2dot0_not_unique():
     [
         '[{"task_key": "some", "base_parameters": {"a": 1, "b": 2}}]',
         '[{"task_key": "some", "parameters": ["a", "b"]}]',
-        '[{"task_key": "some", "named_parameters": ["--param1=value1", "--param2=value2"]}]',
+        '[{"task_key": "some", "named_parameters": {"a": 1}}]',
         '[{"task_key": "some", "full_refresh": true}]',
         '[{"task_key": "some", "parameters": {"key1": "value2"}}]',
     ],

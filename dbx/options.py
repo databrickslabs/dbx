@@ -126,7 +126,7 @@ EXECUTE_PARAMETERS_OPTION = typer.Option(
 
             dbx execute <workflow_name> --parameters='{parameters: ["argument1", "argument2"]}'
 
-            dbx execute <workflow_name> --parameters='{named_parameters: ["--a=1", "--b=2"]}'
+            dbx execute <workflow_name> --parameters='{named_parameters: {"a": 1, "b": 1}}'
 
 
             Please note that various tasks have various parameter structures.
