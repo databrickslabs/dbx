@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Fixed
 
 - 🩹 Reload config after build in case if there are any dynamic components dependent on it
+- 🩹 Check if target repo exists before syncing and produce more clear error message if it does not.
 
 ## [0.8.7] - 2022-11-14
 
