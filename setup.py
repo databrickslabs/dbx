@@ -63,12 +63,25 @@ DEV_REQUIREMENTS = [
     "poetry>=1.2.0",
 ]
 
+AZURE_EXTRAS = [
+    "azure-storage-blob>=12.14.1,<13.0.0",
+    "azure-identity>=1.12.0,<2.0.0"
+]
+
+AWS_EXTRAS = [
+    "boto3>=1.26.13,<2",
+]
+
+GCP_EXTRAS = [
+    "google-cloud-storage>=2.6.0,<3.0.0"
+]
+
 setup(
     name="dbx",
     python_requires=">=3.8",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=INSTALL_REQUIRES,
-    extras_require={"dev": DEV_REQUIREMENTS},
+    extras_require={"dev": DEV_REQUIREMENTS, "azure": AZURE_EXTRAS, "aws": AWS_EXTRAS, "gcp": GCP_EXTRAS},
     entry_points={"console_scripts": ["dbx=dbx.cli:entrypoint"]},
     long_description=long_description,
     long_description_content_type="text/markdown",
