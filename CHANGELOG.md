@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🩹 Reload config after build in case if there are any dynamic components dependent on it
 - 🩹 Check if target repo exists before syncing and produce more clear error message if it does not.
 - 🩹 Type recognition of `named_parameters` in `python_wheel_task`
-- 🔨 Add support for extras for WASBS operations on Azure
+- 🔨 Add support for extras for cloud file operations
 
 ## [0.8.7] - 2022-11-14
 

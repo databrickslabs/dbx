@@ -63,18 +63,13 @@ DEV_REQUIREMENTS = [
     "poetry>=1.2.0",
 ]
 
-AZURE_EXTRAS = [
-    "azure-storage-blob>=12.14.1,<13.0.0",
-    "azure-identity>=1.12.0,<2.0.0"
-]
+AZURE_EXTRAS = ["azure-storage-blob>=12.14.1,<13.0.0", "azure-identity>=1.12.0,<2.0.0"]
 
 AWS_EXTRAS = [
     "boto3>=1.26.13,<2",
 ]
 
-GCP_EXTRAS = [
-    "google-cloud-storage>=2.6.0,<3.0.0"
-]
+GCP_EXTRAS = ["google-cloud-storage>=2.6.0,<3.0.0"]
 
 setup(
     name="dbx",
