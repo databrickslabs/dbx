@@ -26,3 +26,6 @@ It's very handy for interactive development and data exploration.
 In contrast to the `dbx execute`, `dbx launch` launches your workflow on a [dedicated job cluster](./concepts/cluster_types#job-clusters). This is a recommended way for CI pipelines, automated launches etc.
 
 When in doubt, follow the [summary section](../concepts/cluster_types#summary) for precise guidance.
+
+## Can I have multiple `deployment files` ? 
+Yes, `dbx deploy` accepts `--deployment-file PATH` as described [here](./reference/cli/#dbx-deploy).
