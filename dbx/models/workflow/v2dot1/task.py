@@ -1,10 +1,10 @@
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from pydantic import root_validator, validator, BaseModel
 from pydantic.fields import Field
 
-from dbx.models.validators import check_dbt_commands, at_least_one_of, mutually_exclusive, named_parameters_check
+from dbx.models.validators import check_dbt_commands, at_least_one_of, mutually_exclusive
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.task import (
     BaseTaskMixin,
@@ -68,13 +68,11 @@ class PythonWheelTask(BaseModel):
     package_name: str
     entry_point: str
     parameters: Optional[List[str]] = []
-    named_parameters: Optional[List[str]] = []
+    named_parameters: Optional[Dict[str, str]] = {}
 
     _validate_exclusive = root_validator(pre=True, allow_reuse=True)(
         lambda _, values: mutually_exclusive(["parameters", "named_parameters"], values)
     )
-
-    _named_check = validator("named_parameters", allow_reuse=True)(named_parameters_check)
 
 
 class TaskMixin(BaseTaskMixin):

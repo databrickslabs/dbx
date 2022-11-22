@@ -11,7 +11,7 @@ INSTALL_REQUIRES = [
     # to use Databricks and MLflow APIs
     "retry>=0.9.2, <1.0.0",
     "requests>=2.24.0, <3.0.0",
-    "mlflow-skinny>=1.28.0,<=2.0.0",
+    "mlflow-skinny>=1.28.0,<3.0.0",
     "databricks-cli>=0.17,<0.18",
     # CLI interface
     "click>=8.1.0,<9.0.0",
@@ -45,7 +45,7 @@ DEV_REQUIREMENTS = [
     "mkdocs-git-revision-date-localized-plugin>=1.1.0,<=2.0",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<3.0.0",
-    "pylint==2.15.4",
+    "pylint==2.15.6",
     "pycodestyle==2.8.0",
     "pyflakes==2.5.0",
     "mccabe==0.6.1",
@@ -63,12 +63,20 @@ DEV_REQUIREMENTS = [
     "poetry>=1.2.0",
 ]
 
+AZURE_EXTRAS = ["azure-storage-blob>=12.14.1,<13.0.0", "azure-identity>=1.12.0,<2.0.0"]
+
+AWS_EXTRAS = [
+    "boto3>=1.26.13,<2",
+]
+
+GCP_EXTRAS = ["google-cloud-storage>=2.6.0,<3.0.0"]
+
 setup(
     name="dbx",
     python_requires=">=3.8",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=INSTALL_REQUIRES,
-    extras_require={"dev": DEV_REQUIREMENTS},
+    extras_require={"dev": DEV_REQUIREMENTS, "azure": AZURE_EXTRAS, "aws": AWS_EXTRAS, "gcp": GCP_EXTRAS},
     entry_points={"console_scripts": ["dbx=dbx.cli:entrypoint"]},
     long_description=long_description,
     long_description_content_type="text/markdown",

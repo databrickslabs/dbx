@@ -65,19 +65,6 @@ def mutually_exclusive(fields_names: List[str], values: Dict[str, Any]):
     return values
 
 
-def named_parameters_check(values: List[str]) -> List[str]:
-    for element in values:
-        if "=" not in element or not element.startswith("--"):
-            raise ValueError(
-                f"""
-            Element {element} in the payload: {values} doesn't contain an equals sign.
-
-            Named parameters should be supplied in the format of "--param1=value"
-            """
-            )
-    return values
-
-
 def check_dbt_commands(commands):
     if commands:
         for cmd in commands:

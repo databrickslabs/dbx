@@ -166,7 +166,7 @@ def test_smoke_execute_python_wheel_task(
     assert execute_result.exit_code == 0
 
 
-@pytest.mark.parametrize("param_set", ['{"parameters": ["a", 1]}', '{"named_parameters": ["--a=1", "--b=1"]}'])
+@pytest.mark.parametrize("param_set", ['{"parameters": ["a", 1]}', '{"named_parameters": {"a":1}}'])
 def test_smoke_execute_python_wheel_task_with_params(
     param_set,
     temp_project,
