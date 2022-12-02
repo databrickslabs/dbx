@@ -327,3 +327,61 @@ def test_put_unauthorized(client: ReposClient, dummy_file_path: str):
 
     with pytest.raises(ClientError):
         asyncio.run(client.put(sub_path="foo/bar", full_source_path=dummy_file_path, session=session))
+
+
+def test_exists(client: ReposClient):
+    session = MagicMock()
+    resp = AsyncMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    resp.json.return_value = {"repos": [{"path": "/Repos/foo@somewhere.com/my-repo"}]}
+    session.get.return_value = create_async_with_result(resp)
+    assert asyncio.run(client.exists(session=session))
+
+    assert session.get.call_count == 1
+    assert session.get.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/repos"
+    assert session.get.call_args[1]["params"] == {"path_prefix": "/Repos/foo@somewhere.com/my-repo"}
+    assert "ssl" not in session.get.call_args[1]
+    assert session.get.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_repos_user_agent(session.get.call_args[1]["headers"]["user-agent"])
+
+
+def test_exists_not_found(client: ReposClient):
+    session = MagicMock()
+    resp = AsyncMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    resp.json.return_value = {"repos": [{"path": "/Repos/foo@somewhere.com/other-repo"}]}
+    session.get.return_value = create_async_with_result(resp)
+    assert not asyncio.run(client.exists(session=session))
+
+    assert session.get.call_count == 1
+    assert session.get.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/repos"
+    assert session.get.call_args[1]["params"] == {"path_prefix": "/Repos/foo@somewhere.com/my-repo"}
+    assert "ssl" not in session.get.call_args[1]
+    assert session.get.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_repos_user_agent(session.get.call_args[1]["headers"]["user-agent"])
+
+
+def test_exists_empty_response(client: ReposClient):
+    session = MagicMock()
+    resp = AsyncMock()
+    setattr(type(resp), "status", PropertyMock(return_value=200))
+    resp.json.return_value = {}
+    session.get.return_value = create_async_with_result(resp)
+    assert not asyncio.run(client.exists(session=session))
+
+    assert session.get.call_count == 1
+    assert session.get.call_args[1]["url"] == "http://fakehost.asdf/api/2.0/repos"
+    assert session.get.call_args[1]["params"] == {"path_prefix": "/Repos/foo@somewhere.com/my-repo"}
+    assert "ssl" not in session.get.call_args[1]
+    assert session.get.call_args[1]["headers"]["Authorization"] == "Bearer fake-token"
+    assert is_repos_user_agent(session.get.call_args[1]["headers"]["user-agent"])
+
+
+def test_exists_failure(client: ReposClient):
+    session = MagicMock()
+    resp = AsyncMock()
+    setattr(type(resp), "status", PropertyMock(return_value=500))
+    resp.json.return_value = {"repos": [{"path": "/Repos/foo@somewhere.com/my-repo"}]}
+    session.get.return_value = create_async_with_result(resp)
+    with pytest.raises(ClientError):
+        asyncio.run(client.exists(session=session))

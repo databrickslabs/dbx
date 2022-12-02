@@ -106,7 +106,7 @@ def test_mixin_execute_unsupported():
 def test_mixin_incorrect_override():
     bt = BaseTaskMixin(**{"spark_python_task": {"python_file": "/some/file"}})
     with pytest.raises(ValueError):
-        bt.override_execute_parameters(ExecuteParametersPayload(named_parameters=["--p=1"]))
+        bt.override_execute_parameters(ExecuteParametersPayload(named_parameters={"p1": 1}))
 
 
 def test_mixin_multiple_provided():

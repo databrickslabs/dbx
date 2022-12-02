@@ -55,7 +55,7 @@ All parameters should be provided in a form of a JSON-compatible payload (see ex
     Examples:
     ```bash
     dbx execute <workflow_name> --parameters='{"parameters": ["argument1", "argument2"]}' # compatible with spark_python_task and python_wheel_task
-    dbx execute <workflow_name> --parameters='{"named_parameters": ["--a=1","--b=2"]}' # compatible only with python_wheel_task
+    dbx execute <workflow_name> --parameters='{"named_parameters": {"a":1, "b": 2}}' # compatible only with python_wheel_task
     ```
 
 === ":material-lightning-bolt-outline: `dbx launch --assets-only`"
@@ -92,7 +92,7 @@ All parameters should be provided in a form of a JSON-compatible payload (see ex
 
     # python_wheel_task
     dbx launch <workflow_name> --assets-only <workflow_name> --parameters='[
-        {"task_key": "some", "named_parameters": ["--param1=value1", "--param2=value2"]}
+        {"task_key": "some", "named_parameters": {"a": 1, "b": 2}}
     ]'
 
     # pipeline_task

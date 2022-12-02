@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Union, Dict
 
 import mlflow
 from rich.console import Console
@@ -99,7 +99,7 @@ class ExecutionController:
 
         dbx_echo(":white_check_mark: Installing package - done")
 
-    def preprocess_task_parameters(self, parameters: List[str]):
+    def preprocess_task_parameters(self, parameters: Union[List[str], Dict[str, str]]):
         dbx_echo(f":fast_forward: Processing task parameters: {parameters}")
 
         Adjuster(
