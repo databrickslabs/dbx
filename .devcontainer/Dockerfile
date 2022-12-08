@@ -10,10 +10,14 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 
 # Configure pyenv
 USER vscode
+ENV HOME /home/vscode
+ENV PYENV_ROOT $HOME/.pyenv
+ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 RUN curl https://pyenv.run | bash
-RUN echo 'export PYENV_ROOT="/workspaces/dbx/.venv"' >> $HOME/.bashrc
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
 RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-RUN echo eval "$($HOME/.pyenv/bin/pyenv init -)" >> $HOME/.bashrc
-RUN . ${HOME}/.bashrc \
-   && $HOME/.pyenv/bin/pyenv install 3.8.13 \
-   && $HOME/.pyenv/bin/pyenv global 3.8.13
+RUN echo eval "$(pyenv init -)" >> ~/.bashrc
+SHELL ["/bin/bash", "-c"]
+RUN . ~/.bashrc \
+   && pyenv install 3.8.13 \
+   && pyenv global 3.8.13

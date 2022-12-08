@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict, Any
 from typing import Optional
 
@@ -109,6 +110,16 @@ def launch(
 
         `stderr` will add only stderr to the console output""",
     ),
+    default_headers: Optional[str] = typer.Option(
+        None,
+        "--default-headers",
+        "-H",
+        help="""Supplies additional headers to API calls. Headers must be supplied in the form of a raw JSON string.
+
+        Helpful when calling the API from CI/CD pipelines that use a Service Principal to authenticate to Azure Databricks
+        and the Service Principal is not added to the Databricks Workspace.""",
+        writable=True,
+    ),
     parameters: Optional[str] = LAUNCH_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
@@ -121,8 +132,10 @@ def launch(
         raise Exception("DLT pipelines cannot be launched in the asset-based mode")
 
     dbx_echo(f"Launching workflow {escape(workflow_name)} on environment {environment_name}")
+    if default_headers:
+        default_headers = json.loads(default_headers)
 
-    api_client = prepare_environment(environment_name)
+    api_client = prepare_environment(environment_name, default_headers)
     additional_tags = parse_multiple(tags)
 
     if not branch_name:
@@ -174,21 +187,14 @@ def launch(
                     "run_id": process_info.run_id,
                 }
             else:
-                final_state = PipelineTracer.start(
-                    api_client=api_client, process_info=process_info, pipeline_id=object_id
-                )
+                final_state = PipelineTracer.start(api_client=api_client, process_info=process_info, pipeline_id=object_id)
                 if final_state == PipelineUpdateState.FAILED:
-                    raise Exception(
-                        f"Tracked pipeline {object_id} failed during execution, please check the UI for details."
-                    )
+                    raise Exception(f"Tracked pipeline {object_id} failed during execution, please check the UI for details.")
                 status = final_state
                 additional_tags = {"pipeline_id": object_id}
         else:
             status = "NOT_TRACKED"
-            dbx_echo(
-                "Workflow successfully launched in the non-tracking mode 🚀. "
-                "Please check Databricks UI for job status 👀"
-            )
+            dbx_echo("Workflow successfully launched in the non-tracking mode 🚀. " "Please check Databricks UI for job status 👀")
         log_launch_info(additional_tags, status, environment_name, branch_name)
 
 

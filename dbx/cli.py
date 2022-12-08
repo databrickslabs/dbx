@@ -1,4 +1,5 @@
 import click
+import typer
 import typer.rich_utils
 from rich.traceback import install
 
@@ -96,7 +97,15 @@ app.command(
        ℹ️ In some cases (e.g. when Git head is `DETACHED`), we won't be able to identity the branch name.<br/>
        Please use `--tags` and `--branch-name` options if you notice that workflow definitions are inconsistent.
 
-    9. If `--write-specs-to-file` option is provided, writes the final workload definition into a given file.""",
+    9. If `--write-specs-to-file` option is provided, writes the final workload definition into a given file.
+    
+    10. If option `--default-headers <TEXT>` or `-H <TEXT>` is provided, parses contents of <TEXT> as a JSON object and adds
+        the key-value pairs as additional headers for the API calls.<br/>
+        Examples:
+        ```
+        dbx deploy [OPTIONS] --default-headers '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+        dbx deploy [OPTIONS] -H '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+        ```""",
 )(deploy)
 
 app.command(
@@ -123,12 +132,16 @@ app.command(
     5. Code will be executed in a separate context. Other users can work with the same package
        on the same cluster without any limitations or overlapping.
     6. Execution results will be printed out in the shell. If result was an error, command will have error exit code.
-    """,
+    7. If option `--default-headers <TEXT>` or `-H <TEXT>` is provided, parses contents of <TEXT> as a JSON object and adds
+       the key-value pairs as additional headers for the API calls.<br/>
+       Examples:
+       ```
+       dbx execute [OPTIONS] --default-headers '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+       dbx execute [OPTIONS] -H '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+       ```""",
 )(execute)
 
-app.command(short_help="💎 Generates new project from the template.", help="💎 Generates new project from the template.")(
-    init
-)
+app.command(short_help="💎 Generates new project from the template.", help="💎 Generates new project from the template.")(init)
 
 app.command(
     short_help="🚀 Launch the workflow on a job cluster.",
@@ -164,7 +177,16 @@ app.command(
     When `dbx launch` is running without `--from-assets` option,
     it will simply find the job by it's name and start a new job run.
     In this case `dbx launch` will use
-    the [Jobs RunNow API](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsRunNow).""",
+    the [Jobs RunNow API](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsRunNow).
+    
+
+    If option `--default-headers <TEXT>` or `-H <TEXT>` is provided, parses contents of <TEXT> as a JSON object and adds
+    the key-value pairs as additional headers for the API calls.<br/>
+    Examples:
+    ```
+    dbx launch [OPTIONS] --default-headers '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+    dbx launch [OPTIONS] -H '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+    ```""",
 )(launch)
 
 app.add_typer(
@@ -176,8 +198,16 @@ app.command(
     short_help="🚮 Delete defined workflows and relevant assets.",
     help="""🚮 Delete defined workflows and relevant assets.
 
-    🚨 If neither workflow argument not `--workflows` option are provided,
-    will destroy **all** workflows defined in the deployment file.""",
+    🚨 If neither workflow argument nor `--workflows` option are provided,
+    will destroy **all** workflows defined in the deployment file.
+    
+    If option `--default-headers <TEXT>` or `-H <TEXT>` is provided, parses contents of <TEXT> as a JSON object and adds
+    the key-value pairs as additional headers for the API calls.<br/>
+    Examples:
+    ```
+    dbx destroy [OPTIONS] --default-headers '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+    dbx destroy [OPTIONS] -H '{"Some-Header-KeyWord": "Sample value", "Extra-Header": 42}'
+    ```""",
     name="destroy",
 )(destroy)
 

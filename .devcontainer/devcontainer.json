@@ -9,15 +9,18 @@
 			// Update 'VARIANT' to pick a Python version: 3, 3.10, 3.9, 3.8, 3.7, 3.6
 			// Append -bullseye or -buster to pin to an OS version.
 			// Use -bullseye variants on local on arm64/Apple Silicon.
-			"VARIANT": "3.10-bullseye",
+			"VARIANT": "3.10-bullseye"
 		}
 	},
 	// For VSCode local bind mount ~/.databrickscfg to persist the config
 	"initializeCommand": "touch $HOME/.databrickscfg",
 	"mounts": [
 		// mount databricks config
-		"source=${localEnv:HOME}/.databrickscfg,target=/home/vscode/.databrickscfg,type=bind,consistency=cached"
+		"source=${localEnv:HOME}/.databrickscfg,target=/home/vscode/.databrickscfg,type=bind,consistency=cached",
+		"source=/mnt/c/Users/B119752/repos/pebe-databricks,target=/home/vscode/pebe-databricks,type=bind"
 	],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/dbx,type=bind,consistency=cached",
+	"workspaceFolder": "/workspaces/dbx",
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
@@ -35,7 +38,7 @@
 				"python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
 				"python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
 				"python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-				"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+				"python.linting.pylintPath": "pylint",
 				"python.testing.unittestArgs": [
 					"-v",
 					"-s",
@@ -46,11 +49,14 @@
 				"python.testing.pytestEnabled": false,
 				"python.testing.unittestEnabled": true,
 				"editor.formatOnSave": true,
-				"python.formatting.provider": "black"
+				"python.formatting.provider": "black",
+				"editor.defaultFormatter": "ms-python.black-formatter"
 			},
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
 				"ms-python.python",
+				"ms-python.pylint",
+				"ms-python.black-formatter",
 				"ms-python.vscode-pylance",
 				"ms-vscode.makefile-tools"
 			]

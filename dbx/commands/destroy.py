@@ -1,6 +1,7 @@
 import inspect
+import json
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import typer
 from rich.markup import escape
@@ -22,9 +23,7 @@ from dbx.utils.common import prepare_environment
 
 def destroy(
     workflow_name: Optional[str] = WORKFLOW_ARGUMENT,
-    workflow_names: Optional[str] = typer.Option(
-        None, "--workflows", help="Comma-separated list of workflow names to be deleted", show_default=False
-    ),
+    workflow_names: Optional[str] = typer.Option(None, "--workflows", help="Comma-separated list of workflow names to be deleted", show_default=False),
     deployment_file: Optional[Path] = DEPLOYMENT_FILE_OPTION,
     environment_name: str = ENVIRONMENT_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
@@ -48,11 +47,17 @@ def destroy(
         help="Disable the confirmation dialog and accept the consequences of this action",
         is_flag=True,
     ),
-    dry_run: bool = typer.Option(
-        False, "--dry-run", help="Don't delete objects, just show what would be deleted", is_flag=True
-    ),
-    dracarys: bool = typer.Option(
-        False, "--dracarys", help="🔥 add more fire to the CLI output, making the deletion absolutely **epic**."
+    dry_run: bool = typer.Option(False, "--dry-run", help="Don't delete objects, just show what would be deleted", is_flag=True),
+    dracarys: bool = typer.Option(False, "--dracarys", help="🔥 add more fire to the CLI output, making the deletion absolutely **epic**."),
+    default_headers: Optional[str] = typer.Option(
+        None,
+        "--default-headers",
+        "-H",
+        help="""Supplies additional headers to API calls. Headers must be supplied in the form of a raw JSON string.
+
+        Helpful when calling the API from CI/CD pipelines that use a Service Principal to authenticate to Azure Databricks
+        and the Service Principal is not added to the Databricks Workspace.""",
+        writable=True,
     ),
 ):
 
@@ -71,15 +76,15 @@ def destroy(
     )
 
     if dry_run:
-        dbx_echo(
-            "Omitting the confirmation check since it's a dry run. "
-            "For a real run the confirmation check will be requested"
-        )
+        dbx_echo("Omitting the confirmation check since it's a dry run. " "For a real run the confirmation check will be requested")
     else:
         if not confirm:
             ask_for_confirmation(_d_config)
 
-    api_client = prepare_environment(environment_name)
+    if default_headers:
+        default_headers = json.loads(default_headers)
+
+    api_client = prepare_environment(environment_name, default_headers)
     destroyer = Destroyer(api_client, _d_config)
 
     destroyer.launch()
