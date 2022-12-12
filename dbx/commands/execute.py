@@ -1,6 +1,5 @@
-import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Dict, List, Optional
 
 import typer
 
@@ -15,6 +14,7 @@ from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
     REQUIREMENTS_FILE_OPTION,
     NO_REBUILD_OPTION,
     NO_PACKAGE_OPTION,
@@ -25,15 +25,21 @@ from dbx.options import (
 )
 from dbx.types import ExecuteTask
 from dbx.utils import dbx_echo
-from dbx.utils.common import prepare_environment
+from dbx.utils.common import parse_multiple, prepare_environment
 
 
 def execute(
     workflow_name: str = WORKFLOW_ARGUMENT,
     environment: str = ENVIRONMENT_OPTION,
-    cluster_id: Optional[str] = typer.Option(None, "--cluster-id", help="Cluster ID. Cannot be provided together with `--cluster-name`"),
-    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", help="Cluster name. Cannot be provided together with `--cluster-id`"),
-    job_name: str = typer.Option(None, "--job", help="This option is deprecated. Please use `workflow-name` as argument instead"),
+    cluster_id: Optional[str] = typer.Option(
+        None, "--cluster-id", help="Cluster ID. Cannot be provided together with `--cluster-name`"
+    ),
+    cluster_name: Optional[str] = typer.Option(
+        None, "--cluster-name", help="Cluster name. Cannot be provided together with `--cluster-id`"
+    ),
+    job_name: str = typer.Option(
+        None, "--job", help="This option is deprecated. Please use `workflow-name` as argument instead"
+    ),
     task_name: Optional[str] = typer.Option(
         None,
         "--task",
@@ -59,24 +65,15 @@ def execute(
 
         Useful when core package has extras section and installation of these extras is required.""",
     ),
-    default_headers: Optional[str] = typer.Option(
-        None,
-        "--default-headers",
-        "-H",
-        help="""Supplies additional headers to API calls. Headers must be supplied in the form of a raw JSON string.
-
-        Helpful when calling the API from CI/CD pipelines that use a Service Principal to authenticate to Azure Databricks
-        and the Service Principal is not added to the Databricks Workspace.""",
-        writable=True,
-    ),
+    headers: Optional[List[str]] = HEADERS_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     parameters: Optional[str] = EXECUTE_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
-    if default_headers:
-        default_headers = json.loads(default_headers)
+    if headers:
+        headers: Dict[str, str] = parse_multiple(headers)
 
-    api_client = prepare_environment(environment, default_headers)
+    api_client = prepare_environment(environment, headers)
     cluster_controller = ClusterController(api_client, cluster_name=cluster_name, cluster_id=cluster_id)
 
     workflow_name = workflow_name if workflow_name else job_name
@@ -84,11 +81,16 @@ def execute(
     if not workflow_name:
         raise Exception("Please provide workflow name as an argument")
 
-    dbx_echo(f"Executing workflow: {workflow_name} in environment {environment} " f"on cluster {cluster_name} (id: {cluster_id})")
+    dbx_echo(
+        f"Executing workflow: {workflow_name} in environment {environment} "
+        f"on cluster {cluster_name} (id: {cluster_id})"
+    )
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
 
-    config = config_reader.with_build_properties(BuildProperties(potential_build=True, no_rebuild=no_rebuild)).get_config()
+    config = config_reader.with_build_properties(
+        BuildProperties(potential_build=True, no_rebuild=no_rebuild)
+    ).get_config()
 
     environment_config = config.get_environment(environment, raise_if_not_found=True)
 
@@ -116,7 +118,11 @@ def execute(
 
     context_client = RichExecutionContextClient(api_client, cluster_controller.cluster_id)
 
-    upload_via_context = upload_via_context if upload_via_context else ProjectConfigurationManager().get_context_based_upload_for_execute()
+    upload_via_context = (
+        upload_via_context
+        if upload_via_context
+        else ProjectConfigurationManager().get_context_based_upload_for_execute()
+    )
 
     execution_controller = ExecutionController(
         client=context_client,

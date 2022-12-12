@@ -29,7 +29,6 @@
 			"settings": {
 				"python.defaultInterpreterPath": "/usr/local/bin/python",
 				"python.linting.enabled": true,
-				"python.linting.pylintEnabled": true,
 				"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
 				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
 				"python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
@@ -50,12 +49,12 @@
 				"python.testing.unittestEnabled": true,
 				"editor.formatOnSave": true,
 				"python.formatting.provider": "black",
-				"editor.defaultFormatter": "ms-python.black-formatter"
+				"editor.defaultFormatter": "ms-python.black-formatter",
+				"python.linting.prospectorEnabled": true
 			},
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
 				"ms-python.python",
-				"ms-python.pylint",
 				"ms-python.black-formatter",
 				"ms-python.vscode-pylance",
 				"ms-vscode.makefile-tools"

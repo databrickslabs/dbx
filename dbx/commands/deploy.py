@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Any
-from typing import Optional
+from typing import Dict, List, Optional
 
 import mlflow
 import typer
@@ -18,6 +17,7 @@ from dbx.options import (
     DEBUG_OPTION,
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
     JINJA_VARIABLES_FILE_OPTION,
     NO_PACKAGE_OPTION,
     NO_REBUILD_OPTION,
@@ -43,8 +43,12 @@ def deploy(
         help="This option is deprecated, please use workflow name as argument instead.",
         show_default=False,
     ),
-    job_names: Optional[str] = typer.Option(None, "--jobs", help="This option is deprecated, please use `--workflows` instead.", show_default=False),
-    workflow_names: Optional[str] = typer.Option(None, "--workflows", help="Comma-separated list of workflow names to be deployed", show_default=False),
+    job_names: Optional[str] = typer.Option(
+        None, "--jobs", help="This option is deprecated, please use `--workflows` instead.", show_default=False
+    ),
+    workflow_names: Optional[str] = typer.Option(
+        None, "--workflows", help="Comma-separated list of workflow names to be deployed", show_default=False
+    ),
     requirements_file: Optional[Path] = REQUIREMENTS_FILE_OPTION,
     tags: Optional[List[str]] = TAGS_OPTION,
     environment_name: str = ENVIRONMENT_OPTION,
@@ -86,32 +90,25 @@ def deploy(
               Please note that output file will be overwritten if it exists.""",
         writable=True,
     ),
-    default_headers: Optional[str] = typer.Option(
-        None,
-        "--default-headers",
-        "-H",
-        help="""Supplies additional headers to API calls. Headers must be supplied in the form of a raw JSON string.
-
-        Helpful when calling the API from CI/CD pipelines that use a Service Principal to authenticate to Azure Databricks
-        and the Service Principal is not added to the Databricks Workspace.""",
-        writable=True,
-    ),
+    headers: Optional[List[str]] = HEADERS_OPTION,
     branch_name: Optional[str] = BRANCH_NAME_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     dbx_echo(f"Starting new deployment for environment {environment_name}")
-    if default_headers:
-        default_headers = json.loads(default_headers)
+    if headers:
+        headers: Dict[str, str] = parse_multiple(headers)
 
-    api_client = prepare_environment(environment_name, default_headers)
+    api_client = prepare_environment(environment_name, headers)
     additional_tags = parse_multiple(tags)
 
     if not branch_name:
         branch_name = get_current_branch_name()
 
     config_reader = ConfigReader(deployment_file, jinja_variables_file)
-    config = config_reader.with_build_properties(BuildProperties(potential_build=True, no_rebuild=no_rebuild)).get_config()
+    config = config_reader.with_build_properties(
+        BuildProperties(potential_build=True, no_rebuild=no_rebuild)
+    ).get_config()
 
     environment_info = config.get_environment(environment_name, raise_if_not_found=True)
 
@@ -129,7 +126,9 @@ def deploy(
     if _assets_only:
         any_pipelines = [w for w in deployable_workflows if w.workflow_type == WorkflowType.pipeline]
         if any_pipelines:
-            raise Exception(f"Assets-only deployment mode is not supported for DLT pipelines: {[p.name for p in any_pipelines]}")
+            raise Exception(
+                f"Assets-only deployment mode is not supported for DLT pipelines: {[p.name for p in any_pipelines]}"
+            )
 
     with mlflow.start_run() as deployment_run:
 
