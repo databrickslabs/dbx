@@ -1,16 +1,17 @@
 import shutil
 import textwrap
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
 from pytest_mock import MockerFixture
 
 from dbx.api.config_reader import ConfigReader
-from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
+from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
 from dbx.api.services.jobs import NamedJobsService
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
+from dbx.commands import deploy
 from dbx.models.files.project import MlflowStorageProperties
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import (
@@ -259,3 +260,19 @@ def test_deploy_empty_workflows_list(temp_project, mlflow_file_uploader, mock_st
     Path("conf/deployment.yml").write_text(payload)
     deploy_result = invoke_cli_runner("deploy")
     assert deploy_result.exit_code == 0
+
+
+@patch(f"{deploy.__name__}.CorePackageManager")
+def test_deploy_with_no_package(
+    mock_core_package_manager, mlflow_file_uploader, mocker, mock_storage_io, mock_api_v2_client, temp_project
+):
+    mocker.patch.object(NamedJobsService, "create", MagicMock(return_value=1))
+    result_file = ".dbx/deployment-result.json"
+    _ = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
+    deploy_result = invoke_cli_runner(
+        ["deploy", "--environment", "default", "--no-package", "--write-specs-to-file", result_file],
+    )
+    assert deploy_result.exit_code == 0
+    mock_core_package_manager.assert_not_called()
+    _content = JsonUtils.read(Path(result_file))
+    assert not any([t["libraries"] for w in _content["default"]["workflows"] for t in w["tasks"]])
