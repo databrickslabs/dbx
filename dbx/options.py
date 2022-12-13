@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import typer
 from databricks_cli.configure.provider import DEFAULT_SECTION
 
@@ -59,7 +57,8 @@ JINJA_VARIABLES_FILE_OPTION = typer.Option(
 )
 
 REQUIREMENTS_FILE_OPTION = typer.Option(
-    Path("requirements.txt"),
+    None,
+    "--requirements-file",
     help="""
     This option is deprecated.
 
@@ -127,7 +126,7 @@ EXECUTE_PARAMETERS_OPTION = typer.Option(
 
             dbx execute <workflow_name> --parameters='{parameters: ["argument1", "argument2"]}'
 
-            dbx execute <workflow_name> --parameters='{named_parameters: ["--a=1", "--b=2"]}'
+            dbx execute <workflow_name> --parameters='{named_parameters: {"a": 1, "b": 1}}'
 
 
             Please note that various tasks have various parameter structures.
@@ -148,44 +147,9 @@ LAUNCH_PARAMETERS_OPTION = typer.Option(
     "--parameters",
     help="""If provided, overrides parameters of the chosen workflow.
 
-            Depending on the workflow type and launch type, it might contain various payloads.
 
-            Provided payload shall match the expected payload of a chosen workflow or task.
-
-            Payload should be wrapped as a JSON-compatible string with curly brackets around API-compatible payload.
-
-            Examples:
-
-            - Jobs API v2.0 `spark_python_task`, or `python_wheel_task` workflow without tasks inside
-
-            `dbx launch <workflow_name> --parameters='{"parameters": ["argument1", "argument2"]}'
-
-            - Jobs API v2.1 multitask job with one `python_wheel_task`
-
-            `dbx execute <workflow_name> --parameters='[{"task_key": "some", "named_parameters":
-            ["--a=1", "--b=2"]}]'`
-
-            - Jobs API v2.1 multitask job with one notebook_task
-
-            `dbx execute <workflow_name> --parameters='[{"task_key": "some", "base_parameters":
-            {"a": 1, "b": 2}}]'`
-
-            - Jobs API v2.1 multitask job with 2 tasks
-
-            `dbx execute <workflow_name> --parameters='[
-            {"task_key": "first", "base_parameters": {"a": 1, "b": 2}},
-            {"task_key": "second", "parameters": ["a", "b"]}]'`
-
-
-            Also note that all parameters provided for the workflow or task will be preprocessed with file uploader.
-
-
-            It means that if you reference a `file://` or `file:fuse://` string
-            in the parameter override, it will be resolved and uploaded to DBFS.
-
-
-            You can find more on the parameter structures for various Jobs API
-            versions in the official documentation""",
+    Please read more details on the parameter passing in the dbx docs.
+    """,
     show_default=True,
     callback=launch_parameters_callback,
 )

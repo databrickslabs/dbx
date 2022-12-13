@@ -16,12 +16,12 @@ install(suppress=[click])
 
 typer.rich_utils._get_help_text = _get_custom_help_text
 
-app = typer.Typer(rich_markup_mode="markdown")
+app = typer.Typer(rich_markup_mode="markdown", pretty_exceptions_show_locals=False)
 
 app.callback(
     name="dbx",
     help="""
-    🧱Databricks eXtensions aka dbx. Please find the main docs page [here](https://dbx.readthedocs.io/).
+    🧱 Databricks eXtensions aka dbx. Please find the main docs page [here](https://dbx.readthedocs.io/).
 """,
 )(version_entrypoint)
 
@@ -182,6 +182,8 @@ app.command(
 )(destroy)
 
 
+# click app object here is used in the mkdocs.
+# Don't delete it!
 def get_click_app():
     return typer.main.get_command(app)
 

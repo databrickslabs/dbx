@@ -1,10 +1,12 @@
-from copy import deepcopy
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
-from dbx.models.task import Task, TaskType, SparkPythonTask
+from dbx.models.cli.execute import ExecuteParametersPayload
+from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask, BaseTaskMixin
+from dbx.models.workflow.common.task_type import TaskType
+from dbx.models.workflow.v2dot1.task import SqlTask
 
 
 def get_spark_python_task_payload(py_file: str):
@@ -30,60 +32,83 @@ def test_spark_python_task_positive(temp_project: Path):
     py_file = f"file://{temp_project.name}/tasks/sample_etl_task.py"
     _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
     _t = SparkPythonTask(**_payload)
-    assert isinstance(_t.python_file, Path)
+    assert isinstance(_t.execute_file, Path)
 
 
-def test_task_recognition(temp_project: Path):
-    py_file = f"file://{temp_project.name}/tasks/sample_etl_task.py"
-    _payload = get_spark_python_task_payload(py_file)
-    _result = Task(**_payload)
-    assert _result.spark_python_task is not None
-    assert _result.python_wheel_task is None
-    assert _result.task_type == TaskType.spark_python_task
-
-
-def test_python_wheel_task():
-    _result = Task(**python_wheel_task_payload)
-    assert _result.spark_python_task is None
-    assert _result.python_wheel_task is not None
-    assert _result.task_type == TaskType.python_wheel_task
-
-
-def test_python_wheel_task_named():
-    _c = deepcopy(python_wheel_task_payload)
-    _c["python_wheel_task"].pop("parameters")
-    _c["python_wheel_task"]["named_parameters"] = ["--a=1", "--b=2"]
-    _result = Task(**_c)
-    assert _result.task_type == TaskType.python_wheel_task
-    assert _result.python_wheel_task.named_parameters is not None
-
-
-def test_python_wheel_task_named_invalid_prefix():
-    _c = deepcopy(python_wheel_task_payload)
-    _c["python_wheel_task"].pop("parameters")
-    _c["python_wheel_task"]["named_parameters"] = ["a", "--b=2"]
+def test_spark_python_task_non_py_file(temp_project: Path):
+    py_file = f"file://{temp_project.name}/tasks/sample_etl_task.ipynb"
+    _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
     with pytest.raises(ValidationError):
-        Task(**_c)
+        SparkPythonTask(**_payload)
 
 
-def test_python_wheel_task_named_invalid_equal():
-    _c = deepcopy(python_wheel_task_payload)
-    _c["python_wheel_task"].pop("parameters")
-    _c["python_wheel_task"]["named_parameters"] = ["--a"]
-    with pytest.raises(ValidationError):
-        Task(**_c)
-
-
-def test_negative():
-    _payload = {"spark_jar_task": {"main_class_name": "org.some.Class"}}
-
+def test_sql_task_non_unique():
+    payload = {"query": {"query_id": "some"}, "dashboard": {"dashboard_id": "some"}, "warehouse_id": "some"}
     with pytest.raises(ValueError):
-        Task(**_payload)
+        SqlTask(**payload)
 
 
-def test_multiple(temp_project):
+def test_sql_task_good():
+    payload = {"query": {"query_id": "some"}, "warehouse_id": "some"}
+    _task = SqlTask(**payload)
+    assert _task.query.query_id is not None
+
+
+def test_spark_jar_deprecated(capsys):
+    _jt = SparkJarTask(main_class_name="some.Class", jar_uri="file://some/uri")
+    assert _jt.jar_uri is not None
+    assert "Field jar_uri is DEPRECATED since" in capsys.readouterr().out
+
+
+def test_spark_python_task_not_fuse(temp_project: Path):
     py_file = f"file://{temp_project.name}/tasks/sample_etl_task.py"
-    _sp_payload = get_spark_python_task_payload(py_file)
-    _payload = {**_sp_payload, **python_wheel_task_payload}
+    _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
+    _payload["python_file"] = "file:fuse://some/file"
     with pytest.raises(ValueError):
-        Task(**_payload)
+        SparkPythonTask(**_payload)
+
+
+def test_spark_python_task_execute_incorrect(temp_project: Path):
+    py_file = f"file://{temp_project.name}/tasks/sample_etl_task.py"
+    _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
+    _payload["python_file"] = "dbfs:/some/path.py"
+    with pytest.raises(ValueError):
+        _st = SparkPythonTask(**_payload)
+        _st.execute_file  # noqa
+
+
+def test_spark_python_task_execute_non_existent(temp_project: Path):
+    py_file = f"file://{temp_project.name}/tasks/sample_etl_task.py"
+    _payload = get_spark_python_task_payload(py_file).get("spark_python_task")
+    _t = SparkPythonTask(**_payload)
+    Path(py_file.replace("file://", "")).unlink()
+    with pytest.raises(ValueError):
+        _st = SparkPythonTask(**_payload)
+        _st.execute_file  # noqa
+
+
+def test_spark_submit_task():
+    st = SparkSubmitTask(**{"parameters": ["some", "other"]})
+    assert st.parameters is not None
+
+
+def test_mixin_undefined_type():
+    bt = BaseTaskMixin(**{"unknown_task": {"prop1": "arg1"}})
+    assert bt.task_type == TaskType.undefined_task
+
+
+def test_mixin_execute_unsupported():
+    bt = BaseTaskMixin(**{"unknown_task": {"prop1": "arg1"}})
+    with pytest.raises(RuntimeError):
+        bt.check_if_supported_in_execute()
+
+
+def test_mixin_incorrect_override():
+    bt = BaseTaskMixin(**{"spark_python_task": {"python_file": "/some/file"}})
+    with pytest.raises(ValueError):
+        bt.override_execute_parameters(ExecuteParametersPayload(named_parameters={"p1": 1}))
+
+
+def test_mixin_multiple_provided():
+    with pytest.raises(ValueError):
+        BaseTaskMixin(**{"spark_python_task": {"python_file": "/some/file"}, "unknown_task": {"some": "props"}})

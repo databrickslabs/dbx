@@ -139,7 +139,7 @@ UNMATCHED_BEHAVIOUR_OPTION = typer.Option(
           that are not present locally with the current filters.
           So for the example above, this would remove `foo` in the destination when syncing with`-i bar`.
 
-        * `---unmatched-behaviour=allow-delete-unmatched=disallow-delete-unmatched` will NOT delete files/directories
+        * `--unmatched-behaviour=allow-delete-unmatched=disallow-delete-unmatched` will NOT delete files/directories
           in the destination that are not present locally with the current filters.
           So for the example above, this would leave `foo` in the destination when syncing with`-i bar`.""",
 )

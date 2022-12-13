@@ -2,6 +2,7 @@
 
 Deployment file is one of the most important files for `dbx` functionality.
 
+## :material-format-columns: File format options
 It contains workflows definitions, as well as `build` configurations.
 
 The following file extensions are supported:
@@ -14,8 +15,9 @@ The following file extensions are supported:
 By default `dbx` commands will search for a `deployment.*` file in the `conf` directory of the project.
 Alternatively, all commands that require a deployment file support passing it explicitly via `--deployment-file` option.
 
+## :material-page-layout-header-footer: Layout
 
-Typical layout of this file looks like this:
+Typical layout of the deployment file looks like this:
 
 ```yaml title="conf/deployment.yml"
 
@@ -45,41 +47,122 @@ environments: #(2)
     As the project file, deployment file supports multiple environments.
     You can configure them by naming new environments under the `environments` section.
 
-The `workflows` section of the deployment file fully follows the [Databricks Jobs API structures](https://docs.databricks.com/dev-tools/api/latest/jobs.html).
+The `workflows` section of the deployment file fully follows the [Databricks Jobs API structures](https://docs.databricks.com/dev-tools/api/latest/jobs.html) with features described in [this section](../features/assets.md).
+
+## :material-alpha-t-box-outline: Various workflow types
+
+<img src="https://img.shields.io/badge/available%20since-0.8.0-green?style=for-the-badge" alt="Available since 0.8.0"/>
+
+`dbx` supports the following workflow types:
+
+- Workflows in [Jobs API :material-surround-sound-2-0: format](https://docs.databricks.com/dev-tools/api/2.0/jobs.html)
+- Workflows in [Jobs API :material-surround-sound-2-1: format](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsCreate)
+- Workflows in [:material-table-heart: Delta Live Tables pipeline format](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsCreate)
+
+If the `workflow_type` property is not specified on the workflow level, `dbx` will define the type based on the following rules:
+
+- If `tasks` section is provided, then the workflow type is `jobs-v2.1`.
+- If this section is not provided, workflow will be parsed as a `jobs-v2.0`.
+
+Allowed values for the `workflow_type` field are:
+
+- `jobs-v2.1`
+- `jobs-v2.0`
+- `pipeline`
+
+Examples below demonstrate how to define various workflow types:
+
+```yaml title="conf/deployment.yml"
+
+build:
+  python: "pip"
+
+environments:
+  default:
+    workflows:
+
+      ################################################
+      - name: "workflow-in-v2.1-format"
+        tasks:
+          - task_key: "task1"
+            python_wheel_task:
+              package_name: "some-pkg"
+              entry_point: "some-ep"
+
+      ################################################
+      - name: "workflow-in-v2.0-format"
+        spark_python_task:
+          python_file: "file://some/file.py"
+
+      ################################################
+      - name: "workflow-in-pipeline-format"
+        target: "some-target-db"
+        workflow_type: "pipeline" # enforces the recognition
+        libraries:
+          - notebook:
+              path: "/Repos/some/path"
+```
+
+!!! tip "DLT with `dbx` guide"
+
+    Read more on the topic of DLT pipelines with `dbx` [here](../guides/general/delta_live_tables.md).
 
 ## :material-package-up: Advanced package dependency management
-
 
 By default `dbx` is heavily oriented towards Python package-based projects. However, for pure Notebook or JVM projects this might be not necessary.
 
 Therefore, to disable the default behaviour of `dbx` which tries to add the Python package dependency, use the `deployment_config` section inside the task definition:
 
-```yaml title="conf/deployment.yml" hl_lines="12-13"
-# some code omitted
-environments:
-  default:
-    workflows:
-      - name: "workflow1"
-        tasks:
-          - task_key: "task1"
-            python_wheel_task: #(1)
-              package_name: "some-pkg"
-              entry_point: "some-ep"
-          - task_key: "task2" #(2)
-            deployment_config:
-                no_package: true
-            notebook_task:
-                notebook_path: "/some/notebook/path"
-```
+=== "Latest - Jobs API :material-surround-sound-2-1:"
 
-1. Standard Python package-based payload, the python wheel dependency will be added by default
-2. In the notebook task, the Python package is not required since code is delivered together with the Notebook.
-   Therefore, we disable this behaviour by providing this property.
+    ```yaml title="conf/deployment.yml" hl_lines="12-13"
+      # some code omitted
+      environments:
+        default:
+          workflows:
+            - name: "workflow1"
+              tasks:
+                - task_key: "task1"
+                  python_wheel_task: #(1)
+                    package_name: "some-pkg"
+                    entry_point: "some-ep"
+                - task_key: "task2" #(2)
+                  deployment_config:
+                      no_package: true
+                  notebook_task:
+                      notebook_path: "/some/notebook/path"
+    ```
+
+    1. Standard Python package-based payload, the python wheel dependency will be added by default
+    2. In the notebook task, the Python package is not required since code is delivered together with the Notebook.
+       Therefore, we disable this behaviour by providing this property.
+
+=== "Legacy - Jobs API :material-surround-sound-2-0:"
+
+    ```yaml title="conf/deployment.yml" hl_lines="10-11"
+      # some code omitted
+      environments:
+        default:
+          workflows:
+            - name: "wheel-workflow"
+              python_wheel_task: #(1)
+                package_name: "some-pkg"
+                entry_point: "some-ep"
+            - name: "notebook-workflow" #(2)
+              deployment_config:
+                no_package: true
+              notebook_task:
+                notebook_path: "/some/notebook/path"
+    ```
+
+    1. Standard Python package-based payload, the python wheel dependency will be added by default
+    2. In the notebook task, the Python package is not required since code is delivered together with the Notebook.
+       Therefore, we disable this behaviour by providing this property.
 
 ## :material-folder-star-multiple: Examples
 
 This section contains various examples of the deployment file for various cases.
-Most of the examples below use inplace Jinja functionality which is [described here](../features/jinja_support.md#enable-inplace-jinja)
+Most of the examples below use inplace Jinja functionality which is [described here](../features/jinja_support.md#enable-inplace-jinja).
 
 ### :material-tag-plus: Tagging workflows
 
@@ -119,7 +202,7 @@ environments:
          timezone_id: "Europe/Berlin" #(2)
 ```
 
-1. This sets up the schedule for every day at midnight. Check [chrontab.guru](https://crontab.guru/) for more examples.
+1. This sets up the schedule for every day at midnight. Check [this site](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html) for more examples.
 2. Timezone is set accordingly to the Java [`TimeZone`](https://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html) class.
 
 !!! tip "Official Databricks docs"
@@ -131,6 +214,44 @@ environments:
     If you're using an external scheduler or orchestrator, you can also easily orchestrate Databricks workflows from it.
     Here are some examples for [Apache Airflow](https://airflow.apache.org/docs/apache-airflow-providers-databricks/stable/connections/databricks.html) and [Prefect](https://docs-v1.prefect.io/api/0.15.13/tasks/databricks.html).
 
+
+### :octicons-zap-24: Enabling Photon
+
+To define job clusters with [Photon](https://www.databricks.com/product/photon) support, add the following to the configuration:
+
+```yaml title="conf/deployment.yaml" hl_lines="9"
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "your-spark-version"
+    node_type_id: "your-node-type-id"
+    spark_conf:
+      spark.databricks.delta.preview.enabled: 'true'
+    instance_pool_name: <enter pool name>
+    driver_instance_pool_name: <enter pool name>
+    runtime_engine: PHOTON
+    init_scripts:
+      - dbfs:
+        destination: dbfs:/<enter your path>
+
+```
+
+### :material-dots-hexagon: Managing the workflow as a service principal
+
+<img src="https://img.shields.io/badge/available%20since-0.8.0-green?style=for-the-badge" alt="Available since 0.8.0"/>
+
+This example uses the [named reference feature](../features/named_properties.md#reference-based-approach):
+
+```yaml title="conf/deployment.yml" hl_lines="5-7"
+environments:
+  default:
+    workflows:
+      - name: "example-workflow"
+        access_control_list:
+         - user_name: "service-principal://some-service-principal-name"
+           permission_level: "IS_OWNER"
+         - user_name: "some-real-user@email.com"
+           permission_level: "CAN_MANAGE"
+```
 
 ### :material-code-array: Configuring complex deployments
 
@@ -145,28 +266,28 @@ custom:
     node_type_id: "your-node-type-id"
     spark_conf:
       spark.databricks.delta.preview.enabled: 'true'
-    instance_pool_name: <enter pool name>
-    driver_instance_pool_name: <enter pool name>
+    instance_pool_id: "instance-pool://some-pool-name"
+    driver_instance_pool_id: "instance-pool://some-pool-name"
     runtime_engine: STANDARD
     init_scripts:
       - dbfs:
-        destination: dbfs:/<enter your path>
+          destination: dbfs:/<enter your path>
 
   basic-auto-scale-props: &basic-auto-scale-props
     autoscale:
-    min_workers: 2
-    max_workers: 4
+      min_workers: 2
+      max_workers: 4
 
   basic-static-cluster: &basic-static-cluster
     new_cluster:
-    <<: *basic-cluster-props
-    num_workers: 2
+      <<: *basic-cluster-props
+      num_workers: 2
 
   basic-autoscale-cluster: &basic-autoscale-cluster
     new_cluster:
-    <<: # merge these two maps and place them here.
-      - *basic-cluster-props
-      - *basic-auto-scale-props
+      <<: # merge these two maps and place them here.
+        - *basic-cluster-props
+        - *basic-auto-scale-props
 
 environments:
   default:
@@ -177,12 +298,13 @@ environments:
           on_start: [ "user@email.com" ]
           on_success: [ "user@email.com" ]
           on_failure: [ "user@email.com" ]
-          no_alert_for_skipped_runs: false
+
+        no_alert_for_skipped_runs: false
 
         schedule:
-           quartz_cron_expression: "00 25 03 * * ?" #(1)
-           timezone_id: "UTC"
-           pause_status: "PAUSED"
+          quartz_cron_expression: "00 25 03 * * ?" #(1)
+          timezone_id: "UTC"
+          pause_status: "PAUSED"
 
         tags:
           your-key: "your-value"
@@ -190,22 +312,17 @@ environments:
 
         format: MULTI_TASK #(2)
 
-        permissions:
-          access_control_list:
-            - user_name: "user@email.com"
-              permission_level: "IS_OWNER"
-            #- group_name: "your-group-name"
-            #permission_level: "CAN_VIEW"
-            #- user_name: "user2@databricks.com"
-            #permission_level: "CAN_VIEW"
-            #- user_name: "user3@databricks.com"
-            #permission_level: "CAN_VIEW"
+        access_control_list:
+          - user_name: "service-principal://some-service-principal"
+            permission_level: "IS_OWNER"
+          - group_name: "your-group-name"
+            permission_level: "CAN_VIEW"
 
         job_clusters:
           - job_cluster_key: "basic-cluster"
-              <<: *basic-static-cluster
+            <<: *basic-static-cluster
           - job_cluster_key: "basic-autoscale-cluster"
-              <<: *basic-autoscale-cluster
+            <<: *basic-autoscale-cluster
 
         tasks:
           - task_key: "your-task-01"
@@ -233,12 +350,28 @@ environments:
             depends_on:
               - task_key: "your-task-01"
 
-          - task_key: "your-task-02"
+          - task_key: "your-task-03"
             job_cluster_key: "basic-cluster"
             notebook_task:
               notebook_path: "/Repos/some/project/notebook"
             depends_on:
               - task_key: "your-task-01"
+
+          - task_key: "example_sql_task"
+            job_cluster_key: "basic-cluster"
+            sql_task:
+              query: "query://some-query-name"
+              warehouse_id: "warehouse://some-warehouse-id"
+
+          - task_key: "example_dbt_task"
+            job_cluster_key: "basic-cluster"
+            dbt_task:
+              project_directory: "/some/project/dir"
+              profiles_directory: "/some/profiles/dir"
+              warehouse_id: "warehouse://some-warehouse-id"
+              commands:
+                - "dbt cmd1"
+                - "dbt cmd2"
 ```
 
 1. Read more about scheduling in [this section](./deployment.md#scheduling-workflows)

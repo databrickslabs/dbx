@@ -1,7 +1,6 @@
 import os
 from pathlib import PurePosixPath
 from typing import Optional
-from urllib.parse import urlparse
 
 import mlflow
 from databricks_cli.sdk import WorkspaceService
@@ -12,27 +11,17 @@ from dbx.api.auth import AuthConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
 from dbx.api.configure import EnvironmentInfo
 from dbx.constants import DATABRICKS_MLFLOW_URI
+from dbx.utils.url import strip_databricks_url
 
 
 class MlflowStorageConfigurationManager:
     DATABRICKS_HOST_ENV: str = "DATABRICKS_HOST"
     DATABRICKS_TOKEN_ENV: str = "DATABRICKS_TOKEN"
 
-    @staticmethod
-    def _strip_url(url: str) -> str:
-        """
-        Mlflow API requires url to be stripped, e.g.
-        {scheme}://{netloc}/some-stuff/ shall be transformed to {scheme}://{netloc}
-        :param url: url to be stripped
-        :return: stripped url
-        """
-        parsed = urlparse(url)
-        return f"{parsed.scheme}://{parsed.netloc}"
-
     @classmethod
     def _setup_tracking_uri(cls):
         config = AuthConfigProvider.get_config()
-        os.environ[cls.DATABRICKS_HOST_ENV] = cls._strip_url(config.host)
+        os.environ[cls.DATABRICKS_HOST_ENV] = strip_databricks_url(config.host)
         os.environ[cls.DATABRICKS_TOKEN_ENV] = config.token
         mlflow.set_tracking_uri(DATABRICKS_MLFLOW_URI)
 

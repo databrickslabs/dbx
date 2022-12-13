@@ -3,22 +3,17 @@ import shutil
 from pathlib import Path
 from subprocess import CalledProcessError
 from unittest import mock
-from unittest.mock import MagicMock
 
 import pytest
-from databricks_cli.sdk import JobsService
 from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import BuildConfiguration
-from dbx.utils.adjuster import adjust_path, path_adjustment
+from dbx.models.build import BuildConfiguration
 from dbx.utils.common import (
     generate_filter_string,
     get_current_branch_name,
     get_environment_data,
 )
-from dbx.api.build import prepare_build
-from dbx.utils.job_listing import find_job_by_name
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")
@@ -53,7 +48,7 @@ def test_all_file_formats_contents_match(temp_project):
     assert yaml_default_env == json_default_env == jinja_json_default_env == jinja_yaml_default_env
 
 
-@mock.patch.dict(os.environ, {"TIMEOUT": "100"}, clear=True)
+@mock.patch.dict(os.environ, {"TIMEOUT": "100", "ALERT_EMAIL": "test@test.com"}, clear=True)
 def test_jinja_files_with_env_variables_scalar_type(temp_project):
     """
     JINJA2: Simple Scalar (key-value) type for timeout_seconds parameter
@@ -62,8 +57,8 @@ def test_jinja_files_with_env_variables_scalar_type(temp_project):
     json_default_envs = ConfigReader(json_j2_file_04).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_04).get_environment("default")
 
-    json_timeout_seconds = json_default_envs.payload.workflows[0].get("timeout_seconds")
-    yaml_timeout_seconds = yaml_default_envs.payload.workflows[0].get("timeout_seconds")
+    json_timeout_seconds = json_default_envs.payload.workflows[0].timeout_seconds
+    yaml_timeout_seconds = yaml_default_envs.payload.workflows[0].timeout_seconds
 
     assert int(json_timeout_seconds) == 100
     assert int(yaml_timeout_seconds) == 100
@@ -77,13 +72,14 @@ def test_jinja_files_with_env_variables_array_type(temp_project):
     json_default_envs = ConfigReader(json_j2_file_04).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_04).get_environment("default")
 
-    json_emails = json_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
-    yaml_emails = yaml_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
+    json_emails = json_default_envs.payload.workflows[0].email_notifications.on_failure
+    yaml_emails = yaml_default_envs.payload.workflows[0].email_notifications.on_failure
 
     assert json_emails == yaml_emails
     assert json_emails[0] == "test@test.com"
 
 
+@mock.patch.dict(os.environ, {"ALERT_EMAIL": "test@test.com"}, clear=True)
 def test_jinja_file_with_env_variables_default_values(temp_project):
     """
     JINJA:
@@ -96,10 +92,10 @@ def test_jinja_file_with_env_variables_default_values(temp_project):
     json_default_envs = ConfigReader(json_j2_file_04).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_04).get_environment("default")
 
-    json_max_retries = json_default_envs.payload.workflows[0].get("max_retries")
-    yaml_max_retries = yaml_default_envs.payload.workflows[0].get("max_retries")
-    json_avail = json_default_envs.payload.workflows[0].get("new_cluster").get("aws_attributes").get("availability")
-    yaml_avail = yaml_default_envs.payload.workflows[0].get("new_cluster").get("aws_attributes").get("availability")
+    json_max_retries = json_default_envs.payload.workflows[0].max_retries
+    yaml_max_retries = yaml_default_envs.payload.workflows[0].max_retries
+    json_avail = json_default_envs.payload.workflows[0].new_cluster.aws_attributes.availability
+    yaml_avail = yaml_default_envs.payload.workflows[0].new_cluster.aws_attributes.availability
 
     assert int(json_max_retries) == int(yaml_max_retries)
     assert int(json_max_retries) == 3
@@ -123,10 +119,10 @@ def test_jinja_files_with_env_variables_logic_1(temp_project):
     json_default_envs = ConfigReader(json_j2_file_06).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_06).get_environment("default")
 
-    json_max_retries = json_default_envs.payload.workflows[0].get("max_retries")
-    yaml_max_retries = yaml_default_envs.payload.workflows[0].get("max_retries")
-    json_emails = json_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
-    yaml_emails = yaml_default_envs.payload.workflows[0].get("email_notifications").get("on_failure")
+    json_max_retries = json_default_envs.payload.workflows[0].max_retries
+    yaml_max_retries = yaml_default_envs.payload.workflows[0].max_retries
+    json_emails = json_default_envs.payload.workflows[0].email_notifications.on_failure
+    yaml_emails = yaml_default_envs.payload.workflows[0].email_notifications.on_failure
 
     assert int(json_max_retries) == -1
     assert int(yaml_max_retries) == -1
@@ -148,10 +144,10 @@ def test_jinja_files_with_env_variables_logic_2(temp_project):
     json_default_envs = ConfigReader(json_j2_file_06).get_environment("default")
     yaml_default_envs = ConfigReader(yaml_j2_file_06).get_environment("default")
 
-    json_max_retries = json_default_envs.payload.workflows[0].get("max_retries")
-    yaml_max_retries = yaml_default_envs.payload.workflows[0].get("max_retries")
-    json_emails = json_default_envs.payload.workflows[0].get("email_notifications")
-    yaml_emails = yaml_default_envs.payload.workflows[0].get("email_notifications")
+    json_max_retries = json_default_envs.payload.workflows[0].max_retries
+    yaml_max_retries = yaml_default_envs.payload.workflows[0].max_retries
+    json_emails = json_default_envs.payload.workflows[0].email_notifications
+    yaml_emails = yaml_default_envs.payload.workflows[0].email_notifications
 
     assert int(json_max_retries) == 3
     assert int(yaml_max_retries) == 3
@@ -166,7 +162,7 @@ def test_jinja_with_include(temp_project):
     cluster.
     """
     json_default_envs = ConfigReader(json_j2_file_09).get_environment("default")
-    json_node_type = json_default_envs.payload.workflows[0].get("new_cluster").get("node_type_id")
+    json_node_type = json_default_envs.payload.workflows[0].new_cluster.node_type_id
 
     assert json_node_type == "some-node-type"
 
@@ -196,44 +192,9 @@ def test_handle_package_no_setup(temp_project):
     Path("setup.py").unlink()
     build = BuildConfiguration()
     with pytest.raises(CalledProcessError):
-        prepare_build(build)
-
-
-def test_non_existent_path_adjustment():
-    with pytest.raises(FileNotFoundError):
-        path_adjustment("file://some/non-existent/file", MagicMock())
-
-
-def test_path_adjustment():
-    dbfs_path = "dbfs:/some/path"
-    _dbfs_result = adjust_path(dbfs_path, MagicMock())
-    assert dbfs_path == _dbfs_result
+        build.trigger_build_process()
 
 
 def test_filter_string():
     output = generate_filter_string(env="test", branch_name=None)
     assert "dbx_branch_name" not in output
-
-
-def test_job_listing_duplicates():
-    duplicated_name = "some-name"
-    jobs_payload = {
-        "jobs": [
-            {
-                "settings": {
-                    "name": duplicated_name,
-                },
-                "job_id": 1,
-            },
-            {
-                "settings": {
-                    "name": duplicated_name,
-                },
-                "job_id": 2,
-            },
-        ]
-    }
-    js = JobsService(MagicMock())
-    js.list_jobs = MagicMock(return_value=jobs_payload)
-    with pytest.raises(Exception):
-        find_job_by_name(js, duplicated_name)

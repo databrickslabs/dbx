@@ -4,15 +4,18 @@ from unittest.mock import MagicMock
 
 import mlflow
 import pytest
-from databricks_cli.jobs.api import JobsApi
 from pytest_mock import MockerFixture
 
 from dbx.api.destroyer import Destroyer, WorkflowEraser, AssetEraser
+from dbx.api.services.jobs import NamedJobsService
+from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
 from dbx.models.deployment import EnvironmentDeploymentInfo
-from dbx.models.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.workflow.v2dot1.workflow import Workflow
 from tests.unit.conftest import invoke_cli_runner
 
-test_env_info = EnvironmentDeploymentInfo(name="default", payload={"workflows": [{"name": "w1"}]})
+test_env_info = EnvironmentDeploymentInfo(
+    name="default", payload={"workflows": [{"name": "w1", "workflow_type": "job-v2.0", "some_task": "t"}]}
+)
 basic_config = partial(DestroyerConfig, deployment=test_env_info)
 
 
@@ -44,9 +47,8 @@ def test_destroyer_modes(conf, wf_expected, assets_expected, temp_project, capsy
 
 @pytest.mark.parametrize("dry_run", [True, False])
 def test_workflow_eraser_dr(dry_run, capsys, mocker: MockerFixture):
-    api_client = MagicMock()
-    mocker.patch.object(JobsApi, "_list_jobs_by_name", MagicMock(return_value=[{"name": "w1", "job_id": "1"}]))
-    eraser = WorkflowEraser(api_client, ["w1"], dry_run=dry_run)
+    mocker.patch.object(NamedJobsService, "find_by_name", MagicMock(return_value=1))
+    eraser = WorkflowEraser(MagicMock(), [Workflow(name="test", some_task="here")], dry_run=dry_run)
     eraser.erase()
     out = capsys.readouterr().out
     _test = "would be deleted" in out
@@ -54,17 +56,16 @@ def test_workflow_eraser_dr(dry_run, capsys, mocker: MockerFixture):
 
 
 @pytest.mark.parametrize(
-    "job_response, expected",
+    "job_response,expected",
     [
-        ([{"name": "w1", "job_id": "1"}, {"name": "w1", "job_id": "1"}], Exception()),
-        ([], "doesn't exist"),
-        ([{"name": "w1", "job_id": "1"}], "w1 was successfully deleted"),
+        (None, "doesn't exist"),
+        (1, "was successfully deleted"),
     ],
 )
 def test_workflow_eraser_list(job_response, expected, capsys, mocker: MockerFixture):
     api_client = MagicMock()
-    mocker.patch.object(JobsApi, "_list_jobs_by_name", MagicMock(return_value=job_response))
-    eraser = WorkflowEraser(api_client, ["w1"], dry_run=False)
+    mocker.patch.object(NamedJobsService, "find_by_name", MagicMock(return_value=job_response))
+    eraser = WorkflowEraser(api_client, [Workflow(name="test", some_task="here")], dry_run=False)
     if isinstance(expected, Exception):
         with pytest.raises(Exception):
             eraser.erase()

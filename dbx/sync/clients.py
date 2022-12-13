@@ -8,6 +8,7 @@ from databricks_cli.configure.provider import DatabricksConfig
 from databricks_cli.version import version as databricks_cli_version
 
 from dbx.utils import dbx_echo
+from dbx.utils.url import strip_databricks_url
 
 
 class ClientError(Exception):
@@ -38,7 +39,7 @@ def get_user(config: DatabricksConfig) -> dict:
               or isn't supported
     """
     api_token = config.token
-    host = config.host.rstrip("/")
+    host = strip_databricks_url(config.host)
     headers = get_headers(api_token)
     url = f"{host}/api/2.0/preview/scim/v2/Me"
     resp = requests.get(url, headers=headers, timeout=10)
@@ -158,7 +159,7 @@ class DBFSClient(BaseClient):
         check_path(base_path)
         self.base_path = "dbfs:" + base_path.rstrip("/")
         self.api_token = config.token
-        self.host = config.host.rstrip("/")
+        self.host = strip_databricks_url(config.host)
         self.api_base_path = f"{self.host}/api/2.0/dbfs"
         if config.insecure is None:
             self.ssl = None
@@ -251,7 +252,7 @@ class ReposClient(BaseClient):
             raise ValueError("repo_name is required")
         self.base_path = f"/Repos/{user}/{repo_name}"
         self.api_token = config.token
-        self.host = config.host.rstrip("/")
+        self.host = strip_databricks_url(config.host)
         self.workspace_api_base_path = f"{self.host}/api/2.0/workspace"
         self.workspace_files_api_base_path = f"{self.host}/api/2.0/workspace-files/import-file"
         if config.insecure is None:
@@ -271,6 +272,31 @@ class ReposClient(BaseClient):
             api_token=self.api_token,
             ssl=self.ssl,
         )
+
+    async def exists(self, *, session: aiohttp.ClientSession) -> bool:
+        """Checks if the target repo the client will sync to exists.
+
+        Args:
+            session (aiohttp.ClientSession): client session
+
+        Raises:
+            ClientError: failed to check repos API
+
+        Returns:
+            bool: True if the repo exists, otherwise False
+        """
+        headers = get_headers(self.api_token, self.name)
+        more_opts = {"ssl": self.ssl} if self.ssl is not None else {}
+        url = f"{self.host}/api/2.0/repos"
+        params = {"path_prefix": self.base_path}
+        async with session.get(url=url, headers=headers, params=params, **more_opts) as resp:
+            if resp.status == 200:
+                json_resp = await resp.json()
+                return self.base_path in [repo["path"] for repo in json_resp.get("repos", [])]
+            else:
+                txt = await resp.text()
+                dbx_echo(f"HTTP {resp.status}: {txt}")
+                raise ClientError(resp.status)
 
     async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
         check_path(sub_path)

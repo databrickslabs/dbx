@@ -15,12 +15,13 @@ from pytest_mock import MockerFixture
 from typer.testing import CliRunner
 
 from dbx.api.client_provider import DatabricksClientProvider
+from dbx.api.launch.pipeline_models import PipelineGlobalState
+from dbx.api.storage.io import StorageIO
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.cli import app
-from dbx.commands.deploy import _log_dbx_file
 from dbx.commands.init import init
-from dbx.utils.adjuster import adjust_path
 from dbx.utils.file_uploader import MlflowFileUploader
+from tests.unit.api.launch.test_pipeline_runner import TEST_PIPELINE_ID, TEST_PIPELINE_UPDATE_PAYLOAD
 
 TEST_HOST = "https:/dbx.cloud.databricks.com"
 TEST_TOKEN = "dapiDBXTEST"
@@ -88,7 +89,7 @@ def temp_project(tmp_path: Path, mocker: MockerFixture, request) -> Path:
         if "disable_auto_execute_mock" in request.keywords:
             logging.info("Disabling the execute_shell_command for specific test")
         else:
-            mocker.patch("dbx.api.build.execute_shell_command", generate_wheel)
+            mocker.patch("dbx.models.build.execute_shell_command", generate_wheel)
         yield project_path
 
 
@@ -127,23 +128,20 @@ def mlflow_fixture(session_mocker):
 
 @pytest.fixture(scope="function")
 def mlflow_file_uploader(mocker, mlflow_fixture):
-    real_adjuster = adjust_path
-
-    def fake_adjuster(candidate: str, file_uploader: MlflowFileUploader) -> str:
-        if str(candidate).startswith(file_uploader._base_uri):
-            return candidate
-        else:
-            adjusted = real_adjuster(candidate, file_uploader)
-            return adjusted
-
     mocker.patch.object(MlflowFileUploader, "_verify_fuse_support", MagicMock())
-    mocker.patch(extract_function_name(real_adjuster), MagicMock(side_effect=fake_adjuster))
+    mocker.patch.object(MlflowFileUploader, "_upload_file", MagicMock())
+
+    def _mocked_processor(local_file_path: Path, as_fuse) -> str:
+        remote_path = "/".join(["dbfs:/mocks/testing", str(local_file_path.as_posix())])
+        remote_path = remote_path.replace("dbfs:/", "/dbfs/") if as_fuse else remote_path
+        return remote_path
+
+    mocker.patch.object(MlflowFileUploader, "_postprocess_path", MagicMock(side_effect=_mocked_processor))
 
 
 @pytest.fixture()
-def mock_dbx_file_upload(mocker):
-    func = _log_dbx_file
-    mocker.patch(extract_function_name(func), MagicMock())
+def mock_storage_io(mocker):
+    mocker.patch.object(StorageIO, "save", MagicMock())
 
 
 @pytest.fixture()
@@ -154,3 +152,18 @@ def mock_api_v2_client(mocker):
 @pytest.fixture()
 def mock_api_v1_client(mocker):
     mocker.patch.object(DatabricksClientProvider, "get_v2_client", MagicMock())
+
+
+@pytest.fixture
+def pipeline_launch_mock(mocker: MockerFixture):
+    client = MagicMock()
+    client.perform_query = MagicMock(
+        side_effect=[
+            {"statuses": [{"pipeline_id": TEST_PIPELINE_ID, "name": "some"}]},  # get pipeline
+            {"state": PipelineGlobalState.RUNNING},  # get current state
+            {},  # stop pipeline
+            {"state": PipelineGlobalState.IDLE},  # second verification get
+            TEST_PIPELINE_UPDATE_PAYLOAD,  # start pipeline
+        ]
+    )
+    return client

@@ -1,83 +1,68 @@
 import pytest
 
-from dbx.models.parameters.execute import ExecuteWorkloadParamInfo
-from dbx.models.parameters.run_now import RunNowV2d0ParamInfo, RunNowV2d1ParamInfo
-from dbx.models.parameters.run_submit import RunSubmitV2d0ParamInfo, RunSubmitV2d1ParamInfo
+from dbx.models.workflow.v2dot0.parameters import StandardRunPayload as V2dot0StandardRunPayload
+from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload as V2dot0AssetBasedRunPayload
+from dbx.models.workflow.v2dot1.parameters import StandardRunPayload as V2dot1StandardRunPayload
+from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload as V2dot1AssetBasedRunPayload
+from dbx.models.cli.execute import ExecuteParametersPayload
 
 
 def test_empty_execute():
     with pytest.raises(ValueError):
-        ExecuteWorkloadParamInfo(**{})
+        ExecuteParametersPayload(**{})
 
 
 def test_multiple_execute():
     with pytest.raises(ValueError):
-        ExecuteWorkloadParamInfo(**{"parameters": ["a", "b"], "named_parameters": ["--c=1"]})
+        ExecuteParametersPayload(**{"parameters": ["a", "b"], "named_parameters": ["--c=1"]})
 
 
 def test_params_execute():
-    _p = ExecuteWorkloadParamInfo(**{"parameters": ["a", "b"]})
+    _p = ExecuteParametersPayload(**{"parameters": ["a", "b"]})
     assert _p.parameters is not None
 
 
 def test_named_params_execute():
-    _p = ExecuteWorkloadParamInfo(**{"named_parameters": ["--a=1", "--b=2"]})
+    _p = ExecuteParametersPayload(**{"named_parameters": {"a": 1}})
     assert _p.named_parameters is not None
 
 
-def test_runnow_v20():
-    _rn = RunNowV2d0ParamInfo(**{"jar_params": ["a"]})
+def test_standard_v2dot0():
+    _rn = V2dot0StandardRunPayload(**{"jar_params": ["a"]})
     assert _rn.jar_params is not None
 
 
-def test_runnow_v20_two():
-    _rn = RunNowV2d0ParamInfo(**{"jar_params": ["a"], "notebook_params": {"a": 1}})
+def test_standard_v2dot0_multiple():
+    _rn = V2dot0StandardRunPayload(**{"jar_params": ["a"], "notebook_params": {"a": 1}})
     assert _rn.jar_params is not None
     assert _rn.notebook_params is not None
 
 
-def test_runnow_v20_negative():
-    with pytest.raises(ValueError):
-        RunNowV2d0ParamInfo(**{})
-
-
-def test_runnow_v21():
-    _rn = RunNowV2d1ParamInfo(**{"python_named_params": {"a": 1}})
+def test_standard_v2dot1():
+    _rn = V2dot1StandardRunPayload(**{"python_named_params": {"a": 1}})
     assert _rn.python_named_params is not None
 
 
-def test_runsubmit_v20():
-    _rs = RunSubmitV2d0ParamInfo(**{"spark_python_task": {"parameters": ["a"]}})
-    assert _rs.spark_python_task.parameters is not None
+def test_assert_based_v2dot0():
+    _rs = V2dot0AssetBasedRunPayload(**{"parameters": ["a"]})
+    assert _rs.parameters is not None
 
 
-def test_runsubmit_v20_non_unique():
+def test_assert_based_v2dot0_not_unique():
     with pytest.raises(ValueError):
-        RunSubmitV2d0ParamInfo(**{"spark_python_task": {"parameters": ["a"]}, "spark_jar_task": {"parameters": ["a"]}})
+        V2dot0AssetBasedRunPayload(**{"parameters": ["a"], "base_parameters": {"a": "b"}})
 
 
-def test_runsubmit_v20_empty():
-    with pytest.raises(ValueError):
-        RunSubmitV2d0ParamInfo(**{})
-
-
-def test_runsubmit_v21_empty_tasks():
-    with pytest.raises(ValueError):
-        RunSubmitV2d0ParamInfo(**{"tasks": []})
-
-
-def test_runsubmit_v21_empty():
-    with pytest.raises(ValueError):
-        RunSubmitV2d1ParamInfo(**{})
-
-
-def test_runsubmit_v21_good():
-    _sp_task = {"task_key": "first", "spark_python_task": {"parameters": ["a"]}}
-    _sj_task = {"task_key": "second", "spark_jar_task": {"parameters": ["a"]}}
-    _rs = RunSubmitV2d1ParamInfo(**{"tasks": [_sp_task, _sj_task]})
-
-    assert _rs.tasks[0].task_key == "first"
-    assert _rs.tasks[0].spark_python_task.parameters is not None
-
-    assert _rs.tasks[1].task_key == "second"
-    assert _rs.tasks[1].spark_jar_task.parameters is not None
+@pytest.mark.parametrize(
+    "param_raw_payload",
+    [
+        '[{"task_key": "some", "base_parameters": {"a": 1, "b": 2}}]',
+        '[{"task_key": "some", "parameters": ["a", "b"]}]',
+        '[{"task_key": "some", "named_parameters": {"a": 1}}]',
+        '[{"task_key": "some", "full_refresh": true}]',
+        '[{"task_key": "some", "parameters": {"key1": "value2"}}]',
+    ],
+)
+def test_assert_based_v2dot1_good(param_raw_payload):
+    parsed = V2dot1AssetBasedRunPayload.from_string(param_raw_payload)
+    assert parsed.elements is not None

@@ -8,7 +8,7 @@ from tests.unit.sync.utils import temporary_directory
 
 @pytest.fixture
 def mock_config():
-    return mocked_props(token="fake-token", host="http://fakehost.asdf/base/", insecure=None)
+    return mocked_props(token="fake-token", host="http://fakehost.asdf/?o=1234", insecure=None)
 
 
 @pytest.fixture
