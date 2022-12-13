@@ -1,29 +1,29 @@
 from unittest.mock import MagicMock
 
 import pytest
-from databricks_cli.configure.provider import ProfileConfigProvider, DatabricksConfig
+from databricks_cli.configure.provider import ProfileConfigProvider
 from pytest_mock import MockFixture
 
-from dbx.api.auth import AuthConfigProvider, ProfileEnvConfigProvider
+from dbx.api.auth import AuthConfigProvider, DbxConfig, ProfileEnvConfigProvider
 
 
-@pytest.fixture()
+@pytest.fixture(name="_cleanup_auth_cache")
 def cleanup_auth_cache():
     method = AuthConfigProvider.get_config
     method.__func__.cache_clear()
 
 
-def test_auth_profile_non_existent(mocker: MockFixture, cleanup_auth_cache):
+def test_auth_profile_non_existent(mocker: MockFixture, _cleanup_auth_cache):
     profile_name = "test-non-existent-profile"
     mocker.patch.dict("os.environ", {ProfileEnvConfigProvider.DBX_PROFILE_ENV: profile_name}, clear=True)
     with pytest.raises(Exception):
         AuthConfigProvider.get_config()
 
 
-def test_auth_profile_positive(mocker: MockFixture, cleanup_auth_cache):
+def test_auth_profile_positive(mocker: MockFixture, _cleanup_auth_cache):
     profile_name = "test-existent-profile"
     mocker.patch.dict("os.environ", {ProfileEnvConfigProvider.DBX_PROFILE_ENV: profile_name}, clear=True)
-    expected_config = DatabricksConfig(host="https://some-host", token="dbapiAAABBB", username=None, password=None)
+    expected_config = DbxConfig(host="https://some-host", token="dbapiAAABBB", username=None, password=None)
     mocker.patch.object(
         ProfileConfigProvider,
         "get_config",
@@ -34,10 +34,8 @@ def test_auth_profile_positive(mocker: MockFixture, cleanup_auth_cache):
     assert expected_config.token == returned_config.token
 
 
-def test_auth_env_positive(mocker: MockFixture, cleanup_auth_cache):
-    expected_config = DatabricksConfig(
-        host="https://some-other-host", token="dbapiAAABBB", username=None, password=None
-    )
+def test_auth_env_positive(mocker: MockFixture, _cleanup_auth_cache):
+    expected_config = DbxConfig(host="https://some-other-host", token="dbapiAAABBB", username=None, password=None)
     mocker.patch.dict(
         "os.environ", {"DATABRICKS_HOST": expected_config.host, "DATABRICKS_TOKEN": expected_config.token}, clear=True
     )
@@ -46,8 +44,8 @@ def test_auth_env_positive(mocker: MockFixture, cleanup_auth_cache):
     assert expected_config.token == returned_config.token
 
 
-def test_auth_both(mocker: MockFixture, cleanup_auth_cache):
-    expected_env_config = DatabricksConfig(
+def test_auth_both(mocker: MockFixture, _cleanup_auth_cache):
+    expected_env_config = DbxConfig(
         host="https://some-env-based-host", token="dbapiAAABBB", username=None, password=None
     )
     profile_name = "test-existent-profile"
@@ -55,9 +53,7 @@ def test_auth_both(mocker: MockFixture, cleanup_auth_cache):
         ProfileConfigProvider,
         "get_config",
         MagicMock(
-            return_value=DatabricksConfig(
-                host="https://some-profile-host", token="dbapiAAABBB", username=None, password=None
-            )
+            return_value=DbxConfig(host="https://some-profile-host", token="dbapiAAABBB", username=None, password=None)
         ),
     )
     mocker.patch.dict(
@@ -74,16 +70,49 @@ def test_auth_both(mocker: MockFixture, cleanup_auth_cache):
     assert expected_env_config.token == returned_config.token
 
 
-def test_auth_none(cleanup_auth_cache):
+def test_auth_none(_cleanup_auth_cache):
     with pytest.raises(Exception):
         AuthConfigProvider.get_config()
 
 
-def test_config_validity():
-    good_config = DatabricksConfig(host="https://some-host", token="dbapiAAABBB", username=None, password=None)
-    bad_config = DatabricksConfig(
-        host="https://some-host", username="some-username", password="some-password", token=None
+def test_auth_env_aad_positive(mocker: MockFixture, _cleanup_auth_cache):
+    expected_headers = {
+        "azure_ad_token": "eyJhbAAAABBBB",
+        "workspace_id": (
+            "/subscriptions/bc5bAAA-BBBB/resourceGroups/some-resource-group"
+            "/providers/Microsoft.Databricks/workspaces/target-dtb-ws"
+        ),
+        "org_id": "1928374655647382",
+    }
+    expected_config = DbxConfig(
+        host="https://some-other-host",
+        token="dbapiAAABBB",
+        username=None,
+        password=None,
+        azure_ad_token=expected_headers["azure_ad_token"],
+        workspace_id=expected_headers["workspace_id"],
+        org_id=expected_headers["org_id"],
     )
+    mocker.patch.dict(
+        "os.environ",
+        {
+            "DATABRICKS_HOST": expected_config.host,
+            "DATABRICKS_TOKEN": expected_config.token,
+            "AAD_TOKEN": expected_headers["azure_ad_token"],
+            "WORKSPACE_ID": expected_headers["workspace_id"],
+            "ORG_ID": expected_headers["org_id"],
+        },
+        clear=True,
+    )
+    returned_config = AuthConfigProvider.get_config()
+    assert expected_config.host == returned_config.host
+    assert expected_config.token == returned_config.token
+    assert expected_config.headers == returned_config.headers
+
+
+def test_config_validity():
+    good_config = DbxConfig(host="https://some-host", token="dbapiAAABBB", username=None, password=None)
+    bad_config = DbxConfig(host="https://some-host", username="some-username", password="some-password", token=None)
     AuthConfigProvider._verify_config_validity(good_config)
 
     with pytest.raises(Exception):
@@ -91,7 +120,7 @@ def test_config_validity():
 
 
 def test_resolution_order(mocker):
-    env_config = DatabricksConfig(host="https://some-env-based-host", token="dbapiAAABBB", username=None, password=None)
+    env_config = DbxConfig(host="https://some-env-based-host", token="dbapiAAABBB", username=None, password=None)
     mocker.patch.dict(
         "os.environ",
         {
