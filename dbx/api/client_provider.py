@@ -45,30 +45,30 @@ class DatabricksClientProvider:
     """
 
     @classmethod
-    def _get_v2_client(cls, default_headers: Dict[str, Any] = None) -> ApiClient:
+    def _get_v2_client(cls, headers: Dict[str, str] = None) -> ApiClient:
         config = AuthConfigProvider.get_config()
         verify = config.insecure is None
-        if default_headers is None:
-            default_headers = {}
+        if headers is None:
+            headers = config.headers
         _client = ApiClient(
             host=config.host,
             token=config.token,
             jobs_api_version=config.jobs_api_version,
             verify=verify,
-            default_headers=default_headers,
+            default_headers=headers,
             command_name="cicdtemplates-",
         )
         return _client
 
     @classmethod
-    def _get_v1_client(cls, default_headers: Dict[str, Any] = None) -> ApiV1Client:
-        _client = ApiV1Client(cls._get_v2_client(default_headers))
+    def _get_v1_client(cls, headers: Dict[str, str] = None) -> ApiV1Client:
+        _client = ApiV1Client(cls._get_v2_client(headers))
         return _client
 
     @classmethod
-    def get_v2_client(cls, default_headers: Dict[str, Any] = None) -> ApiClient:
-        return cls._get_v2_client(default_headers)
+    def get_v2_client(cls, headers: Dict[str, str] = None) -> ApiClient:
+        return cls._get_v2_client(headers)
 
     @classmethod
-    def get_v1_client(cls, default_headers: Dict[str, Any] = None) -> ApiV1Client:
-        return cls._get_v1_client(default_headers)
+    def get_v1_client(cls, headers: Dict[str, str] = None) -> ApiV1Client:
+        return cls._get_v1_client(headers)

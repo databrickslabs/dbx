@@ -25,11 +25,11 @@ def transfer_profile_name(info: EnvironmentInfo):
         dbx_echo(f"Using profile provided via the env variable {ProfileEnvConfigProvider.DBX_PROFILE_ENV}")
 
 
-def prepare_environment(env_name: str, default_headers: Dict[str, Any] = None) -> ApiClient:
+def prepare_environment(env_name: str, headers: Dict[str, Any] = None) -> ApiClient:
     info = ProjectConfigurationManager().get(env_name)
     transfer_profile_name(info)
     MlflowStorageConfigurationManager.prepare(info)
-    return DatabricksClientProvider.get_v2_client(default_headers)
+    return DatabricksClientProvider.get_v2_client(headers)
 
 
 def generate_filter_string(env: str, branch_name: Optional[str]) -> str:
