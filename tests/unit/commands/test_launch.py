@@ -194,7 +194,7 @@ def test_launch_with_run_now_v21_params(mocker: MockFixture, temp_project: Path,
     client_mock = MagicMock()
     p = PropertyMock(return_value="2.1")
     type(client_mock).jobs_api_version = p
-    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda: client_mock)
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda x: client_mock)
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
     launch_result = invoke_cli_runner(
@@ -206,7 +206,7 @@ def test_launch_with_run_now_v21_params(mocker: MockFixture, temp_project: Path,
 def test_launch_with_run_now_v20_params(mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_storage_io):
     client_mock = MagicMock()
     type(client_mock).jobs_api_version = PropertyMock(return_value="2.0")
-    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda: client_mock)
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda x: client_mock)
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
     launch_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--parameters", '{"python_params":[1,2]}'])

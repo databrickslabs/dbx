@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import requests
 from databricks_cli.sdk import ApiClient
@@ -45,7 +45,7 @@ class DatabricksClientProvider:
     """
 
     @classmethod
-    def _get_v2_client(cls, headers: Dict[str, str] = None) -> ApiClient:
+    def _get_v2_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiClient:
         config = AuthConfigProvider.get_config()
         verify = config.insecure is None
         if headers is None:
@@ -61,14 +61,14 @@ class DatabricksClientProvider:
         return _client
 
     @classmethod
-    def _get_v1_client(cls, headers: Dict[str, str] = None) -> ApiV1Client:
+    def _get_v1_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiV1Client:
         _client = ApiV1Client(cls._get_v2_client(headers))
         return _client
 
     @classmethod
-    def get_v2_client(cls, headers: Dict[str, str] = None) -> ApiClient:
+    def get_v2_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiClient:
         return cls._get_v2_client(headers)
 
     @classmethod
-    def get_v1_client(cls, headers: Dict[str, str] = None) -> ApiV1Client:
+    def get_v1_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiV1Client:
         return cls._get_v1_client(headers)

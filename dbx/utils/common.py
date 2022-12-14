@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 
 import git
 from databricks_cli.sdk.api_client import ApiClient
@@ -25,7 +25,7 @@ def transfer_profile_name(info: EnvironmentInfo):
         dbx_echo(f"Using profile provided via the env variable {ProfileEnvConfigProvider.DBX_PROFILE_ENV}")
 
 
-def prepare_environment(env_name: str, headers: Dict[str, Any] = None) -> ApiClient:
+def prepare_environment(env_name: str, headers: Optional[Dict[str, str]] = None) -> ApiClient:
     info = ProjectConfigurationManager().get(env_name)
     transfer_profile_name(info)
     MlflowStorageConfigurationManager.prepare(info)

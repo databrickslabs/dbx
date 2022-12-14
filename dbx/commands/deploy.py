@@ -98,6 +98,8 @@ def deploy(
     dbx_echo(f"Starting new deployment for environment {environment_name}")
     if headers:
         headers: Dict[str, str] = parse_multiple(headers)
+    else:
+        headers = None
 
     api_client = prepare_environment(environment_name, headers)
     additional_tags = parse_multiple(tags)

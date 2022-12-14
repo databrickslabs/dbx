@@ -136,8 +136,8 @@ app.command(
        appends it to the headers for the API calls.<br/>
        Examples:
        ```
-       dbx deploy [OPTIONS] --header name1=value1 --header name2=value2
-       dbx deploy [OPTIONS] -H name1=value1 -H name2=value2
+       dbx execute [OPTIONS] --header name1=value1 --header name2=value2
+       dbx execute [OPTIONS] -H name1=value1 -H name2=value2
        ```""",
 )(execute)
 
@@ -186,8 +186,8 @@ app.command(
     appends it to the headers for the API calls.<br/>
     Examples:
     ```
-    dbx deploy [OPTIONS] --header name1=value1 --header name2=value2
-    dbx deploy [OPTIONS] -H name1=value1 -H name2=value2
+    dbx launch [OPTIONS] --header name1=value1 --header name2=value2
+    dbx launch [OPTIONS] -H name1=value1 -H name2=value2
     ```""",
 )(launch)
 
@@ -207,8 +207,8 @@ app.command(
     appends it to the headers for the API calls.<br/>
     Examples:
     ```
-    dbx deploy [OPTIONS] --header name1=value1 --header name2=value2
-    dbx deploy [OPTIONS] -H name1=value1 -H name2=value2
+    dbx destroy [OPTIONS] --header name1=value1 --header name2=value2
+    dbx destroy [OPTIONS] -H name1=value1 -H name2=value2
     ```""",
     name="destroy",
 )(destroy)
