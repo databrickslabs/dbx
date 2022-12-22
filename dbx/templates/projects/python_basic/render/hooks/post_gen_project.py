@@ -1,3 +1,4 @@
+import os
 import pathlib
 from typing import Callable, Dict, Optional, Any
 
@@ -7,8 +8,9 @@ from dbx.api.build import execute_shell_command
 from dbx.commands.configure import configure
 from dbx.constants import TEMPLATE_ROOT_PATH
 
+COMPONENTS_PATH = pathlib.Path("{{cookiecutter._template}}") / "components"
 DBX_TEMPLATE_NAME = "python_basic"
-COMPONENTS_PATH = TEMPLATE_ROOT_PATH / DBX_TEMPLATE_NAME / "components"
+DBX_COMPONENTS_PATH = TEMPLATE_ROOT_PATH / DBX_TEMPLATE_NAME / "components"
 
 CICD_TOOL = "{{cookiecutter.cicd_tool}}"
 CLOUD = "{{cookiecutter.cloud}}"
@@ -101,7 +103,10 @@ class PostProcessor:
             enable_context_based_upload_for_execute=False,
         )
 
-        env = Environment(loader=FileSystemLoader(COMPONENTS_PATH))
+        components_path = COMPONENTS_PATH
+        if not os.path.exists(components_path):
+            components_path = DBX_COMPONENTS_PATH
+        env = Environment(loader=FileSystemLoader(components_path))
 
         PostProcessor.process_ci_component(env)
         PostProcessor.process_cloud_component(env)

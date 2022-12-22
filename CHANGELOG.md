@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+## Added
+
+- 🔨 Add support for custom components (e.g. CI/CD templates) for `python_basic` templates
+
 # Fixed
 
 - 🩹 Reload config after build in case if there are any dynamic components dependent on it
