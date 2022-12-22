@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Fixed
 
 - 🩹 Reload config after build in case if there are any dynamic components dependent on it
+- 🩹 Use `python:3.8-bullseye` docker image for Gitlab CI/CD in `python_basic` template
 - 🩹 Check if target repo exists before syncing and produce more clear error message if it does not.
 - 🩹 Type recognition of `named_parameters` in `python_wheel_task`
 - 🔨 Add support for extras for cloud file operations

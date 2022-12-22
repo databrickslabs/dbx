@@ -5,7 +5,7 @@ stages:
 
 unit-testing:
   stage: unit-testing
-  image: python:3.8-stretch
+  image: python:3.8-bullseye
   script:
     - echo "Install dependencies"
     - apt-get update
@@ -16,7 +16,7 @@ unit-testing:
 
 integration-testing:
   stage: integration-testing
-  image: python:3.7-stretch
+  image: python:3.8-bullseye
   script:
     - echo "Install dependencies"
     - pip install -e ".[local,test]"
@@ -27,7 +27,7 @@ integration-testing:
 
 release:
   stage: release
-  image: python:3.7-stretch
+  image: python:3.8-bullseye
   only:
     refs:
       - master
