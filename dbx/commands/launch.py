@@ -166,30 +166,30 @@ def launch(
             else:
                 dbx_echo("DLT pipeline launched successfully")
 
-        if trace:
-            if isinstance(process_info, RunData):
-                status = trace_workflow_object(api_client, process_info, include_output, kill_on_sigterm)
-                additional_tags = {
-                    "job_id": object_id,
-                    "run_id": process_info.run_id,
-                }
-            else:
-                final_state = PipelineTracer.start(
-                    api_client=api_client, process_info=process_info, pipeline_id=object_id
-                )
-                if final_state == PipelineUpdateState.FAILED:
-                    raise Exception(
-                        f"Tracked pipeline {object_id} failed during execution, please check the UI for details."
+            if trace:
+                if isinstance(process_info, RunData):
+                    status = trace_workflow_object(api_client, process_info, include_output, kill_on_sigterm)
+                    additional_tags = {
+                        "job_id": object_id,
+                        "run_id": process_info.run_id,
+                    }
+                else:
+                    final_state = PipelineTracer.start(
+                        api_client=api_client, process_info=process_info, pipeline_id=object_id
                     )
-                status = final_state
-                additional_tags = {"pipeline_id": object_id}
-        else:
-            status = "NOT_TRACKED"
-            dbx_echo(
-                "Workflow successfully launched in the non-tracking mode 🚀. "
-                "Please check Databricks UI for job status 👀"
-            )
-        log_launch_info(additional_tags, status, environment_name, branch_name)
+                    if final_state == PipelineUpdateState.FAILED:
+                        raise Exception(
+                            f"Tracked pipeline {object_id} failed during execution, please check the UI for details."
+                        )
+                    status = final_state
+                    additional_tags = {"pipeline_id": object_id}
+            else:
+                status = "NOT_TRACKED"
+                dbx_echo(
+                    "Workflow successfully launched in the non-tracking mode 🚀. "
+                    "Please check Databricks UI for job status 👀"
+                )
+            log_launch_info(additional_tags, status, environment_name, branch_name)
 
 
 def trace_workflow_object(
