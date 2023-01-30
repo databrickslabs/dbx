@@ -26,7 +26,7 @@ INSTALL_REQUIRES = [
     # misc - enforced to avoid issues with dependent libraries
     "cryptography>=3.3.1,<40.0.0",
     # required by dbx sync
-    "aiohttp>=3.8.1",
+    "aiohttp>=3.8.2",
     "pathspec>=0.9.0",
     "watchdog>=2.1.0",
 ]
@@ -38,7 +38,7 @@ DEV_REQUIREMENTS = [
     # utilities for documentation
     "mkdocs>=1.1.2,<2.0.0",
     "mkdocs-click>=0.8.0,<1.0",
-    "mkdocs-material>=8.5.9,<10.0.0",
+    "mkdocs-material>=9.0.8,<10.0.0",
     "mdx-include>=1.4.1,<2.0.0",
     "mkdocs-markdownextradata-plugin>=0.1.7,<0.3.0",
     "mkdocs-glightbox>=0.2.1,<1.0",
