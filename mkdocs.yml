@@ -34,6 +34,7 @@ theme:
     - navigation.sections
     - navigation.tabs
     - navigation.top
+    - navigation.footer
   icon:
     repo: fontawesome/brands/github
   logo: img/logo.svg
