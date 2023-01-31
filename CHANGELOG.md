@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # Fixed
 
+- 👔 Docs: fix the logo position on the screen
 - 👔 Docs: deleted lgtm badges from readme
 - 👔 Docs: added footer navigation,  deleted the version layover
 - 🩹 Reload config after build in case if there are any dynamic components dependent on it

@@ -191,11 +191,10 @@
 }
 
 #index_logo {
-    flex: 30%;
     display: flex;
     justify-content: right;
     align-items: center;
-    padding-right: 1rem
+    padding-right: 1rem;
 }
 
 

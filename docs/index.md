@@ -19,7 +19,7 @@ hide:
                 </a>
             </div>
             <span class="index_separator"></span>
-            <div style="flex: 50%;padding-left: 1rem; min-height: 200px; display: flex; align-items: center">
+            <div style="padding-left: 1rem; min-height: 200px; display: flex; align-items: center">
                 <h1 class="title_element">
                     <code>dbx</code> by <span class="nowrap">Databricks Labs</span>
                 </h1>
