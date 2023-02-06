@@ -50,7 +50,7 @@ DEV_REQUIREMENTS = [
     "pyflakes==2.5.0",
     "mccabe==0.6.1",
     "prospector==1.7.7",
-    "black>=22.3.0,<23.0.0",
+    "black>=22.3.0,<24.0.0",
     "MarkupSafe>=2.1.1,<3.0.0",
     # testing framework
     "pytest>=7.1.3,<8.0.0",
