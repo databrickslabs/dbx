@@ -16,8 +16,7 @@
 	"initializeCommand": "touch $HOME/.databrickscfg",
 	"mounts": [
 		// mount databricks config
-		"source=${localEnv:HOME}/.databrickscfg,target=/home/vscode/.databrickscfg,type=bind,consistency=cached",
-		"source=/mnt/c/Users/B119752/repos/pebe-databricks,target=/home/vscode/pebe-databricks,type=bind"
+		"source=${localEnv:HOME}/.databrickscfg,target=/home/vscode/.databrickscfg,type=bind,consistency=cached"
 	],
 	"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/dbx,type=bind,consistency=cached",
 	"workspaceFolder": "/workspaces/dbx",
@@ -29,6 +28,7 @@
 			"settings": {
 				"python.defaultInterpreterPath": "/usr/local/bin/python",
 				"python.linting.enabled": true,
+				"python.languageServer": "Pylance",
 				"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
 				"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
 				"python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
@@ -55,8 +55,8 @@
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
 				"ms-python.python",
-				"ms-python.black-formatter",
 				"ms-python.vscode-pylance",
+				"ms-python.black-formatter",
 				"ms-vscode.makefile-tools"
 			]
 		}

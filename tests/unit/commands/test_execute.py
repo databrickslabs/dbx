@@ -1,10 +1,13 @@
+from pathlib import Path
 from unittest.mock import patch, Mock, MagicMock
 
 import pytest
+from pytest_mock import MockerFixture
 from databricks_cli.sdk import ApiClient, ClusterService
 
 from dbx.api.cluster import ClusterController
 from dbx.api.context import LocalContextManager
+from dbx.commands.execute import parse_multiple
 from dbx.models.files.context import ContextInfo
 from tests.unit.conftest import invoke_cli_runner
 
@@ -301,3 +304,52 @@ def test_awake_cluster(*_):
         controller = ClusterController(client_mock, None, "aaa-bbb-ccc")
         with pytest.raises(RuntimeError):
             controller.awake_cluster()
+
+
+@pytest.mark.usefixtures(
+    "mlflow_file_uploader",
+    "mock_local_context_manager",
+    "mock_storage_io",
+    "mock_api_v1_client",
+    "mock_api_v2_client",
+)
+def test_smoke_execute_additional_headers(mocker: MockerFixture, temp_project: Path):
+    expected_headers = {
+        "azure_sp_token": "eyJhbAAAABBBB",
+        "workspace_id": (
+            "/subscriptions/bc5bAAA-BBBB/resourceGroups/some-resource-group"
+            "/providers/Microsoft.Databricks/workspaces/target-dtb-ws"
+        ),
+        "org_id": "1928374655647382",
+    }
+    env_mock = mocker.patch("dbx.commands.execute.prepare_environment", MagicMock())
+    header_parse_mock = mocker.patch("dbx.commands.execute.parse_multiple", wraps=parse_multiple)
+    kwargs = [f"{key}={val}" for key, val in expected_headers.items()]
+    cli_kwargs = [f"--header {kw}" for kw in kwargs]
+    with patch(
+        "dbx.api.client_provider.ApiV1Client.get_command_status",
+        return_value={
+            "status": "Finished",
+            "results": {"resultType": "Ok", "data": "Ok!"},
+        },
+    ):
+        execute_result = invoke_cli_runner(
+            [
+                "execute",
+                "--deployment-file",
+                "conf/deployment.yml",
+                "--environment",
+                "default",
+                "--cluster-id",
+                "000-some-cluster-id",
+                "--job",
+                f"{temp_project.name}-sample-multitask",
+                "--task",
+                "ml",
+                *cli_kwargs,
+            ],
+        )
+
+    assert execute_result.exit_code == 0
+    header_parse_mock.assert_called_once_with(kwargs)
+    env_mock.assert_called_once_with("default", expected_headers)
