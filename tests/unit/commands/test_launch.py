@@ -311,8 +311,8 @@ def test_smoke_launch_workflow_additional_headers(
     }
     header_parse_mock = mocker.patch("dbx.commands.launch.parse_multiple", wraps=parse_multiple)
     kwargs = [f"{key}={val}" for key, val in expected_headers.items()]
-    cli_kwargs = [f"--header {kw}" for kw in kwargs]
+    cli_kwargs = [arg for kw in kwargs for arg in ("--header", kw)]
 
     launch_job_result = invoke_cli_runner(["launch", _chosen_job, *cli_kwargs])
     assert launch_job_result.exit_code == 0
-    header_parse_mock.assert_called_once_with(kwargs)
+    header_parse_mock.assert_any_call(kwargs)

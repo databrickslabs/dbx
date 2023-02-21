@@ -325,7 +325,7 @@ def test_smoke_execute_additional_headers(mocker: MockerFixture, temp_project: P
     env_mock = mocker.patch("dbx.commands.execute.prepare_environment", MagicMock())
     header_parse_mock = mocker.patch("dbx.commands.execute.parse_multiple", wraps=parse_multiple)
     kwargs = [f"{key}={val}" for key, val in expected_headers.items()]
-    cli_kwargs = [f"--header {kw}" for kw in kwargs]
+    cli_kwargs = [arg for kw in kwargs for arg in ("--header", kw)]
     with patch(
         "dbx.api.client_provider.ApiV1Client.get_command_status",
         return_value={
