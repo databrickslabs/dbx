@@ -6,6 +6,7 @@ import typer
 from databricks_cli.jobs.api import JobsService
 from rich.markup import escape
 
+from dbx.api.launch.contexts import EmptyContext, AssetBasedLaunchContext
 from dbx.api.launch.functions import find_deployment_run
 from dbx.api.launch.pipeline_models import PipelineUpdateState
 from dbx.api.launch.runners.asset_based import AssetBasedLauncher
@@ -131,40 +132,38 @@ def launch(
     filter_string = generate_filter_string(environment_name, branch_name)
     _from_assets = from_assets if from_assets else as_run_submit
 
-    last_deployment_run = find_deployment_run(filter_string, additional_tags, _from_assets, environment_name)
+    if _from_assets:
+        last_deployment_run = find_deployment_run(filter_string, additional_tags, _from_assets, environment_name)
+        context = AssetBasedLaunchContext(last_deployment_run)
+        launcher = AssetBasedLauncher(
+            workflow_name=workflow_name,
+            api_client=api_client,
+            deployment_run_id=last_deployment_run.info.run_id,
+            environment_name=environment_name,
+            parameters=parameters,
+        )
+    else:
+        context = EmptyContext()
+        if is_pipeline:
+            launcher = PipelineLauncher(workflow_name=workflow_name, api_client=api_client, parameters=parameters)
+        else:
+            launcher = StandardLauncher(
+                workflow_name=workflow_name,
+                api_client=api_client,
+                existing_runs=existing_runs,
+                parameters=parameters,
+            )
 
-    with mlflow.start_run(run_id=last_deployment_run.info.run_id):
+    with context:
+        process_info, object_id = launcher.launch()
 
-        with mlflow.start_run(nested=True):
-
-            if is_pipeline:
-                launcher = PipelineLauncher(workflow_name=workflow_name, api_client=api_client, parameters=parameters)
-            else:
-                if not _from_assets:
-                    launcher = StandardLauncher(
-                        workflow_name=workflow_name,
-                        api_client=api_client,
-                        existing_runs=existing_runs,
-                        parameters=parameters,
-                    )
-                else:
-                    launcher = AssetBasedLauncher(
-                        workflow_name=workflow_name,
-                        api_client=api_client,
-                        deployment_run_id=last_deployment_run.info.run_id,
-                        environment_name=environment_name,
-                        parameters=parameters,
-                    )
-
-            process_info, object_id = launcher.launch()
-
-            if isinstance(process_info, RunData):
-                jobs_service = JobsService(api_client)
-                run_info = jobs_service.get_run(process_info.run_id)
-                run_url = run_info.get("run_page_url")
-                dbx_echo(f"Run URL: {run_url}")
-            else:
-                dbx_echo("DLT pipeline launched successfully")
+        if isinstance(process_info, RunData):
+            jobs_service = JobsService(api_client)
+            run_info = jobs_service.get_run(process_info.run_id)
+            run_url = run_info.get("run_page_url")
+            dbx_echo(f"Run URL: {run_url}")
+        else:
+            dbx_echo("DLT pipeline launched successfully")
 
         if trace:
             if isinstance(process_info, RunData):
@@ -189,7 +188,9 @@ def launch(
                 "Workflow successfully launched in the non-tracking mode 🚀. "
                 "Please check Databricks UI for job status 👀"
             )
-        log_launch_info(additional_tags, status, environment_name, branch_name)
+
+        if isinstance(context, AssetBasedLaunchContext):
+            log_launch_info(additional_tags, status, environment_name, branch_name)
 
 
 def trace_workflow_object(

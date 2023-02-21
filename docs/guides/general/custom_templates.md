@@ -14,6 +14,7 @@ If you would like to create a custom template, feel free to re-use the code youâ
 Pretty much anything you would like to add to your template could be configured using this functionality.
 
 There are two options on how to ship your templates for further dbx usage:
+
 - Git repo
 - Python package
 
