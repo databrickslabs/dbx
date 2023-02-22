@@ -118,6 +118,7 @@ nav:
       - Jinja support: features/jinja_support.md
       - Named properties: features/named_properties.md
       - Permissions management: features/permissions_management.md
+      - Additional headers: features/headers.md
   - Reference:
       - CLI Reference: reference/cli.md
       - Deployment file reference: reference/deployment.md
