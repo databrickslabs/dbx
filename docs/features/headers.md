@@ -2,8 +2,7 @@
 
 <img src="https://img.shields.io/badge/available%20since-0.8.8-green?style=for-the-badge" alt="Available since 0.8.8"/>
 
-In 0.8.8 `dbx` introduces support for custom headers during command execution. This might be helpful for some cases
-described below.
+In 0.8.8 `dbx` introduces support for custom headers during command execution.
 
 The two main modes use either environment variables or additional config variables added to the `.databrickscfg` file.
 
@@ -21,3 +20,5 @@ addition to the predefined headers (i.e. `Authorization, Content-Type, User-Agen
 - `X-Databricks-Azure-SP-Management-Token`
 - `X-Databricks-Azure-Workspace-Resource-Id`
 - `X-Databricks-Org-Id`
+
+Another option is to directly provide these properties via `--header/-H` argument.

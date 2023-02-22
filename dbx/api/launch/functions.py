@@ -52,8 +52,7 @@ def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: b
     else:
         dbx_echo("No additional tags provided")
 
-    if from_assets:
-        runs = list(filter(lambda r: r.data.tags.get("dbx_deploy_type") == "files_only", runs))
+    runs = list(filter(lambda r: r.data.tags.get("dbx_deploy_type") == "files_only", runs))
 
     if not runs:
         exception_string = f"""
