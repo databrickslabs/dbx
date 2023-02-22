@@ -18,6 +18,7 @@ from dbx.api.output_provider import OutputProvider
 from dbx.models.cli.options import ExistingRunsOption, IncludeOutputOption
 from dbx.options import (
     ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
     TAGS_OPTION,
     BRANCH_NAME_OPTION,
     DEBUG_OPTION,
@@ -110,6 +111,7 @@ def launch(
 
         `stderr` will add only stderr to the console output""",
     ),
+    headers: Optional[List[str]] = HEADERS_OPTION,
     parameters: Optional[str] = LAUNCH_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
@@ -122,8 +124,10 @@ def launch(
         raise Exception("DLT pipelines cannot be launched in the asset-based mode")
 
     dbx_echo(f"Launching workflow {escape(workflow_name)} on environment {environment_name}")
+    if headers:
+        headers: Dict[str, str] = parse_multiple(headers)
 
-    api_client = prepare_environment(environment_name)
+    api_client = prepare_environment(environment_name, headers)
     additional_tags = parse_multiple(tags)
 
     if not branch_name:

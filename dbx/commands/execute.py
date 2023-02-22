@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 import typer
 
@@ -14,6 +14,7 @@ from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
     REQUIREMENTS_FILE_OPTION,
     NO_REBUILD_OPTION,
     NO_PACKAGE_OPTION,
@@ -24,7 +25,7 @@ from dbx.options import (
 )
 from dbx.types import ExecuteTask
 from dbx.utils import dbx_echo
-from dbx.utils.common import prepare_environment
+from dbx.utils.common import parse_multiple, prepare_environment
 
 
 def execute(
@@ -64,11 +65,15 @@ def execute(
 
         Useful when core package has extras section and installation of these extras is required.""",
     ),
+    headers: Optional[List[str]] = HEADERS_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     parameters: Optional[str] = EXECUTE_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
-    api_client = prepare_environment(environment)
+    if headers:
+        headers: Dict[str, str] = parse_multiple(headers)
+
+    api_client = prepare_environment(environment, headers)
     cluster_controller = ClusterController(api_client, cluster_name=cluster_name, cluster_id=cluster_id)
 
     workflow_name = workflow_name if workflow_name else job_name

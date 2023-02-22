@@ -276,3 +276,23 @@ def test_deploy_with_no_package(
     mock_core_package_manager.assert_not_called()
     _content = JsonUtils.read(Path(result_file))
     assert not any([t["libraries"] for w in _content["default"]["workflows"] for t in w["tasks"]])
+
+
+@pytest.mark.usefixtures("temp_project", "mlflow_file_uploader", "mock_storage_io", "mock_api_v2_client")
+def test_deploy_additional_headers(mocker: MockerFixture):
+    expected_headers = {
+        "azure_sp_token": "eyJhbAAAABBBB",
+        "workspace_id": (
+            "/subscriptions/bc5bAAA-BBBB/resourceGroups/some-resource-group"
+            "/providers/Microsoft.Databricks/workspaces/target-dtb-ws"
+        ),
+        "org_id": "1928374655647382",
+    }
+    env_mock = mocker.patch("dbx.commands.deploy.prepare_environment", MagicMock())
+    header_parse_mock = mocker.patch("dbx.commands.deploy.parse_multiple", wraps=deploy.parse_multiple)
+    kwargs = [f"{key}={val}" for key, val in expected_headers.items()]
+    cli_kwargs = " ".join([f"--header {kw}" for kw in kwargs])
+    deploy_result = invoke_cli_runner(f"deploy {cli_kwargs}")
+    assert deploy_result.exit_code == 0
+    header_parse_mock.assert_any_call(kwargs)
+    env_mock.assert_called_once_with("default", expected_headers)

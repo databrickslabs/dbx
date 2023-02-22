@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
-from typing import List
-from typing import Optional
+from typing import Dict, List, Optional
 
 import mlflow
 import typer
@@ -18,6 +17,7 @@ from dbx.options import (
     DEBUG_OPTION,
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
     JINJA_VARIABLES_FILE_OPTION,
     NO_PACKAGE_OPTION,
     NO_REBUILD_OPTION,
@@ -90,13 +90,18 @@ def deploy(
               Please note that output file will be overwritten if it exists.""",
         writable=True,
     ),
+    headers: Optional[List[str]] = HEADERS_OPTION,
     branch_name: Optional[str] = BRANCH_NAME_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     dbx_echo(f"Starting new deployment for environment {environment_name}")
+    if headers:
+        headers: Dict[str, str] = parse_multiple(headers)
+    else:
+        headers = None
 
-    api_client = prepare_environment(environment_name)
+    api_client = prepare_environment(environment_name, headers)
     additional_tags = parse_multiple(tags)
 
     if not branch_name:
