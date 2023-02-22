@@ -40,7 +40,7 @@ def get_run_status(api_client: ApiClient, run_data: RunData) -> Dict[str, Any]:
     return run_status
 
 
-def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: bool, environment: str) -> Run:
+def find_deployment_run(filter_string: str, tags: Dict[str, str], environment: str) -> Run:
     runs: List[Run] = mlflow.search_runs(filter_string=filter_string, output_format="list")
 
     def _filter_by_tags(run: Run) -> bool:

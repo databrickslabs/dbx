@@ -137,7 +137,7 @@ def launch(
     _from_assets = from_assets if from_assets else as_run_submit
 
     if _from_assets:
-        last_deployment_run = find_deployment_run(filter_string, additional_tags, _from_assets, environment_name)
+        last_deployment_run = find_deployment_run(filter_string, additional_tags, environment_name)
         context = AssetBasedLaunchContext(last_deployment_run)
         launcher = AssetBasedLauncher(
             workflow_name=workflow_name,
