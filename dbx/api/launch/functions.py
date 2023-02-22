@@ -64,7 +64,6 @@ def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: b
                 + f"""
             With additional tags: {tags}"""
             )
-        if from_assets:
             exception_string = (
                 exception_string
                 + """
