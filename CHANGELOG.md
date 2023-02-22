@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🩹 Check if target repo exists before syncing and produce more clear error message if it does not.
 - 🩹 Type recognition of `named_parameters` in `python_wheel_task`
 - 🩹 Update default dbx version in the template
+- 🩹 Fix the bug with repetitive launch ops
 - 🔨 Add support for extras for cloud file operations
 - 🔨 `warehouse_id` field in dbt task is optional now.
 - 🔨 `dbx deploy --no-package` won't build wheel package.

@@ -158,12 +158,16 @@ def test_launch_run_submit(
     assert launch_result.exit_code == 0
 
 
-def test_launch_not_found(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):
-    _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
-    launch_result = invoke_cli_runner(
-        ["launch", "--job", _chosen_job] + ["--tags", "cake=cheesecake"], expected_error=True
-    )
-    assert "No deployments provided per given set of filters" in str(launch_result.exception)
+def test_multi_launch(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+
+    l1_result = invoke_cli_runner(["launch", "--job", _chosen_job])
+    l2_result = invoke_cli_runner(["launch", "--job", _chosen_job])
+    assert l1_result.exception is None
+    assert l2_result.exception is None
 
 
 def test_launch_empty_runs(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):

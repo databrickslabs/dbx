@@ -19,10 +19,6 @@
     <a href="https://pypi.org/project/dbx/">
         <img src="https://img.shields.io/pypi/v/dbx?color=green&amp;style=for-the-badge" alt="Latest Python Release"/>
     </a>
-    <a href="https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml">
-        <img src="https://img.shields.io/github/workflow/status/databrickslabs/dbx/build/main?style=for-the-badge"
-             alt="GitHub Workflow Status (branch)"/>
-    </a>
     <a href="https://codecov.io/gh/databrickslabs/dbx">
         <img src="https://img.shields.io/codecov/c/github/databrickslabs/dbx?style=for-the-badge&amp;token=S7ADH3W2E3"
              alt="codecov"/>

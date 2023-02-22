@@ -40,7 +40,7 @@ def get_run_status(api_client: ApiClient, run_data: RunData) -> Dict[str, Any]:
     return run_status
 
 
-def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: bool, environment: str) -> Run:
+def find_deployment_run(filter_string: str, tags: Dict[str, str], environment: str) -> Run:
     runs: List[Run] = mlflow.search_runs(filter_string=filter_string, output_format="list")
 
     def _filter_by_tags(run: Run) -> bool:
@@ -52,8 +52,7 @@ def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: b
     else:
         dbx_echo("No additional tags provided")
 
-    if from_assets:
-        runs = list(filter(lambda r: r.data.tags.get("dbx_deploy_type") == "files_only", runs))
+    runs = list(filter(lambda r: r.data.tags.get("dbx_deploy_type") == "files_only", runs))
 
     if not runs:
         exception_string = f"""
@@ -65,7 +64,6 @@ def find_deployment_run(filter_string: str, tags: Dict[str, str], from_assets: b
                 + f"""
             With additional tags: {tags}"""
             )
-        if from_assets:
             exception_string = (
                 exception_string
                 + """
