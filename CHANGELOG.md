@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 ## [UNRELEASED] - YYYY-MM-DD
 
+# Fixed
+
+- 🔨 fix `dbx deploy --no-package` when `--no-rebuild` is not specified
+
 ## [0.8.8] - 2022-02-22
 
 # Fixed

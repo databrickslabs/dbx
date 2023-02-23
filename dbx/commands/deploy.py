@@ -103,6 +103,7 @@ def deploy(
 
     api_client = prepare_environment(environment_name, headers)
     additional_tags = parse_multiple(tags)
+    no_rebuild = no_rebuild or no_package
 
     if not branch_name:
         branch_name = get_current_branch_name()

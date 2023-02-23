@@ -263,8 +263,15 @@ def test_deploy_empty_workflows_list(temp_project, mlflow_file_uploader, mock_st
 
 
 @patch(f"{deploy.__name__}.CorePackageManager")
+@patch(f"{deploy.__name__}.BuildProperties")
 def test_deploy_with_no_package(
-    mock_core_package_manager, mlflow_file_uploader, mocker, mock_storage_io, mock_api_v2_client, temp_project
+    mock_build_properties,
+    mock_core_package_manager,
+    mlflow_file_uploader,
+    mocker,
+    mock_storage_io,
+    mock_api_v2_client,
+    temp_project,
 ):
     mocker.patch.object(NamedJobsService, "create", MagicMock(return_value=1))
     result_file = ".dbx/deployment-result.json"
@@ -273,6 +280,7 @@ def test_deploy_with_no_package(
         ["deploy", "--environment", "default", "--no-package", "--write-specs-to-file", result_file],
     )
     assert deploy_result.exit_code == 0
+    mock_build_properties.assert_called_once_with(potential_build=True, no_rebuild=True)
     mock_core_package_manager.assert_not_called()
     _content = JsonUtils.read(Path(result_file))
     assert not any([t["libraries"] for w in _content["default"]["workflows"] for t in w["tasks"]])
