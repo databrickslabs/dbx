@@ -15,7 +15,7 @@ INSTALL_REQUIRES = [
     "databricks-cli>=0.17,<0.18",
     # CLI interface
     "click>=8.1.0,<9.0.0",
-    "rich==12.6.0",
+    "rich==13.3.2",
     "typer[all]==0.7.0",
     # for templates creation
     "cookiecutter>=1.7.2, <3.0.0",
