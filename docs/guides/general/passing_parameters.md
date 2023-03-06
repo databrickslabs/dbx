@@ -23,7 +23,7 @@ In some cases you would like to override the parameters that are defined in the 
 
 Therefore, there are 3 fundamentally different options on how parameters could be provided dynamically:
 
-- Parameters of a **:octicons-package-dependents-24: task** in [`dbx execute`](../../reference/cli#dbx-execute)
+- Parameters of a **:octicons-package-dependents-24: task** in [`dbx execute`](../../reference/cli.md#dbx-execute)
 - Parameters of a **:octicons-workflow-24: workflow** in the [asset-based launch mode](../../features/assets.md) (`dbx launch --from-assets`)
 - Parameters of a **:octicons-workflow-24: workflow** in the normal launch mode (`dbx launch`)
 

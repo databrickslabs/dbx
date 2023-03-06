@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Fixed
 
 - 🔨 fix `dbx deploy --no-package` when `--no-rebuild` is not specified
+- 🔗 broken links in the docs
 
 ## [0.8.8] - 2022-02-22
 
