@@ -15,7 +15,7 @@ Yes, setup the build logic for flit as described [here](./features/build_managem
 
 ## What's the difference between `dbx execute` and `dbx launch`?
 
-The `dbx execute` command runs your code on `all-purpose` [cluster](../concepts/cluster_types#all-purpose-clusters).
+The `dbx execute` command runs your code on `all-purpose` [cluster](./concepts/cluster_types.md#all-purpose-clusters).
 It's very handy for interactive development and data exploration.
 
 !!! danger "Don't use `dbx execute` for production workloads"
@@ -23,9 +23,9 @@ It's very handy for interactive development and data exploration.
     It's not recommended to use `dbx execute` for production workloads. Run your workflows on the dedicated job clusters instead.
     Reasoning is described in detail in the [concepts section](../concepts/cluster_types).
 
-In contrast to the `dbx execute`, `dbx launch` launches your workflow on a [dedicated job cluster](./concepts/cluster_types#job-clusters). This is a recommended way for CI pipelines, automated launches etc.
+In contrast to the `dbx execute`, `dbx launch` launches your workflow on a [dedicated job cluster](./concepts/cluster_types.md#job-clusters). This is a recommended way for CI pipelines, automated launches etc.
 
-When in doubt, follow the [summary section](../concepts/cluster_types#summary) for precise guidance.
+When in doubt, follow the [summary section](./concepts/cluster_types.md#summary) for precise guidance.
 
-## Can I have multiple `deployment files` ? 
-Yes, `dbx deploy` accepts `--deployment-file PATH` as described [here](./reference/cli/#dbx-deploy).
+## Can I have multiple `deployment files` ?
+Yes, `dbx deploy` accepts `--deployment-file PATH` as described [here](./reference/cli.md#dbx-deploy).
