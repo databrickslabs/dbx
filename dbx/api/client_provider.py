@@ -3,7 +3,7 @@ from typing import Dict, Any, Optional
 
 import requests
 from databricks_cli.sdk import ApiClient
-from retry import retry
+from tenacity import retry, wait_exponential, stop_after_attempt
 
 from dbx.api.auth import AuthConfigProvider
 
@@ -33,7 +33,7 @@ class ApiV1Client:
 
     # sometimes cluster is already in the status="RUNNING", however it couldn't yet provide execution context
     # to make the execute command stable is such situations, we add retry handler.
-    @retry(tries=10, delay=5, backoff=5)
+    @retry(wait=wait_exponential(multiplier=1, min=2, max=5), stop=stop_after_attempt(5))
     def create_context(self, payload):
         result = self.v1_client.perform_query(method="POST", path="/contexts/create", data=payload)
         return result
