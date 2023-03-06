@@ -4,11 +4,10 @@ from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple
 
 import mlflow
-
+from tenacity import retry, wait_exponential, stop_after_attempt
 
 from dbx.api.context import RichExecutionContextClient
 from dbx.utils import dbx_echo
-from tenacity import retry, wait_exponential, stop_after_attempt
 
 
 class AbstractFileUploader(ABC):
