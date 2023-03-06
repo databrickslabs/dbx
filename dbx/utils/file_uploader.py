@@ -4,7 +4,7 @@ from pathlib import Path, PurePosixPath
 from typing import Optional, Tuple
 
 import mlflow
-from retry import retry
+from tenacity import retry, wait_exponential, stop_after_attempt
 
 from dbx.api.context import RichExecutionContextClient
 from dbx.utils import dbx_echo
@@ -67,7 +67,7 @@ class MlflowFileUploader(AbstractFileUploader):
     """
 
     @staticmethod
-    @retry(tries=3, delay=1, backoff=0.3)
+    @retry(wait=wait_exponential(multiplier=1, min=2, max=5), stop=stop_after_attempt(5))
     def _upload_file(file_path: Path):
         posix_path = PurePosixPath(file_path.as_posix())
         parent = str(posix_path.parent) if str(posix_path.parent) != "." else None
