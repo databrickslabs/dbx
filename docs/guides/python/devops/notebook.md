@@ -19,20 +19,21 @@ build: #(1)
 
 environments:
   default:
-    - name: "notebook-from-remote"
-      job_clusters:
+    workflows:
+      - name: "notebook-from-remote"
+        job_clusters:
         # omitted
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_branch: "main"
-      tasks:
-        - task_key: "notebook-remote"
-          notebook_task:
-            notebook_path: "notebooks/sample_notebook"
-          deployment_config:
-            no_package: true
-          job_cluster_key: "default"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_branch: "main"
+        tasks:
+          - task_key: "notebook-remote"
+            notebook_task:
+              notebook_path: "notebooks/sample_notebook"
+            deployment_config:
+              no_package: true
+            job_cluster_key: "default"
 ```
 
 1. Disables the standard `pip`-based build behaviour. Read more about build management [here](../../../features/build_management.md).
@@ -71,19 +72,20 @@ dbx configure --enable-inplace-jinja-support
 # only relevant block shown
 environments:
   default:
-    - name: "notebook-from-remote-branch"
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_branch: "{{env['GIT_BRANCH']}}" # assuming this env variable exists
-    - name: "notebook-from-remote-tag"
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_tag: "{{env['GIT_TAG']}}" # assuming this env variable exists
-    - name: "notebook-from-remote-commit"
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_commit: "{{env['GIT_COMMIT']}}" # assuming this env variable exists
+    workflows:
+      - name: "notebook-from-remote-branch"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_branch: "{{env['GIT_BRANCH']}}" # assuming this env variable exists
+      - name: "notebook-from-remote-tag"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_tag: "{{env['GIT_TAG']}}" # assuming this env variable exists
+      - name: "notebook-from-remote-commit"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_commit: "{{env['GIT_COMMIT']}}" # assuming this env variable exists
 ```
