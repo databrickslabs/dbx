@@ -1,9 +1,9 @@
 import copy
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import requests
 from databricks_cli.sdk import ApiClient
-from retry import retry
+from tenacity import retry, wait_exponential, stop_after_attempt
 
 from dbx.api.auth import AuthConfigProvider
 
@@ -33,7 +33,7 @@ class ApiV1Client:
 
     # sometimes cluster is already in the status="RUNNING", however it couldn't yet provide execution context
     # to make the execute command stable is such situations, we add retry handler.
-    @retry(tries=10, delay=5, backoff=5)
+    @retry(wait=wait_exponential(multiplier=1, min=2, max=5), stop=stop_after_attempt(5))
     def create_context(self, payload):
         result = self.v1_client.perform_query(method="POST", path="/contexts/create", data=payload)
         return result
@@ -45,27 +45,30 @@ class DatabricksClientProvider:
     """
 
     @classmethod
-    def _get_v2_client(cls) -> ApiClient:
+    def _get_v2_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiClient:
         config = AuthConfigProvider.get_config()
         verify = config.insecure is None
+        if headers is None:
+            headers = config.headers
         _client = ApiClient(
             host=config.host,
             token=config.token,
             jobs_api_version=config.jobs_api_version,
             verify=verify,
+            default_headers=headers,
             command_name="cicdtemplates-",
         )
         return _client
 
     @classmethod
-    def _get_v1_client(cls) -> ApiV1Client:
-        _client = ApiV1Client(cls._get_v2_client())
+    def _get_v1_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiV1Client:
+        _client = ApiV1Client(cls._get_v2_client(headers))
         return _client
 
     @classmethod
-    def get_v2_client(cls) -> ApiClient:
-        return cls._get_v2_client()
+    def get_v2_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiClient:
+        return cls._get_v2_client(headers)
 
     @classmethod
-    def get_v1_client(cls) -> ApiV1Client:
-        return cls._get_v1_client()
+    def get_v1_client(cls, headers: Optional[Dict[str, str]] = None) -> ApiV1Client:
+        return cls._get_v1_client(headers)

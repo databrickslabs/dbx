@@ -1,15 +1,122 @@
 import os
 from functools import lru_cache
-from typing import Optional
+from typing import List, Optional, Protocol, Union
 
 from databricks_cli.configure.provider import (
     DatabricksConfig,
-    ProfileConfigProvider,
-    EnvironmentVariableConfigProvider,
     DatabricksConfigProvider,
+    _fetch_from_fs,
+    _get_option_if_exists,
+    HOST,
+    USERNAME,
+    PASSWORD,
+    TOKEN,
+    REFRESH_TOKEN,
+    INSECURE,
+    JOBS_API_VERSION,
+    DEFAULT_SECTION,
 )
 
 from dbx.utils import dbx_echo
+
+
+AZURE_SERVICE_PRINCIPAL_TOKEN = "azure_service_principal_token"
+WORKSPACE_ID = "workspace_id"
+ORG_ID = "org_id"
+
+
+class DbxConfig(DatabricksConfig):
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        password: str,
+        token: str,
+        refresh_token: Optional[str] = None,
+        insecure: Optional[Union[bool, str]] = None,
+        jobs_api_version: Optional[str] = None,
+        azure_sp_token: Optional[str] = None,
+        workspace_id: Optional[str] = None,
+        org_id: Optional[str] = None,
+    ):  # noqa
+        super().__init__(host, username, password, token, refresh_token, insecure, jobs_api_version)
+        _headers = {
+            "X-Databricks-Azure-SP-Management-Token": azure_sp_token,
+            "X-Databricks-Azure-Workspace-Resource-Id": workspace_id,
+            "X-Databricks-Org-Id": org_id,
+        }
+        self.headers = {k: v for k, v in _headers.items() if v is not None}
+
+
+class DbxConfigProvider(Protocol):
+    def get_config(self) -> Union[DbxConfig, None]:
+        ...
+
+
+class DbxEnvironmentVariableConfigProvider(DatabricksConfigProvider):
+    """Loads from system environment variables."""
+
+    def get_config(self) -> Union[DbxConfig, None]:
+        host = os.environ.get("DATABRICKS_HOST")
+        username = os.environ.get("DATABRICKS_USERNAME")
+        password = os.environ.get("DATABRICKS_PASSWORD")
+        token = os.environ.get("DATABRICKS_TOKEN")
+        azure_sp_token = os.environ.get("AZURE_SERVICE_PRINCIPAL_TOKEN")
+        refresh_token = os.environ.get("DATABRICKS_REFRESH_TOKEN")
+        insecure = os.environ.get("DATABRICKS_INSECURE")
+        jobs_api_version = os.environ.get("DATABRICKS_JOBS_API_VERSION")
+        workspace_id = os.environ.get("WORKSPACE_ID")
+        org_id = os.environ.get("ORG_ID")
+        config = DbxConfig(
+            host,
+            username,
+            password,
+            token,
+            refresh_token,
+            insecure,
+            jobs_api_version,
+            azure_sp_token,
+            workspace_id,
+            org_id,
+        )
+        if config.is_valid:
+            return config
+        return None
+
+
+class DbxProfileConfigProvider(DatabricksConfigProvider):
+    """Loads from the databrickscfg file."""
+
+    def __init__(self, profile=DEFAULT_SECTION):
+        self.profile = profile
+
+    def get_config(self) -> Union[DbxConfig, None]:
+        raw_config = _fetch_from_fs()
+        host = _get_option_if_exists(raw_config, self.profile, HOST)
+        username = _get_option_if_exists(raw_config, self.profile, USERNAME)
+        password = _get_option_if_exists(raw_config, self.profile, PASSWORD)
+        token = _get_option_if_exists(raw_config, self.profile, TOKEN)
+        refresh_token = _get_option_if_exists(raw_config, self.profile, REFRESH_TOKEN)
+        insecure = _get_option_if_exists(raw_config, self.profile, INSECURE)
+        jobs_api_version = _get_option_if_exists(raw_config, self.profile, JOBS_API_VERSION)
+        azure_sp_token = _get_option_if_exists(raw_config, self.profile, AZURE_SERVICE_PRINCIPAL_TOKEN)
+        workspace_id = _get_option_if_exists(raw_config, self.profile, WORKSPACE_ID)
+        org_id = _get_option_if_exists(raw_config, self.profile, ORG_ID)
+        config = DbxConfig(
+            host,
+            username,
+            password,
+            token,
+            refresh_token,
+            insecure,
+            jobs_api_version,
+            azure_sp_token,
+            workspace_id,
+            org_id,
+        )
+        if config.is_valid:
+            return config
+        return None
 
 
 class ProfileEnvConfigProvider(DatabricksConfigProvider):
@@ -20,7 +127,7 @@ class ProfileEnvConfigProvider(DatabricksConfigProvider):
 
     def get_config(self) -> Optional[DatabricksConfig]:
         profile = self._get_profile_name()
-        _config = None if not profile else ProfileConfigProvider(profile).get_config()
+        _config = None if not profile else DbxProfileConfigProvider(profile).get_config()
         return _config
 
     @classmethod
@@ -30,7 +137,7 @@ class ProfileEnvConfigProvider(DatabricksConfigProvider):
 
 class AuthConfigProvider:
     @staticmethod
-    def _verify_config_validity(config: DatabricksConfig):
+    def _verify_config_validity(config: DbxConfig):
         if not config.is_valid_with_token:
             raise Exception(
                 "Provided configuration is not based on token authentication."
@@ -42,17 +149,15 @@ class AuthConfigProvider:
             )
 
     @staticmethod
-    def _get_config_from_env() -> Optional[DatabricksConfig]:
-        config = EnvironmentVariableConfigProvider().get_config()
-        if config:
-            AuthConfigProvider._verify_config_validity(config)
-            return config
+    def _get_config_from_env() -> Optional[DbxConfig]:
+        config = DbxEnvironmentVariableConfigProvider().get_config()
+        return config
 
     @classmethod
     @lru_cache(maxsize=None)
-    def get_config(cls) -> DatabricksConfig:
-        providers = [
-            EnvironmentVariableConfigProvider(),
+    def get_config(cls) -> DbxConfig:
+        providers: List[DbxConfigProvider] = [
+            DbxEnvironmentVariableConfigProvider(),
             ProfileEnvConfigProvider(),
         ]
         for provider in providers:

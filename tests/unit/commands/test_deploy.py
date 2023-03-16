@@ -1,16 +1,17 @@
 import shutil
 import textwrap
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
 from pytest_mock import MockerFixture
 
 from dbx.api.config_reader import ConfigReader
-from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
+from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
 from dbx.api.services.jobs import NamedJobsService
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
+from dbx.commands import deploy
 from dbx.models.files.project import MlflowStorageProperties
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import (
@@ -259,3 +260,47 @@ def test_deploy_empty_workflows_list(temp_project, mlflow_file_uploader, mock_st
     Path("conf/deployment.yml").write_text(payload)
     deploy_result = invoke_cli_runner("deploy")
     assert deploy_result.exit_code == 0
+
+
+@patch(f"{deploy.__name__}.CorePackageManager")
+@patch(f"{deploy.__name__}.BuildProperties")
+def test_deploy_with_no_package(
+    mock_build_properties,
+    mock_core_package_manager,
+    mlflow_file_uploader,
+    mocker,
+    mock_storage_io,
+    mock_api_v2_client,
+    temp_project,
+):
+    mocker.patch.object(NamedJobsService, "create", MagicMock(return_value=1))
+    result_file = ".dbx/deployment-result.json"
+    _ = ConfigReader(Path("conf/deployment.yml")).get_environment("default")
+    deploy_result = invoke_cli_runner(
+        ["deploy", "--environment", "default", "--no-package", "--write-specs-to-file", result_file],
+    )
+    assert deploy_result.exit_code == 0
+    mock_build_properties.assert_called_once_with(potential_build=True, no_rebuild=True)
+    mock_core_package_manager.assert_not_called()
+    _content = JsonUtils.read(Path(result_file))
+    assert not any([t["libraries"] for w in _content["default"]["workflows"] for t in w["tasks"]])
+
+
+@pytest.mark.usefixtures("temp_project", "mlflow_file_uploader", "mock_storage_io", "mock_api_v2_client")
+def test_deploy_additional_headers(mocker: MockerFixture):
+    expected_headers = {
+        "azure_sp_token": "eyJhbAAAABBBB",
+        "workspace_id": (
+            "/subscriptions/bc5bAAA-BBBB/resourceGroups/some-resource-group"
+            "/providers/Microsoft.Databricks/workspaces/target-dtb-ws"
+        ),
+        "org_id": "1928374655647382",
+    }
+    env_mock = mocker.patch("dbx.commands.deploy.prepare_environment", MagicMock())
+    header_parse_mock = mocker.patch("dbx.commands.deploy.parse_multiple", wraps=deploy.parse_multiple)
+    kwargs = [f"{key}={val}" for key, val in expected_headers.items()]
+    cli_kwargs = " ".join([f"--header {kw}" for kw in kwargs])
+    deploy_result = invoke_cli_runner(f"deploy {cli_kwargs}")
+    assert deploy_result.exit_code == 0
+    header_parse_mock.assert_any_call(kwargs)
+    env_mock.assert_called_once_with("default", expected_headers)

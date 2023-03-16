@@ -19,20 +19,9 @@
     <a href="https://pypi.org/project/dbx/">
         <img src="https://img.shields.io/pypi/v/dbx?color=green&amp;style=for-the-badge" alt="Latest Python Release"/>
     </a>
-    <a href="https://github.com/databrickslabs/dbx/actions/workflows/onpush.yml">
-        <img src="https://img.shields.io/github/workflow/status/databrickslabs/dbx/build/main?style=for-the-badge"
-             alt="GitHub Workflow Status (branch)"/>
-    </a>
     <a href="https://codecov.io/gh/databrickslabs/dbx">
         <img src="https://img.shields.io/codecov/c/github/databrickslabs/dbx?style=for-the-badge&amp;token=S7ADH3W2E3"
              alt="codecov"/>
-    </a>
-    <a href="https://lgtm.com/projects/g/databrickslabs/dbx/alerts">
-        <img src="https://img.shields.io/lgtm/alerts/github/databrickslabs/dbx?style=for-the-badge" alt="lgtm-alerts"/>
-    </a>
-    <a href="https://lgtm.com/projects/g/databrickslabs/dbx/context:python">
-        <img src="https://img.shields.io/lgtm/grade/python/github/databrickslabs/dbx?style=for-the-badge"
-             alt="lgtm-code-quality"/>
     </a>
     <a href="https://pypistats.org/packages/dbx">
         <img src="https://img.shields.io/pypi/dm/dbx?style=for-the-badge" alt="downloads"/>

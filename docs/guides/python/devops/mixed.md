@@ -20,25 +20,26 @@ Here is a quick layout of a deployment file for a mixed-mode project:
 
 environments:
   default:
-    - name: "mixed-mode-workflow"
-      job_clusters:
+    workflows:
+      - name: "mixed-mode-workflow"
+        job_clusters:
         # omitted
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_branch: "main" # or git_tag or git_commit
-      tasks:
-        - task_key: "notebook-remote"
-          notebook_task:
-            notebook_path: "notebooks/sample_notebook"
-          deployment_config:
-            no_package: true
-          job_cluster_key: "default"
-        - task_key: "packaged"
-          python_wheel_task:
-            package_name: "<your-package-name>"
-            entry_point: "<your-entry-point>"
-          job_cluster_key: "default"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_branch: "main" # or git_tag or git_commit
+        tasks:
+          - task_key: "notebook-remote"
+            notebook_task:
+              notebook_path: "notebooks/sample_notebook"
+            deployment_config:
+              no_package: true
+            job_cluster_key: "default"
+          - task_key: "packaged"
+            python_wheel_task:
+              package_name: "<your-package-name>"
+              entry_point: "<your-entry-point>"
+            job_cluster_key: "default"
 ```
 
 The [`git_source`](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsCreate) section provides pointer to the remote git branch (`tag` could also be used).
@@ -91,19 +92,20 @@ dbx configure --enable-inplace-jinja-support
 # only relevant block shown
 environments:
   default:
-    - name: "notebook-from-remote-branch"
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_branch: "{{env['GIT_BRANCH']}}" # assuming this env variable exists
-    - name: "notebook-from-remote-tag"
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_tag: "{{env['GIT_TAG']}}" # assuming this env variable exists
-    - name: "notebook-from-remote-commit"
-      git_source:
-        git_url: https://some-git-provider.com/some/remote/repo.git
-        git_provider: "git-provider-name"
-        git_commit: "{{env['GIT_COMMIT']}}" # assuming this env variable exists
+    workflows:
+      - name: "notebook-from-remote-branch"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_branch: "{{env['GIT_BRANCH']}}" # assuming this env variable exists
+      - name: "notebook-from-remote-tag"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_tag: "{{env['GIT_TAG']}}" # assuming this env variable exists
+      - name: "notebook-from-remote-commit"
+        git_source:
+          git_url: https://some-git-provider.com/some/remote/repo.git
+          git_provider: "git-provider-name"
+          git_commit: "{{env['GIT_COMMIT']}}" # assuming this env variable exists
 ```

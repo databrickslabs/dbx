@@ -16,6 +16,7 @@ from dbx.api.launch.tracer import RunTracer, PipelineTracer
 from dbx.api.services.jobs import JobListing, ListJobsResponse
 from dbx.api.services.pipelines import NamedPipelinesService
 from dbx.api.storage.io import StorageIO
+from dbx.utils.common import parse_multiple
 from dbx.utils.json import JsonUtils
 from tests.unit.conftest import invoke_cli_runner
 
@@ -157,12 +158,16 @@ def test_launch_run_submit(
     assert launch_result.exit_code == 0
 
 
-def test_launch_not_found(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):
-    _chosen_job = deploy_and_get_job_name(["--tags", "soup=beautiful"])
-    launch_result = invoke_cli_runner(
-        ["launch", "--job", _chosen_job] + ["--tags", "cake=cheesecake"], expected_error=True
-    )
-    assert "No deployments provided per given set of filters" in str(launch_result.exception)
+def test_multi_launch(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+
+    l1_result = invoke_cli_runner(["launch", "--job", _chosen_job])
+    l2_result = invoke_cli_runner(["launch", "--job", _chosen_job])
+    assert l1_result.exception is None
+    assert l2_result.exception is None
 
 
 def test_launch_empty_runs(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):
@@ -194,7 +199,7 @@ def test_launch_with_run_now_v21_params(mocker: MockFixture, temp_project: Path,
     client_mock = MagicMock()
     p = PropertyMock(return_value="2.1")
     type(client_mock).jobs_api_version = p
-    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda: client_mock)
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda x: client_mock)
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
     launch_result = invoke_cli_runner(
@@ -206,7 +211,7 @@ def test_launch_with_run_now_v21_params(mocker: MockFixture, temp_project: Path,
 def test_launch_with_run_now_v20_params(mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_storage_io):
     client_mock = MagicMock()
     type(client_mock).jobs_api_version = PropertyMock(return_value="2.0")
-    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda: client_mock)
+    mocker.patch.object(DatabricksClientProvider, "get_v2_client", lambda x: client_mock)
     _chosen_job = deploy_and_get_job_name()
     prepare_job_service_mock(mocker, _chosen_job)
     launch_result = invoke_cli_runner(["launch", "--job", _chosen_job, "--parameters", '{"python_params":[1,2]}'])
@@ -293,3 +298,25 @@ def test_launch_with_trace_and_kill_on_sigterm_with_interruption(
     )
     assert launch_result.exit_code == 0
     _tracer.assert_called_once()
+
+
+def test_smoke_launch_workflow_additional_headers(
+    mocker: MockFixture, temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client
+):
+    _chosen_job = deploy_and_get_job_name()
+    prepare_job_service_mock(mocker, _chosen_job)
+    expected_headers = {
+        "azure_sp_token": "eyJhbAAAABBBB",
+        "workspace_id": (
+            "/subscriptions/bc5bAAA-BBBB/resourceGroups/some-resource-group"
+            "/providers/Microsoft.Databricks/workspaces/target-dtb-ws"
+        ),
+        "org_id": "1928374655647382",
+    }
+    header_parse_mock = mocker.patch("dbx.commands.launch.parse_multiple", wraps=parse_multiple)
+    kwargs = [f"{key}={val}" for key, val in expected_headers.items()]
+    cli_kwargs = [arg for kw in kwargs for arg in ("--header", kw)]
+
+    launch_job_result = invoke_cli_runner(["launch", _chosen_job, *cli_kwargs])
+    assert launch_job_result.exit_code == 0
+    header_parse_mock.assert_any_call(kwargs)

@@ -153,3 +153,19 @@ LAUNCH_PARAMETERS_OPTION = typer.Option(
     show_default=True,
     callback=launch_parameters_callback,
 )
+
+HEADERS_OPTION = typer.Option(
+    None,
+    "--header",
+    "-H",
+    help="""Additional headers to API calls.
+
+
+    Example: `--header name1=value1`
+
+
+    Option might be repeated multiple times: `-H name1=value1 -H name2=value2`
+
+    Helpful when calling the API from CI/CD pipelines that use a Service Principal to authenticate to Azure Databricks
+    and the Service Principal is not added to the Databricks Workspace.""",
+)

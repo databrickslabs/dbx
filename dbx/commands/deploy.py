@@ -1,35 +1,35 @@
 import json
 from pathlib import Path
-from typing import List
-from typing import Optional
+from typing import Dict, List, Optional
 
 import mlflow
 import typer
 
-from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
-from dbx.api.config_reader import ConfigReader, BuildProperties
+from dbx.api.adjuster.adjuster import AdditionalLibrariesProvider, Adjuster
+from dbx.api.config_reader import BuildProperties, ConfigReader
 from dbx.api.dependency.core_package import CorePackageManager
 from dbx.api.dependency.requirements import RequirementsFileProcessor
 from dbx.api.deployment import WorkflowDeploymentManager
 from dbx.api.storage.io import StorageIO
 from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.options import (
-    DEPLOYMENT_FILE_OPTION,
-    ENVIRONMENT_OPTION,
-    JINJA_VARIABLES_FILE_OPTION,
-    REQUIREMENTS_FILE_OPTION,
-    NO_REBUILD_OPTION,
-    NO_PACKAGE_OPTION,
-    TAGS_OPTION,
     BRANCH_NAME_OPTION,
     DEBUG_OPTION,
+    DEPLOYMENT_FILE_OPTION,
+    ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
+    JINJA_VARIABLES_FILE_OPTION,
+    NO_PACKAGE_OPTION,
+    NO_REBUILD_OPTION,
+    REQUIREMENTS_FILE_OPTION,
+    TAGS_OPTION,
     WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
 from dbx.utils.common import (
-    prepare_environment,
-    parse_multiple,
     get_current_branch_name,
+    parse_multiple,
+    prepare_environment,
 )
 from dbx.utils.file_uploader import MlflowFileUploader
 
@@ -90,14 +90,20 @@ def deploy(
               Please note that output file will be overwritten if it exists.""",
         writable=True,
     ),
+    headers: Optional[List[str]] = HEADERS_OPTION,
     branch_name: Optional[str] = BRANCH_NAME_OPTION,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
 ):
     dbx_echo(f"Starting new deployment for environment {environment_name}")
+    if headers:
+        headers: Dict[str, str] = parse_multiple(headers)
+    else:
+        headers = None
 
-    api_client = prepare_environment(environment_name)
+    api_client = prepare_environment(environment_name, headers)
     additional_tags = parse_multiple(tags)
+    no_rebuild = no_rebuild or no_package
 
     if not branch_name:
         branch_name = get_current_branch_name()
@@ -115,7 +121,7 @@ def deploy(
     deployable_workflows = environment_info.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
     environment_info.payload.workflows = deployable_workflows  # filter out the chosen set of workflows
 
-    core_package = CorePackageManager().core_package
+    core_package = None if no_package else CorePackageManager().core_package
     libraries_from_requirements = RequirementsFileProcessor(requirements_file).libraries if requirements_file else []
 
     _assets_only = assets_only if assets_only else files_only
