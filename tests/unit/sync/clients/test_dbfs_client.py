@@ -240,11 +240,11 @@ def test_put_max_block_size_exceeded(client: DBFSClient, dummy_file_path_2mb: st
     def mock_post(url, *args, **kwargs):
         resp = AsyncMock()
         setattr(type(resp), "status", PropertyMock(return_value=200))
-        if "/base/api/2.0/dbfs/put" in url:
+        if "/api/2.0/dbfs/put" in url:
             contents = kwargs.get("json").get("contents")
             if len(contents) > 1024 * 1024:  # replicate the api error thrown when contents exceeds max allowed
                 setattr(type(resp), "status", PropertyMock(return_value=400))
-        elif "/base/api/2.0/dbfs/create" in url:
+        elif "/api/2.0/dbfs/create" in url:
             # return a mock response json
             resp.json = MagicMock(side_effect=mock_json)
 
@@ -262,11 +262,11 @@ def test_put_max_block_size_exceeded(client: DBFSClient, dummy_file_path_2mb: st
     chunks = textwrap.wrap(base64.b64encode(bytes(expected_contents, encoding="utf8")).decode("ascii"), 1024 * 1024)
 
     assert session.post.call_count == len(chunks) + 2
-    assert session.post.call_args_list[0][1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/create"
-    assert session.post.call_args_list[1][1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/add-block"
-    assert session.post.call_args_list[2][1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/add-block"
-    assert session.post.call_args_list[3][1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/add-block"
-    assert session.post.call_args_list[4][1]["url"] == "http://fakehost.asdf/base/api/2.0/dbfs/close"
+    assert session.post.call_args_list[0][1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/create"
+    assert session.post.call_args_list[1][1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/add-block"
+    assert session.post.call_args_list[2][1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/add-block"
+    assert session.post.call_args_list[3][1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/add-block"
+    assert session.post.call_args_list[4][1]["url"] == "http://fakehost.asdf/api/2.0/dbfs/close"
 
     assert session.post.call_args_list[0][1]["json"] == {
         "path": "dbfs:/tmp/foo/foo/bar",
