@@ -367,7 +367,9 @@ def workspace(
             This is optional, as the user name is determined automatically using the scim/me API.
 
             If it cannot be determined, or to use a different user for the path,
-            the user name may be specified using this option.""",
+            the user name may be specified using this option.
+            
+            If an absolute path is passed to the dest_dir argument, this is ignored.""",
     ),
     source: Optional[str] = SOURCE_OPTION,
     full_sync: bool = FULL_SYNC_OPTION,
@@ -378,10 +380,12 @@ def workspace(
         ...,
         "--dest-dir",
         "-d",
-        help="""The name of the Databricks Workspace directory to sync to.
+        help="""The name of the Databricks Workspace directory to sync to. By default, user directories are used.
 
             User directories exist in the Databricks Workspace under a path of the form `/Users/<user>/<dir>`.
             This specifies the `<dir>` portion of the path.
+            
+            If an absolute path is passed, it will be used as is.
             
             If the directory does not exist, it and its parent directories will be created.""",
     ),

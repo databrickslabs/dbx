@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import os
 from abc import ABC, abstractmethod
 
 import aiohttp
@@ -344,7 +345,10 @@ class WorkspaceClient(BaseClient):
             raise ValueError("Expected a user")
         if not dir_name:
             raise ValueError("dir_name is required")
-        self.base_path = f"/Users/{user}/{dir_name}"
+        if os.path.isabs(dir_name):
+            self.base_path = dir_name
+        else:
+            self.base_path = f"/Users/{user}/{dir_name}"
         self.api_token = config.token
         self.host = strip_databricks_url(config.host)
         self.workspace_api_base_path = f"{self.host}/api/2.0/workspace"
