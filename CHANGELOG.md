@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 📌 switch from using `retry` to `tenacity`
 
+### Added
+- ✨ support for files bigger than 1MB in sync
+
 ## [0.8.8] - 2022-02-22
 
 # Fixed
