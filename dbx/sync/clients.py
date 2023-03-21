@@ -98,7 +98,7 @@ class BaseClient(ABC):
             more_opts = {"ssl": ssl} if ssl is not None else {}
             async with session.post(url=url, json=json_data, headers=headers, **more_opts) as resp:
                 if resp.status in ok_status:
-                    break
+                    return await resp.json()
                 if resp.status == 429:
                     dbx_echo("Rate limited")
                     await _rate_limit_sleep(resp)
@@ -197,14 +197,49 @@ class DBFSClient(BaseClient):
         path = f"{self.base_path}/{sub_path}"
         with open(full_source_path, "rb") as f:
             contents = base64.b64encode(f.read()).decode("ascii")
-        await self._api_put(
-            api_base_path=self.api_base_path,
-            path=path,
-            session=session,
-            api_token=self.api_token,
-            contents=contents,
-            ssl=self.ssl,
-        )
+
+        if len(contents) <= 1024 * 1024:
+            await self._api_put(
+                api_base_path=self.api_base_path,
+                path=path,
+                session=session,
+                api_token=self.api_token,
+                contents=contents,
+                ssl=self.ssl,
+            )
+        else:
+            dbx_echo(f"Streaming {path}")
+
+            resp = await self._api(
+                url=f"{self.api_base_path}/create",
+                path=path,
+                session=session,
+                api_token=self.api_token,
+                ssl=self.ssl,
+                overwrite=True,
+            )
+            handle = resp.get("handle")
+            import textwrap
+
+            chunks = textwrap.wrap(contents, 1024 * 1024)
+            for chunk in chunks:
+                await self._api(
+                    url=f"{self.api_base_path}/add-block",
+                    path=path,
+                    session=session,
+                    api_token=self.api_token,
+                    ssl=self.ssl,
+                    handle=handle,
+                    data=chunk,
+                )
+            await self._api(
+                url=f"{self.api_base_path}/close",
+                path=path,
+                session=session,
+                api_token=self.api_token,
+                ssl=self.ssl,
+                handle=handle,
+            )
 
 
 class ReposClient(BaseClient):
