@@ -10,7 +10,7 @@ from dbx.commands.sync.sync import repo_exists
 from dbx.commands.sync.functions import get_user_name, get_source_base_name
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
-from dbx.sync.clients import DBFSClient, ReposClient
+from dbx.sync.clients import DBFSClient, ReposClient, WorkspaceClient
 from tests.unit.sync.utils import mocked_props
 from .conftest import invoke_cli_runner
 from .utils import temporary_directory, pushd
@@ -542,6 +542,441 @@ def test_repo_disallow_delete_unmatched(mock_main_loop, mock_get_user_name, mock
 
         assert isinstance(client, ReposClient)
         assert client.base_path == "/Repos/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_no_opts(mock_main_loop):
+    # some options are required
+    res = invoke_cli_runner(["workspace"], expected_error=True)
+    assert "Missing option" in res.output
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_environment(mock_main_loop, mock_get_user_name, temp_project):
+    with temporary_directory() as tempdir:
+        mock_get_user_name.return_value = "me"
+
+        with patch.object(ProfileConfigProvider, "get_config") as config_mock:
+            config_mock.return_value = get_config()
+            invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "--environment", "default"])
+
+            assert mock_main_loop.call_count == 1
+            assert config_mock.call_count == 1
+            assert mock_get_user_name.call_count == 1
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_basic_opts(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        mock_get_user_name.return_value = "me"
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 1
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_unknown_user(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        mock_get_user_name.return_value = None
+
+        res = invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo"], expected_error=True)
+
+        assert mock_main_loop.call_count == 0
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 1
+
+        assert "Destination path can't be automatically determined because the user is" in res.output
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_dry_run(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "/Shared/the-repo", "--dry-run"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 1
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert not mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Shared/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_polling(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        mock_get_user_name.return_value = "me"
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "--polling-interval", "2"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 1
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["polling_interval_secs"] == 2.0
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_include_dir(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        os.mkdir(os.path.join(tempdir, "foo"))
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == ["/foo/"]
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_force_include_dir(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        os.mkdir(os.path.join(tempdir, "foo"))
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fi", "foo"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == ["/foo/"]
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_include_pattern(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        os.mkdir(os.path.join(tempdir, "foo"))
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ip", "foo/*.py"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == ["foo/*.py"]
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_force_include_pattern(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        os.mkdir(os.path.join(tempdir, "foo"))
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "-fip", "foo/*.py"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == ["foo/*.py"]
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_exclude_dir(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        os.mkdir(os.path.join(tempdir, "foo"))
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "-e", "foo"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(DBX_SYNC_DEFAULT_IGNORES + ["/foo/"])
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_exclude_pattern(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        os.mkdir(os.path.join(tempdir, "foo"))
+
+        invoke_cli_runner(["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "-ep", "foo/**/*.py"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert sorted(mock_main_loop.call_args[1]["matcher"].ignores) == sorted(
+            DBX_SYNC_DEFAULT_IGNORES + ["foo/**/*.py"]
+        )
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_include_dir_not_exists(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        # we don't create the "foo" subdir, so it should produce an error
+
+        res = invoke_cli_runner(
+            ["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "-i", "foo"], expected_error=True
+        )
+
+        assert mock_main_loop.call_count == 0
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert "does not exist" in res.output
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_inferred_source(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir, pushd(tempdir):
+        os.mkdir(os.path.join(tempdir, ".git"))
+
+        invoke_cli_runner(["workspace", "-d", "the-repo", "-u", "me"])
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert (
+            mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.UNSPECIFIED_DELETE_UNMATCHED
+        )
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_inferred_source_no_git(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir, pushd(tempdir):
+        # source can only be inferred when the cwd contains a .git subdir
+
+        res = invoke_cli_runner(["workspace", "-d", "the-repo", "-u", "me"], expected_error=True)
+
+        assert mock_main_loop.call_count == 0
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert "Must specify source" in res.output
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_allow_delete_unmatched(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        invoke_cli_runner(
+            ["workspace", "-s", tempdir, "-d", "the-repo", "-u", "me", "--unmatched-behaviour=allow-delete-unmatched"]
+        )
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.ALLOW_DELETE_UNMATCHED
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
+
+
+@patch("dbx.commands.sync.sync.get_user_name")
+@patch("dbx.commands.sync.sync.main_loop")
+def test_workspace_disallow_delete_unmatched(mock_main_loop, mock_get_user_name, mock_get_config):
+    with temporary_directory() as tempdir:
+        invoke_cli_runner(
+            [
+                "workspace",
+                "-s",
+                tempdir,
+                "-d",
+                "the-repo",
+                "-u",
+                "me",
+                "--unmatched-behaviour=disallow-delete-unmatched",
+            ]
+        )
+
+        assert mock_main_loop.call_count == 1
+        assert mock_get_config.call_count == 1
+        assert mock_get_user_name.call_count == 0
+
+        assert mock_main_loop.call_args[1]["source"] == tempdir
+        assert not mock_main_loop.call_args[1]["full_sync"]
+        assert not mock_main_loop.call_args[1]["dry_run"]
+        assert mock_main_loop.call_args[1]["matcher"]
+        assert mock_main_loop.call_args[1]["matcher"].includes == []
+        assert mock_main_loop.call_args[1]["matcher"].force_includes == []
+        assert mock_main_loop.call_args[1]["matcher"].ignores == DBX_SYNC_DEFAULT_IGNORES
+        assert mock_main_loop.call_args[1]["watch"]
+        assert mock_main_loop.call_args[1]["delete_unmatched_option"] == DeleteUnmatchedOption.DISALLOW_DELETE_UNMATCHED
+
+        client = mock_main_loop.call_args[1]["client"]
+
+        assert isinstance(client, WorkspaceClient)
+        assert client.base_path == "/Users/me/the-repo"
 
 
 @patch("dbx.commands.sync.sync.get_user_name")

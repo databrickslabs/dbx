@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import List, Optional
 
 import aiohttp
@@ -40,10 +41,11 @@ sync_app = typer.Typer(
     short_help="🔄 Sync local files to Databricks and watch for changes.",
     help="""🔄 Sync local files to Databricks and watch for changes.
 
-    Sync local files to Databricks and watch for changes, with support for syncing to either a path
-    in [DBFS](https://docs.databricks.com/data/databricks-file-system.html) or a
-    [Databricks Repo](https://docs.databricks.com/repos/index.html) via the `dbfs` and `repo`
-    subcommands.
+    Sync local files to Databricks and watch for changes, with support for syncing to a path
+    in [DBFS](https://docs.databricks.com/data/databricks-file-system.html), a
+    [Databricks Repo](https://docs.databricks.com/repos/index.html), or an arbitrary 
+    [Databricks Workspace](https://docs.databricks.com/workspace/workspace-assets.html#files) location 
+    via the `dbfs`, `repo`, and `workspace` subcommands, respectively.
 
 
     This enables one to incrementally sync local files to Databricks in order to enable quick, iterative
@@ -78,6 +80,25 @@ sync_app = typer.Typer(
 
     The `dbx sync repo` command syncs to a repo in Databricks. If that repo is a git clone you can see the
     changes made to the files, as if you'd made the edits directly in Databricks.
+
+
+    Similarly, the `dbx sync workspace` command also allows you to edit the files in a local repo on your computer
+    in an IDE of your choice and sync the changes to Databricks. Repos are recommended when available, but this provides
+    flexibility for organizations in which Repos may not yet be enabled.
+
+
+    As above, the following will sync all the files to a new or existing workspace location. Note that passing a 
+    relative path will result in these files being synced to your user-level directory (i.e., /Users/<user>/<dest>), 
+    whereas passing an absolute path will sync files to the location specified. If parent directories do not exist,
+    they will automatically be created.
+
+    ```
+    dbx sync workspace -d myrepo
+    ```
+
+    When using Databricks Runtime 11.2 and above, support for 
+    [relative imports and programmatic reads/writes](https://docs.databricks.com/files/workspace.html) 
+    should be synonymous with that found in Databricks Repos.
 
 
     Alternatively, you can use `dbx sync dbfs` to sync the files to a path in DBFS.
@@ -343,9 +364,6 @@ def repo(
     )
 
 
-# TODO: Limit redundancies with repo command
-# TODO: Add tests
-
 @sync_app.command(
     short_help="""
     🔀 Syncs from a source directory to a Databricks Workspace directory
@@ -415,9 +433,9 @@ def workspace(
     if not user_name:
         user_name = get_user_name(config)
 
-    if not user_name:
+    if not user_name and not os.path.isabs(dest_dir):
         raise click.UsageError(
-            "Destination repo path can't be automatically determined because the user is not known. "
+            "Destination path can't be automatically determined because the user is not known. "
             "Please either specify the user with --user."
         )
 

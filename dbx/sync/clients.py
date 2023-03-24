@@ -243,15 +243,10 @@ class DBFSClient(BaseClient):
             )
 
 
-class ReposClient(BaseClient):
-    name = "repos"
-
-    def __init__(self, *, user: str, repo_name: str, config: DatabricksConfig):
+class AbstractWorkspaceClient(BaseClient):
+    def __init__(self, *, user: str, config: DatabricksConfig):
         if not user:
             raise ValueError("Expected a user")
-        if not repo_name:
-            raise ValueError("repo_name is required")
-        self.base_path = f"/Repos/{user}/{repo_name}"
         self.api_token = config.token
         self.host = strip_databricks_url(config.host)
         self.workspace_api_base_path = f"{self.host}/api/2.0/workspace"
@@ -273,6 +268,50 @@ class ReposClient(BaseClient):
             api_token=self.api_token,
             ssl=self.ssl,
         )
+
+    async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
+        check_path(sub_path)
+        path = f"{self.base_path}/{sub_path}"
+        await self._api_mkdirs(
+            api_base_path=self.workspace_api_base_path,
+            path=path,
+            session=session,
+            api_token=self.api_token,
+            ssl=self.ssl,
+        )
+
+    async def put(self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession):
+        check_path(sub_path)
+        path = f"{self.base_path}/{sub_path}"
+        dbx_echo(f"Putting {path}")
+        with open(full_source_path, "rb") as f:
+            content = f.read()
+            path = path.lstrip("/")
+            url = f"{self.workspace_files_api_base_path}/{path}"
+            params = {"overwrite": "true"}
+            while True:
+                headers = get_headers(self.api_token, self.name)
+                more_opts = {"ssl": self.ssl} if self.ssl is not None else {}
+                async with session.post(url=url, data=content, params=params, headers=headers, **more_opts) as resp:
+                    if resp.status == 200:
+                        break
+                    if resp.status == 429:
+                        dbx_echo("Rate limited")
+                        await _rate_limit_sleep(resp)
+                    else:
+                        txt = await resp.text()
+                        dbx_echo(f"HTTP {resp.status}: {txt}")
+                        raise ClientError(resp.status)
+
+
+class ReposClient(AbstractWorkspaceClient):
+    name = "repos"
+
+    def __init__(self, *, user: str, repo_name: str, config: DatabricksConfig):
+        if not repo_name:
+            raise ValueError("repo_name is required")
+        self.base_path = f"/Repos/{user}/{repo_name}"
+        super().__init__(user=user, config=config)
 
     async def exists(self, *, session: aiohttp.ClientSession) -> bool:
         """Checks if the target repo the client will sync to exists.
@@ -299,108 +338,15 @@ class ReposClient(BaseClient):
                 dbx_echo(f"HTTP {resp.status}: {txt}")
                 raise ClientError(resp.status)
 
-    async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
-        check_path(sub_path)
-        path = f"{self.base_path}/{sub_path}"
-        await self._api_mkdirs(
-            api_base_path=self.workspace_api_base_path,
-            path=path,
-            session=session,
-            api_token=self.api_token,
-            ssl=self.ssl,
-        )
 
-    async def put(self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession):
-        check_path(sub_path)
-        path = f"{self.base_path}/{sub_path}"
-        dbx_echo(f"Putting {path}")
-        with open(full_source_path, "rb") as f:
-            content = f.read()
-            path = path.lstrip("/")
-            url = f"{self.workspace_files_api_base_path}/{path}"
-            params = {"overwrite": "true"}
-            while True:
-                headers = get_headers(self.api_token, self.name)
-                more_opts = {"ssl": self.ssl} if self.ssl is not None else {}
-                async with session.post(url=url, data=content, params=params, headers=headers, **more_opts) as resp:
-                    if resp.status == 200:
-                        break
-                    if resp.status == 429:
-                        dbx_echo("Rate limited")
-                        await _rate_limit_sleep(resp)
-                    else:
-                        txt = await resp.text()
-                        dbx_echo(f"HTTP {resp.status}: {txt}")
-                        raise ClientError(resp.status)
-                    
-
-# TODO: Limit redundancies with RepoClient
-# TODO: Add tests
-
-class WorkspaceClient(BaseClient):
+class WorkspaceClient(AbstractWorkspaceClient):
     name = "workspace"
 
     def __init__(self, *, user: str, dir_name: str, config: DatabricksConfig):
-        if not user:
-            raise ValueError("Expected a user")
         if not dir_name:
             raise ValueError("dir_name is required")
         if os.path.isabs(dir_name):
             self.base_path = dir_name
         else:
             self.base_path = f"/Users/{user}/{dir_name}"
-        self.api_token = config.token
-        self.host = strip_databricks_url(config.host)
-        self.workspace_api_base_path = f"{self.host}/api/2.0/workspace"
-        self.workspace_files_api_base_path = f"{self.host}/api/2.0/workspace-files/import-file"
-        if config.insecure is None:
-            self.ssl = None
-        else:
-            self.ssl = not config.insecure
-        dbx_echo(f"Target base path: {self.base_path}")
-
-    async def delete(self, sub_path: str, *, session: aiohttp.ClientSession, recursive: bool = False):
-        check_path(sub_path)
-        path = f"{self.base_path}/{sub_path}"
-        await self._api_delete(
-            api_base_path=self.workspace_api_base_path,
-            path=path,
-            session=session,
-            recursive=recursive,
-            api_token=self.api_token,
-            ssl=self.ssl,
-        )
-
-    async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
-        check_path(sub_path)
-        path = f"{self.base_path}/{sub_path}"
-        await self._api_mkdirs(
-            api_base_path=self.workspace_api_base_path,
-            path=path,
-            session=session,
-            api_token=self.api_token,
-            ssl=self.ssl,
-        )
-
-    async def put(self, sub_path: str, full_source_path: str, *, session: aiohttp.ClientSession):
-        check_path(sub_path)
-        path = f"{self.base_path}/{sub_path}"
-        dbx_echo(f"Putting {path}")
-        with open(full_source_path, "rb") as f:
-            content = f.read()
-            path = path.lstrip("/")
-            url = f"{self.workspace_files_api_base_path}/{path}"
-            params = {"overwrite": "true"}
-            while True:
-                headers = get_headers(self.api_token, self.name)
-                more_opts = {"ssl": self.ssl} if self.ssl is not None else {}
-                async with session.post(url=url, data=content, params=params, headers=headers, **more_opts) as resp:
-                    if resp.status == 200:
-                        break
-                    if resp.status == 429:
-                        dbx_echo("Rate limited")
-                        await _rate_limit_sleep(resp)
-                    else:
-                        txt = await resp.text()
-                        dbx_echo(f"HTTP {resp.status}: {txt}")
-                        raise ClientError(resp.status)
+        super().__init__(user=user, config=config)
