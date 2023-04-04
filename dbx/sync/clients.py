@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import os
 from abc import ABC, abstractmethod
 
 import aiohttp
@@ -242,15 +243,10 @@ class DBFSClient(BaseClient):
             )
 
 
-class ReposClient(BaseClient):
-    name = "repos"
-
-    def __init__(self, *, user: str, repo_name: str, config: DatabricksConfig):
+class AbstractWorkspaceClient(BaseClient):
+    def __init__(self, *, user: str, config: DatabricksConfig):
         if not user:
             raise ValueError("Expected a user")
-        if not repo_name:
-            raise ValueError("repo_name is required")
-        self.base_path = f"/Repos/{user}/{repo_name}"
         self.api_token = config.token
         self.host = strip_databricks_url(config.host)
         self.workspace_api_base_path = f"{self.host}/api/2.0/workspace"
@@ -272,31 +268,6 @@ class ReposClient(BaseClient):
             api_token=self.api_token,
             ssl=self.ssl,
         )
-
-    async def exists(self, *, session: aiohttp.ClientSession) -> bool:
-        """Checks if the target repo the client will sync to exists.
-
-        Args:
-            session (aiohttp.ClientSession): client session
-
-        Raises:
-            ClientError: failed to check repos API
-
-        Returns:
-            bool: True if the repo exists, otherwise False
-        """
-        headers = get_headers(self.api_token, self.name)
-        more_opts = {"ssl": self.ssl} if self.ssl is not None else {}
-        url = f"{self.host}/api/2.0/repos"
-        params = {"path_prefix": self.base_path}
-        async with session.get(url=url, headers=headers, params=params, **more_opts) as resp:
-            if resp.status == 200:
-                json_resp = await resp.json()
-                return self.base_path in [repo["path"] for repo in json_resp.get("repos", [])]
-            else:
-                txt = await resp.text()
-                dbx_echo(f"HTTP {resp.status}: {txt}")
-                raise ClientError(resp.status)
 
     async def mkdirs(self, sub_path: str, *, session: aiohttp.ClientSession):
         check_path(sub_path)
@@ -331,3 +302,51 @@ class ReposClient(BaseClient):
                         txt = await resp.text()
                         dbx_echo(f"HTTP {resp.status}: {txt}")
                         raise ClientError(resp.status)
+
+
+class ReposClient(AbstractWorkspaceClient):
+    name = "repos"
+
+    def __init__(self, *, user: str, repo_name: str, config: DatabricksConfig):
+        if not repo_name:
+            raise ValueError("repo_name is required")
+        self.base_path = f"/Repos/{user}/{repo_name}"
+        super().__init__(user=user, config=config)
+
+    async def exists(self, *, session: aiohttp.ClientSession) -> bool:
+        """Checks if the target repo the client will sync to exists.
+
+        Args:
+            session (aiohttp.ClientSession): client session
+
+        Raises:
+            ClientError: failed to check repos API
+
+        Returns:
+            bool: True if the repo exists, otherwise False
+        """
+        headers = get_headers(self.api_token, self.name)
+        more_opts = {"ssl": self.ssl} if self.ssl is not None else {}
+        url = f"{self.host}/api/2.0/repos"
+        params = {"path_prefix": self.base_path}
+        async with session.get(url=url, headers=headers, params=params, **more_opts) as resp:
+            if resp.status == 200:
+                json_resp = await resp.json()
+                return self.base_path in [repo["path"] for repo in json_resp.get("repos", [])]
+            else:
+                txt = await resp.text()
+                dbx_echo(f"HTTP {resp.status}: {txt}")
+                raise ClientError(resp.status)
+
+
+class WorkspaceClient(AbstractWorkspaceClient):
+    name = "workspace"
+
+    def __init__(self, *, user: str, dir_name: str, config: DatabricksConfig):
+        if not dir_name:
+            raise ValueError("dir_name is required")
+        if os.path.isabs(dir_name):
+            self.base_path = dir_name
+        else:
+            self.base_path = f"/Users/{user}/{dir_name}"
+        super().__init__(user=user, config=config)

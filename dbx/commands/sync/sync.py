@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import List, Optional
 
 import aiohttp
@@ -32,7 +33,7 @@ from dbx.commands.sync.options import (
 )
 from dbx.options import PROFILE_OPTION
 from dbx.sync import DeleteUnmatchedOption
-from dbx.sync.clients import DBFSClient, ReposClient
+from dbx.sync.clients import DBFSClient, ReposClient, WorkspaceClient
 from dbx.sync.config import get_databricks_config
 from dbx.utils import dbx_echo
 
@@ -40,10 +41,11 @@ sync_app = typer.Typer(
     short_help="🔄 Sync local files to Databricks and watch for changes.",
     help="""🔄 Sync local files to Databricks and watch for changes.
 
-    Sync local files to Databricks and watch for changes, with support for syncing to either a path
-    in [DBFS](https://docs.databricks.com/data/databricks-file-system.html) or a
-    [Databricks Repo](https://docs.databricks.com/repos/index.html) via the `dbfs` and `repo`
-    subcommands.
+    Sync local files to Databricks and watch for changes, with support for syncing to a path
+    in [DBFS](https://docs.databricks.com/data/databricks-file-system.html), a
+    [Databricks Repo](https://docs.databricks.com/repos/index.html), or an arbitrary 
+    [Databricks Workspace](https://docs.databricks.com/workspace/workspace-assets.html#files) location 
+    via the `dbfs`, `repo`, and `workspace` subcommands, respectively.
 
 
     This enables one to incrementally sync local files to Databricks in order to enable quick, iterative
@@ -78,6 +80,25 @@ sync_app = typer.Typer(
 
     The `dbx sync repo` command syncs to a repo in Databricks. If that repo is a git clone you can see the
     changes made to the files, as if you'd made the edits directly in Databricks.
+
+
+    Similarly, the `dbx sync workspace` command also allows you to edit the files in a local repo on your computer
+    in an IDE of your choice and sync the changes to Databricks. Repos are recommended when available, but this provides
+    flexibility for organizations in which Repos may not yet be enabled.
+
+
+    As above, the following will sync all the files to a new or existing workspace location. Note that passing a 
+    relative path will result in these files being synced to your user-level directory (i.e., /Users/<user>/<dest>), 
+    whereas passing an absolute path will sync files to the location specified. If parent directories do not exist,
+    they will automatically be created.
+
+    ```
+    dbx sync workspace -d myrepo
+    ```
+
+    When using Databricks Runtime 11.2 and above, support for 
+    [relative imports and programmatic reads/writes](https://docs.databricks.com/files/workspace.html) 
+    should be synonymous with that found in Databricks Repos.
 
 
     Alternatively, you can use `dbx sync dbfs` to sync the files to a path in DBFS.
@@ -330,6 +351,108 @@ def repo(
             "clicking 'Add Repo', unchecking the 'Create repo by cloning a Git repository' option, and providing "
             f"{dest_repo} as the repository name."
         )
+
+    main_loop(
+        source=source,
+        matcher=matcher,
+        client=client,
+        full_sync=full_sync,
+        dry_run=dry_run,
+        watch=watch,
+        polling_interval_secs=polling_interval_secs,
+        delete_unmatched_option=delete_unmatched_option,
+    )
+
+
+@sync_app.command(
+    short_help="""
+    🔀 Syncs from a source directory to a Databricks Workspace directory
+    """,
+    help="""
+    🔀 Syncs from a source directory to a Databricks Workspace directory
+    """,
+)
+def workspace(
+    user_name: Optional[str] = typer.Option(
+        None,
+        "--user",
+        "-u",
+        help="""The user who owns the Workspace directory to sync to.
+
+            User directories exist in the Databricks Workspace under a path of the form `/Users/<user>/<dir>`.
+            This specifies the `<user>` portion of the path.
+
+            This is optional, as the user name is determined automatically using the scim/me API.
+
+            If it cannot be determined, or to use a different user for the path,
+            the user name may be specified using this option.
+            
+            If an absolute path is passed to the dest_dir argument, this is ignored.""",
+    ),
+    source: Optional[str] = SOURCE_OPTION,
+    full_sync: bool = FULL_SYNC_OPTION,
+    dry_run: bool = DRY_RUN_OPTION,
+    include_dirs: Optional[List[str]] = INCLUDE_DIRS_OPTION,
+    force_include_dirs: Optional[List[str]] = FORCE_INCLUDE_DIRS_OPTION,
+    dest_dir: str = typer.Option(
+        ...,
+        "--dest-dir",
+        "-d",
+        help="""The name of the Databricks Workspace directory to sync to. By default, user directories are used.
+
+            User directories exist in the Databricks Workspace under a path of the form `/Users/<user>/<dir>`.
+            This specifies the `<dir>` portion of the path.
+            
+            If an absolute path is passed, it will be used as is.
+            
+            If the directory does not exist, it and its parent directories will be created.""",
+    ),
+    exclude_dirs: Optional[List[str]] = EXCLUDE_DIRS_OPTION,
+    profile: str = PROFILE_OPTION,
+    environment: str = SYNC_ENVIRONMENT_OPTION,
+    watch: bool = WATCH_OPTION,
+    polling_interval_secs: Optional[float] = POLLING_INTERVAL_OPTION,
+    include_patterns: Optional[List[str]] = INCLUDE_PATTERNS_OPTION,
+    force_include_patterns: Optional[List[str]] = FORCE_INCLUDE_PATTERNS_OPTION,
+    exclude_patterns: Optional[List[str]] = EXCLUDE_PATTERNS_OPTION,
+    use_gitignore: bool = USE_GITIGNORE_OPTION,
+    delete_unmatched_option: DeleteUnmatchedOption = UNMATCHED_BEHAVIOUR_OPTION,
+):
+    # watch defaults to true, so to make it easy to just add --dry-run without having to add --no-watch,
+    # we'll set watch to false here.
+    if dry_run:
+        watch = False
+
+    if environment:
+        dbx_echo("Environment option is provided, therefore environment-based config will be used")
+        _info = ProjectConfigurationManager().get(environment)
+        config = ProfileConfigProvider(_info.profile).get_config()
+    else:
+        config = get_databricks_config(profile)
+
+    if not user_name:
+        user_name = get_user_name(config)
+
+    if not user_name and not os.path.isabs(dest_dir):
+        raise click.UsageError(
+            "Destination path can't be automatically determined because the user is not known. "
+            "Please either specify the user with --user."
+        )
+
+    source = handle_source(source)
+
+    matcher = create_path_matcher(
+        source=source,
+        include_dirs=include_dirs,
+        exclude_dirs=exclude_dirs,
+        include_patterns=include_patterns,
+        exclude_patterns=exclude_patterns,
+        use_gitignore=use_gitignore,
+        force_include_dirs=force_include_dirs,
+        force_include_patterns=force_include_patterns,
+    )
+
+    client = WorkspaceClient(user=user_name, dir_name=dest_dir, config=config)
 
     main_loop(
         source=source,
