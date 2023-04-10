@@ -169,9 +169,9 @@ class RichExecutionContextClient:
         self._client.execute_command(command, verbose=False)
 
     def upload_file(self, file: Path, prefix_dir: str) -> str:
-        files = list(file.rglob('*')) if file.is_dir() else [file]
+        files = list(file.rglob("*")) if file.is_dir() else [file]
         result_data = []
-        
+
         for _file in files:
             _contents = _file.read_bytes()
             contents = b64encode(_contents)
