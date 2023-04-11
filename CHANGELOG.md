@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `sync workspace` subcommand for syncing local files to Databricks and watching for changes.
 
+### Fixed
+
+- Recursively upload required files when a directory is passed as a task parameter with `dbx execute` and `--upload-via-context`.
+
 ## [0.8.10] - 2023-03-21
 
 
