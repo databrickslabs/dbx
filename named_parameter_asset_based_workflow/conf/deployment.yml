@@ -1,0 +1,26 @@
+# Custom section is used to store configurations that might be repetative.
+# Please read YAML documentation for details on how to use substitutions and anchors.
+custom:
+  basic-cluster-props: &basic-cluster-props
+    spark_version: "12.2.x-scala2.12"
+
+  basic-static-cluster: &basic-static-cluster
+    new_cluster:
+      <<: *basic-cluster-props
+      num_workers: 1
+      node_type_id: "i3.xlarge"
+
+environments:
+  default:
+    workflows:
+      - name: "mlx_integration_test_launch_deploy_workflow"
+        format: MULTI_TASK
+        tasks:
+          - task_key: "etl"
+            <<: *basic-static-cluster
+            python_wheel_task:
+              package_name: "mlx_integration_test"
+              entry_point: "etl"
+              named_parameters:
+                conf-file: "file:fuse://conf/tasks/etl_config.yml"
+                test_param: "default"
