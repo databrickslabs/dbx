@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [0.8.12] - 2023-05-06
+
+## Fixed
+
+- Explicitly pin the `requests` version to avoid issues with downstream libraries
+
 ## [0.8.11] - 2023-04-24
 
 ### Added
