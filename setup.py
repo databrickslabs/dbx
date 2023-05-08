@@ -16,7 +16,7 @@ INSTALL_REQUIRES = [
     # CLI interface
     "click>=8.1.0,<9.0.0",
     "rich==12.6.0",
-    "typer[all]==0.7.0",
+    "typer[all]==0.9.0",
     # for templates creation
     "cookiecutter>=1.7.2, <3.0.0",
     # file formats and models
