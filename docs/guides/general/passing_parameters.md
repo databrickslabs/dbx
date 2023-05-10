@@ -70,8 +70,8 @@ All parameters should be provided in a form of a JSON-compatible payload (see ex
 
     Examples for Jobs API 2.0:
     ```bash
-    dbx launch <workflow_name> --assets-only --parameters='{"base_parameters": {"key1": "value1", "key2": "value2"}}' # for notebook_task
-    dbx launch <workflow_name> --assets-only --parameters='{"parameters": ["argument1", "argument2"]}' # for spark_jar_task, spark_python_task and spark_submit_task
+    dbx launch <workflow_name> --from-assets --parameters='{"base_parameters": {"key1": "value1", "key2": "value2"}}' # for notebook_task
+    dbx launch <workflow_name> --from-assets --parameters='{"parameters": ["argument1", "argument2"]}' # for spark_jar_task, spark_python_task and spark_submit_task
     ```
 
     For Jobs API 2.1, the payload format should be compliant with the [JobsRunSubmit](https://docs.databricks.com/dev-tools/api/latest/jobs.html#operation/JobsRunsSubmit).
@@ -81,27 +81,27 @@ All parameters should be provided in a form of a JSON-compatible payload (see ex
 
     ```bash
     # notebook_task
-    dbx launch <workflow_name> --assets-only <workflow_name> --parameters='[
+    dbx launch <workflow_name> --from-assets <workflow_name> --parameters='[
         {"task_key": "some", "base_parameters": {"a": 1, "b": 2}}
     ]'
 
     # spark_python_task, python_wheel_task, spark_jar_task, spark_submit_task, python_wheel_task
-    dbx launch <workflow_name> --assets-only <workflow_name> --parameters='[
+    dbx launch <workflow_name> --from-assets <workflow_name> --parameters='[
         {"task_key": "some", "parameters": ["a", "b"]}
     ]'
 
     # python_wheel_task
-    dbx launch <workflow_name> --assets-only <workflow_name> --parameters='[
+    dbx launch <workflow_name> --from-assets <workflow_name> --parameters='[
         {"task_key": "some", "named_parameters": {"a": 1, "b": 2}}
     ]'
 
     # pipeline_task
-    dbx launch <workflow_name> --assets-only <workflow_name> --parameters='[
+    dbx launch <workflow_name> --from-assets <workflow_name> --parameters='[
         {"task_key": "some", "full_refresh": true}
     ]'
 
     # sql_task
-    dbx launch <workflow_name> --assets-only <workflow_name> --parameters='[
+    dbx launch <workflow_name> --from-assets <workflow_name> --parameters='[
         {"task_key": "some", "parameters": {"key1": "value2"}}
     ]'
     ```
