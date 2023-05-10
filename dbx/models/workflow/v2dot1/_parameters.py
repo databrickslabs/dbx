@@ -7,7 +7,8 @@ from dbx.models.workflow.common.parameters import (
     ParamPair,
     StringArray,
     BaseParametersMixin,
-    PipelineTaskParametersPayload, NamedParametersMixin,
+    PipelineTaskParametersPayload,
+    NamedParametersMixin,
 )
 
 
