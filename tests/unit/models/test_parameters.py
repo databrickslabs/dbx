@@ -66,3 +66,11 @@ def test_assert_based_v2dot0_not_unique():
 def test_assert_based_v2dot1_good(param_raw_payload):
     parsed = V2dot1AssetBasedRunPayload.from_string(param_raw_payload)
     assert parsed.elements is not None
+
+
+def test_asset_based_v2dot1_sample():
+    payload = """[
+    {"task_key": "main", "named_parameters": {"a": 1, "b": 2}}
+    ]"""
+    parsed = V2dot1AssetBasedRunPayload.from_string(payload)
+    assert parsed.elements[0].named_parameters == {"a": 1, "b": 2}

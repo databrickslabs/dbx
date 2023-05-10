@@ -8,6 +8,7 @@ from dbx.models.workflow.common.parameters import (
     StringArray,
     BaseParametersMixin,
     PipelineTaskParametersPayload,
+    NamedParametersMixin,
 )
 
 
@@ -15,5 +16,5 @@ class FlexibleParametersMixin(ParametersMixin):
     parameters: Optional[Union[ParamPair, StringArray]]
 
 
-class PayloadElement(FlexibleParametersMixin, BaseParametersMixin, PipelineTaskParametersPayload):
+class PayloadElement(FlexibleParametersMixin, BaseParametersMixin, PipelineTaskParametersPayload, NamedParametersMixin):
     task_key: str

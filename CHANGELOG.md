@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [0.8.13] - 2023-05-10
+
+### Fixed
+
+- Issue with passing `named_parameters` for an asset-based run in Jobs API 2.1 via CLI in `dbx launch`
+- Arguments used in docs for asset-based launch
+
 ## [0.8.12] - 2023-05-06
 
-## Fixed
+### Fixed
 
 - Explicitly pin the `requests` version to avoid issues with downstream libraries
 
