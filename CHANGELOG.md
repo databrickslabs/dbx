@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - ✨ support for files bigger than 1MB in sync
 
-## [0.8.9] - 2022-03-06
+## [0.8.9] - 2023-03-06
 
 ### Fixed
 
@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 📌 switch from using `retry` to `tenacity`
 
-## [0.8.8] - 2022-02-22
+## [0.8.8] - 2023-02-22
 
 # Fixed
 
