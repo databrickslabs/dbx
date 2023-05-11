@@ -9,6 +9,22 @@
 
 ## :material-file-check: Providing the permissions
 
+!!! warning "Enforcing Jobs API 2.1 usage to work with ACLs"
+
+    Provisioning of ACLs is only supported with Jobs API 2.1. To enforce Jobs API 2.1 usage, please use the following settings:
+
+    For local setup via `~/.databrickscfg` use the following command:
+
+    ```bash
+    databricks jobs configure --version=2.1 # add --profile=<profile-name> to enforce configuration for different profiles
+    ```
+
+    In CI pipelines, provide the following environment variable:
+
+    ```bash
+    DATABRICKS_JOBS_API_VERSION=2.1
+    ```
+
 To manage permissions provide the following payload at the workflow level:
 
 ```yaml
@@ -31,8 +47,10 @@ environments:
         tasks:
           ...
         access_control_list:
-          - user_name: "some_user@example.com"
+          - service_principal_name: "service-principal://some-sp-name" # alternatively, you can directly provide the Id string itself
             permission_level: "IS_OWNER"
+          - user_name: "some_user@example.com"
+            permission_level: "CAN_MANAGE"
           - group_name: "some-user-group"
             permission_level: "CAN_VIEW"
 ```
