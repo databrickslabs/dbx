@@ -17,10 +17,11 @@ class PermissionLevel(str, Enum):
 class AccessControlRequest(FlexibleModel):
     user_name: Optional[str]
     group_name: Optional[str]
+    service_principal_name: Optional[str]
     permission_level: PermissionLevel
 
     _one_of_provided = root_validator(pre=True, allow_reuse=True)(
-        lambda _, values: at_least_one_of(["user_name", "group_name"], values)
+        lambda _, values: at_least_one_of(["user_name", "group_name", "service_principal_name"], values)
     )
 
 

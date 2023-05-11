@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
+## [0.8.14] - 2023-05-11
+
+### Added
+
+- Add `service_principal_name` support for ACLs
+
 ## [0.8.13] - 2023-05-10
 
 ### Fixed
