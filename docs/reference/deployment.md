@@ -247,7 +247,7 @@ environments:
     workflows:
       - name: "example-workflow"
         access_control_list:
-         - user_name: "service-principal://some-service-principal-name"
+         - service_principal_name: "service-principal://some-service-principal-name"
            permission_level: "IS_OWNER"
          - user_name: "some-real-user@email.com"
            permission_level: "CAN_MANAGE"
