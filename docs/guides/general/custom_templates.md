@@ -10,6 +10,7 @@ If you would like to create a custom template, feel free to re-use the code you�
 - change the code in the `common.py`
 - change the project structure
 - choose another packaging tool, etc.
+- adapt CI/CD or cloud deployment components
 
 Pretty much anything you would like to add to your template could be configured using this functionality.
 
@@ -27,6 +28,18 @@ The following command:
 dbx init --path PATH [--checkout LOC]
 ```
 will check out a project template based on the [cookiecutter](https://cookiecutter.readthedocs.io/en/latest/index.html) approach from a git repository.
+
+This repository needs to follow this structure:
+```
+├── {{cookiecutter.project_name}} # cookiecutter project content
+├── hooks
+│   └── post_gen_project.py
+├── components                    # optional
+└── cookiecutter.json
+```
+
+It is possible to provide custom CI/CD and cloud deployment configs in a `components` folder in this repository. Otherwise the `dbx` provided [`components` folder](https://github.com/databrickslabs/dbx/tree/main/dbx/templates/projects/python_basic/components) is used.
+
 
 The `--checkout` flag is optional. If provided, `dbx` will check out a branch, tag or commit after cloning the repo. Default behaviour is to check out the `master` or `main` branch.
 

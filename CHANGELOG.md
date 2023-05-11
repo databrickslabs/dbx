@@ -58,6 +58,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.8] - 2022-02-22
 
+## Added
+
+- 🔨 Add support for custom components (e.g. CI/CD templates) for `python_basic` templates
+
 # Fixed
 
 - 👔 Docs: deleted lgtm badges from readme
