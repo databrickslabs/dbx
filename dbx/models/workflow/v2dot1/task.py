@@ -45,16 +45,21 @@ class SqlTaskAlert(FlexibleModel):
     alert_id: str
 
 
+class SqlFile(FlexibleModel):
+    file: str
+
+
 class SqlTask(FlexibleModel):
     warehouse_id: str
     query: Optional[SqlTaskQuery]
     dashboard: Optional[SqlTaskDashboard]
     alert: Optional[SqlTaskAlert]
+    file: Optional[SqlFile]
 
     @root_validator(pre=True)
     def _validate(cls, values):  # noqa
-        at_least_one_of(["query", "dashboard", "alert"], values)
-        mutually_exclusive(["query", "dashboard", "alert"], values)
+        at_least_one_of(["query", "dashboard", "alert", "file"], values)
+        mutually_exclusive(["query", "dashboard", "alert", "file"], values)
         return values
 
 

@@ -2,7 +2,7 @@ from abc import ABC
 from pathlib import Path
 from typing import Optional
 
-from pydantic import validator, root_validator, BaseModel
+from pydantic import validator, root_validator
 
 from dbx.constants import TASKS_SUPPORTED_IN_EXECUTE
 from dbx.models.cli.execute import ExecuteParametersPayload
@@ -33,7 +33,7 @@ class SparkJarTask(FlexibleModel):
         return value
 
 
-class SparkPythonTask(BaseModel):
+class SparkPythonTask(FlexibleModel):
     python_file: str
     parameters: Optional[StringArray] = []
 
