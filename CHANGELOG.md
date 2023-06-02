@@ -5,17 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**NOTE:** For CLI interfaces, we support SemVer approach. However, for API components we don't use SemVer as of now. This may lead to instability when using dbx API methods directly.
+**NOTE:** For CLI interfaces, we support SemVer approach. However, for API components we don't use SemVer as of now.
+This may lead to instability when using dbx API methods directly.
 
 [Please read through the Keep a Changelog (~5min)](https://keepachangelog.com/en/1.0.0/).
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+## [0.8.15] - 2023-06-02
+
+### Fixed
+
+- Allow provisioning of `source` property for `spark_python_task`
+
+## [0.8.14] - 2023-05-11
+
 ### Fixed
 
 - Added documentation for JOBS_API version usage to ensure ACLs are working as expected
-
-## [0.8.14] - 2023-05-11
 
 ### Added
 
@@ -42,12 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Recursively upload required files when a directory is passed as a task parameter with `dbx execute` and `--upload-via-context`.
+- Recursively upload required files when a directory is passed as a task parameter with `dbx execute`
+  and `--upload-via-context`.
 
 ## [0.8.10] - 2023-03-21
 
-
 ### Added
+
 - ✨ support for files bigger than 1MB in sync
 
 ## [0.8.9] - 2023-03-06
@@ -67,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Fixed
 
 - 👔 Docs: deleted lgtm badges from readme
-- 👔 Docs: added footer navigation,  deleted the version layover
+- 👔 Docs: added footer navigation, deleted the version layover
 - 🩹 Reload config after build in case if there are any dynamic components dependent on it
 - 🩹 Check if target repo exists before syncing and produce more clear error message if it does not.
 - 🩹 Type recognition of `named_parameters` in `python_wheel_task`
@@ -88,14 +96,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🩹 Build logic in case when `no_build` is specified
 
-
 ## [0.8.6] - 2022-11-09
 
 ### Changed
 
 - ♻️ Allow `init_scripts` in DLT pipelines
 - 🔇 Hide the rst version overlay from read the docs
-
 
 ## [0.8.5] - 2022-11-09
 
@@ -104,13 +110,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ⬆️ Bump typer to 0.7.0
 - 👔 improve docs and add landing page
 
-
 ## [0.8.4] - 2022-11-07
 
 ### Fixed
 
 - 🩹 Argument parsing logic in `dbx execute` without any arguments
-
 
 ## [0.8.3] - 2022-11-06
 
@@ -132,14 +136,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🩹 Deletion logic in the workflow eraser
 
-
 ## [0.8.1] - 2022-11-02
 
 ### Changed
 
 - 📖 Reference documentation for deployment file
 - ♻️ Add extensive caching for job listing
-
 
 ## [0.8.0] - 2022-11-02
 
@@ -166,7 +168,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🐛 Message with rich markup [] is properly displayed now
 - 📖 Broken link in the generated README.md in Python template
-
 
 ## [0.7.6] - 2022-10-05
 
@@ -257,14 +258,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✨Add flexible parameter overriding logic for `dbx execute` via new `--parameters` option
 - ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunNow API)
 - ✨Add flexible parameter overriding logic for `dbx launch` via new `--parameters` option (RunSubmit API)
-- ✨Add inplace Jinja support for YAML and JSON files, can be configured via `dbx configure --enable-inplace-jinja-support`
+- ✨Add inplace Jinja support for YAML and JSON files, can be configured
+  via `dbx configure --enable-inplace-jinja-support`
 - ✨Add build logic options for `pip`, `poetry` and `flit`
 - ✨Add build logic customization with `build.commands` section
 - ✨Add support for custom Python functions in Jinja templates
 
 ### Changed
 
-- ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour` option.
+- ✨Arguments `--allow-delete-unmatched`/`--disallow-delete-unmatched` were **replaced** with `--unmatched-behaviour`
+  option.
 - 🏷️Deprecate `jobs` section and rename it to `workflows`
 - 🏷️Deprecate `job` and `jobs` options and rename it to `workflow` argument
 - ✨Refactored all cluster-relevant methods into a separate `ClusterController`
@@ -274,7 +277,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 - 🚩Deprecate `--files-only` and `--as-run-submit` options
 - 🚩Delete the Azure Data Factory-related functionality.
-    Unfortunately we're unable to make this integration stable and secure due to resource lack and lack of RunNow API.
+  Unfortunately we're unable to make this integration stable and secure due to resource lack and lack of RunNow API.
 - 💎Documentation framework changed from `sphinx` to `mkdocs`
 - 💎Documentation has been heavily re-worked and improved
 
@@ -317,8 +320,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Additional `sync` command options (`--no-use-gitignore`, `--force-include`, etc.) for more control over what is synced.
-- Additional `init` command option `--template` was added to allow using dbx templates distributed as part of python packages.
+- Additional `sync` command options (`--no-use-gitignore`, `--force-include`, etc.) for more control over what is
+  synced.
+- Additional `init` command option `--template` was added to allow using dbx templates distributed as part of python
+  packages.
 - Refactored the `--deployment-file` option for better modularity of the code
 - Add upload via context for `dbx execute`
 
@@ -394,7 +399,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added dev container config for VSCode and GitHub CodeSpaces
 - tests are now parallel (x2 less time spent per each CI pipeline launch)
-- url-strip behaviour for old-format workspace host names (which was unsupported in Mlflow API and caused a lot of hardly explainable errors)
+- url-strip behaviour for old-format workspace host names (which was unsupported in Mlflow API and caused a lot of
+  hardly explainable errors)
 
 ### Changed
 
@@ -552,9 +558,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue which didn't update local package during remote execution.
 
 ## [0.1.5] - 2021-08-12
+
 ### Added
 
 - Support for [yaml-based deployment files](https://github.com/databrickslabs/dbx/issues/39).
+
 ### Changed
 
 - Now dbx finds the git branch name from any subdirectory in the repository.
@@ -562,8 +570,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Altered the Changelog based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Changed(for contributors): Makefile now requires pyenv.
 - Changed(for contributors): Makefile is more self describing and self-sufficient.
-  - `make clean install` will set you up with all that is needed.
-  - `make help` to see all available commands.
+    - `make clean install` will set you up with all that is needed.
+    - `make help` to see all available commands.
 
 ## [0.1.4]
 
@@ -573,6 +581,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue with multi-version package upload
 
 ## [0.1.3]
+
 ### Added
 
 - Add explicit exception for artifact location change
@@ -595,12 +604,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Integration with Azure Data Factory.
+
 ### Fixed
 
 - Some small internal behaviour fixes.
+
 ### Changed
 
-- Changed the behaviour of `dbx deploy --write-specs-to-file`, to make the structure of specs file compatible with environment structure.
+- Changed the behaviour of `dbx deploy --write-specs-to-file`, to make the structure of specs file compatible with
+  environment structure.
 
 ## [0.0.14]
 
@@ -609,16 +621,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added integrated permission management, please refer to documentation for details.
 
 ## [0.0.13]
+
 ### Added
 
 - Added `--write-specs-to-file` option for `dbx deploy` command.
 
 ## [0.0.12]
+
 ### Fixed
 
 - HotFix for execute command.
 
 ## [0.0.11]
+
 ### Changed
 
 - Made Internal refactorings after code coverage analysis.
