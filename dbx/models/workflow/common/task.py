@@ -33,7 +33,7 @@ class SparkJarTask(FlexibleModel):
         return value
 
 
-class SparkPythonTask(BaseModel):
+class SparkPythonTask(FlexibleModel):
     python_file: str
     parameters: Optional[StringArray] = []
 
