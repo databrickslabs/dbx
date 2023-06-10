@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 INSTALL_REQUIRES = [
     # to use Databricks and MLflow APIs
-    "requests>=2.30.0,<3.0.0",
+    "requests>=2.30.1,<3.0.0",
     "mlflow-skinny>=2.0.0,<3.0.0",
     "databricks-cli>=0.17,<0.18",
     "tenacity>=8.2.2,<=9.0.0",
