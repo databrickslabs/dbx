@@ -1,9 +1,13 @@
 from typing import Optional
 
-from dbx.models.workflow.common.task import (BaseNotebookTask,
-                                             BasePipelineTask, BaseTaskMixin,
-                                             SparkJarTask, SparkPythonTask,
-                                             SparkSubmitTask)
+from dbx.models.workflow.common.task import (
+    BaseNotebookTask,
+    BasePipelineTask,
+    BaseTaskMixin,
+    SparkJarTask,
+    SparkPythonTask,
+    SparkSubmitTask,
+)
 
 
 class NotebookTask(BaseNotebookTask):

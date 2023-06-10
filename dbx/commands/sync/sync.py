@@ -8,19 +8,29 @@ import typer
 from databricks_cli.configure.provider import ProfileConfigProvider
 
 from dbx.api.configure import ProjectConfigurationManager
-from dbx.commands.sync.functions import (create_path_matcher,
-                                         get_source_base_name, get_user_name,
-                                         handle_source, main_loop)
-from dbx.commands.sync.options import (DRY_RUN_OPTION, EXCLUDE_DIRS_OPTION,
-                                       EXCLUDE_PATTERNS_OPTION,
-                                       FORCE_INCLUDE_DIRS_OPTION,
-                                       FORCE_INCLUDE_PATTERNS_OPTION,
-                                       FULL_SYNC_OPTION, INCLUDE_DIRS_OPTION,
-                                       INCLUDE_PATTERNS_OPTION,
-                                       POLLING_INTERVAL_OPTION, SOURCE_OPTION,
-                                       SYNC_ENVIRONMENT_OPTION,
-                                       UNMATCHED_BEHAVIOUR_OPTION,
-                                       USE_GITIGNORE_OPTION, WATCH_OPTION)
+from dbx.commands.sync.functions import (
+    create_path_matcher,
+    get_source_base_name,
+    get_user_name,
+    handle_source,
+    main_loop,
+)
+from dbx.commands.sync.options import (
+    DRY_RUN_OPTION,
+    EXCLUDE_DIRS_OPTION,
+    EXCLUDE_PATTERNS_OPTION,
+    FORCE_INCLUDE_DIRS_OPTION,
+    FORCE_INCLUDE_PATTERNS_OPTION,
+    FULL_SYNC_OPTION,
+    INCLUDE_DIRS_OPTION,
+    INCLUDE_PATTERNS_OPTION,
+    POLLING_INTERVAL_OPTION,
+    SOURCE_OPTION,
+    SYNC_ENVIRONMENT_OPTION,
+    UNMATCHED_BEHAVIOUR_OPTION,
+    USE_GITIGNORE_OPTION,
+    WATCH_OPTION,
+)
 from dbx.options import PROFILE_OPTION
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient, WorkspaceClient

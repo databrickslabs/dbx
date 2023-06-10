@@ -21,8 +21,7 @@ from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.cli import app
 from dbx.commands.init import init
 from dbx.utils.file_uploader import MlflowFileUploader
-from tests.unit.api.launch.test_pipeline_runner import (
-    TEST_PIPELINE_ID, TEST_PIPELINE_UPDATE_PAYLOAD)
+from tests.unit.api.launch.test_pipeline_runner import TEST_PIPELINE_ID, TEST_PIPELINE_UPDATE_PAYLOAD
 
 TEST_HOST = "https:/dbx.cloud.databricks.com"
 TEST_TOKEN = "dapiDBXTEST"

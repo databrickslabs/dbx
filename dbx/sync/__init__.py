@@ -11,8 +11,7 @@ from typing import List, Union
 
 import aiohttp
 import click
-from watchdog.utils.dirsnapshot import (DirectorySnapshot,
-                                        EmptyDirectorySnapshot)
+from watchdog.utils.dirsnapshot import DirectorySnapshot, EmptyDirectorySnapshot
 
 from dbx.utils import dbx_echo
 

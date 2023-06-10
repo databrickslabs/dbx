@@ -2,9 +2,7 @@ import pytest
 import yaml
 
 from dbx.api.config_reader import ConfigReader
-from dbx.models.deployment import (Deployment, DeploymentConfig,
-                                   EnvironmentDeploymentInfo,
-                                   WorkflowListMixin)
+from dbx.models.deployment import Deployment, DeploymentConfig, EnvironmentDeploymentInfo, WorkflowListMixin
 from dbx.models.workflow.common.pipeline import Pipeline
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow

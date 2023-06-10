@@ -6,8 +6,7 @@ from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.deployment_config import DbxDeploymentConfig
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
-from dbx.models.workflow.common.task import (SparkJarTask, SparkPythonTask,
-                                             SparkSubmitTask)
+from dbx.models.workflow.common.task import SparkJarTask, SparkPythonTask, SparkSubmitTask
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.common.workflow import WorkflowBase
 from dbx.models.workflow.common.workflow_types import WorkflowType

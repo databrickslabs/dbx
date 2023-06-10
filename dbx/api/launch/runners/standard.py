@@ -7,10 +7,8 @@ from dbx.api.launch.functions import cancel_run, wait_run
 from dbx.api.launch.runners.base import RunData
 from dbx.api.services.jobs import NamedJobsService
 from dbx.models.cli.options import ExistingRunsOption
-from dbx.models.workflow.v2dot0.parameters import \
-    StandardRunPayload as V2dot0StandardRunPayload
-from dbx.models.workflow.v2dot1.parameters import \
-    StandardRunPayload as V2dot1StandardRunPayload
+from dbx.models.workflow.v2dot0.parameters import StandardRunPayload as V2dot0StandardRunPayload
+from dbx.models.workflow.v2dot1.parameters import StandardRunPayload as V2dot1StandardRunPayload
 from dbx.utils import dbx_echo
 
 

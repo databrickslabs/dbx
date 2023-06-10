@@ -1,8 +1,7 @@
 import pytest
 
 from dbx.api.launch.runners.base import PipelineUpdateResponse
-from dbx.api.launch.runners.pipeline import (PipelineLauncher,
-                                             PipelinesRunPayload)
+from dbx.api.launch.runners.pipeline import PipelineLauncher, PipelinesRunPayload
 
 TEST_PIPELINE_ID = "aaa-bbb"
 TEST_PIPELINE_UPDATE_PAYLOAD = {"update_id": "u1", "request_id": "r1"}

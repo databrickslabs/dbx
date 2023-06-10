@@ -15,12 +15,17 @@ from dbx.api.launch.runners.standard import StandardLauncher
 from dbx.api.launch.tracer import PipelineTracer, RunTracer
 from dbx.api.output_provider import OutputProvider
 from dbx.models.cli.options import ExistingRunsOption, IncludeOutputOption
-from dbx.options import (BRANCH_NAME_OPTION, DEBUG_OPTION, ENVIRONMENT_OPTION,
-                         HEADERS_OPTION, LAUNCH_PARAMETERS_OPTION, TAGS_OPTION,
-                         WORKFLOW_ARGUMENT)
+from dbx.options import (
+    BRANCH_NAME_OPTION,
+    DEBUG_OPTION,
+    ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
+    LAUNCH_PARAMETERS_OPTION,
+    TAGS_OPTION,
+    WORKFLOW_ARGUMENT,
+)
 from dbx.utils import dbx_echo
-from dbx.utils.common import (generate_filter_string, get_current_branch_name,
-                              parse_multiple, prepare_environment)
+from dbx.utils.common import generate_filter_string, get_current_branch_name, parse_multiple, prepare_environment
 
 
 def launch(

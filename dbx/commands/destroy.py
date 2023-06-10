@@ -10,9 +10,13 @@ from typer.rich_utils import _get_rich_console  # noqa
 from dbx.api.config_reader import ConfigReader
 from dbx.api.destroyer import Destroyer
 from dbx.models.cli.destroyer import DeletionMode, DestroyerConfig
-from dbx.options import (DEPLOYMENT_FILE_OPTION, ENVIRONMENT_OPTION,
-                         HEADERS_OPTION, JINJA_VARIABLES_FILE_OPTION,
-                         WORKFLOW_ARGUMENT)
+from dbx.options import (
+    DEPLOYMENT_FILE_OPTION,
+    ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
+    JINJA_VARIABLES_FILE_OPTION,
+    WORKFLOW_ARGUMENT,
+)
 from dbx.utils import dbx_echo
 from dbx.utils.common import parse_multiple, prepare_environment
 

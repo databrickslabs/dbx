@@ -3,9 +3,7 @@ import sys
 import click
 import databricks_cli
 import requests
-from databricks_cli.configure.provider import (DatabricksConfig,
-                                               ProfileConfigProvider,
-                                               get_config)
+from databricks_cli.configure.provider import DatabricksConfig, ProfileConfigProvider, get_config
 
 from .clients import get_headers
 

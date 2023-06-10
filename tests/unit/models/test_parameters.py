@@ -1,14 +1,10 @@
 import pytest
 
 from dbx.models.cli.execute import ExecuteParametersPayload
-from dbx.models.workflow.v2dot0.parameters import \
-    AssetBasedRunPayload as V2dot0AssetBasedRunPayload
-from dbx.models.workflow.v2dot0.parameters import \
-    StandardRunPayload as V2dot0StandardRunPayload
-from dbx.models.workflow.v2dot1.parameters import \
-    AssetBasedRunPayload as V2dot1AssetBasedRunPayload
-from dbx.models.workflow.v2dot1.parameters import \
-    StandardRunPayload as V2dot1StandardRunPayload
+from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload as V2dot0AssetBasedRunPayload
+from dbx.models.workflow.v2dot0.parameters import StandardRunPayload as V2dot0StandardRunPayload
+from dbx.models.workflow.v2dot1.parameters import AssetBasedRunPayload as V2dot1AssetBasedRunPayload
+from dbx.models.workflow.v2dot1.parameters import StandardRunPayload as V2dot1StandardRunPayload
 
 
 def test_empty_execute():

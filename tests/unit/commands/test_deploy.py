@@ -14,8 +14,7 @@ from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.commands import deploy
 from dbx.models.files.project import MlflowStorageProperties
 from dbx.utils.json import JsonUtils
-from tests.unit.conftest import (get_path_with_relation_to_current_file,
-                                 invoke_cli_runner)
+from tests.unit.conftest import get_path_with_relation_to_current_file, invoke_cli_runner
 
 
 def test_deploy_smoke_default(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):

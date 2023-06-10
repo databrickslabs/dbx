@@ -2,13 +2,20 @@ import os
 from functools import lru_cache
 from typing import List, Optional, Protocol, Union
 
-from databricks_cli.configure.provider import (DEFAULT_SECTION, HOST, INSECURE,
-                                               JOBS_API_VERSION, PASSWORD,
-                                               REFRESH_TOKEN, TOKEN, USERNAME,
-                                               DatabricksConfig,
-                                               DatabricksConfigProvider,
-                                               _fetch_from_fs,
-                                               _get_option_if_exists)
+from databricks_cli.configure.provider import (
+    DEFAULT_SECTION,
+    HOST,
+    INSECURE,
+    JOBS_API_VERSION,
+    PASSWORD,
+    REFRESH_TOKEN,
+    TOKEN,
+    USERNAME,
+    DatabricksConfig,
+    DatabricksConfigProvider,
+    _fetch_from_fs,
+    _get_option_if_exists,
+)
 
 from dbx.utils import dbx_echo
 

@@ -7,7 +7,11 @@ from pydantic import BaseModel, validator
 
 from dbx.models.validators import check_dbt_commands
 from dbx.models.workflow.common.parameters import (
-    ParamPair, PipelineTaskParametersPayload, StandardBasePayload, StringArray)
+    ParamPair,
+    PipelineTaskParametersPayload,
+    StandardBasePayload,
+    StringArray,
+)
 from dbx.models.workflow.v2dot1._parameters import PayloadElement
 
 
