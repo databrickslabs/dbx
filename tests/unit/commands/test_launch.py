@@ -12,7 +12,7 @@ from dbx.api.config_reader import ConfigReader
 from dbx.api.launch.pipeline_models import PipelineUpdateState
 from dbx.api.launch.runners.base import PipelineUpdateResponse
 from dbx.api.launch.runners.pipeline import PipelineLauncher
-from dbx.api.launch.tracer import RunTracer, PipelineTracer
+from dbx.api.launch.tracer import PipelineTracer, RunTracer
 from dbx.api.services.jobs import JobListing, ListJobsResponse
 from dbx.api.services.pipelines import NamedPipelinesService
 from dbx.api.storage.io import StorageIO

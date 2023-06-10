@@ -5,7 +5,7 @@ import yaml
 from databricks_cli.sdk import InstancePoolService
 from pytest_mock import MockerFixture
 
-from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
+from dbx.api.adjuster.adjuster import AdditionalLibrariesProvider, Adjuster
 from dbx.api.services.pipelines import NamedPipelinesService
 from dbx.models.deployment import DeploymentConfig
 from dbx.models.workflow.common.libraries import Library

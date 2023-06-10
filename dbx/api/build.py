@@ -2,7 +2,7 @@ import shlex
 import subprocess
 import sys
 from pathlib import Path
-from typing import Union, List, Optional
+from typing import List, Optional, Union
 
 from dbx.utils import dbx_echo
 

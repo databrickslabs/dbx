@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 import yaml
 
-from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
+from dbx.api.adjuster.adjuster import AdditionalLibrariesProvider, Adjuster
 from dbx.models.workflow.v2dot1.workflow import Workflow
 
 TEST_PAYLOADS = {

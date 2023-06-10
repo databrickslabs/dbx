@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from dbx.commands.sync.functions import create_path_matcher
-from dbx.sync import RemoteSyncer, DeleteUnmatchedOption
+from dbx.sync import DeleteUnmatchedOption, RemoteSyncer
 from tests.unit.sync.utils import temporary_directory
 
 

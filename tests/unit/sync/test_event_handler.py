@@ -5,10 +5,13 @@ from pathlib import Path
 from typing import List
 from unittest.mock import patch
 
-from watchdog.events import DirCreatedEvent, FileCreatedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent
+from watchdog.events import (DirCreatedEvent, FileCreatedEvent,
+                             FileDeletedEvent, FileModifiedEvent,
+                             FileMovedEvent)
 
 from dbx.sync.event_handler import CollectingEventHandler, file_watcher
 from dbx.sync.path_matcher import PathMatcher
+
 from .utils import temporary_directory
 
 

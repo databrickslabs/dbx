@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 
-from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
+from dbx.api.adjuster.adjuster import AdditionalLibrariesProvider, Adjuster
+
 from .test_instance_profile import convert_to_workflow
 
 TEST_PAYLOADS = {

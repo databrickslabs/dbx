@@ -1,17 +1,13 @@
 from __future__ import annotations
 
 import json
-from typing import Optional, List
+from typing import List, Optional
 
 from pydantic import BaseModel, validator
 
 from dbx.models.validators import check_dbt_commands
 from dbx.models.workflow.common.parameters import (
-    ParamPair,
-    StringArray,
-    StandardBasePayload,
-    PipelineTaskParametersPayload,
-)
+    ParamPair, PipelineTaskParametersPayload, StandardBasePayload, StringArray)
 from dbx.models.workflow.v2dot1._parameters import PayloadElement
 
 

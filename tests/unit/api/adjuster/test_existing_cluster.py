@@ -6,7 +6,7 @@ import yaml
 from databricks_cli.sdk import ClusterService
 from pytest_mock import MockerFixture
 
-from dbx.api.adjuster.adjuster import Adjuster, AdditionalLibrariesProvider
+from dbx.api.adjuster.adjuster import AdditionalLibrariesProvider, Adjuster
 from dbx.models.deployment import AnyWorkflow
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.workflow import Workflow as V2dot1Workflow

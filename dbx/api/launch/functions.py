@@ -1,5 +1,5 @@
 import time
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 import mlflow
 from databricks_cli.sdk import ApiClient, JobsService

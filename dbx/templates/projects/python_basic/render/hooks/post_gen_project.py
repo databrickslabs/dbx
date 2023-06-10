@@ -1,5 +1,5 @@
 import pathlib
-from typing import Callable, Dict, Optional, Any
+from typing import Any, Callable, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader
 

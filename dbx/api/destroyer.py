@@ -14,7 +14,7 @@ from typer.rich_utils import _get_rich_console  # noqa
 
 from dbx.api.services.jobs import NamedJobsService
 from dbx.api.services.pipelines import NamedPipelinesService
-from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.cli.destroyer import DeletionMode, DestroyerConfig
 from dbx.models.deployment import AnyWorkflow
 from dbx.models.files.project import EnvironmentInfo
 from dbx.models.workflow.common.workflow_types import WorkflowType

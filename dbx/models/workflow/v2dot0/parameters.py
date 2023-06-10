@@ -1,7 +1,9 @@
 from pydantic import root_validator
 
 from dbx.models.validators import mutually_exclusive
-from dbx.models.workflow.common.parameters import BaseParametersMixin, ParametersMixin, StandardBasePayload
+from dbx.models.workflow.common.parameters import (BaseParametersMixin,
+                                                   ParametersMixin,
+                                                   StandardBasePayload)
 
 
 class AssetBasedRunPayload(BaseParametersMixin, ParametersMixin):

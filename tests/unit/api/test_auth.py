@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockFixture
 
-from dbx.api.auth import AuthConfigProvider, DbxConfig, DbxProfileConfigProvider, ProfileEnvConfigProvider
+from dbx.api.auth import (AuthConfigProvider, DbxConfig,
+                          DbxProfileConfigProvider, ProfileEnvConfigProvider)
 
 
 @pytest.fixture(name="_cleanup_auth_cache")

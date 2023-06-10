@@ -1,7 +1,7 @@
 import time
 from base64 import b64encode
 from pathlib import Path
-from typing import Optional, List, Any
+from typing import Any, List, Optional
 
 import typer
 from databricks_cli.sdk import ApiClient

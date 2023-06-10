@@ -9,8 +9,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 INSTALL_REQUIRES = [
     # to use Databricks and MLflow APIs
-    "requests>=2.24.0, <2.30.0",
-    "mlflow-skinny>=1.28.0,<3.0.0",
+    "requests>=2.30.0,<3.0.0",
+    "mlflow-skinny>=2.0.0,<3.0.0",
     "databricks-cli>=0.17,<0.18",
     "tenacity>=8.2.2,<=9.0.0",
     # CLI interface
@@ -21,10 +21,10 @@ INSTALL_REQUIRES = [
     "cookiecutter>=1.7.2, <3.0.0",
     # file formats and models
     "pyyaml>=6.0",
-    "pydantic>=1.9.1,<=2.0.0",
+    "pydantic>=1.9.1,<2.0.0",
     "Jinja2>=2.11.2",
     # misc - enforced to avoid issues with dependent libraries
-    "cryptography>=3.3.1,<41.0.0",
+    "cryptography>=41.0.0,<42.0.0",
     # required by dbx sync
     "aiohttp>=3.8.2",
     "pathspec>=0.9.0",

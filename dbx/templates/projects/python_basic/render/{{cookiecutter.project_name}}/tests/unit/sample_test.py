@@ -1,9 +1,11 @@
+import logging
+from pathlib import Path
+
+import mlflow
+from pyspark.sql import SparkSession
 from {{cookiecutter.project_slug}}.tasks.sample_etl_task import SampleETLTask
 from {{cookiecutter.project_slug}}.tasks.sample_ml_task import SampleMLTask
-from pyspark.sql import SparkSession
-from pathlib import Path
-import mlflow
-import logging
+
 
 def test_jobs(spark: SparkSession, tmp_path: Path):
     logging.info("Testing the ETL job")

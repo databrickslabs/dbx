@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 
 def at_least_one_by_suffix(suffix: str, values: Dict[str, Any]):

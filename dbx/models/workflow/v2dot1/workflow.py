@@ -1,5 +1,5 @@
 import collections
-from typing import Optional, List, Dict, Any, Literal
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import root_validator, validator
 

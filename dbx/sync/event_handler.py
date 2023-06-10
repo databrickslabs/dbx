@@ -9,6 +9,7 @@ from watchdog.observers import Observer
 from watchdog.observers.polling import PollingObserverVFS
 
 from dbx.utils import dbx_echo
+
 from .path_matcher import PathMatcher, filtered_listdir
 
 

@@ -1,9 +1,9 @@
 import typer
 
-from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
+from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
 from dbx.models.files.project import MlflowStorageProperties, StorageType
 from dbx.options import ENVIRONMENT_OPTION, PROFILE_OPTION
-from dbx.utils import dbx_echo, current_folder_name
+from dbx.utils import current_folder_name, dbx_echo
 
 
 def configure(

@@ -1,5 +1,5 @@
 import functools
-from typing import Optional, List, Any
+from typing import Any, List, Optional
 
 from databricks_cli.sdk import ClusterService
 

@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from databricks_cli.sdk import JobsService, ApiClient
+from databricks_cli.sdk import ApiClient, JobsService
 from pytest_mock import MockerFixture
 
 from dbx.api.launch.runners.standard import StandardLauncher

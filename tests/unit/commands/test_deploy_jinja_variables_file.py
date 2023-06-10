@@ -3,10 +3,8 @@ from pathlib import Path
 
 from dbx.api.config_reader import ConfigReader, Jinja2ConfigReader
 from dbx.api.configure import ProjectConfigurationManager
-from tests.unit.conftest import (
-    get_path_with_relation_to_current_file,
-    invoke_cli_runner,
-)
+from tests.unit.conftest import (get_path_with_relation_to_current_file,
+                                 invoke_cli_runner)
 
 
 def test_incorrect_file_name(temp_project: Path, mlflow_file_uploader, mock_storage_io, mock_api_v2_client):

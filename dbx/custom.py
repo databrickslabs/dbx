@@ -1,12 +1,13 @@
 import inspect
-from typing import Union, Iterable
+from typing import Iterable, Union
 
 import click
 from rich.console import group
 from rich.markdown import Markdown
 from rich.text import Text
 from typer.core import MarkupMode
-from typer.rich_utils import MARKUP_MODE_MARKDOWN, STYLE_HELPTEXT_FIRST_LINE, _make_rich_rext
+from typer.rich_utils import (MARKUP_MODE_MARKDOWN, STYLE_HELPTEXT_FIRST_LINE,
+                              _make_rich_rext)
 
 
 @group()

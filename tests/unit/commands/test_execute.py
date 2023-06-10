@@ -1,9 +1,9 @@
 from pathlib import Path
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from pytest_mock import MockerFixture
 from databricks_cli.sdk import ApiClient, ClusterService
+from pytest_mock import MockerFixture
 
 from dbx.api.cluster import ClusterController
 from dbx.api.context import LocalContextManager

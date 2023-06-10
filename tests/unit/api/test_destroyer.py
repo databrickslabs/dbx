@@ -6,9 +6,9 @@ import mlflow
 import pytest
 from pytest_mock import MockerFixture
 
-from dbx.api.destroyer import Destroyer, WorkflowEraser, AssetEraser
+from dbx.api.destroyer import AssetEraser, Destroyer, WorkflowEraser
 from dbx.api.services.jobs import NamedJobsService
-from dbx.models.cli.destroyer import DestroyerConfig, DeletionMode
+from dbx.models.cli.destroyer import DeletionMode, DestroyerConfig
 from dbx.models.deployment import EnvironmentDeploymentInfo
 from dbx.models.workflow.v2dot1.workflow import Workflow
 from tests.unit.conftest import invoke_cli_runner

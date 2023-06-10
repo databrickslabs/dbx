@@ -1,7 +1,7 @@
 import json
 import time
 from functools import partial
-from typing import Optional, List, Tuple
+from typing import List, Optional, Tuple
 
 from databricks_cli.sdk import ApiClient
 from pydantic import BaseModel

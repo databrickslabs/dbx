@@ -4,8 +4,8 @@ import pytest
 from pytest_mock import MockerFixture
 
 from dbx.api.launch.pipeline_models import PipelineUpdateState, UpdateStatus
-from dbx.api.launch.runners.base import RunData, PipelineUpdateResponse
-from dbx.api.launch.tracer import RunTracer, PipelineTracer
+from dbx.api.launch.runners.base import PipelineUpdateResponse, RunData
+from dbx.api.launch.tracer import PipelineTracer, RunTracer
 
 
 def test_tracer_with_interruption(mocker: MockerFixture):

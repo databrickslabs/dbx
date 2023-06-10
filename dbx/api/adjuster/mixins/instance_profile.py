@@ -1,5 +1,5 @@
 import functools
-from typing import Optional, Any, List
+from typing import Any, List, Optional
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel

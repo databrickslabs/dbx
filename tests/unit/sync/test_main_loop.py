@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from dbx.commands.sync.functions import main_loop
+
 from .utils import temporary_directory
 
 

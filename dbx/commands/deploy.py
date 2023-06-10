@@ -12,25 +12,15 @@ from dbx.api.dependency.requirements import RequirementsFileProcessor
 from dbx.api.deployment import WorkflowDeploymentManager
 from dbx.api.storage.io import StorageIO
 from dbx.models.workflow.common.workflow_types import WorkflowType
-from dbx.options import (
-    BRANCH_NAME_OPTION,
-    DEBUG_OPTION,
-    DEPLOYMENT_FILE_OPTION,
-    ENVIRONMENT_OPTION,
-    HEADERS_OPTION,
-    JINJA_VARIABLES_FILE_OPTION,
-    NO_PACKAGE_OPTION,
-    NO_REBUILD_OPTION,
-    REQUIREMENTS_FILE_OPTION,
-    TAGS_OPTION,
-    WORKFLOW_ARGUMENT,
-)
+from dbx.options import (BRANCH_NAME_OPTION, DEBUG_OPTION,
+                         DEPLOYMENT_FILE_OPTION, ENVIRONMENT_OPTION,
+                         HEADERS_OPTION, JINJA_VARIABLES_FILE_OPTION,
+                         NO_PACKAGE_OPTION, NO_REBUILD_OPTION,
+                         REQUIREMENTS_FILE_OPTION, TAGS_OPTION,
+                         WORKFLOW_ARGUMENT)
 from dbx.utils import dbx_echo
-from dbx.utils.common import (
-    get_current_branch_name,
-    parse_multiple,
-    prepare_environment,
-)
+from dbx.utils.common import (get_current_branch_name, parse_multiple,
+                              prepare_environment)
 from dbx.utils.file_uploader import MlflowFileUploader
 
 

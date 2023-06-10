@@ -1,5 +1,6 @@
 from {{cookiecutter.project_slug}}.tasks.sample_etl_task import SampleETLTask
 
+
 def test_etl():
     common_config = {"database": "default", "table": "sklearn_housing"}
     test_etl_config = {"output": common_config}

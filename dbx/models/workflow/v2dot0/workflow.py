@@ -1,4 +1,4 @@
-from typing import Optional, List, Union, Literal
+from typing import List, Literal, Optional, Union
 
 from pydantic import root_validator, validator
 
@@ -6,12 +6,13 @@ from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.deployment_config import DbxDeploymentConfig
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
-from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask
+from dbx.models.workflow.common.task import (SparkJarTask, SparkPythonTask,
+                                             SparkSubmitTask)
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.common.workflow import WorkflowBase
 from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.models.workflow.v2dot0.parameters import AssetBasedRunPayload
-from dbx.models.workflow.v2dot0.task import TaskMixin, NotebookTask
+from dbx.models.workflow.v2dot0.task import NotebookTask, TaskMixin
 
 ALLOWED_TASK_TYPES = Union[SparkPythonTask, NotebookTask, SparkJarTask, SparkSubmitTask]
 

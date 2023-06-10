@@ -1,9 +1,9 @@
 import copy
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 import requests
 from databricks_cli.sdk import ApiClient
-from tenacity import retry, wait_exponential, stop_after_attempt
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from dbx.api.auth import AuthConfigProvider
 

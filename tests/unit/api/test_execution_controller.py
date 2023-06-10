@@ -2,7 +2,8 @@ from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
 
-from dbx.api.context import RichExecutionContextClient, LowLevelExecutionContextClient
+from dbx.api.context import (LowLevelExecutionContextClient,
+                             RichExecutionContextClient)
 
 
 def test_execution_controller(mocker: MockerFixture, temp_project):
