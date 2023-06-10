@@ -9,6 +9,7 @@ from watchdog.events import DirCreatedEvent, FileCreatedEvent, FileDeletedEvent,
 
 from dbx.sync.event_handler import CollectingEventHandler, file_watcher
 from dbx.sync.path_matcher import PathMatcher
+
 from .utils import temporary_directory
 
 

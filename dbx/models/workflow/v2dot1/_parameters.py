@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import Optional, Union
 
 from dbx.models.workflow.common.parameters import (
+    BaseParametersMixin,
+    NamedParametersMixin,
     ParametersMixin,
     ParamPair,
-    StringArray,
-    BaseParametersMixin,
     PipelineTaskParametersPayload,
-    NamedParametersMixin,
+    StringArray,
 )
 
 

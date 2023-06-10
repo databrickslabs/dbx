@@ -1,14 +1,12 @@
 import asyncio
 import base64
 import textwrap
-from tests.unit.sync.utils import create_async_with_result
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, call
 
 import pytest
 
 from dbx.sync.clients import ClientError, DBFSClient
-from tests.unit.sync.utils import create_async_with_result
-from tests.unit.sync.utils import mocked_props, is_dbfs_user_agent
+from tests.unit.sync.utils import create_async_with_result, is_dbfs_user_agent, mocked_props
 
 
 @pytest.fixture

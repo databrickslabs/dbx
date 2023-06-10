@@ -26,11 +26,7 @@ from dbx.options import (
     WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.common import (
-    get_current_branch_name,
-    parse_multiple,
-    prepare_environment,
-)
+from dbx.utils.common import get_current_branch_name, parse_multiple, prepare_environment
 from dbx.utils.file_uploader import MlflowFileUploader
 
 

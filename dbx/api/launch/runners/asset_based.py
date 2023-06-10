@@ -1,6 +1,6 @@
 import inspect
 import json
-from typing import Optional, Union, Tuple, Dict, Any
+from typing import Any, Dict, Optional, Tuple, Union
 
 from databricks_cli.sdk import ApiClient, JobsService
 

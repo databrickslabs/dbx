@@ -4,7 +4,7 @@ from dbx.api.adjuster.mixins.base import ApiClientMixin
 from dbx.api.services.jobs import NamedJobsService
 from dbx.api.services.permissions import PermissionsService
 from dbx.api.services.pipelines import NamedPipelinesService
-from dbx.models.deployment import WorkflowList, AnyWorkflow
+from dbx.models.deployment import AnyWorkflow, WorkflowList
 from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.utils import dbx_echo
 

@@ -16,6 +16,16 @@ This may lead to instability when using dbx API methods directly.
 
 ### Fixed
 
+- Several dependency issues related to both security and library versions
+
+### Changed
+
+- Switched to 11.3 LTS in the main template
+
+## [0.8.15] - 2023-06-02
+
+### Fixed
+
 - Allow provisioning of `source` property for `spark_python_task`
 
 ## [0.8.14] - 2023-05-11

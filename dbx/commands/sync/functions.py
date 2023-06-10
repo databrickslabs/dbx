@@ -7,7 +7,7 @@ import click
 from databricks_cli.configure.provider import DatabricksConfig
 
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
-from dbx.sync import DeleteUnmatchedOption, PathMatcher, BaseClient, RemoteSyncer
+from dbx.sync import BaseClient, DeleteUnmatchedOption, PathMatcher, RemoteSyncer
 from dbx.sync.clients import get_user
 from dbx.sync.event_handler import file_watcher
 from dbx.utils import dbx_echo

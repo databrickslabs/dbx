@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from mlflow.exceptions import RestException
-from mlflow.protos.databricks_pb2 import ErrorCode, INVALID_PARAMETER_VALUE, INTERNAL_ERROR
+from mlflow.protos.databricks_pb2 import INTERNAL_ERROR, INVALID_PARAMETER_VALUE, ErrorCode
 from pytest_mock import MockerFixture
 
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager

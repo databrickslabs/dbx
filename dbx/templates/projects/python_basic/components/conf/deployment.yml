@@ -2,7 +2,7 @@
 # Please read YAML documentation for details on how to use substitutions and anchors.
 custom:
   basic-cluster-props: &basic-cluster-props
-    spark_version: "10.4.x-cpu-ml-scala2.12"
+    spark_version: "11.3.x-cpu-ml-scala2.12"
 
   basic-static-cluster: &basic-static-cluster
     new_cluster:

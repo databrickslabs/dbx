@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional, Any
+from typing import Any, Optional
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin
 from dbx.models.deployment import AnyWorkflow

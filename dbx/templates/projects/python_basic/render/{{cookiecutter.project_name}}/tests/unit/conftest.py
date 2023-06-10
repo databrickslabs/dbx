@@ -2,10 +2,12 @@
 This conftest.py contains handy components that prepare SparkSession and other relevant objects.
 """
 
+import logging
 import os
-from pathlib import Path
 import shutil
 import tempfile
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterator
 from unittest.mock import patch
 
@@ -13,8 +15,6 @@ import mlflow
 import pytest
 from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
-import logging
-from dataclasses import dataclass
 
 
 @dataclass

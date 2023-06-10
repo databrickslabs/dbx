@@ -1,6 +1,6 @@
-from {{cookiecutter.project_slug}}.common import Task
-from sklearn.datasets import fetch_california_housing
 import pandas as pd
+from sklearn.datasets import fetch_california_housing
+from {{cookiecutter.project_slug}}.common import Task
 
 
 class SampleETLTask(Task):

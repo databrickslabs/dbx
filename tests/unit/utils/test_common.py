@@ -9,11 +9,7 @@ from pytest_mock import MockFixture
 
 from dbx.api.config_reader import ConfigReader
 from dbx.models.build import BuildConfiguration
-from dbx.utils.common import (
-    generate_filter_string,
-    get_current_branch_name,
-    get_environment_data,
-)
+from dbx.utils.common import generate_filter_string, get_current_branch_name, get_environment_data
 from tests.unit.conftest import get_path_with_relation_to_current_file
 
 json_file_01 = get_path_with_relation_to_current_file("../deployment-configs/01-json-test.json")

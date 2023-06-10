@@ -2,7 +2,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import jinja2
 import yaml

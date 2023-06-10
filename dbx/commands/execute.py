@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 import typer
 
 from dbx.api.cluster import ClusterController
-from dbx.api.config_reader import ConfigReader, BuildProperties
+from dbx.api.config_reader import BuildProperties, ConfigReader
 from dbx.api.configure import ProjectConfigurationManager
 from dbx.api.context import RichExecutionContextClient
 from dbx.api.dependency.core_package import CorePackageManager
@@ -12,16 +12,16 @@ from dbx.api.execute import ExecutionController
 from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.models.workflow.common.workflow_types import WorkflowType
 from dbx.options import (
+    DEBUG_OPTION,
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
-    HEADERS_OPTION,
-    REQUIREMENTS_FILE_OPTION,
-    NO_REBUILD_OPTION,
-    NO_PACKAGE_OPTION,
-    JINJA_VARIABLES_FILE_OPTION,
-    DEBUG_OPTION,
-    WORKFLOW_ARGUMENT,
     EXECUTE_PARAMETERS_OPTION,
+    HEADERS_OPTION,
+    JINJA_VARIABLES_FILE_OPTION,
+    NO_PACKAGE_OPTION,
+    NO_REBUILD_OPTION,
+    REQUIREMENTS_FILE_OPTION,
+    WORKFLOW_ARGUMENT,
 )
 from dbx.types import ExecuteTask
 from dbx.utils import dbx_echo

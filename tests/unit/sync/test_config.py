@@ -4,7 +4,7 @@ import click
 import pytest
 from databricks_cli.utils import InvalidConfigurationError
 
-from dbx.sync.config import has_valid_token, get_databricks_config
+from dbx.sync.config import get_databricks_config, has_valid_token
 from tests.unit.sync.utils import mocked_props
 
 

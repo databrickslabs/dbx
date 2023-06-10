@@ -3,9 +3,9 @@ import time
 from databricks_cli.sdk import ApiClient
 from rich.console import Console
 
-from dbx.api.launch.functions import trace_run, cancel_run
+from dbx.api.launch.functions import cancel_run, trace_run
 from dbx.api.launch.pipeline_models import PipelineUpdateState, PipelineUpdateStatus
-from dbx.api.launch.runners.base import RunData, PipelineUpdateResponse
+from dbx.api.launch.runners.base import PipelineUpdateResponse, RunData
 from dbx.utils import dbx_echo
 
 

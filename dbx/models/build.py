@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional, List
+from typing import List, Optional
 
 from pydantic import BaseModel
 from rich.console import Console
 
-from dbx.api.build import execute_shell_command, cleanup_dist
+from dbx.api.build import cleanup_dist, execute_shell_command
 from dbx.utils import dbx_echo
 
 

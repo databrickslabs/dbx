@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import collections
-from typing import Optional, Dict, Any, List, Union
+from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, Field, validator
 from rich.markup import escape
 from typing_extensions import Annotated
 

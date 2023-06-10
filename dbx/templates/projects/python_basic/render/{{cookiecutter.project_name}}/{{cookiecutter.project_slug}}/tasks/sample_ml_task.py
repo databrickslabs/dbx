@@ -1,12 +1,13 @@
-from {{cookiecutter.project_slug}}.common import Task
+import mlflow
+import mlflow.sklearn
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
-import pandas as pd
-import mlflow.sklearn
-import mlflow
+from {{cookiecutter.project_slug}}.common import Task
+
 
 class SampleMLTask(Task):
     TARGET_COLUMN: str = "MedHouseVal"

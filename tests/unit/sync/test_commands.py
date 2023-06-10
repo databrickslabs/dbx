@@ -1,19 +1,20 @@
 import asyncio
 import os
-from unittest.mock import patch, call, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import click
 import pytest
 from databricks_cli.configure.provider import ProfileConfigProvider
 
+from dbx.commands.sync.functions import get_source_base_name, get_user_name
 from dbx.commands.sync.sync import repo_exists
-from dbx.commands.sync.functions import get_user_name, get_source_base_name
 from dbx.constants import DBX_SYNC_DEFAULT_IGNORES
 from dbx.sync import DeleteUnmatchedOption
 from dbx.sync.clients import DBFSClient, ReposClient, WorkspaceClient
 from tests.unit.sync.utils import mocked_props
+
 from .conftest import invoke_cli_runner
-from .utils import temporary_directory, pushd
+from .utils import pushd, temporary_directory
 
 
 def get_config():

@@ -2,8 +2,7 @@ import os
 
 import pytest
 
-from tests.unit.sync.utils import mocked_props
-from tests.unit.sync.utils import temporary_directory
+from tests.unit.sync.utils import mocked_props, temporary_directory
 
 
 @pytest.fixture

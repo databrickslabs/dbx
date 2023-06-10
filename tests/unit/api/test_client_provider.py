@@ -1,7 +1,7 @@
 import pytest
+from databricks_cli.sdk import ApiClient
 from pytest_mock import MockFixture
 
-from databricks_cli.sdk import ApiClient
 from dbx.api.auth import AuthConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
 

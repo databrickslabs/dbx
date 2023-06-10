@@ -6,7 +6,7 @@ from databricks_cli.sdk.api_client import ApiClient
 
 from dbx.api.auth import ProfileEnvConfigProvider
 from dbx.api.client_provider import DatabricksClientProvider
-from dbx.api.configure import ProjectConfigurationManager, EnvironmentInfo
+from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
 from dbx.api.storage.mlflow_based import MlflowStorageConfigurationManager
 from dbx.utils import dbx_echo
 

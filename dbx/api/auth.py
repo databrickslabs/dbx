@@ -3,22 +3,21 @@ from functools import lru_cache
 from typing import List, Optional, Protocol, Union
 
 from databricks_cli.configure.provider import (
+    DEFAULT_SECTION,
+    HOST,
+    INSECURE,
+    JOBS_API_VERSION,
+    PASSWORD,
+    REFRESH_TOKEN,
+    TOKEN,
+    USERNAME,
     DatabricksConfig,
     DatabricksConfigProvider,
     _fetch_from_fs,
     _get_option_if_exists,
-    HOST,
-    USERNAME,
-    PASSWORD,
-    TOKEN,
-    REFRESH_TOKEN,
-    INSECURE,
-    JOBS_API_VERSION,
-    DEFAULT_SECTION,
 )
 
 from dbx.utils import dbx_echo
-
 
 AZURE_SERVICE_PRINCIPAL_TOKEN = "azure_service_principal_token"
 WORKSPACE_ID = "workspace_id"

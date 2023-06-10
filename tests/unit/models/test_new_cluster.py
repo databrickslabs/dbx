@@ -1,6 +1,6 @@
 import pytest
 
-from dbx.models.workflow.common.new_cluster import NewCluster, AutoScale
+from dbx.models.workflow.common.new_cluster import AutoScale, NewCluster
 
 
 def test_legacy_msg(capsys):

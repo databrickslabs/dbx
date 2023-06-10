@@ -1,37 +1,31 @@
-from typing import List, Dict, Any
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import mlflow
 import typer
 from databricks_cli.jobs.api import JobsService
 from rich.markup import escape
 
-from dbx.api.launch.contexts import EmptyContext, AssetBasedLaunchContext
+from dbx.api.launch.contexts import AssetBasedLaunchContext, EmptyContext
 from dbx.api.launch.functions import find_deployment_run
 from dbx.api.launch.pipeline_models import PipelineUpdateState
 from dbx.api.launch.runners.asset_based import AssetBasedLauncher
 from dbx.api.launch.runners.base import RunData
 from dbx.api.launch.runners.pipeline import PipelineLauncher
 from dbx.api.launch.runners.standard import StandardLauncher
-from dbx.api.launch.tracer import RunTracer, PipelineTracer
+from dbx.api.launch.tracer import PipelineTracer, RunTracer
 from dbx.api.output_provider import OutputProvider
 from dbx.models.cli.options import ExistingRunsOption, IncludeOutputOption
 from dbx.options import (
-    ENVIRONMENT_OPTION,
-    HEADERS_OPTION,
-    TAGS_OPTION,
     BRANCH_NAME_OPTION,
     DEBUG_OPTION,
-    WORKFLOW_ARGUMENT,
+    ENVIRONMENT_OPTION,
+    HEADERS_OPTION,
     LAUNCH_PARAMETERS_OPTION,
+    TAGS_OPTION,
+    WORKFLOW_ARGUMENT,
 )
 from dbx.utils import dbx_echo
-from dbx.utils.common import (
-    generate_filter_string,
-    prepare_environment,
-    parse_multiple,
-    get_current_branch_name,
-)
+from dbx.utils.common import generate_filter_string, get_current_branch_name, parse_multiple, prepare_environment
 
 
 def launch(

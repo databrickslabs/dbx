@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from dbx.models.cli.execute import ExecuteParametersPayload
-from dbx.models.workflow.common.task import SparkPythonTask, SparkJarTask, SparkSubmitTask, BaseTaskMixin
+from dbx.models.workflow.common.task import BaseTaskMixin, SparkJarTask, SparkPythonTask, SparkSubmitTask
 from dbx.models.workflow.common.task_type import TaskType
 from dbx.models.workflow.v2dot1.task import SqlTask
 

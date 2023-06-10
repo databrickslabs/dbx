@@ -1,9 +1,9 @@
 import json
-from typing import Optional, Union, Tuple
+from typing import Optional, Tuple, Union
 
 from databricks_cli.sdk import ApiClient, JobsService
 
-from dbx.api.launch.functions import wait_run, cancel_run
+from dbx.api.launch.functions import cancel_run, wait_run
 from dbx.api.launch.runners.base import RunData
 from dbx.api.services.jobs import NamedJobsService
 from dbx.models.cli.options import ExistingRunsOption

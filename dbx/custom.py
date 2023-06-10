@@ -1,5 +1,5 @@
 import inspect
-from typing import Union, Iterable
+from typing import Iterable, Union
 
 import click
 from rich.console import group

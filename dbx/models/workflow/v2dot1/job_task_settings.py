@@ -1,10 +1,10 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from dbx.models.workflow.common.deployment_config import DbxDeploymentConfig
 from dbx.models.workflow.common.flexible import FlexibleModel
+from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
-from dbx.models.workflow.common.job_email_notifications import JobEmailNotifications
 from dbx.models.workflow.v2dot1.task import TaskMixin
 
 

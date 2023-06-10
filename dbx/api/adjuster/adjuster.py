@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, List
+from typing import Any, List, Optional, Union
 
 from databricks_cli.sdk import ApiClient
 from pydantic import BaseModel

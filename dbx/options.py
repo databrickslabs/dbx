@@ -4,9 +4,9 @@ from databricks_cli.configure.provider import DEFAULT_SECTION
 from dbx.callbacks import (
     debug_callback,
     deployment_file_callback,
-    verify_jinja_variables_file,
     execute_parameters_callback,
     launch_parameters_callback,
+    verify_jinja_variables_file,
 )
 
 ENVIRONMENT_OPTION = typer.Option("default", "--environment", "-e", help="Environment name.")
