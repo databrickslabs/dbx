@@ -18,7 +18,7 @@ INSTALL_REQUIRES = [
     "rich==12.6.0",
     "typer[all]==0.7.0",
     # for templates creation
-    "cookiecutter>=1.7.2, <3.0.0",
+    "cookiecutter>2.1.0, <3.0.0",
     # file formats and models
     "pyyaml>=6.0",
     "pydantic>=1.10.8,<2.0.0",
