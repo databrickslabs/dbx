@@ -12,7 +12,7 @@ This may lead to instability when using dbx API methods directly.
 
 ## [UNRELEASED] - YYYY-MM-DD
 
-## [0.8.15] - 2023-06-02
+## [0.8.16] - 2023-06-10
 
 ### Fixed
 
