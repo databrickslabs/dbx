@@ -74,6 +74,31 @@ class ExecutionController:
         if self._run:
             mlflow.end_run()
 
+    def _identify_runtime_version(self) -> Optional[int]:
+        command = """
+        import os
+        print(os.environ.get("DATABRICKS_RUNTIME_VERSION"))
+        """
+        _version_string = self._client.client.execute_command(command, verbose=False)
+        _clean_string = None if _version_string == "None" else _version_string
+        if not _clean_string:
+            return None
+        else:
+            try:
+                _version = int(_clean_string.split(".")[0])
+                return _version
+            except ValueError:
+                dbx_echo("🚨 Cannot identify the DBR version, package may not be updated")
+                return None
+
+    def _refresh_python_if_necessary(self):
+        _version = self._identify_runtime_version()
+        if _version and _version >= 13:
+            dbx_echo("🔄 Restarting Python to reflect the changes in environment")
+            refresh_command = "dbutils.library.restartPython()"
+            self._client.client.execute_command(refresh_command, verbose=False)
+            dbx_echo("✅ Restarting Python to reflect the changes in environment - done")
+
     def install_requirements_file(self):
         if not self._requirements_file.exists():
             raise Exception(f"Requirements file provided, but doesn't exist at path {self._requirements_file}")
@@ -84,6 +109,7 @@ class ExecutionController:
         )
         installation_command = f"%pip install -U -r {localized_requirements_path}"
         self._client.client.execute_command(installation_command, verbose=False)
+        self._refresh_python_if_necessary()
         dbx_echo("Provided requirements installed")
 
     def install_package(self, pip_install_extras: Optional[str]):
@@ -97,6 +123,7 @@ class ExecutionController:
         with Console().status("Installing package on the cluster 📦", spinner="dots"):
             self._client.install_package(localized_package_path, pip_install_extras)
 
+        self._refresh_python_if_necessary()
         dbx_echo(":white_check_mark: Installing package - done")
 
     def preprocess_task_parameters(self, parameters: Union[List[str], Dict[str, str]]):

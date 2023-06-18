@@ -129,10 +129,6 @@ class RichExecutionContextClient:
         else:
             installation_command = f"%pip install --force-reinstall {package_file}"
         self._client.execute_command(installation_command, verbose=False)
-        # TODO: Will this work with DBR <=12.X?
-        # Compatible idea - check some kind of property at the moment of execution with if-else
-        refresh_command = "dbutils.library.restartPython()"
-        self._client.execute_command(refresh_command, verbose=False)
 
     def setup_arguments(self, arguments: List[Any]):
         task_props = ["python"] + [str(arg) for arg in arguments]
