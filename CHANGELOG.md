@@ -12,6 +12,12 @@ This may lead to instability when using dbx API methods directly.
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+## [0.8.17] - 2023-06-18
+
+### Fixed
+
+- Issue with the project code update in `dbx execute` for DBR 13.X+
+
 ## [0.8.16] - 2023-06-10
 
 ### Fixed
