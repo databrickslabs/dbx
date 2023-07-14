@@ -31,7 +31,7 @@ class NotebookLibrary(FlexibleModel):
 
 
 class PipelineLibrary(FlexibleModel):
-    notebook: NotebookLibrary
+    notebook: Optional[NotebookLibrary]  # this is optional to allow passing other properties, e.g. jar and maven
 
 
 class Pipeline(AccessControlMixin):

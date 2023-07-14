@@ -12,6 +12,12 @@ This may lead to instability when using dbx API methods directly.
 
 ## [UNRELEASED] - YYYY-MM-DD
 
+## [0.8.18] - 2023-07-14
+
+### Fixed
+
+- Added support for other property types in DLT libraries
+
 ## [0.8.17] - 2023-06-18
 
 ### Fixed
