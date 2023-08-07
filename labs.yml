@@ -1,0 +1,22 @@
+---
+name: dbx
+context: workspace
+description: Databricks CLI extensions
+hooks:
+  install: install.py
+entrypoint: main.py
+commands:
+  - name: foo
+    description: foo command
+    flags:
+      - name: first
+        description: first flag description
+      - name: second
+        description: second flag description
+  - name: bar
+    description: bar command
+    flags:
+      - name: first
+        description: first flag description
+      - name: second
+        description: second flag description
