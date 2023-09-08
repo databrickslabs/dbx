@@ -10,6 +10,7 @@ from dbx.api.adjuster.policy import PolicyAdjuster
 from dbx.models.deployment import DeploymentConfig
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
+from dbx.models.workflow.common.pipeline import PipelinesNewCluster
 
 
 def test_base_aws_policy():
@@ -115,6 +116,8 @@ def policy_mock(mocker: MockerFixture):
     [
         NewCluster(spark_version="lts", policy_name="good-policy"),
         NewCluster(spark_version="lts", policy_id="cluster-policy://good-policy"),
+        PipelinesNewCluster(policy_name="good-policy"),
+        PipelinesNewCluster(policy_id="cluster-policy://good-policy"),
     ],
 )
 def test_adjusting(cluster_def, policy_mock):
@@ -129,12 +132,14 @@ def test_adjusting(cluster_def, policy_mock):
         NewCluster(spark_version="lts", policy_id="cluster-policy://duplicated-name"),
         NewCluster(spark_version="lts", policy_id="cluster-policy://not-found"),
         NewCluster(spark_version="lts", policy_id="cluster-policy://conflicting"),
+        PipelinesNewCluster(policy_id="cluster-policy://duplicated-name"),
+        PipelinesNewCluster(policy_id="cluster-policy://not-found"),
     ],
 )
 def test_negative_cases(cluster_def, policy_mock):
     _adj = PolicyAdjuster(api_client=MagicMock())
     with pytest.raises(ValueError):
-        _obj = _adj._adjust_policy_ref(cluster_def)
+        _adj._adjust_policy_ref(cluster_def)
 
 
 TEST_DEFINITIONS = yaml.safe_load(
@@ -162,6 +167,13 @@ environments:
           - task_key: "from-job-clusters"
             job_cluster_key: "base"
             some_task: "here"
+      - name: "dlt"
+        workflow_type: "pipeline"
+        clusters:
+          - label: "default"
+            policy_id: "cluster-policy://good-policy"
+          - label: "maintenance"
+            policy_id: "cluster-policy://good-policy"
 """
 )
 
@@ -183,7 +195,7 @@ def test_locations(policy_mock):
         wfs[0].new_cluster,
         wfs[1].get_task("inplace").new_cluster,
         wfs[1].get_job_cluster_definition("base").new_cluster,
-    ]:
+    ] + wfs[2].clusters:
         assert getattr(element, "spark_conf").get("spark.my.conf") == "my_value"
         assert element.policy_id == "1"
 
