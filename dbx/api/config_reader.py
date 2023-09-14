@@ -72,7 +72,7 @@ class Jinja2ConfigReader(_AbstractConfigReader):
     def _render_content(cls, file_path: Path, _var: Dict[str, Any], _wd: bool) -> str:
         if _wd:
             working_dir = os.path.abspath(os.curdir)
-            file_name = file_path.relative_to(working_dir)
+            file_name = str(file_path.relative_to(working_dir))
         else:
             working_dir = file_path.absolute().parent
             file_name = file_path.name

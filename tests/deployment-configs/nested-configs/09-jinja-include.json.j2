@@ -1,14 +1,19 @@
 {
     "default": {
-        "jobs": [
+        "workflows": [
             {
                 "name": "your-job-name",
-                "new_cluster": {% include 'includes/cluster-test.json.j2' %},
-                "libraries": [],
-                "max_retries": 0,
-                "spark_python_task": {
-                    "python_file": "file://placeholder_1.py"
-                }
+                "tasks": [
+                    {
+                        "name": "main",
+                        "new_cluster": {% include 'conf/includes/cluster-test.json.j2' %},
+                        "max_retries": 0,
+                        "notebook_task": {
+                            "notebook_path": "/Repos/some/notebook"
+                        }
+                    }
+                ],
+                "workflow_type": "pipeline"
             }
         ]
     }

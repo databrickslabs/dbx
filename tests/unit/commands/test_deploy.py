@@ -301,3 +301,33 @@ def test_deploy_additional_headers(mocker: MockerFixture):
     assert deploy_result.exit_code == 0
     header_parse_mock.assert_any_call(kwargs)
     env_mock.assert_called_once_with("default", expected_headers)
+
+def test_jinja_working_dir(mlflow_file_uploader, mock_storage_io, mock_api_v2_client, temp_project: Path):
+    project_config_dir = temp_project / "conf"
+    workflows_dir = temp_project / "conf" / "workflows"
+    includes_dir = temp_project / "conf" / "includes"
+
+    deployment_file_name = "09-jinja-include.json.j2"
+    src_deployment_file = get_path_with_relation_to_current_file(
+        f"../deployment-configs/nested-configs/{deployment_file_name}"
+    )
+    dst_deployment_file = project_config_dir / "workflows" / deployment_file_name
+
+    include_file = "cluster-test.json.j2"
+    src_include_file = get_path_with_relation_to_current_file(
+        f"../deployment-configs/nested-configs/includes/{include_file}"
+    )
+    dst_include_file = project_config_dir / "includes" / include_file
+
+
+    shutil.rmtree(project_config_dir)
+    project_config_dir.mkdir()
+    workflows_dir.mkdir()
+    includes_dir.mkdir()
+    shutil.copy(src_deployment_file, dst_deployment_file)
+    shutil.copy(src_include_file, dst_include_file)
+
+    deploy_result = invoke_cli_runner(
+        ["deploy", f"--deployment-file", str(dst_deployment_file), "--jinja-working-dir"]
+    )
+    assert deploy_result.exit_code == 0
