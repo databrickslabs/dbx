@@ -58,9 +58,10 @@ class JsonConfigReader(_AbstractConfigReader):
 
 
 class Jinja2ConfigReader(_AbstractConfigReader):
-    def __init__(self, path: Path, ext: str, jinja_vars_file: Optional[Path]):
+    def __init__(self, path: Path, ext: str, jinja_vars_file: Optional[Path], jinja_wd: Optional[bool]):
         self._ext = ext
         self._jinja_vars_file = jinja_vars_file
+        self._jinja_wd = jinja_wd
         super().__init__(path)
 
     @staticmethod
@@ -68,13 +69,20 @@ class Jinja2ConfigReader(_AbstractConfigReader):
         return yaml.load(file_path.read_text(encoding="utf-8"), yaml.SafeLoader)
 
     @classmethod
-    def _render_content(cls, file_path: Path, _var: Dict[str, Any]) -> str:
-        absolute_parent_path = file_path.absolute().parent
-        file_name = file_path.name
+    def _render_content(cls, file_path: Path, _var: Dict[str, Any], _wd: bool) -> str:
+        if _wd:
+            working_dir = os.path.abspath(os.curdir)
+            file_name = file_path.relative_to(working_dir)
+        else:
+            working_dir = file_path.absolute().parent
+            file_name = file_path.name
+        
+        dbx_echo(f"The following path will be used for the jinja loader: {working_dir} with file {file_name}")
 
-        dbx_echo(f"The following path will be used for the jinja loader: {absolute_parent_path} with file {file_name}")
+        working_dir = os.path.abspath(os.curdir)
+        dbx_echo(f"The working dir {working_dir} will be added to jinja loader.")
 
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(absolute_parent_path))
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(working_dir))
         template = env.get_template(file_name)
         template.globals["dbx"] = dbx_jinja
 
@@ -92,7 +100,8 @@ class Jinja2ConfigReader(_AbstractConfigReader):
 
     def _read_file(self) -> DeploymentConfig:
         _var = {} if not self._jinja_vars_file else self._read_vars_file(self._jinja_vars_file)
-        rendered = self._render_content(self._path, _var)
+        _wd = self._jinja_wd if self._jinja_wd is not None else False
+        rendered = self._render_content(self._path, _var, _wd)
 
         if self._ext == ".json":
             _content = json.loads(rendered)
@@ -116,8 +125,9 @@ class ConfigReader:
     If a new reader is introduced, it shall be used via the :code:`_define_reader` method.
     """
 
-    def __init__(self, path: Path, jinja_vars_file: Optional[Path] = None):
+    def __init__(self, path: Path, jinja_vars_file: Optional[Path] = None, jinja_wd: Optional[bool] = False):
         self._jinja_vars_file = jinja_vars_file
+        self._jinja_wd = jinja_wd
         self._path = path
         self._reader = self._define_reader()
         self._build_properties = BuildProperties()
@@ -135,9 +145,9 @@ class ConfigReader:
                     you can also configure your project to support in-place Jinja by running:
                     [code]dbx configure --enable-inplace-jinja-support[/code][/bright_magenta bold]"""
                 )
-                return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file)
+                return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file, jinja_wd=self._jinja_wd)
         elif ProjectConfigurationManager().get_jinja_support():
-            return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file)
+            return Jinja2ConfigReader(self._path, ext=self._path.suffixes[0], jinja_vars_file=self._jinja_vars_file, jinja_wd=self._jinja_wd)
         else:
             if self._jinja_vars_file:
                 raise Exception(

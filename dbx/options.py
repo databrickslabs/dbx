@@ -43,6 +43,15 @@ DEPLOYMENT_FILE_OPTION = typer.Option(
     show_default=False,
 )
 
+JINJA_TEMPLATES_WORKING_DIR = typer.Option(
+    False,
+    "--jinja-working-dir",
+    is_flag=True,
+    help="""Use working directory as base path for Jinja Template discovery.
+
+    If not provided, default behavior is to use the deployment file parent directory.""",
+)
+
 JINJA_VARIABLES_FILE_OPTION = typer.Option(
     None,
     "--jinja-variables-file",

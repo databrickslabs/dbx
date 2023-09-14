@@ -17,6 +17,7 @@ from dbx.options import (
     ENVIRONMENT_OPTION,
     EXECUTE_PARAMETERS_OPTION,
     HEADERS_OPTION,
+    JINJA_TEMPLATES_WORKING_DIR,
     JINJA_VARIABLES_FILE_OPTION,
     NO_PACKAGE_OPTION,
     NO_REBUILD_OPTION,
@@ -66,6 +67,7 @@ def execute(
         Useful when core package has extras section and installation of these extras is required.""",
     ),
     headers: Optional[List[str]] = HEADERS_OPTION,
+    jinja_working_directory: Optional[bool] = JINJA_TEMPLATES_WORKING_DIR,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     parameters: Optional[str] = EXECUTE_PARAMETERS_OPTION,
     debug: Optional[bool] = DEBUG_OPTION,  # noqa
@@ -86,7 +88,7 @@ def execute(
         f"on cluster {cluster_name} (id: {cluster_id})"
     )
 
-    config_reader = ConfigReader(deployment_file, jinja_variables_file)
+    config_reader = ConfigReader(deployment_file, jinja_variables_file, jinja_working_directory)
 
     config = config_reader.with_build_properties(
         BuildProperties(potential_build=True, no_rebuild=no_rebuild)
