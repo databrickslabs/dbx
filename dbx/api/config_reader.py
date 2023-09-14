@@ -79,9 +79,6 @@ class Jinja2ConfigReader(_AbstractConfigReader):
         
         dbx_echo(f"The following path will be used for the jinja loader: {working_dir} with file {file_name}")
 
-        working_dir = os.path.abspath(os.curdir)
-        dbx_echo(f"The working dir {working_dir} will be added to jinja loader.")
-
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(working_dir))
         template = env.get_template(file_name)
         template.globals["dbx"] = dbx_jinja
