@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 from pytest_mock import MockerFixture
+from jinja2.exceptions import TemplateNotFound
 
 from dbx.api.config_reader import ConfigReader
 from dbx.api.configure import EnvironmentInfo, ProjectConfigurationManager
@@ -326,6 +327,11 @@ def test_jinja_working_dir(mlflow_file_uploader, mock_storage_io, mock_api_v2_cl
     includes_dir.mkdir()
     shutil.copy(src_deployment_file, dst_deployment_file)
     shutil.copy(src_include_file, dst_include_file)
+
+    with pytest.raises(TemplateNotFound):
+        deploy_result = invoke_cli_runner(
+            ["deploy", f"--deployment-file", str(dst_deployment_file)]
+        )
 
     deploy_result = invoke_cli_runner(
         ["deploy", f"--deployment-file", str(dst_deployment_file), "--jinja-working-dir"]
