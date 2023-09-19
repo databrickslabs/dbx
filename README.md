@@ -74,6 +74,9 @@ page of this repo. Please see the legal agreement and understand that
 issues with the use of this code will not be answered or investigated by
 Databricks Support.
 
+Databricks recommends using [Databricks asset bundles](https://docs.databricks.com/en/dev-tools/bundles/index.html) for CI/CD.
+    Please see [migration guidance](https://docs.databricks.com/en/archive/dev-tools/dbx/dbx-migrate.html) on how to migrate from dbx to dabs
+
 ## Feedback
 
 Issues with `dbx`? Found a bug? Have a great idea for an addition? Feel
