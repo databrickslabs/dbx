@@ -8,6 +8,19 @@
 
 🧱 Databricks CLI eXtensions - aka `dbx` is a CLI tool for development and advanced Databricks workflows management.
 
+## :octicons-law-24: Legal Information
+
+!!! danger "Support notice"
+
+    This software is provided as-is and is not officially supported by
+    Databricks through customer technical support channels. Support, questions, and feature requests can be communicated through the Issues
+    page of the [dbx repo](https://github.com/databrickslabs/dbx/issues). Please see the legal agreement and understand that
+    issues with the use of this code will not be answered or investigated by
+    Databricks Support.
+
+    Databricks recommends using [Databricks asset bundles](https://docs.databricks.com/en/dev-tools/bundles/index.html) for CI/CD.
+    Please see [migration guidance](https://docs.databricks.com/en/archive/dev-tools/dbx/dbx-migrate.html) on how to migrate from dbx to dabs
+
 ## :octicons-light-bulb-24: Concept
 
 `dbx` aims to improve development experience for Data and ML teams that use Databricks, by providing the following capabilities:
@@ -67,16 +80,6 @@ Depending on your developer journey and overall tasks, you might use `dbx` in va
   `dbx` for deployment operations.
 - [Delta Live
   Tables](https://databricks.com/product/delta-live-tables) are supported for deployment and launch. The interactive execution mode is not supported. Please read more on DLT with `dbx` in [this guide](guides/general/delta_live_tables.md).
-
-## :octicons-law-24: Legal Information
-
-!!! danger "Support notice"
-
-    This software is provided as-is and is not officially supported by
-    Databricks through customer technical support channels. Support, questions, and feature requests can be communicated through the Issues
-    page of the [dbx repo](https://github.com/databrickslabs/dbx/issues). Please see the legal agreement and understand that
-    issues with the use of this code will not be answered or investigated by
-    Databricks Support.
 
 ## :octicons-comment-24: Feedback
 
