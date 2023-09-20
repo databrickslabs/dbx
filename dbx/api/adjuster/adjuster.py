@@ -15,6 +15,7 @@ from dbx.models.deployment import WorkflowList
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.libraries import Library
 from dbx.models.workflow.common.new_cluster import NewCluster
+from dbx.models.workflow.common.pipeline import Pipeline
 from dbx.models.workflow.v2dot0.workflow import Workflow as V2dot0Workflow
 from dbx.models.workflow.v2dot1.job_cluster import JobCluster
 from dbx.models.workflow.v2dot1.job_task_settings import JobTaskSettings
@@ -154,13 +155,9 @@ class PropertyAdjuster(
         """
         for element, parent, _ in self.traverse(workflows):
             if isinstance(parent, (V2dot0Workflow, JobTaskSettings, JobCluster)) and isinstance(element, NewCluster):
-                if element.policy_name is not None or (
-                    isinstance(element, NewCluster)
-                    and element.policy_id is not None
-                    and element.policy_id.startswith("cluster-policy://")
-                ):
-                    element = self._adjust_policy_ref(element)
-                parent.new_cluster = element
+                parent.new_cluster = self._adjust_policy_ref(element)
+            if isinstance(parent, Pipeline) and isinstance(element, list):
+                parent.clusters = [self._adjust_policy_ref(x) if isinstance(x, NewCluster) else x for x in element]
 
     def file_traverse(self, workflows, file_adjuster: FileReferenceAdjuster):
         for element, parent, index in self.traverse(workflows):

@@ -2,13 +2,16 @@ import json
 from collections import defaultdict
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, TypeVar
 
 from databricks_cli.cluster_policies.api import PolicyService
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster
+
+
+AnyNewCluster = TypeVar("AnyNewCluster", bound=NewCluster)
 
 
 class Policy(FlexibleModel):
@@ -33,12 +36,17 @@ class PolicyAdjuster(ApiClientMixin):
     Please note that only "fixed" values will be automatically added to the job definition.
     """
 
-    def _adjust_policy_ref(self, cluster: NewCluster):
+    def _adjust_policy_ref(self, cluster: AnyNewCluster) -> AnyNewCluster:
+        if cluster.policy_name is None and (
+            cluster.policy_id is None or not cluster.policy_id.startswith("cluster-policy://")
+        ):
+            return cluster
+
         policy_service = PolicyService(self.api_client)
         policy = self._get_policy(policy_service, cluster.policy_name, cluster.policy_id)
         traversed_policy = self._traverse_policy(policy_payload=json.loads(policy.definition))
         _updated_object = self._deep_update(cluster.dict(exclude_none=True), traversed_policy)
-        _updated_object = NewCluster(**_updated_object)
+        _updated_object = cluster.__class__(**_updated_object)
         _updated_object.policy_id = policy.policy_id
         return _updated_object
 
