@@ -14,6 +14,7 @@ from dbx.options import (
     DEPLOYMENT_FILE_OPTION,
     ENVIRONMENT_OPTION,
     HEADERS_OPTION,
+    JINJA_TEMPLATES_WORKING_DIR,
     JINJA_VARIABLES_FILE_OPTION,
     WORKFLOW_ARGUMENT,
 )
@@ -28,6 +29,7 @@ def destroy(
     ),
     deployment_file: Optional[Path] = DEPLOYMENT_FILE_OPTION,
     environment_name: str = ENVIRONMENT_OPTION,
+    jinja_working_directory: Optional[bool] = JINJA_TEMPLATES_WORKING_DIR,
     jinja_variables_file: Optional[Path] = JINJA_VARIABLES_FILE_OPTION,
     deletion_mode: DeletionMode = typer.Option(
         DeletionMode.all,
@@ -60,7 +62,7 @@ def destroy(
 
     workflow_names = workflow_names.split(",") if workflow_names else []
 
-    global_config = ConfigReader(deployment_file, jinja_variables_file).get_config()
+    global_config = ConfigReader(deployment_file, jinja_variables_file, jinja_working_directory).get_config()
     env_config = global_config.get_environment(environment_name, raise_if_not_found=True)
     relevant_workflows = env_config.payload.select_relevant_or_all_workflows(workflow_name, workflow_names)
 
