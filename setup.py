@@ -15,7 +15,7 @@ INSTALL_REQUIRES = [
     "tenacity>=8.2.2,<=9.0.0",
     # CLI interface
     "click>=8.1.0,<9.0.0",
-    "rich==12.6.0",
+    "rich==13.5.3",
     "typer[all]==0.7.0",
     # for templates creation
     "cookiecutter>2.1.0, <3.0.0",
