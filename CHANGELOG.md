@@ -99,6 +99,7 @@ This may lead to instability when using dbx API methods directly.
 - 👔 Docs: deleted lgtm badges from readme
 - 👔 Docs: added footer navigation, deleted the version layover
 - 🩹 Reload config after build in case if there are any dynamic components dependent on it
+- 🩹 Use `python:3.8-bullseye` docker image for Gitlab CI/CD in `python_basic` template
 - 🩹 Check if target repo exists before syncing and produce more clear error message if it does not.
 - 🩹 Type recognition of `named_parameters` in `python_wheel_task`
 - 🩹 Update default dbx version in the template
