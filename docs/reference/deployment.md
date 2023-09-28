@@ -198,7 +198,7 @@ environments:
     workflows:
       - name: "workflow1"
         schedule:
-         quartz_cron_expression: "0 0 * * *" #(1)
+         quartz_cron_expression: "0 0 0 ? * * *" #(1)
          timezone_id: "Europe/Berlin" #(2)
 ```
 
