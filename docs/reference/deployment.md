@@ -269,6 +269,8 @@ custom:
     instance_pool_id: "instance-pool://some-pool-name"
     driver_instance_pool_id: "instance-pool://some-pool-name"
     runtime_engine: STANDARD
+    docker_image:
+      url: databricksruntime/standard:latest
     init_scripts:
       - dbfs:
           destination: dbfs:/<enter your path>

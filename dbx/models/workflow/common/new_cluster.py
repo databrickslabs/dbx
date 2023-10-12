@@ -19,6 +19,16 @@ class AutoScale(FlexibleModel):
         return values
 
 
+class ClusterDockerContainerBasicAuth(FlexibleModel):
+    username: str
+    password: str
+
+
+class ClusterDockerContainer(FlexibleModel):
+    url: str
+    basic_auth: Optional[ClusterDockerContainerBasicAuth]
+
+
 class AwsAttributes(FlexibleModel):
     first_on_demand: Optional[int]
     availability: Optional[str]
@@ -38,6 +48,7 @@ class NewCluster(FlexibleModel):
     num_workers: Optional[int]
     autoscale: Optional[AutoScale]
     instance_pool_name: Optional[str]
+    docker_image: Optional[ClusterDockerContainer]
     driver_instance_pool_name: Optional[str]
     driver_instance_pool_id: Optional[str]
     instance_pool_id: Optional[str]
