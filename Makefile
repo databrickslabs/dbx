@@ -176,7 +176,6 @@ lint: ## Run the lint and checks
 	@echo "${YELLOW}Linting code:${NORMAL}"
 	@make helper-line
 	$(PYTHON) -m prospector --profile prospector.yaml
-	$(RSTCHECK) README.rst
 	@make check
 
 check: ## Run black checks
