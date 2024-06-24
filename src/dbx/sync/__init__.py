@@ -76,7 +76,7 @@ def get_snapshot_name(client: BaseClient) -> str:
     dir_name = client.base_path.split("/")[-1]
 
     # The host and the base path should uniquely identify where we are syncing to.
-    base_path_hash = hashlib.md5(f"{client.host}-{client.base_path}".encode("utf-8")).hexdigest()
+    base_path_hash = hashlib.sha256(f"{client.host}-{client.base_path}".encode("utf-8")).hexdigest()
 
     # Include the client name as well for human readability.
     return f"{dir_name}-{client.name}-{base_path_hash}"
