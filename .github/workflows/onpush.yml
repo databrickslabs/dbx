@@ -20,12 +20,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip' # caching pip dependencies
-          cache-dependency-path: pyproject.toml
+          cache: 'pip'
 
       - name: Install pip
         run: python -m pip install --upgrade pip
@@ -38,18 +37,18 @@ jobs:
 
       - name: Lint
         run: |
-          prospector --profile prospector.yaml
-          black --check .
+          hatch run prospector --profile prospector.yaml
+          hatch run black --check .
 
       - name: Run unit tests
         run: |
           git config --global init.defaultBranch main # to avoid verbose deprecation messages in CI pipeline
-          pytest tests/unit --cov dbx -n auto
+          hatch run pytest tests/unit --cov dbx -n auto
 
       - name: Run integrity tests
         run: |
-          python -m dbx --help
-          python -c "from dbx._version import __version__; print(__version__)"
+          hatch run python -m dbx --help
+          hatch run python -c "from dbx._version import __version__; print(__version__)"
 
       - name: Publish test coverage
         if: startsWith(matrix.os,'ubuntu')
