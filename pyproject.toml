@@ -32,7 +32,7 @@ dependencies = [
     "aiohttp>=3.8.2",
     "click>=8.1.0,<9.0.0",
     "cookiecutter>2.1.0, <3.0.0",
-    "cryptography>=42.0.5",
+    "cryptography>=42.0.8",
     "databricks-cli>=0.17,<0.18",
     "Jinja2>=2.11.2",
     "mlflow-skinny>=2.0.0,<3.0.0",
