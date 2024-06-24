@@ -1,9 +1,95 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+sources = ["src"]
+include = ["src"]
+
+[project]
+name = "dbx"
+dynamic = ["version"]
+description = "DataBricks CLI eXtensions aka dbx"
+long-description = "README.md"
+long-description-content-type = "text/markdown"
+readme = "README.md"
+license-files = { paths = ["LICENSE", "NOTICE"] }
+requires-python = ">=3.8"
+
+authors = [
+    { name = "Ivan Trusov", email = "ivan.trusov@databricks.com" },
+    { name = "Michael Shtelma" },
+    { name = "Thunder Shiviah" },
+]
+
+mainteiners = [{ name = "Ivan Trusov", email = "ivan.trusov@databricks.com" }]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+]
+
+dependencies = [
+    "aiohttp>=3.8.2",
+    "click>=8.1.0,<9.0.0",
+    "cookiecutter>2.1.0, <3.0.0",
+    "cryptography>=42.0.5",
+    "databricks-cli>=0.17,<0.18",
+    "Jinja2>=2.11.2",
+    "mlflow-skinny>=2.0.0,<3.0.0",
+    "pathspec>=0.9.0",
+    "pydantic>=1.10.8,<2.0.0",
+    "pyyaml>=6.0",
+    "requests>=2.30.1,<3.0.0",
+    "rich==12.6.0",
+    "tenacity>=8.2.2,<=9.0.0",
+    "typer[all]==0.7.0",
+    "watchdog>=2.1.0",
+]
+
+[project.optional-dependencies]
+aws = ["boto3>=1.26.13,<2"]
+azure = [
+    "azure-identity>=1.12.0,<2.0.0",
+    "azure-storage-blob>=12.14.1,<13.0.0"
+]
+gcp = ["google-cloud-storage>=2.6.0,<3.0.0"]
+
+[tool.hatch.envs.default]
+python = "3.8"
+dependencies = [
+    "black>=22.3.0,<23.0.0",
+    "MarkupSafe>=2.1.1,<3.0.0",
+    "mccabe==0.6.1",
+    "mdx-include>=1.4.1,<2.0.0",
+    "mkdocs-click>=0.8.0,<1.0",
+    "mkdocs-git-revision-date-localized-plugin>=1.1.0,<=2.0",
+    "mkdocs-glightbox>=0.2.1,<1.0",
+    "mkdocs-markdownextradata-plugin>=0.1.7,<0.3.0",
+    "mkdocs-material>=9.0.8,<10.0.0",
+    "mkdocs>=1.1.2,<2.0.0",
+    "poetry>=1.2.0",
+    "pre-commit>=2.20.0,<4.0.0",
+    "prospector==1.7.7",
+    "pycodestyle==2.8.0",
+    "pyflakes==2.5.0",
+    "pylint==2.15.6",
+    "pytest-asyncio>=0.18.3,<1.0.0",
+    "pytest-clarity>=1.0.1,<2.0.0",
+    "pytest-cov>=4.0.0,<5.0.0",
+    "pytest-mock>=3.8.2,<3.12.0",
+    "pytest-timeout>=2.1.0,<3.0.0",
+    "pytest-xdist[psutil]>=2.5.0,<3.0.0",
+    "pytest>=7.1.3,<8.0.0",
+]
+[project.scripts]
+dbx = "dbx.cli:entrypoint"
+
 [tool.black]
 line-length = 120
 target-version = ['py38']
 exclude = '''
 /(
-  | dbx/templates/projects
+  | src/dbx/templates/projects
   | build
   | .venv
   | out
@@ -18,10 +104,12 @@ log_cli_level = "INFO"
 log_cli_format = "[pytest][%(asctime)s][%(levelname)s][%(module)s][%(funcName)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 log_level = "INFO"
-pythonpath = [
-  "."
-]
+pythonpath = ["."]
 
-markers = [
-  "disable_auto_execute_mock"
-]
+markers = ["disable_auto_execute_mock"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/dbx/_version.py"

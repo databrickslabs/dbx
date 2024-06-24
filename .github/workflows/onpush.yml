@@ -46,7 +46,7 @@ jobs:
       - name: Run integrity tests
         run: |
           python -m dbx --help
-          python -c "import dbx; print(dbx.__version__)"
+          python -c "from dbx._version import __version__; print(__version__)"
 
       - name: Publish test coverage
         if: startsWith(matrix.os,'ubuntu')
