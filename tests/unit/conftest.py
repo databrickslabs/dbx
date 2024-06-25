@@ -56,7 +56,14 @@ def invoke_cli_runner(*args, **kwargs):
 
 
 def initialize_cookiecutter(project_name):
-    init(template="python_basic", path=None, package=None, parameters=[f"project_name={project_name}"], no_input=True)
+    init(
+        template="python_basic",
+        path=None,
+        package=None,
+        parameters=[f"project_name={project_name}"],
+        no_input=True,
+        checkout=None,
+    )
 
 
 @contextlib.contextmanager
