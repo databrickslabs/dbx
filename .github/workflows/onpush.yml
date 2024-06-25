@@ -51,3 +51,5 @@ jobs:
       - name: Publish test coverage
         if: startsWith(matrix.os,'ubuntu')
         uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # required
