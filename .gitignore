@@ -93,3 +93,4 @@ out/
 
 site/
 .dbx/
+src/dbx/_version.py
