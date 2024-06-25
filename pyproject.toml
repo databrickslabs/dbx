@@ -90,13 +90,13 @@ target-version = ['py38']
 exclude = '''
 /(
   | src/dbx/templates/projects
-  | src/dbx/_version.py
   | build
   | .venv
   | out
 )/
 
 '''
+extend-exclude = "src/dbx/_version.py"
 
 [tool.pytest.ini_options]
 addopts = "-s -p no:warnings --timeout=3600 --ignore-glob='src/dbx/templates/*'"
