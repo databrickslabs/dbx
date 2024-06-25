@@ -90,6 +90,7 @@ target-version = ['py38']
 exclude = '''
 /(
   | src/dbx/templates/projects
+  | src/dbx/_version.py
   | build
   | .venv
   | out
