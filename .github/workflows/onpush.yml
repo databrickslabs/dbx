@@ -50,4 +50,4 @@ jobs:
 
       - name: Publish test coverage
         if: startsWith(matrix.os,'ubuntu')
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
