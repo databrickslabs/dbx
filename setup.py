@@ -45,7 +45,7 @@ DEV_REQUIREMENTS = [
     "mkdocs-git-revision-date-localized-plugin>=1.1.0,<=2.0",
     # pre-commit and linting utilities
     "pre-commit>=2.20.0,<4.0.0",
-    "pylint==2.15.6",
+    "pylint==3.2.5",
     "pycodestyle==2.8.0",
     "pyflakes==2.5.0",
     "mccabe==0.6.1",
