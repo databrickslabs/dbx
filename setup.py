@@ -47,7 +47,7 @@ DEV_REQUIREMENTS = [
     "pre-commit>=2.20.0,<4.0.0",
     "pylint==2.15.6",
     "pycodestyle==2.8.0",
-    "pyflakes==2.5.0",
+    "pyflakes==3.2.0",
     "mccabe==0.6.1",
     "prospector==1.7.7",
     "black>=22.3.0,<23.0.0",
