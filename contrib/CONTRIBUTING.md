@@ -19,7 +19,7 @@ To make e2e runs you'll need a Databricks account, and a configured profile.
 ### Prerequisites
 - `make`: This is the gnu make tool.
   - for mac: https://formulae.brew.sh/formula/make
-- `pyenv`: https://github.com/pyenv/pyenv
+- `hatch`: https://github.com/pypa/hatch
 
 Once you have the pre-requisites installed, you can run project functions like this:
 

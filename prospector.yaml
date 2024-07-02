@@ -5,7 +5,7 @@ doc-warnings: false
 ignore-paths:
   - build
   - tests
-  - dbx/templates
+  - src/dbx/templates
 
 max-line-length: 120
 
@@ -31,6 +31,7 @@ pylint:
     - raise-missing-from # pretty strange requirement with acquaint logic
     - broad-except
     - arguments-differ
+    - broad-exception-raised
 
 pycodestyle:
   # W293: disabled because we have newlines in docstrings

@@ -12,14 +12,6 @@ SHELL=/bin/bash
 
 
 ##############################################################################
-PYTHON_VERSION=3.8.13
-VENV_NAME := $(shell [ -d venv ] && echo venv || echo .venv)
-VENV_DIR=${VENV_NAME}
-PYTHON=${VENV_DIR}/bin/python
-RSTCHECK=${VENV_DIR}/bin/rstcheck
-SPHINX_AUTOBUILD=${VENV_DIR}/bin/sphinx-autobuild
-SPHINX_BUILD=${VENV_DIR}/bin/sphinx-build
-##############################################################################
 
 ##############################################################################
 # Terminal Colors:
@@ -84,12 +76,11 @@ clean: ## Clean .venv, dist, build
 	@echo ""
 	@echo "${YELLOW}Removing virtual environment ${NORMAL}"
 	@make helper-line
-	-rm .python-version
+	hatch env remove
 
 	@echo ""
 	@echo "${YELLOW}Remove temp files${NORMAL}"
 	@make helper-line
-	-rm -rf $(VENV_DIR)
 	-rm -rf dist/*
 	-rm -rf build/*
 	-rm -rf dbx.egg-info/*
@@ -103,52 +94,25 @@ clean: ## Clean .venv, dist, build
 
 	@make docs-clean
 
-##############################################################################
-# This chaining exists so that the virtual env target will not be invoked multiple times.
-# This config works because there is a file at this path "$(VENV_NAME)/bin/activate"
-# Once that file is created, it will not be change unless you run "make clean".
-# If the file did not change, then the target below with same name will be skipped.
-venv: $(VENV_NAME)/bin/activate
-
-$(VENV_NAME)/bin/activate:
-	@echo ""
-	@echo "${YELLOW}Init pyenv${NORMAL}"
-	@make helper-line
-	pyenv install -s ${PYTHON_VERSION}
-	pyenv local ${PYTHON_VERSION}
-
-	@echo ""
-	@echo "${YELLOW}Current python:${NORMAL}"
-	@make helper-line
-	@python --version
-
-	@echo ""
-	@echo "${YELLOW}Init venv in ${VENV_DIR}${NORMAL}"
-	@make helper-line
-	test -d $(VENV_NAME) || python -m venv $(VENV_NAME)
-
-	@echo ""
-	@echo "${YELLOW}Using ${PYTHON}${NORMAL}"
-	@make helper-line
-	$(PYTHON) --version
-	$(PYTHON) -m pip install --upgrade pip
-
 
 ##############################################################################
 
-install: venv install-e install-dev post-install-info ## >>> MAIN TARGET. Run this to start. <<<
+create-env:
+	hatch env create
+
+install: create-env install-e install-dev post-install-info ## >>> MAIN TARGET. Run this to start. <<<
 
 install-e: ## Install project as editable.
 	@echo ""
 	@echo "${YELLOW}Install project as editable${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pip install -e .
+	python -m pip install -e .
 
 install-dev: ## Install dev dependencies.
 	@echo ""
 	@echo "${YELLOW}Install Dev dependencies.${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pip install -e ".[dev]"
+	python -m pip install -e ".[dev]"
 
 post-install-info: ## Just some post installation info.
 	@echo ""
@@ -162,7 +126,7 @@ post-install-info: ## Just some post installation info.
 	@echo ""
 	@echo "${YELLOW}Optionally${NORMAL}: If you really need to, you can activate the venv in your"
 	@echo "terminal shell by running: "
-	@echo "    ${YELLOW}'source .venv/bin/activate'${NORMAL}"
+	@echo "    ${YELLOW}'hatch shell'${NORMAL}"
 	@echo ""
 	@echo "This will put any executable python tools installed above in the PATH, allowing you"
 	@echo "to run the tools from the shell if you really need to."
@@ -175,21 +139,20 @@ lint: ## Run the lint and checks
 	@echo ""
 	@echo "${YELLOW}Linting code:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m prospector --profile prospector.yaml
-	$(RSTCHECK) README.rst
+	python -m prospector --profile prospector.yaml
 	@make check
 
 check: ## Run black checks
 	@echo ""
 	@echo "${YELLOW}Check code with black:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m black --check .
+	python -m black --check .
 
 fix: ## fix the code with black formatter.
 	@echo ""
 	@echo "${YELLOW}Fixing code with black:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m black .
+	python -m black .
 
 ##############################################################################
 
@@ -197,7 +160,7 @@ test: ## Run the tests. (option): file=tests/path/to/file.py
 	@echo ""
 	@echo "${YELLOW}Running tests:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pytest -vv --cov dbx $(file) -n auto \
+	python -m pytest -vv --cov dbx $(file) -n auto \
 		--cov-report=xml \
 		--cov-report=term-missing:skip-covered
 
@@ -205,7 +168,7 @@ test-with-html-report: ## Run all tests with html reporter.
 	@echo ""
 	@echo "${YELLOW}Testing with html report:${NORMAL}"
 	@make helper-line
-	$(PYTHON) -m pytest --cov dbx -n auto --cov-report html -s
+	python -m pytest --cov dbx -n auto --cov-report html -s
 
 ##############################################################################
 
@@ -227,6 +190,4 @@ build: ## Build the package.
 	@echo ""
 	@echo "${YELLOW}Building the project:${NORMAL}"
 	@make helper-line
-	rm -rf dist/*
-	rm -rf build/*
-	$(PYTHON) setup.py clean bdist_wheel
+	hatch  build -c -t wheel

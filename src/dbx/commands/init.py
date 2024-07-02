@@ -32,6 +32,7 @@ def init(
     checkout: Optional[str] = typer.Option(
         None,
         "--checkout",
+        is_flag=False,
         help="""Checkout argument for cookiecutter. Used only if `--path` is used.""",
     ),
     parameters: Optional[List[str]] = typer.Option(

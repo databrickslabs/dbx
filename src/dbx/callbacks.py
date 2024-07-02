@@ -5,7 +5,7 @@ from typing import Optional
 
 import typer
 
-from dbx import __version__
+from dbx._version import __version__
 from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.utils import dbx_echo
 
