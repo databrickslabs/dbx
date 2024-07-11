@@ -1,3 +1,5 @@
+# reference configuration: https://github.com/databrickslabs/ucx/blob/main/.github/workflows/release.yml
+
 name: release
 
 on:
@@ -7,12 +9,13 @@ on:
 
 jobs:
   release:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      max-parallel: 1
-      matrix:
-        python-version: [ 3.8 ]
-        os: [ ubuntu-latest ]
+    environment: release
+    permissions:
+      # Used to authenticate to PyPI via OIDC and sign the release's artifacts with sigstore-python.
+      id-token: write
+      # Used to attach signing artifacts to the published release.
+      contents: write
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.8
           cache: 'pip'
 
       - name: Install pip
@@ -37,9 +40,6 @@ jobs:
 
       - name: Publish a Python distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.LABS_PYPI_TOKEN }}
 
       - name: Create Release
         id: create_release
