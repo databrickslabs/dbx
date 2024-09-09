@@ -37,7 +37,7 @@ dependencies = [
     "Jinja2>=2.11.2",
     "mlflow-skinny>=2.0.0,<3.0.0",
     "pathspec>=0.9.0",
-    "pydantic>=1.10.8,<2.0.0",
+    "pydantic>=1.10.8,<3.0.0",
     "pyyaml>=6.0",
     "requests>=2.30.1,<3.0.0",
     "rich>=12.6.0,<=13.0.0",
