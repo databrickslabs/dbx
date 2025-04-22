@@ -21,7 +21,7 @@ It's very handy for interactive development and data exploration.
 !!! danger "Don't use `dbx execute` for production workloads"
 
     It's not recommended to use `dbx execute` for production workloads. Run your workflows on the dedicated job clusters instead.
-    Reasoning is described in detail in the [concepts section](../concepts/cluster_types).
+    Reasoning is described in detail in the [concepts section](./concepts/cluster_types).
 
 In contrast to the `dbx execute`, `dbx launch` launches your workflow on a [dedicated job cluster](./concepts/cluster_types.md#job-clusters). This is a recommended way for CI pipelines, automated launches etc.
 

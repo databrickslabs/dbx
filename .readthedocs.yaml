@@ -18,4 +18,4 @@ mkdocs:
 python:
   install:
     - method: pip
-      path: ".[dev]"
+      path: ".[docs]"
