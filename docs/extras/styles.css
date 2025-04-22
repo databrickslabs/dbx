@@ -209,3 +209,34 @@
         padding-right: 0.5rem;
     }
 }
+
+.maintenance-banner {
+    color: #ffcc00;
+    text-align: center;
+    font-size: 1.2em;
+    z-index: 1000;
+    box-sizing: border-box;
+    text-wrap: pretty;
+    padding: 1em 4em;
+  }
+
+  /*
+  
+  .maintenance-banner > div {
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.6;
+    text-wrap: balance;
+  }
+
+  .maintenance-banner a {
+    color: #0057b7;
+    text-decoration: underline;
+    font-weight: bold;
+  }
+  
+  .maintenance-banner a:hover {
+    color: #003f87;
+  }
+  
+   */

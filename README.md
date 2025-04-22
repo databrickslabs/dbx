@@ -1,5 +1,21 @@
 # dbx by Databricks Labs
 
+<div>
+    <p align="center">
+        🚨 Dear users of <code>dbx</code>, please note that this project is <b>no longer actively maintained</b>. 🚨
+    </p>
+    <p align="center">
+        We recommend using <a href="https://docs.databricks.com/en/dev-tools/bundles/index.html">Databricks asset Bundles for CI/CD</a>.
+    </p>
+    <p align="center">
+        If you're looking for a programmatic approach, even more flexible than the existing Jinja-based
+        functionality, please check out <a href="https://docs.databricks.com/aws/en/dev-tools/bundles/python">
+            Python for Databricks Asset Bundles</a>. 🐍
+    </p>
+</div>
+
+---
+
 <p align="center">
     <a href="https://dbx.readthedocs.io/">
         <img src="https://raw.githubusercontent.com/databrickslabs/dbx/master/images/logo.svg" class="align-center" width="200" height="200" alt="logo" />
