@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import root_validator, validator
+from pydantic.v1 import root_validator, validator
 
 from dbx.models.validators import at_least_one_of
 from dbx.models.workflow.common.flexible import FlexibleModel

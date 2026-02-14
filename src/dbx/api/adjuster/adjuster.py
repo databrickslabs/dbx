@@ -1,7 +1,7 @@
 from typing import Any, List, Optional, Union
 
 from databricks_cli.sdk import ApiClient
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from dbx.api.adjuster.mixins.existing_cluster import ExistingClusterAdjuster
 from dbx.api.adjuster.mixins.file_reference import FileReferenceAdjuster

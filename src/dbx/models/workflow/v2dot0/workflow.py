@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import root_validator, validator
+from pydantic.v1 import root_validator, validator
 
 from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.deployment_config import DbxDeploymentConfig

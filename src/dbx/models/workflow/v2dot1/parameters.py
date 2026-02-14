@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import List, Optional
 
-from pydantic import BaseModel, validator
+from pydantic.v1 import BaseModel, validator
 
 from dbx.models.validators import check_dbt_commands
 from dbx.models.workflow.common.parameters import (

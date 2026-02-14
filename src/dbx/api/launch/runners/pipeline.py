@@ -4,7 +4,7 @@ from functools import partial
 from typing import List, Optional, Tuple
 
 from databricks_cli.sdk import ApiClient
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 from rich.console import Console
 
 from dbx.api.launch.pipeline_models import PipelineDetails, PipelineGlobalState

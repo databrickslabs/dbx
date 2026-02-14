@@ -1,5 +1,5 @@
 import pytest
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
 from dbx.models.workflow.v2dot1.job_cluster import JobClustersMixin
 

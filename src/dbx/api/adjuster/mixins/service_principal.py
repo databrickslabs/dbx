@@ -1,7 +1,7 @@
 import functools
 from typing import Any, List
 
-from pydantic import Field
+from pydantic.v1 import Field
 
 from dbx.api.adjuster.mixins.base import ApiClientMixin, ElementSetterMixin
 from dbx.models.workflow.common.flexible import FlexibleModel

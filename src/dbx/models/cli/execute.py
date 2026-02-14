@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from pydantic import root_validator
+from pydantic.v1 import root_validator
 
 from dbx.models.validators import at_least_one_of, mutually_exclusive
 from dbx.models.workflow.common.parameters import NamedParametersMixin, ParametersMixin

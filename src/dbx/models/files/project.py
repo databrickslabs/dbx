@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Dict, Optional, Union
 
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from dbx.constants import PROJECT_INFO_FILE_PATH
 from dbx.utils import dbx_echo

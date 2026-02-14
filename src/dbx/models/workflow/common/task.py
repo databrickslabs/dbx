@@ -2,7 +2,7 @@ from abc import ABC
 from pathlib import Path
 from typing import Optional
 
-from pydantic import root_validator, validator
+from pydantic.v1 import root_validator, validator
 
 from dbx.constants import TASKS_SUPPORTED_IN_EXECUTE
 from dbx.models.cli.execute import ExecuteParametersPayload
