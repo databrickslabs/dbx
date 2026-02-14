@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 ParamPair = Optional[Dict[str, str]]
 StringArray = Optional[List[str]]

@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import validator
+from pydantic.v1 import validator
 
 from dbx.models.workflow.common.access_control import AccessControlMixin
 from dbx.models.workflow.common.flexible import FlexibleModel

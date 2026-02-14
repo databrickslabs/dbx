@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
 from dbx.models.cli.execute import ExecuteParametersPayload
 from dbx.models.workflow.common.task import BaseTaskMixin, SparkJarTask, SparkPythonTask, SparkSubmitTask

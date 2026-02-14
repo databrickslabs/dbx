@@ -1,7 +1,7 @@
 import collections
 from typing import Any, Dict, List, Optional
 
-from pydantic import root_validator
+from pydantic.v1 import root_validator
 
 from dbx.models.workflow.common.flexible import FlexibleModel
 from dbx.models.workflow.common.new_cluster import NewCluster

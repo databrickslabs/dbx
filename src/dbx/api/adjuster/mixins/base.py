@@ -1,7 +1,7 @@
 from abc import ABC
 
 from databricks_cli.sdk import ApiClient
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from dbx.models.workflow.common.flexible import FlexibleModel
 

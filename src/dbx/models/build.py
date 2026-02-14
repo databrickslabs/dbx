@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 from rich.console import Console
 
 from dbx.api.build import cleanup_dist, execute_shell_command

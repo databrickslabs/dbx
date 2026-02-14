@@ -90,7 +90,7 @@ clean: ## Clean .venv, dist, build
 	@echo ""
 	@echo "${YELLOW}Current python:${NORMAL}"
 	@make helper-line
-	@python --version
+	@python3 --version
 
 	@make docs-clean
 
@@ -106,13 +106,13 @@ install-e: ## Install project as editable.
 	@echo ""
 	@echo "${YELLOW}Install project as editable${NORMAL}"
 	@make helper-line
-	python -m pip install -e .
+	python3 -m pip install -e .
 
 install-dev: ## Install dev dependencies.
 	@echo ""
 	@echo "${YELLOW}Install Dev dependencies.${NORMAL}"
 	@make helper-line
-	python -m pip install -e ".[dev]"
+	python3 -m pip install -e ".[dev]"
 
 post-install-info: ## Just some post installation info.
 	@echo ""
@@ -139,20 +139,20 @@ lint: ## Run the lint and checks
 	@echo ""
 	@echo "${YELLOW}Linting code:${NORMAL}"
 	@make helper-line
-	python -m prospector --profile prospector.yaml
+	python3 -m prospector --profile prospector.yaml
 	@make check
 
 check: ## Run black checks
 	@echo ""
 	@echo "${YELLOW}Check code with black:${NORMAL}"
 	@make helper-line
-	python -m black --check .
+	python3 -m black --check .
 
 fix: ## fix the code with black formatter.
 	@echo ""
 	@echo "${YELLOW}Fixing code with black:${NORMAL}"
 	@make helper-line
-	python -m black .
+	python3 -m black .
 
 ##############################################################################
 
@@ -160,7 +160,7 @@ test: ## Run the tests. (option): file=tests/path/to/file.py
 	@echo ""
 	@echo "${YELLOW}Running tests:${NORMAL}"
 	@make helper-line
-	python -m pytest -vv --cov dbx $(file) -n auto \
+	python3 -m pytest -vv --cov dbx $(file) -n auto \
 		--cov-report=xml \
 		--cov-report=term-missing:skip-covered
 
@@ -168,7 +168,7 @@ test-with-html-report: ## Run all tests with html reporter.
 	@echo ""
 	@echo "${YELLOW}Testing with html report:${NORMAL}"
 	@make helper-line
-	python -m pytest --cov dbx -n auto --cov-report html -s
+	python3 -m pytest --cov dbx -n auto --cov-report html -s
 
 ##############################################################################
 

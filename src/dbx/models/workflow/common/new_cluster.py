@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import root_validator, validator
+from pydantic.v1 import root_validator, validator
 
 from dbx.models.workflow.common.flexible import FlexibleModel
 

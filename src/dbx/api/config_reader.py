@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import jinja2
 import yaml
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 import dbx.api.jinja as dbx_jinja
 from dbx.api._module_loader import load_module_from_source

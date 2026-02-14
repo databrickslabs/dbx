@@ -1,7 +1,7 @@
 import collections
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import root_validator, validator
+from pydantic.v1 import root_validator, validator
 
 from dbx.models.validators import at_least_one_of, mutually_exclusive
 from dbx.models.workflow.common.access_control import AccessControlMixin

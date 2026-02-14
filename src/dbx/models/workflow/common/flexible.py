@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import BaseModel, Extra
+from pydantic.v1 import BaseModel, Extra
 
 from dbx.utils import dbx_echo
 
